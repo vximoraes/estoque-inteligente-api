@@ -1,0 +1,79 @@
+services:
+    mongodb:
+        container_name: mongodb-componentes-eletronicos
+        image: mongo:8
+        volumes:
+            - vol-mongodb:/data/db
+        command: mongod --quiet --logpath /dev/null
+        ports:
+            - "27017:27017"
+        restart: always
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/componentes-eletronicos --quiet
+            interval: 10s
+            timeout: 10s
+            retries: 5
+            start_period: 40s
+
+    minio:
+        image: minio/minio:latest
+        container_name: minio-componentes-eletronicos
+        command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+        ports:
+            - "${MINIO_PORT}:${MINIO_PORT}"
+            - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}"
+        environment:
+            - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+            - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+            - MINIO_BROWSER_REDIRECT_URL=http://localhost:${MINIO_CONSOLE_PORT}
+        volumes:
+            - ./minio-data:/data
+        restart: always
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:${MINIO_PORT}/minio/health/live"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    api:
+        container_name: componentes-eletronicos-api
+        build: .
+        ports:
+            - "${PORT}:${PORT}"
+        environment:
+            - NODE_ENV=production
+            - DB_URL=mongodb://mongodb:27017/componentes-eletronicos
+            - MINIO_ENDPOINT=minio
+            - MINIO_PORT=${MINIO_PORT}
+            - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+            - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+            - MINIO_BUCKET=${MINIO_BUCKET}
+            - MINIO_BUCKET_2=${MINIO_BUCKET_2}
+            - MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL}
+        env_file:
+            - .env
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+        restart: always
+
+    frontend:
+        container_name: componentes-eletronicos-front
+        build:
+            context: ../componentes-eletronicos-front
+            dockerfile: Dockerfile
+            args:
+                - NEXT_PUBLIC_API_URL=http://localhost:${PORT}
+        ports:
+            - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+        env_file:
+            - ../componentes-eletronicos-front/.env.local
+        restart: always
+        depends_on:
+            - api
+
+volumes:
+    vol-mongodb:
+    vol-minio:

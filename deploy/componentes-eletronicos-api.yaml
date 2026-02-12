@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: componentes-eletronicos-api
+  name: componentes-eletronicos-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: componentes-eletronicos-api
+  template:
+    metadata:
+      labels:
+        io.kompose.service: componentes-eletronicos-api
+    spec:
+      restartPolicy: Always
+      
+      securityContext:
+        fsGroup: 1000
+      
+      containers:
+        - name: componentes-eletronicos-api
+          image: vximoraes/componentes-eletronicos-api:latest
+          imagePullPolicy: Always
+          
+          ports:
+            - containerPort: 3010
+              protocol: TCP
+          
+          envFrom:
+            - configMapRef:
+                name: componentes-eletronicos-env
+          
+          resources: {}
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3010
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3010
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: componentes-eletronicos-api
+  name: componentes-eletronicos-api
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3010
+    protocol: TCP
+  selector:
+    io.kompose.service: componentes-eletronicos-api

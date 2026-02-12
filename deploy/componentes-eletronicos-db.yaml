@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: componentes-eletronicos-mongodb
+  name: vol-componentes-eletronicos-mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000Mi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: componentes-eletronicos-mongodb
+  name: componentes-eletronicos-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: componentes-eletronicos-mongodb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: componentes-eletronicos-mongodb
+    spec:
+      containers:
+        - image: mongo:8
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - db.adminCommand('ping')
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: componentes-eletronicos-mongodb
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: componentes-eletronicos-env
+          volumeMounts:
+            - mountPath: /data/db
+              name: vol-componentes-eletronicos-mongodb
+      restartPolicy: Always
+      volumes:
+        - name: vol-componentes-eletronicos-mongodb
+          persistentVolumeClaim:
+            claimName: vol-componentes-eletronicos-mongodb
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: componentes-eletronicos-mongodb
+  name: componentes-eletronicos-mongodb
+spec:
+  type: ClusterIP
+  ports:
+    - name: "27017"
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: componentes-eletronicos-mongodb
