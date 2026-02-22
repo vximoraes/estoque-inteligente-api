@@ -34,26 +34,26 @@ const criarMovimentacaoValida = async (tipo = 'entrada', override = {}) => {
     // Aguarda persistência das entidades dependentes
     await new Promise(r => setTimeout(r, 200));
     
-    // Cria componente com todos os campos obrigatórios
-    const componenteNome = `Resistor ${unique}`;
+    // Cria item com todos os campos obrigatórios
+    const itemNome = `Resistor ${unique}`;
     const compRes = await request(BASE_URL)
-        .post('/componentes')
+        .post('/items')
         .set('Authorization', `Bearer ${token}`)
         .send({ 
-            nome: componenteNome, 
+            nome: itemNome, 
             categoria, 
             quantidade: 100, 
             estoque_minimo: "10", 
             valor_unitario: "0.5"
         });
-    const componente = compRes.body?.data?._id;
-    expect(componente).toBeTruthy();
+    const item = compRes.body?.data?._id;
+    expect(item).toBeTruthy();
     
     // Aguarda mais um pouco para garantir que todas as entidades estejam persistidas
     await new Promise(r => setTimeout(r, 150));
     
     return {
-        componente,
+        item,
         tipo,
         quantidade: "10",
         localizacao,

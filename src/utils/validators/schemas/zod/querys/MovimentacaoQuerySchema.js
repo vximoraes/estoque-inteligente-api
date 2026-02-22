@@ -29,7 +29,7 @@ export const MovimentacaoQuerySchema = z.object({
         .refine((val) => val === undefined || Number.isInteger(val), {
             message: "Quantidade deve ser um número inteiro",
         }),
-    componente: z
+    item: z
         .string()
         .optional()
         .transform((val) => val?.trim()),

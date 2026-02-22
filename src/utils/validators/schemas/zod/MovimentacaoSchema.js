@@ -24,7 +24,7 @@ const MovimentacaoSchema = z.object({
         .refine((val) => val === undefined || (val >= 0 && val <= 999999999), {
             message: "Quantidade: 0 a 999.999.999",
         }),
-    componente:
+    item:
         objectIdSchema,
     localizacao:
         objectIdSchema,

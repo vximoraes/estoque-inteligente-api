@@ -3,7 +3,7 @@ import { CategoriaSchema, CategoriaUpdateSchema } from '../../../../../../utils/
 describe('CategoriaSchema', () => {
     it('deve validar dados válidos corretamente', () => {
         const dadosValidos = {
-            nome: 'Componentes',
+            nome: 'Items',
             ativo: false,
         };
         const resultado = CategoriaSchema.parse(dadosValidos);

@@ -24,8 +24,8 @@ describe('Model Orcamento', () => {
         const orcamento = await Orcamento.create({
             nome: 'Orçamento 1',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{
-                componente: new mongoose.Types.ObjectId(),
+            items: [{
+                item: new mongoose.Types.ObjectId(),
                 nome: 'Resistor',
                 fornecedor: new mongoose.Types.ObjectId(),
                 quantidade: 10,
@@ -33,7 +33,7 @@ describe('Model Orcamento', () => {
             }],
         });
         expect(orcamento._id).toBeDefined();
-        expect(orcamento.componentes.length).toBe(1);
+        expect(orcamento.items.length).toBe(1);
         expect(orcamento.total).toBe(100);
     });
 
@@ -46,9 +46,9 @@ describe('Model Orcamento', () => {
         const orcamento = await Orcamento.create({
             nome: 'Orçamento Soma',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [
-                { componente: new mongoose.Types.ObjectId(), nome: 'A', fornecedor: new mongoose.Types.ObjectId(), quantidade: 2, valor_unitario: 10 },
-                { componente: new mongoose.Types.ObjectId(), nome: 'B', fornecedor: new mongoose.Types.ObjectId(), quantidade: 4, valor_unitario: 10 },
+            items: [
+                { item: new mongoose.Types.ObjectId(), nome: 'A', fornecedor: new mongoose.Types.ObjectId(), quantidade: 2, valor_unitario: 10 },
+                { item: new mongoose.Types.ObjectId(), nome: 'B', fornecedor: new mongoose.Types.ObjectId(), quantidade: 4, valor_unitario: 10 },
             ],
         });
         expect(orcamento.total).toBe(60);
@@ -58,7 +58,7 @@ describe('Model Orcamento', () => {
         await Orcamento.create({
             nome: 'BuscaNome',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ componente: new mongoose.Types.ObjectId(), nome: 'X', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
+            items: [{ item: new mongoose.Types.ObjectId(), nome: 'X', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
         });
         const found = await Orcamento.findOne({ nome: 'BuscaNome' });
         expect(found).not.toBeNull();
@@ -69,7 +69,7 @@ describe('Model Orcamento', () => {
         const orcamento = await Orcamento.create({
             nome: 'BuscaId',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ componente: new mongoose.Types.ObjectId(), nome: 'Y', fornecedor: new mongoose.Types.ObjectId(), quantidade: 2, valor_unitario: 10 }],
+            items: [{ item: new mongoose.Types.ObjectId(), nome: 'Y', fornecedor: new mongoose.Types.ObjectId(), quantidade: 2, valor_unitario: 10 }],
         });
         const found = await Orcamento.findById(orcamento._id);
         expect(found).not.toBeNull();
@@ -80,7 +80,7 @@ describe('Model Orcamento', () => {
         const orcamento = await Orcamento.create({
             nome: 'Atualiza',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ componente: new mongoose.Types.ObjectId(), nome: 'Z', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
+            items: [{ item: new mongoose.Types.ObjectId(), nome: 'Z', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
         });
         orcamento.nome = 'Atualizado';
         await orcamento.save();
@@ -92,21 +92,21 @@ describe('Model Orcamento', () => {
         const orcamento = await Orcamento.create({
             nome: 'Remove',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ componente: new mongoose.Types.ObjectId(), nome: 'W', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
+            items: [{ item: new mongoose.Types.ObjectId(), nome: 'W', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
         });
         await Orcamento.findByIdAndDelete(orcamento._id);
         const found = await Orcamento.findById(orcamento._id);
         expect(found).toBeNull();
     });
 
-    it('deve adicionar componente ao orçamento', async () => {
+    it('deve adicionar item ao orçamento', async () => {
         const orcamento = await Orcamento.create({
             nome: 'AddComp',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ componente: new mongoose.Types.ObjectId(), nome: 'V', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
+            items: [{ item: new mongoose.Types.ObjectId(), nome: 'V', fornecedor: new mongoose.Types.ObjectId(), quantidade: 1, valor_unitario: 10 }],
         });
-        orcamento.componentes.push({ 
-            componente: new mongoose.Types.ObjectId(), 
+        orcamento.items.push({ 
+            item: new mongoose.Types.ObjectId(), 
             nome: 'Novo', 
             fornecedor: new mongoose.Types.ObjectId(), 
             quantidade: 2, 
@@ -114,15 +114,15 @@ describe('Model Orcamento', () => {
         });
         await orcamento.save();
         const found = await Orcamento.findById(orcamento._id);
-        expect(found.componentes.length).toBe(2);
+        expect(found.items.length).toBe(2);
         expect(found.total).toBe(20);
     });
 
-    it('não deve permitir componente sem campos obrigatórios', async () => {
+    it('não deve permitir item sem campos obrigatórios', async () => {
         await expect(Orcamento.create({
             nome: 'SemComp',
             usuario: new mongoose.Types.ObjectId(),
-            componentes: [{ nome: 'Invalido' }],
+            items: [{ nome: 'Invalido' }],
         })).rejects.toThrow();
     });
 });

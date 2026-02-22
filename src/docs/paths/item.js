@@ -1,19 +1,19 @@
-import componentesSchemas from "../schemas/componenteSchema.js";
+import itemsSchemas from "../schemas/itemSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
 import { generateParameters } from "./utils/generateParameters.js";
 
-const componentesRoutes = {
-    "/componentes": {
+const itemsRoutes = {
+    "/items": {
         post: {
-            tags: ["Componentes"],
-            summary: "Cria um novo componente",
+            tags: ["Items"],
+            summary: "Cria um novo item",
             description: `
-            + Caso de uso: Criação de novo componente eletrônico no sistema.
+            + Caso de uso: Criação de novo item do estoque no sistema.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado criar um novo componente eletrônico com todas as informações necessárias.
+                - Permitir ao usuário autenticado criar um novo item do estoque com todas as informações necessárias.
                 + Recebe no corpo da requisição:
-                    - Objeto conforme schema **ComponentePost**, contendo dados do componente.
+                    - Objeto conforme schema **ItemPost**, contendo dados do item.
 
             + Regras de Negócio:
                 - Campos obrigatórios: nome, estoque_minimo, categoria.
@@ -28,20 +28,20 @@ const componentesRoutes = {
                 - Quantidade inicial é 0 (atualizada automaticamente baseada no estoque por localização).
 
             + Resultado Esperado:
-                - HTTP 201 Created com corpo conforme **ComponenteDetalhes**, contendo todos os dados do componente criado.
+                - HTTP 201 Created com corpo conforme **ItemDetalhes**, contendo todos os dados do item criado.
             `,
             security: [{ bearerAuth: [] }],
             requestBody: {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/ComponentePost"
+                            $ref: "#/components/schemas/ItemPost"
                         }
                     }
                 }
             },
             responses: {
-                201: commonResponses[201]("#/components/schemas/ComponenteDetalhes"),
+                201: commonResponses[201]("#/components/schemas/ItemDetalhes"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 409: commonResponses[409](),
@@ -51,13 +51,13 @@ const componentesRoutes = {
         },
         
         get: {
-            tags: ["Componentes"],
-            summary: "Lista todos os componentes",
+            tags: ["Items"],
+            summary: "Lista todos os items",
             description: `
-        + Caso de uso: Listagem de componentes para gerenciamento e consulta.
+        + Caso de uso: Listagem de items para gerenciamento e consulta.
         
         + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de componentes cadastrados.
+            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de items cadastrados.
             + Recebe como query parameters (opcionais):
                 • filtros: nome, categoria, ativo, status, estoque_minimo, quantidade.  
                 • paginação: page (número da página), limite (quantidade de itens por página).
@@ -67,15 +67,15 @@ const componentesRoutes = {
             - Respeitar as permissões do usuário autenticado.  
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
-            - Retorna componentes populados com dados de categoria e localização.
+            - Retorna items populados com dados de categoria e localização.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **ComponenteListagem**, contendo:
-                • **data**: array de componentes.  
+            - 200 OK com corpo conforme schema **ItemListagem**, contendo:
+                • **data**: array de items.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
             security: [{ bearerAuth: [] }],
-            parameters: generateParameters(componentesSchemas.ComponenteFiltro).concat([
+            parameters: generateParameters(itemsSchemas.ItemFiltro).concat([
                 {
                     name: "page",
                     in: "query",
@@ -102,11 +102,11 @@ const componentesRoutes = {
             ]),
             responses: {
                 200: {
-                    description: "Lista de componentes retornada com sucesso",
+                    description: "Lista de items retornada com sucesso",
                     content: {
                         "application/json": {
                             schema: {
-                                $ref: "#/components/schemas/ComponenteListagem"
+                                $ref: "#/components/schemas/ItemListagem"
                             }
                         }
                     }
@@ -119,26 +119,26 @@ const componentesRoutes = {
             }
         },
     },
-    "/componentes/{id}": {
+    "/items/{id}": {
         get: {
-            tags: ["Componentes"],
-            summary: "Obtém detalhes de um componente",
+            tags: ["Items"],
+            summary: "Obtém detalhes de um item",
             description: `
-            + Caso de uso: Consulta de detalhes de componente específico.
+            + Caso de uso: Consulta de detalhes de item específico.
             
             + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de um componente cadastrado.
+                - Permitir à front-end, App Mobile ou serviços obter todas as informações de um item cadastrado.
                 + Recebe como path parameter:
-                    - **id**: identificador do componente (MongoDB ObjectId).
+                    - **id**: identificador do item (MongoDB ObjectId).
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência do componente.  
-                - Retorna componente populado com dados de categoria e localização.
+                - Verificar existência do item.  
+                - Retorna item populado com dados de categoria e localização.
                 - Checar permissões do solicitante para visualizar dados.
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **ComponenteDetalhes**, contendo dados completos do componente.
+                - HTTP 200 OK com corpo conforme **ItemDetalhes**, contendo dados completos do item.
         `,
             security: [{ bearerAuth: [] }],
             parameters: [
@@ -149,11 +149,11 @@ const componentesRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             responses: {
-                200: commonResponses[200]("#/components/schemas/ComponenteDetalhes"),
+                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
@@ -163,26 +163,26 @@ const componentesRoutes = {
         },
 
         patch: {
-            tags: ["Componentes"],
-            summary: "Atualiza um componente",
+            tags: ["Items"],
+            summary: "Atualiza um item",
             description: `
-            + Caso de uso: Atualização parcial de dados do componente.
+            + Caso de uso: Atualização parcial de dados do item.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado modificar informações do componente.
+                - Permitir ao usuário autenticado modificar informações do item.
                 + Recebe:
                     - **id** no path.  
-                    - No corpo, objeto conforme **ComponentePutPatch** com os campos a alterar.
+                    - No corpo, objeto conforme **ItemPutPatch** com os campos a alterar.
 
             + Regras de Negócio:
                 - Permite atualização parcial de campos.
                 - Não permite alterar quantidade diretamente (apenas via movimentação).
-                - Garantir unicidade do nome do componente.  
-                - Verificar se o componente existe antes de atualizar.
+                - Garantir unicidade do nome do item.  
+                - Verificar se o item existe antes de atualizar.
                 - Validar se categoria e localização existem (se informados).
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **ComponenteDetalhes**, refletindo as alterações.
+                - HTTP 200 OK com corpo conforme **ItemDetalhes**, refletindo as alterações.
         `,
             security: [{ bearerAuth: [] }],
             parameters: [
@@ -193,20 +193,20 @@ const componentesRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             requestBody: {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/ComponentePutPatch"
+                            $ref: "#/components/schemas/ItemPutPatch"
                         }
                     }
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/ComponenteDetalhes"),
+                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
@@ -216,27 +216,27 @@ const componentesRoutes = {
             }
         }
     },
-    "/componentes/{id}/inativar": {
+    "/items/{id}/inativar": {
         patch: {
-            tags: ["Componentes"],
-            summary: "Inativa um componente",
+            tags: ["Items"],
+            summary: "Inativa um item",
             description: `
-            + Caso de uso: Inativação de componente preservando integridade referencial.
+            + Caso de uso: Inativação de item preservando integridade referencial.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado inativar um componente sem removê-lo fisicamente.
+                - Permitir ao usuário autenticado inativar um item sem removê-lo fisicamente.
                 - Substitui a remoção física para manter histórico e integridade referencial.
                 + Recebe como path parameter:
-                    - **id**: identificador do componente.
+                    - **id**: identificador do item.
 
             + Regras de Negócio:
-                - Verificar se o componente existe antes de inativar.
+                - Verificar se o item existe antes de inativar.
                 - Altera o campo 'ativo' para false.
                 - Mantém todos os vínculos e histórico intactos.
                 - Registrar log de auditoria sobre a operação.
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **ComponenteDetalhes**, com ativo = false.
+                - HTTP 200 OK com corpo conforme **ItemDetalhes**, com ativo = false.
             `,
             security: [{ bearerAuth: [] }],
             parameters: [
@@ -247,11 +247,11 @@ const componentesRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             responses: {
-                200: commonResponses[200]("#/components/schemas/ComponenteDetalhes"),
+                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
                 400: commonResponses[400](),
                 401: commonResponses[401](),
                 404: commonResponses[404](),
@@ -260,29 +260,29 @@ const componentesRoutes = {
             }
         }
     },
-    "/componentes/{id}/foto": {
+    "/items/{id}/foto": {
         post: {
-            tags: ["Componentes"],
-            summary: "Faz upload da foto do componente",
+            tags: ["Items"],
+            summary: "Faz upload da foto do item",
             description: `
-            + Caso de uso: Upload de foto do componente eletrônico.
+            + Caso de uso: Upload de foto do item do estoque.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado fazer upload de uma foto do componente para facilitar identificação visual.
+                - Permitir ao usuário autenticado fazer upload de uma foto do item para facilitar identificação visual.
                 + Recebe como path parameter:
-                    - **id**: identificador do componente (MongoDB ObjectId).
+                    - **id**: identificador do item (MongoDB ObjectId).
                 + Recebe no corpo da requisição:
                     - Arquivo de imagem via multipart/form-data no campo 'file'.
 
             + Regras de Negócio:
-                - Componente deve existir e estar ativo.
+                - Item deve existir e estar ativo.
                 - Arquivo deve ser uma imagem válida (formatos aceitos pelo multer).
                 - Tamanho do arquivo deve respeitar os limites configurados.
-                - Usuário deve ter permissão para alterar componentes.
+                - Usuário deve ter permissão para alterar items.
 
             + Resultado Esperado:
-                - HTTP 201 Created com dados do componente atualizado incluindo caminho da foto.
-                - Em caso de componente inexistente, retorna erro 404.
+                - HTTP 201 Created com dados do item atualizado incluindo caminho da foto.
+                - Em caso de item inexistente, retorna erro 404.
                 - Em caso de arquivo inválido, retorna erro 400.
             `,
             security: [{ bearerAuth: [] }],
@@ -294,7 +294,7 @@ const componentesRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             requestBody: {
@@ -308,7 +308,7 @@ const componentesRoutes = {
                                 file: {
                                     type: "string",
                                     format: "binary",
-                                    description: "Arquivo de imagem do componente"
+                                    description: "Arquivo de imagem do item"
                                 }
                             }
                         }
@@ -321,7 +321,7 @@ const componentesRoutes = {
                     content: {
                         "application/json": {
                             schema: {
-                                $ref: "#/components/schemas/ComponenteUploadFotoResposta"
+                                $ref: "#/components/schemas/ItemUploadFotoResposta"
                             }
                         }
                     }
@@ -334,25 +334,25 @@ const componentesRoutes = {
             }
         },
         delete: {
-            tags: ["Componentes"],
-            summary: "Deleta a foto do componente",
+            tags: ["Items"],
+            summary: "Deleta a foto do item",
             description: `
-            + Caso de uso: Remoção da foto do componente eletrônico.
+            + Caso de uso: Remoção da foto do item do estoque.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado remover a foto de um componente do sistema de armazenamento.
+                - Permitir ao usuário autenticado remover a foto de um item do sistema de armazenamento.
                 + Recebe como path parameter:
-                    - **id**: identificador do componente (MongoDB ObjectId).
+                    - **id**: identificador do item (MongoDB ObjectId).
 
             + Regras de Negócio:
-                - Componente deve existir no sistema.
+                - Item deve existir no sistema.
                 - Remove o arquivo de imagem do MinIO/S3.
-                - Usuário deve ter permissão para alterar componentes.
+                - Usuário deve ter permissão para alterar items.
                 - Operação é irreversível.
 
             + Resultado Esperado:
                 - HTTP 200 OK - Foto deletada com sucesso.
-                - Em caso de componente inexistente, retorna erro 404.
+                - Em caso de item inexistente, retorna erro 404.
                 - Em caso de erro no serviço de armazenamento, retorna erro 500.
             `,
             security: [{ bearerAuth: [] }],
@@ -364,7 +364,7 @@ const componentesRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             responses: {
@@ -378,4 +378,4 @@ const componentesRoutes = {
     }
 };
 
-export default componentesRoutes;
+export default itemsRoutes;

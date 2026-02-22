@@ -1,6 +1,6 @@
-# 🔌 Sistema de Gestão de Componentes Eletrônicos
+# Estoque Inteligente API
 
-Back-end para gerenciamento de estoque de componentes eletrônicos.
+Back-end para gerenciamento de estoque inteligente.
 
 ## Índice
 - [Funcionalidades](#-funcionalidades)
@@ -18,13 +18,13 @@ Back-end para gerenciamento de estoque de componentes eletrônicos.
 ## Funcionalidades
 
 - **Gestão de Usuários**: Cadastro, autenticação e controle de acesso
-- **Gerenciamento de Componentes**: CRUD completo de componentes eletrônicos
+- **Gerenciamento de Itens**: CRUD completo de itens do estoque
 - **Controle de Estoque**: Monitoramento de quantidades e alertas de estoque mínimo
-- **Organização por Categorias**: Classificação de componentes por categoria
-- **Localização de Componentes**: Controle de onde cada componente está armazenado
+- **Organização por Categorias**: Classificação de itens por categoria
+- **Localização de Itens**: Controle de onde cada item está armazenado
 - **Fornecedores**: Gestão de dados de fornecedores
 - **Movimentações**: Histórico de entradas e saídas de estoque
-- **Orçamentos**: Sistema de orçamentação com componentes
+- **Orçamentos**: Sistema de orçamentação com itens
 - **Notificações**: Sistema de notificações para alertas
 
 ## Tecnologias Utilizadas
@@ -51,17 +51,6 @@ Back-end para gerenciamento de estoque de componentes eletrônicos.
 - MongoDB (local ou Atlas)
 - Git
 
-### Clonando o Repositório
-```bash
-git clone https://gitlab.fslab.dev/f-brica-de-software-ii-2025-1/componentes-eletronicos.git
-cd componentes-eletronicos
-```
-
-### Instalando Dependências
-```bash
-npm install
-```
-
 ## Configuração
 
 ### Variáveis de Ambiente
@@ -73,8 +62,8 @@ PORT=3010
 
 # URL de conexão com o banco MongoDB
 # Exemplos:
-#   Local:  mongodb://localhost:27017/componentes-eletronicos
-#   Atlas:  mongodb+srv://<usuario>:<senha>@<cluster>.mongodb.net/componentes-eletronicos?retryWrites=true&w=majority
+#   Local:  mongodb://localhost:27017/estoque-inteligente
+#   Atlas:  mongodb+srv://<usuario>:<senha>@<cluster>.mongodb.net/estoque-inteligente?retryWrites=true&w=majority
 DB_URL="sua_url"
 
 # URL de conexão com o banco de testes (opcional)
@@ -154,7 +143,7 @@ docker compose down -v
 ## Estrutura do Projeto
 
 ```
-componentes-eletronicos/
+estoque-inteligente-api/
 ├── src/
 │   ├── app.js                 # Configuração principal da aplicação
 │   ├── config/
@@ -191,12 +180,12 @@ componentes-eletronicos/
 - `PUT /usuarios/:id` - Atualizar usuário
 - `DELETE /usuarios/:id` - Excluir usuário
 
-### Componentes
-- `GET /componentes` - Listar componentes
-- `GET /componentes/:id` - Buscar componente por ID
-- `POST /componentes` - Criar componente
-- `PUT /componentes/:id` - Atualizar componente
-- `DELETE /componentes/:id` - Excluir componente
+### Items
+- `GET /items` - Listar itens
+- `GET /items/:id` - Buscar item por ID
+- `POST /items` - Criar item
+- `PUT /items/:id` - Atualizar item
+- `DELETE /items/:id` - Excluir item
 
 ### Categorias
 - `GET /categorias` - Listar categorias

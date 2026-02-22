@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Componente from '../../../../src/models/Componente.js';
+import Item from '../../../../src/models/Item.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;
@@ -17,12 +17,12 @@ afterAll(async () => {
 
 afterEach(async () => {
     jest.clearAllMocks();
-    await Componente.deleteMany({});
+    await Item.deleteMany({});
 });
 
-describe('Modelo de Componente', () => {
-    it('deve criar um componente com dados válidos', async () => {
-        const componenteData = {
+describe('Modelo de Item', () => {
+    it('deve criar um item com dados válidos', async () => {
+        const itemData = {
             nome: 'Resistor 10k',
             estoque_minimo: 10,
             descricao: 'Resistor de 10k Ohms',
@@ -30,21 +30,21 @@ describe('Modelo de Componente', () => {
             categoria: new mongoose.Types.ObjectId(),
             usuario: new mongoose.Types.ObjectId()
         };
-        const componente = new Componente(componenteData);
-        await componente.save();
-        const saved = await Componente.findById(componente._id);
-        expect(saved.nome).toBe(componenteData.nome);
+        const item = new Item(itemData);
+        await item.save();
+        const saved = await Item.findById(item._id);
+        expect(saved.nome).toBe(itemData.nome);
         expect(saved.quantidade).toBe(0);
-        expect(saved.estoque_minimo).toBe(componenteData.estoque_minimo);
-        expect(saved.descricao).toBe(componenteData.descricao);
-        expect(saved.imagem).toBe(componenteData.imagem);
-        expect(saved.categoria.toString()).toBe(componenteData.categoria.toString());
+        expect(saved.estoque_minimo).toBe(itemData.estoque_minimo);
+        expect(saved.descricao).toBe(itemData.descricao);
+        expect(saved.imagem).toBe(itemData.imagem);
+        expect(saved.categoria.toString()).toBe(itemData.categoria.toString());
         expect(saved.ativo).toBe(true);
         expect(saved.status).toBe('Indisponível');
     });
 
-    it('deve criar componente com status padrão quando não informado', async () => {
-        const componenteData = {
+    it('deve criar item com status padrão quando não informado', async () => {
+        const itemData = {
             nome: 'Diodo LED',
             estoque_minimo: 10,
             valor_unitario: 0.25,
@@ -52,14 +52,14 @@ describe('Modelo de Componente', () => {
             categoria: new mongoose.Types.ObjectId(),
             usuario: new mongoose.Types.ObjectId()
         };
-        const componente = new Componente(componenteData);
-        await componente.save();
-        const saved = await Componente.findById(componente._id);
+        const item = new Item(itemData);
+        await item.save();
+        const saved = await Item.findById(item._id);
         expect(saved.status).toBe('Indisponível');
     });
 
-    it('deve criar componente com status específico', async () => {
-        const componenteData = {
+    it('deve criar item com status específico', async () => {
+        const itemData = {
             nome: 'Capacitor 100nF',
             estoque_minimo: 10,
             valor_unitario: 0.05,
@@ -69,14 +69,14 @@ describe('Modelo de Componente', () => {
             usuario: new mongoose.Types.ObjectId(),
             status: 'Baixo Estoque'
         };
-        const componente = new Componente(componenteData);
-        await componente.save();
-        const saved = await Componente.findById(componente._id);
+        const item = new Item(itemData);
+        await item.save();
+        const saved = await Item.findById(item._id);
         expect(saved.status).toBe('Indisponível');
     });
 
-    it('deve falhar ao criar componente com status inválido', async () => {
-        const componenteData = {
+    it('deve falhar ao criar item com status inválido', async () => {
+        const itemData = {
             nome: 'Resistor 22k',
             estoque_minimo: 10,
             valor_unitario: 0.05,
@@ -84,22 +84,22 @@ describe('Modelo de Componente', () => {
             categoria: new mongoose.Types.ObjectId(),
             status: 'Status Inválido'
         };
-        const componente = new Componente(componenteData);
-        await expect(componente.save()).rejects.toThrow();
+        const item = new Item(itemData);
+        await expect(item.save()).rejects.toThrow();
     });
 
-    it('não deve criar componente sem campos obrigatórios', async () => {
-        const componenteData = {
+    it('não deve criar item sem campos obrigatórios', async () => {
+        const itemData = {
             estoque_minimo: 10,
             valor_unitario: 0.05,
             localizacao: new mongoose.Types.ObjectId(),
             categoria: new mongoose.Types.ObjectId()
         };
-        const componente = new Componente(componenteData);
-        await expect(componente.save()).rejects.toThrow();
+        const item = new Item(itemData);
+        await expect(item.save()).rejects.toThrow();
     });
 
-    it('não deve criar componente com nome duplicado', async () => {
+    it('não deve criar item com nome duplicado', async () => {
         const baseData = {
             nome: 'Capacitor 100nF',
             estoque_minimo: 5,
@@ -108,14 +108,14 @@ describe('Modelo de Componente', () => {
             categoria: new mongoose.Types.ObjectId(),
             usuario: new mongoose.Types.ObjectId()
         };
-        const c1 = new Componente(baseData);
+        const c1 = new Item(baseData);
         await c1.save();
-        const c2 = new Componente(baseData);
+        const c2 = new Item(baseData);
         await expect(c2.save()).rejects.toThrow();
     });
 
-    it('deve retornar todos os componentes cadastrados', async () => {
-        const c1 = new Componente({
+    it('deve retornar todos os items cadastrados', async () => {
+        const c1 = new Item({
             nome: 'Diodo',
             estoque_minimo: 3,
             valor_unitario: 0.20,
@@ -123,7 +123,7 @@ describe('Modelo de Componente', () => {
             categoria: new mongoose.Types.ObjectId(),
             usuario: new mongoose.Types.ObjectId()
         });
-        const c2 = new Componente({
+        const c2 = new Item({
             nome: 'Transistor',
             estoque_minimo: 4,
             valor_unitario: 0.30,
@@ -133,15 +133,15 @@ describe('Modelo de Componente', () => {
         });
         await c1.save();
         await c2.save();
-        const componentes = await Componente.find();
-        expect(componentes.length).toBe(2);
-        const nomes = componentes.map(c => c.nome);
+        const items = await Item.find();
+        expect(items.length).toBe(2);
+        const nomes = items.map(c => c.nome);
         expect(nomes).toContain('Diodo');
         expect(nomes).toContain('Transistor');
     });
 
     it('deve calcular status automaticamente baseado na quantidade e estoque_minimo', async () => {
-        const componenteData = {
+        const itemData = {
             nome: 'Teste Status',
             estoque_minimo: 10,
             valor_unitario: 0.05,
@@ -152,23 +152,23 @@ describe('Modelo de Componente', () => {
         };
         
         // Teste para quantidade = 0 (Indisponível)
-        let componente = new Componente(componenteData);
-        await componente.save();
-        expect(componente.status).toBe('Indisponível');
+        let item = new Item(itemData);
+        await item.save();
+        expect(item.status).toBe('Indisponível');
         
         // Teste para quantidade <= estoque_minimo (Baixo Estoque)
-        componente.quantidade = 5;
-        await componente.save();
-        expect(componente.status).toBe('Baixo Estoque');
+        item.quantidade = 5;
+        await item.save();
+        expect(item.status).toBe('Baixo Estoque');
         
         // Teste para quantidade > estoque_minimo (Em Estoque)
-        componente.quantidade = 15;
-        await componente.save();
-        expect(componente.status).toBe('Em Estoque');
+        item.quantidade = 15;
+        await item.save();
+        expect(item.status).toBe('Em Estoque');
     });
 
     it('deve atualizar status automaticamente em operações de update', async () => {
-        const componenteData = {
+        const itemData = {
             nome: 'Teste Update Status',
             estoque_minimo: 10,
             valor_unitario: 0.05,
@@ -178,16 +178,16 @@ describe('Modelo de Componente', () => {
             quantidade: 0
         };
         
-        const componente = new Componente(componenteData);
-        await componente.save();
+        const item = new Item(itemData);
+        await item.save();
         
         // Update via findOneAndUpdate
-        await Componente.findOneAndUpdate(
-            { _id: componente._id },
+        await Item.findOneAndUpdate(
+            { _id: item._id },
             { quantidade: 15 }
         );
         
-        const updated = await Componente.findById(componente._id);
+        const updated = await Item.findById(item._id);
         expect(updated.status).toBe('Em Estoque');
     });
 });

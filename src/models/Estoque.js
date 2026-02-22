@@ -12,9 +12,9 @@ class Estoque {
                 min: 0,
                 max: 999999999
             },
-            componente: {
+            item: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'componentes',
+                ref: 'items',
                 required: true
             },
             localizacao: {
@@ -31,88 +31,88 @@ class Estoque {
             timestamps: true
         });
 
-        // Index composto para garantir unicidade de componente por localização
-        estoqueSchema.index({ componente: 1, localizacao: 1 }, { unique: true });
+        // Index composto para garantir unicidade de item por localização
+        estoqueSchema.index({ item: 1, localizacao: 1 }, { unique: true });
 
-        // Middleware para atualizar quantidade total do componente após salvar
+        // Middleware para atualizar quantidade total do item após salvar
         estoqueSchema.post('save', async function() {
-            await this.constructor.atualizarQuantidadeComponente(this.componente);
+            await this.constructor.atualizarQuantidadeItem(this.item);
         });
 
-        // Middleware para atualizar quantidade total do componente após remoção
+        // Middleware para atualizar quantidade total do item após remoção
         estoqueSchema.post('deleteOne', async function() {
             const doc = await this.model.findOne(this.getQuery());
             if (doc) {
-                await this.model.atualizarQuantidadeComponente(doc.componente);
+                await this.model.atualizarQuantidadeItem(doc.item);
             }
         });
 
-        // Middleware para atualizar quantidade total do componente após update
+        // Middleware para atualizar quantidade total do item após update
         estoqueSchema.post(['updateOne', 'findOneAndUpdate'], async function() {
             const doc = await this.model.findOne(this.getQuery());
             if (doc) {
-                await this.model.atualizarQuantidadeComponente(doc.componente);
+                await this.model.atualizarQuantidadeItem(doc.item);
             }
         });
 
-        // Método estático para atualizar quantidade total do componente
-        estoqueSchema.statics.atualizarQuantidadeComponente = async function(componenteId) {
-            const Componente = mongoose.model('componentes');
+        // Método estático para atualizar quantidade total do item
+        estoqueSchema.statics.atualizarQuantidadeItem = async function(itemId) {
+            const Item = mongoose.model('items');
             const Notificacao = mongoose.model('notificacoes');
             
-            // Soma todas as quantidades do componente em todas as localizações
+            // Soma todas as quantidades do item em todas as localizações
             const resultado = await this.aggregate([
-                { $match: { componente: componenteId } },
+                { $match: { item: itemId } },
                 { $group: { _id: null, quantidadeTotal: { $sum: '$quantidade' } } }
             ]);
 
             const quantidadeTotal = resultado.length > 0 ? resultado[0].quantidadeTotal : 0;
 
-            // Buscar componente para verificar estoque mínimo e criar notificação
-            const componente = await Componente.findById(componenteId);
+            // Buscar item para verificar estoque mínimo e criar notificação
+            const item = await Item.findById(itemId);
             
-            if (componente) {
-                const quantidadeAnterior = componente.quantidade || 0;
-                const estoqueMinimo = componente.estoque_minimo || 0;
+            if (item) {
+                const quantidadeAnterior = item.quantidade || 0;
+                const estoqueMinimo = item.estoque_minimo || 0;
 
                 console.log('[DEBUG Notificação] quantidadeAnterior:', quantidadeAnterior, 'quantidadeTotal:', quantidadeTotal, 'estoqueMinimo:', estoqueMinimo);
 
-                // Atualiza a quantidade total no componente
-                await Componente.findByIdAndUpdate(componenteId, { quantidade: quantidadeTotal });
+                // Atualiza a quantidade total no item
+                await Item.findByIdAndUpdate(itemId, { quantidade: quantidadeTotal });
 
                 // Criar notificações baseadas no status do estoque
                 let mensagem = null;
                 
                 if (quantidadeTotal === 0 && quantidadeAnterior > 0) {
-                    // Componente ficou indisponível
-                    mensagem = `${componente.nome} está indisponível (0 unidades)`;
+                    // Item ficou indisponível
+                    mensagem = `${item.nome} está indisponível (0 unidades)`;
                 } else if (quantidadeTotal >= estoqueMinimo && quantidadeAnterior < estoqueMinimo) {
-                    // Componente voltou ao estoque normal (estava indisponível ou baixo estoque)
-                    mensagem = `${componente.nome} está em estoque (${quantidadeTotal} unidades)`;
+                    // Item voltou ao estoque normal (estava indisponível ou baixo estoque)
+                    mensagem = `${item.nome} está em estoque (${quantidadeTotal} unidades)`;
                 } else if (quantidadeTotal > 0 && quantidadeTotal < estoqueMinimo && quantidadeAnterior === 0) {
-                    // Componente saiu de indisponível para baixo estoque
-                    mensagem = `${componente.nome} está com estoque baixo (${quantidadeTotal} unidades)`;
+                    // Item saiu de indisponível para baixo estoque
+                    mensagem = `${item.nome} está com estoque baixo (${quantidadeTotal} unidades)`;
                 } else if (quantidadeTotal > 0 && quantidadeTotal < estoqueMinimo && quantidadeAnterior >= estoqueMinimo) {
-                    // Componente ficou com estoque baixo (estava em estoque normal)
-                    mensagem = `${componente.nome} está com estoque baixo (${quantidadeTotal} unidades)`;
+                    // Item ficou com estoque baixo (estava em estoque normal)
+                    mensagem = `${item.nome} está com estoque baixo (${quantidadeTotal} unidades)`;
                 }
 
                 console.log('[DEBUG Notificação] mensagem a criar:', mensagem);
 
                 // Criar notificação se houver mensagem
-                if (mensagem && componente.usuario) {
+                if (mensagem && item.usuario) {
                     const novaNotificacao = await Notificacao.create({
                         mensagem,
                         data_hora: new Date(),
                         visualizada: false,
                         ativo: true,
-                        usuario: componente.usuario
+                        usuario: item.usuario
                     });
 
-                    console.log('[DEBUG SSE] Enviando notificação para usuário:', componente.usuario.toString());
+                    console.log('[DEBUG SSE] Enviando notificação para usuário:', item.usuario.toString());
 
                     // Envia notificação via SSE para o usuário
-                    SSEService.sendNotification(componente.usuario, {
+                    SSEService.sendNotification(item.usuario, {
                         _id: novaNotificacao._id,
                         mensagem: novaNotificacao.mensagem,
                         data_hora: novaNotificacao.data_hora,

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-class Componente {
+class Item {
     constructor() {
-        const componenteSchema = new mongoose.Schema({
+        const itemSchema = new mongoose.Schema({
             nome: {
                 type: String,
                 required: true
@@ -51,7 +51,7 @@ class Componente {
         });
 
         // Middleware para calcular o status automaticamente
-        componenteSchema.pre('save', function() {
+        itemSchema.pre('save', function() {
             if (this.quantidade === 0) {
                 this.status = 'Indisponível';
             } else if (this.quantidade < this.estoque_minimo) {
@@ -62,7 +62,7 @@ class Componente {
         });
 
         // Middleware para calcular o status em operações de update
-        componenteSchema.pre(['updateOne', 'findOneAndUpdate'], async function() {
+        itemSchema.pre(['updateOne', 'findOneAndUpdate'], async function() {
             const update = this.getUpdate();
             if (update.quantidade !== undefined || update.estoque_minimo !== undefined) {
                 const docAtual = await this.model.findOne(this.getQuery());
@@ -82,10 +82,10 @@ class Componente {
             }
         });
 
-        componenteSchema.plugin(mongoosePaginate);
+        itemSchema.plugin(mongoosePaginate);
 
-        this.model = mongoose.model("componentes", componenteSchema);
+        this.model = mongoose.model("items", itemSchema);
     };
 };
 
-export default new Componente().model;
+export default new Item().model;

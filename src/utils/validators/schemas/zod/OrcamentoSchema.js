@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
-const ComponenteOrcamentoSchema = z.object({
-    componente: z
+const ItemOrcamentoSchema = z.object({
+    item: z
         .string()
         .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-            message: "ID do componente deve ser um ObjectId válido",
+            message: "ID do item deve ser um ObjectId válido",
         }),
     fornecedor: z
         .string()
@@ -39,12 +39,12 @@ const OrcamentoSchema = z.object({
     descricao: z
         .string()
         .optional(),
-    componentes: z
-        .array(ComponenteOrcamentoSchema)
-        .min(1, { message: "Deve haver pelo menos um componente no orçamento." }),
+    items: z
+        .array(ItemOrcamentoSchema)
+        .min(1, { message: "Deve haver pelo menos um item no orçamento." }),
 });
 
-const OrcamentoUpdateSchema = OrcamentoSchema.omit({ componentes: true }).partial();
-const ComponenteOrcamentoUpdateSchema = ComponenteOrcamentoSchema.partial();
+const OrcamentoUpdateSchema = OrcamentoSchema.omit({ items: true }).partial();
+const ItemOrcamentoUpdateSchema = ItemOrcamentoSchema.partial();
 
-export { OrcamentoSchema, OrcamentoUpdateSchema, ComponenteOrcamentoSchema, ComponenteOrcamentoUpdateSchema };
+export { OrcamentoSchema, OrcamentoUpdateSchema, ItemOrcamentoSchema, ItemOrcamentoUpdateSchema };

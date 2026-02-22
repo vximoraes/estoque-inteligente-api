@@ -1,11 +1,11 @@
 import { z } from "zod";
 import mongoose from 'mongoose';
 
-export const ComponenteIdSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
+export const ItemIdSchema = z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
     message: "ID inválido",
 });
 
-export const ComponenteQuerySchema = z.object({
+export const ItemQuerySchema = z.object({
     nome: z
         .string()
         .optional()

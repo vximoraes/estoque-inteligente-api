@@ -9,7 +9,7 @@ class FakeFilterBuilder {
         this.comTipo = jest.fn(() => this);
         this.comData = jest.fn(() => this);
         this.comQuantidade = jest.fn(() => this);
-        this.comComponente = jest.fn(() => this);
+        this.comItem = jest.fn(() => this);
         this.comLocalizacao = jest.fn(() => this);
         this.comFornecedor = jest.fn(() => this);
         this.build = jest.fn(() => ({ filtro: true }));
@@ -29,13 +29,13 @@ describe('MovimentacaoRepository', () => {
             MovimentacaoModel.mockImplementation(() => ({ save: mockSave }));
             const populatedResult = {
                 _id: '1',
-                componente: { _id: 'c1', nome: 'Componente 1' },
+                item: { _id: 'c1', nome: 'Item 1' },
                 fornecedor: { _id: 'f1', nome: 'Fornecedor 1' }
             };
             const mockPopulateFornecedor = jest.fn().mockResolvedValue(populatedResult);
-            const mockPopulateComponente = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
-            MovimentacaoModel.findById = jest.fn().mockReturnValue({ populate: mockPopulateComponente });
-            const result = await repository.criar({ componente: 'c1', fornecedor: 'f1' });
+            const mockPopulateItem = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
+            MovimentacaoModel.findById = jest.fn().mockReturnValue({ populate: mockPopulateItem });
+            const result = await repository.criar({ item: 'c1', fornecedor: 'f1' });
             expect(mockSave).toHaveBeenCalled();
             expect(MovimentacaoModel.findById).toHaveBeenCalledWith('1');
             expect(result).toEqual(populatedResult);
@@ -49,23 +49,23 @@ describe('MovimentacaoRepository', () => {
                 toObject: () => ({ _id: '1' })
             };
             const mockPopulateFornecedor = jest.fn().mockResolvedValue(fakeData);
-            const mockPopulateComponente = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
-            MovimentacaoModel.findOne = jest.fn().mockReturnValue({ populate: mockPopulateComponente });
+            const mockPopulateItem = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
+            MovimentacaoModel.findOne = jest.fn().mockReturnValue({ populate: mockPopulateItem });
             const req = { params: { id: '1' }, user_id: 'user1' };
             const result = await repository.listar(req);
             expect(result).toHaveProperty('_id', '1');
         });
         it('deve lançar erro 404 se movimentação não encontrada por id', async () => {
             const mockPopulateFornecedor = jest.fn().mockResolvedValue(null);
-            const mockPopulateComponente = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
-            MovimentacaoModel.findOne = jest.fn().mockReturnValue({ populate: mockPopulateComponente });
+            const mockPopulateItem = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
+            MovimentacaoModel.findOne = jest.fn().mockReturnValue({ populate: mockPopulateItem });
             const req = { params: { id: 'notfound' }, user_id: 'user1' };
             await expect(repository.listar(req)).rejects.toThrow(CustomError);
         });
         it('deve lançar erro 404 se movimentação não encontrada por id', async () => {
             const mockPopulateFornecedor = jest.fn().mockResolvedValue(null);
-            const mockPopulateComponente = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
-            MovimentacaoModel.findById = jest.fn().mockReturnValue({ populate: mockPopulateComponente });
+            const mockPopulateItem = jest.fn().mockReturnValue({ populate: mockPopulateFornecedor });
+            MovimentacaoModel.findById = jest.fn().mockReturnValue({ populate: mockPopulateItem });
             const req = { params: { id: 'notfound' } };
             await expect(repository.listar(req)).rejects.toThrow(CustomError);
         });
@@ -84,13 +84,13 @@ describe('MovimentacaoRepository', () => {
                         _id: '1',
                         tipo: 'entrada',
                         quantidade: 10,
-                        componente: { _id: 'c1', nome: 'Componente 1' },
+                        item: { _id: 'c1', nome: 'Item 1' },
                         fornecedor: { _id: 'f1', nome: 'Fornecedor 1' },
                         toObject: () => ({
                             _id: '1',
                             tipo: 'entrada',
                             quantidade: 10,
-                            componente: { _id: 'c1', nome: 'Componente 1' },
+                            item: { _id: 'c1', nome: 'Item 1' },
                             fornecedor: { _id: 'f1', nome: 'Fornecedor 1' }
                         })
                     }
@@ -120,7 +120,7 @@ describe('MovimentacaoRepository', () => {
                         comTipo: jest.fn().mockReturnThis(),
                         comData: jest.fn().mockReturnThis(),
                         comQuantidade: jest.fn().mockReturnThis(),
-                        comComponente: jest.fn().mockResolvedValue(undefined),
+                        comItem: jest.fn().mockResolvedValue(undefined),
                         comLocalizacao: jest.fn().mockResolvedValue(undefined),
                         comFornecedor: jest.fn().mockResolvedValue(undefined),
                         build: undefined

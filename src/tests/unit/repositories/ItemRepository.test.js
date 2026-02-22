@@ -1,12 +1,12 @@
-import ComponenteRepository from '../../../repositories/ComponenteRepository.js';
-import ComponenteModel from '../../../models/Componente.js';
+import ItemRepository from '../../../repositories/ItemRepository.js';
+import ItemModel from '../../../models/Item.js';
 import MovimentacaoModel from '../../../models/Movimentacao.js';
-import ComponenteFilterBuilder from '../../../repositories/filters/ComponenteFilterBuilder.js';
+import ItemFilterBuilder from '../../../repositories/filters/ItemFilterBuilder.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Componente.js');
+jest.mock('../../../models/Item.js');
 jest.mock('../../../models/Movimentacao.js');
-jest.mock('../../../repositories/filters/ComponenteFilterBuilder.js');
+jest.mock('../../../repositories/filters/ItemFilterBuilder.js');
 
 const mockPopulate = jest.fn().mockReturnThis();
 const mockLean = jest.fn().mockReturnThis();
@@ -21,27 +21,27 @@ const mockSave = jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
-    ComponenteModel.mockImplementation(() => ({
+    ItemModel.mockImplementation(() => ({
         save: mockSave,
     }));
-    ComponenteModel.findById = mockFindById;
-    ComponenteModel.findByIdAndUpdate = mockFindByIdAndUpdate;
-    ComponenteModel.findByIdAndDelete = mockFindByIdAndDelete;
-    ComponenteModel.findOne = mockFindOne;
-    ComponenteModel.paginate = mockPaginate;
+    ItemModel.findById = mockFindById;
+    ItemModel.findByIdAndUpdate = mockFindByIdAndUpdate;
+    ItemModel.findByIdAndDelete = mockFindByIdAndDelete;
+    ItemModel.findOne = mockFindOne;
+    ItemModel.paginate = mockPaginate;
 });
 
-describe('ComponenteRepository', () => {
+describe('ItemRepository', () => {
     let repository;
     beforeEach(() => {
-        repository = new ComponenteRepository({ componenteModel: ComponenteModel });
+        repository = new ItemRepository({ itemModel: ItemModel });
     });
 
     describe('criar', () => {
-        it('deve criar e retornar componente populado', async () => {
+        it('deve criar e retornar item populado', async () => {
             const dados = { nome: 'C1' };
-            const componenteSalvo = { _id: 'id1', save: mockSave };
-            mockSave.mockResolvedValueOnce(componenteSalvo);
+            const itemSalvo = { _id: 'id1', save: mockSave };
+            mockSave.mockResolvedValueOnce(itemSalvo);
             mockFindById.mockReturnValueOnce({
                 populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' })
             });
@@ -51,27 +51,27 @@ describe('ComponenteRepository', () => {
     });
 
     describe('listar', () => {
-        it('deve retornar componente por id', async () => {
+        it('deve retornar item por id', async () => {
             const req = { params: { id: 'id1' }, query: {}, user_id: 'user1' };
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({
                 populate: jest.fn().mockResolvedValue({ toObject: () => ({ nome: 'C1', _id: 'id1' }) })
             });
             const result = await repository.listar(req);
             expect(result).toEqual({ nome: 'C1', _id: 'id1' });
         });
 
-        it('deve lançar erro 404 se componente não encontrado por id', async () => {
+        it('deve lançar erro 404 se item não encontrado por id', async () => {
             const req = { params: { id: 'id1' }, query: {}, user_id: 'user1' };
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({
                 populate: jest.fn().mockResolvedValue(null)
             });
             await expect(repository.listar(req)).rejects.toThrow(CustomError);
         });
 
-        it('deve listar componentes com filtros', async () => {
+        it('deve listar items com filtros', async () => {
             const req = { params: {}, query: { nome: 'C1', page: 1, limite: 10 }, user_id: 'user1' };
             const mockBuild = jest.fn(() => ({}));
-            ComponenteFilterBuilder.mockImplementation(() => ({
+            ItemFilterBuilder.mockImplementation(() => ({
                 comNome: () => ({ 
                     comQuantidade: () => ({ 
                         comEstoqueMinimo: () => ({ 
@@ -108,18 +108,18 @@ describe('ComponenteRepository', () => {
     });
 
     describe('atualizar', () => {
-        it('deve atualizar e retornar componente', async () => {
+        it('deve atualizar e retornar item', async () => {
             const req = { user_id: 'user1' };
-            ComponenteModel.findOneAndUpdate = jest.fn().mockReturnValueOnce({ 
+            ItemModel.findOneAndUpdate = jest.fn().mockReturnValueOnce({ 
                 populate: jest.fn().mockReturnThis(),
                 lean: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' })
             });
             const result = await repository.atualizar('id1', { nome: 'Novo' }, req);
             expect(result).toEqual({ nome: 'C1', _id: 'id1' });
         });
-        it('deve lançar erro 404 se componente não encontrado', async () => {
+        it('deve lançar erro 404 se item não encontrado', async () => {
             const req = { user_id: 'user1' };
-            ComponenteModel.findOneAndUpdate = jest.fn().mockReturnValueOnce({ 
+            ItemModel.findOneAndUpdate = jest.fn().mockReturnValueOnce({ 
                 populate: jest.fn().mockReturnThis(),
                 lean: jest.fn().mockResolvedValue(null)
             });
@@ -128,11 +128,11 @@ describe('ComponenteRepository', () => {
     });
 
     describe('deletar', () => {
-        it('deve deletar componente se não houver movimentação', async () => {
+        it('deve deletar item se não houver movimentação', async () => {
             const req = { user_id: 'user1' };
             MovimentacaoModel.exists.mockResolvedValueOnce(false);
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({ populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' }) });
-            ComponenteModel.findOneAndDelete = jest.fn().mockResolvedValueOnce(true);
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({ populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' }) });
+            ItemModel.findOneAndDelete = jest.fn().mockResolvedValueOnce(true);
             const result = await repository.deletar('id1', req);
             expect(result).toEqual({ nome: 'C1', _id: 'id1' });
         });
@@ -141,27 +141,27 @@ describe('ComponenteRepository', () => {
             MovimentacaoModel.exists.mockResolvedValueOnce(true);
             await expect(repository.deletar('id1', req)).rejects.toThrow(CustomError);
         });
-        it('deve lançar erro 404 se componente não encontrado ao deletar', async () => {
+        it('deve lançar erro 404 se item não encontrado ao deletar', async () => {
             const req = { user_id: 'user1' };
             MovimentacaoModel.exists.mockResolvedValueOnce(false);
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({ populate: jest.fn().mockResolvedValue(null) });
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({ populate: jest.fn().mockResolvedValue(null) });
             await expect(repository.deletar('id1', req)).rejects.toThrow(CustomError);
         });
     });
 
     describe('buscarPorId', () => {
-        it('deve retornar componente por id', async () => {
+        it('deve retornar item por id', async () => {
             const mockPopulateChain = { nome: 'C1', _id: 'id1' };
             const req = { user_id: 'user1' };
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({
                 populate: jest.fn().mockResolvedValue(mockPopulateChain)
             });
             const result = await repository.buscarPorId('id1', false, req);
             expect(result).toEqual({ nome: 'C1', _id: 'id1' });
         });
-        it('deve lançar erro 404 se não encontrar componente', async () => {
+        it('deve lançar erro 404 se não encontrar item', async () => {
             const req = { user_id: 'user1' };
-            ComponenteModel.findOne = jest.fn().mockReturnValueOnce({
+            ItemModel.findOne = jest.fn().mockReturnValueOnce({
                 populate: jest.fn().mockResolvedValue(null)
             });
             await expect(repository.buscarPorId('id1', false, req)).rejects.toThrow(CustomError);
@@ -169,13 +169,13 @@ describe('ComponenteRepository', () => {
     });
 
     describe('buscarPorNome', () => {
-        it('deve retornar componente por nome', async () => {
+        it('deve retornar item por nome', async () => {
             const req = { user_id: 'user1' };
             mockFindOne.mockReturnValueOnce({ populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' }) });
             const result = await repository.buscarPorNome('C1', null, req);
             expect(result).toEqual({ nome: 'C1', _id: 'id1' });
         });
-        it('deve retornar null se não encontrar componente', async () => {
+        it('deve retornar null se não encontrar item', async () => {
             const req = { user_id: 'user1' };
             mockFindOne.mockReturnValueOnce({ populate: jest.fn().mockResolvedValue(null) });
             const result = await repository.buscarPorNome('C1', null, req);
@@ -186,7 +186,7 @@ describe('ComponenteRepository', () => {
     describe('erros inesperados', () => {
         it('deve lançar erro 500 se build não for função', async () => {
             const req = { params: {}, query: {}, user_id: 'user1' };
-            ComponenteFilterBuilder.mockImplementation(() => ({
+            ItemFilterBuilder.mockImplementation(() => ({
                 comNome: () => ({ 
                     comQuantidade: () => ({ 
                         comEstoqueMinimo: () => ({ 

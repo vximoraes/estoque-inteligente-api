@@ -2,8 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   labels:
-    io.kompose.service: componentes-eletronicos-mongodb
-  name: vol-componentes-eletronicos-mongodb
+    io.kompose.service: estoque-inteligente-mongodb
+  name: vol-estoque-inteligente-mongodb
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,19 +16,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: componentes-eletronicos-mongodb
-  name: componentes-eletronicos-mongodb
+    io.kompose.service: estoque-inteligente-mongodb
+  name: estoque-inteligente-mongodb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: componentes-eletronicos-mongodb
+      io.kompose.service: estoque-inteligente-mongodb
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        io.kompose.service: componentes-eletronicos-mongodb
+        io.kompose.service: estoque-inteligente-mongodb
     spec:
       containers:
         - image: mongo:8
@@ -41,29 +41,29 @@ spec:
             failureThreshold: 5
             periodSeconds: 10
             timeoutSeconds: 5
-          name: componentes-eletronicos-mongodb
+          name: estoque-inteligente-mongodb
           ports:
             - containerPort: 27017
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: componentes-eletronicos-env
+                name: estoque-inteligente-env
           volumeMounts:
             - mountPath: /data/db
-              name: vol-componentes-eletronicos-mongodb
+              name: vol-estoque-inteligente-mongodb
       restartPolicy: Always
       volumes:
-        - name: vol-componentes-eletronicos-mongodb
+        - name: vol-estoque-inteligente-mongodb
           persistentVolumeClaim:
-            claimName: vol-componentes-eletronicos-mongodb
+            claimName: vol-estoque-inteligente-mongodb
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: componentes-eletronicos-mongodb
-  name: componentes-eletronicos-mongodb
+    io.kompose.service: estoque-inteligente-mongodb
+  name: estoque-inteligente-mongodb
 spec:
   type: ClusterIP
   ports:
@@ -71,4 +71,4 @@ spec:
       port: 27017
       targetPort: 27017
   selector:
-    io.kompose.service: componentes-eletronicos-mongodb
+    io.kompose.service: estoque-inteligente-mongodb

@@ -1,5 +1,5 @@
 import CategoriaRepository from '../repositories/CategoriaRepository.js';
-import ComponenteModel from '../models/Componente.js';
+import ItemModel from '../models/Item.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
 class CategoriaService {
@@ -34,19 +34,19 @@ class CategoriaService {
     async inativar(id, req) {
         await this.ensureCategoryExists(id, req);
 
-        // Verificar se existem componentes ativos vinculados a esta categoria
-        const existeComponenteAtivo = await ComponenteModel.exists({ 
+        // Verificar se existem items ativos vinculados a esta categoria
+        const existeItemAtivo = await ItemModel.exists({ 
             categoria: id, 
             ativo: true 
         });
 
-        if (existeComponenteAtivo) {
+        if (existeItemAtivo) {
             throw new CustomError({
                 statusCode: 400,
                 errorType: 'resourceInUse',
                 field: 'Categoria',
                 details: [],
-                customMessage: 'Categoria vinculada a componentes ativos.'
+                customMessage: 'Categoria vinculada a items ativos.'
             });
         }
 

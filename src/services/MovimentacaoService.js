@@ -1,5 +1,5 @@
 import MovimentacaoRepository from '../repositories/MovimentacaoRepository.js';
-import Componente from '../models/Componente.js';
+import Item from '../models/Item.js';
 import Estoque from '../models/Estoque.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
@@ -9,19 +9,19 @@ class MovimentacaoService {
     };
 
     async criar(parsedData, req) {
-        const componente = await Componente.findOne({ _id: parsedData.componente });
-        if (!componente) {
+        const item = await Item.findOne({ _id: parsedData.item });
+        if (!item) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.resourceNotFound('Componente')
+                customMessage: messages.error.resourceNotFound('Item')
             });
         };
 
         const estoqueAtual = await Estoque.findOne({
-            componente: parsedData.componente,
+            item: parsedData.item,
             localizacao: parsedData.localizacao
         });
         

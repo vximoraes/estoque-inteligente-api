@@ -1,5 +1,5 @@
 import MovimentacaoModel from '../../models/Movimentacao.js';
-import Componente from '../../models/Componente.js';
+import Item from '../../models/Item.js';
 import Localizacao from '../../models/Localizacao.js';
 import mongoose from 'mongoose';
 const { Types } = mongoose;
@@ -36,26 +36,26 @@ class MovimentacaoFilterBuilder {
         return this;
     };
 
-    async comComponente(componente) {
-        if (componente) {
-            if (Types.ObjectId.isValid(componente)) {
+    async comItem(item) {
+        if (item) {
+            if (Types.ObjectId.isValid(item)) {
                 // Se já for um ObjectId, faz o populate direto.
-                this.filtros.componente = componente;
-                const componenteEncontrado = await Componente.findById(componente);
-                if (!componenteEncontrado) {
+                this.filtros.item = item;
+                const itemEncontrado = await Item.findById(item);
+                if (!itemEncontrado) {
                     // Caso não exista, força a busca "vazia".
-                    this.filtros.componente = { $in: [] };
+                    this.filtros.item = { $in: [] };
                 };
             } else {
                 // Se for string.
-                const componenteEncontrado = await Componente.findOne({
-                    nome: { $regex: componente, $options: 'i' },
+                const itemEncontrado = await Item.findOne({
+                    nome: { $regex: item, $options: 'i' },
                 });
-                if (componenteEncontrado) {
-                    this.filtros.componente = componenteEncontrado._id;
+                if (itemEncontrado) {
+                    this.filtros.item = itemEncontrado._id;
                 } else {
                     // Força a busca "vazia".
-                    this.filtros.componente = { $in: [] };
+                    this.filtros.item = { $in: [] };
                 };
             };
         };

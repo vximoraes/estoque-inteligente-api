@@ -14,8 +14,8 @@ router
     .post("/orcamentos", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.criar.bind(orcamentoController)))
     .patch("/orcamentos/:id/inativar", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.inativar.bind(orcamentoController)))
     .patch("/orcamentos/:id", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.atualizar.bind(orcamentoController)))
-    .post("/orcamentos/:orcamentoId/componentes", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.adicionarComponente.bind(orcamentoController)))
-    .patch("/orcamentos/:orcamentoId/componentes/:id", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.atualizarComponente.bind(orcamentoController)))
-    .delete("/orcamentos/:orcamentoId/componentes/:id", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.removerComponente.bind(orcamentoController)))
+    .post("/orcamentos/:orcamentoId/items", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.adicionarItem.bind(orcamentoController)))
+    .patch("/orcamentos/:orcamentoId/items/:id", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.atualizarItem.bind(orcamentoController)))
+    .delete("/orcamentos/:orcamentoId/items/:id", AuthMiddleware, AuthPermission, asyncWrapper(orcamentoController.removerItem.bind(orcamentoController)))
 
 export default router;

@@ -51,7 +51,7 @@ const orcamentosSchemas = {
         properties: {
             nome: orcamentoJsonSchema.properties.nome,
             descricao: orcamentoJsonSchema.properties.descricao,
-            componente_orcamento: {
+            item_orcamento: {
                 type: "array",
                 items: {
                     type: "object",
@@ -65,7 +65,7 @@ const orcamentosSchemas = {
                 }
             }
         },
-        required: ["nome", "componente_orcamento"],
+        required: ["nome", "item_orcamento"],
         description: "Schema para criação de orçamento"
     },
     OrcamentoUpdate: {
@@ -76,7 +76,7 @@ const orcamentosSchemas = {
         },
         description: "Schema para atualização de orçamento"
     },
-    ComponenteOrcamento: {
+    ItemOrcamento: {
         type: "object",
         properties: {
             nome: { type: "string", example: "Resistor 10k" },
@@ -85,9 +85,9 @@ const orcamentosSchemas = {
             valor_unitario: { type: "string", example: "0.50" }
         },
         required: ["nome", "fornecedor", "quantidade", "valor_unitario"],
-        description: "Schema para adicionar componente ao orçamento"
+        description: "Schema para adicionar item ao orçamento"
     },
-    ComponenteOrcamentoUpdate: {
+    ItemOrcamentoUpdate: {
         type: "object",
         properties: {
             nome: { type: "string", example: "Resistor 10k" },
@@ -95,14 +95,14 @@ const orcamentosSchemas = {
             quantidade: { type: "string", example: "15" },
             valor_unitario: { type: "string", example: "0.45" }
         },
-        description: "Schema para atualizar componente do orçamento"
+        description: "Schema para atualizar item do orçamento"
     }
 };
 
 const removalMapping = {
     OrcamentoItem: ['__v'],
     OrcamentoDetalhes: ['__v'],
-    OrcamentoPost: ['createdAt', 'updatedAt', '__v', '_id', 'protocolo', 'valor', 'componentes']
+    OrcamentoPost: ['createdAt', 'updatedAt', '__v', '_id', 'protocolo', 'valor', 'items']
 }
 
 Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
@@ -117,8 +117,8 @@ orcamentosSchemas.OrcamentoItem.example = await generateExample(orcamentosSchema
 orcamentosSchemas.OrcamentoDetalhes.example = await generateExample(orcamentosSchemas.OrcamentoDetalhes, null, orcamentoMongooseSchema);
 orcamentosSchemas.OrcamentoPost.example = {
     nome: "Orçamento Sistema de Automação",
-    descricao: "Orçamento para componentes do sistema de automação residencial",
-    componente_orcamento: [
+    descricao: "Orçamento para items do sistema de automação residencial",
+    item_orcamento: [
         {
             nome: "Resistor 10k",
             fornecedor: "Fornecedor ABC",

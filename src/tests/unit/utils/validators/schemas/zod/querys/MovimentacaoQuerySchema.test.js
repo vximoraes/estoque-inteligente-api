@@ -102,17 +102,17 @@ describe('MovimentacaoQuerySchema', () => {
         });
     });
 
-    describe('Validação de componente', () => {
-        it('deve aceitar e fazer trim em um componente válido', () => {
-            const query = { componente: '  64f234a0c781a7b30c2fe445  ' };
+    describe('Validação de item', () => {
+        it('deve aceitar e fazer trim em um item válido', () => {
+            const query = { item: '  64f234a0c781a7b30c2fe445  ' };
             const result = MovimentacaoQuerySchema.parse(query);
-            expect(result.componente).toBe('64f234a0c781a7b30c2fe445');
+            expect(result.item).toBe('64f234a0c781a7b30c2fe445');
         });
 
-        it('deve aceitar quando componente não é fornecido', () => {
+        it('deve aceitar quando item não é fornecido', () => {
             const query = {};
             const result = MovimentacaoQuerySchema.parse(query);
-            expect(result.componente).toBeUndefined();
+            expect(result.item).toBeUndefined();
         });
     });
 
@@ -136,7 +136,7 @@ describe('MovimentacaoQuerySchema', () => {
                 tipo: 'entrada',
                 data: '2025-05-28',
                 quantidade: '10',
-                componente: '64f234a0c781a7b30c2fe445',
+                item: '64f234a0c781a7b30c2fe445',
                 fornecedor: '64f234a0c781a7b30c2fe446'
             };
             const result = MovimentacaoQuerySchema.parse(query);
@@ -144,7 +144,7 @@ describe('MovimentacaoQuerySchema', () => {
                 tipo: 'entrada',
                 data: new Date('2025-05-28T00:00:00Z'),
                 quantidade: 10,
-                componente: '64f234a0c781a7b30c2fe445',
+                item: '64f234a0c781a7b30c2fe445',
                 fornecedor: '64f234a0c781a7b30c2fe446'
             });
         });
@@ -152,12 +152,12 @@ describe('MovimentacaoQuerySchema', () => {
         it('deve validar um query com campos parciais', () => {
             const query = {
                 tipo: 'saida',
-                componente: '64f234a0c781a7b30c2fe445'
+                item: '64f234a0c781a7b30c2fe445'
             };
             const result = MovimentacaoQuerySchema.parse(query);
             expect(result).toEqual({
                 tipo: 'saida',
-                componente: '64f234a0c781a7b30c2fe445'
+                item: '64f234a0c781a7b30c2fe445'
             });
         });
 

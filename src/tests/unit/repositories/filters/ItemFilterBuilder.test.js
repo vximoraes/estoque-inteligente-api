@@ -1,7 +1,7 @@
-import ComponenteFilterBuilder from '../../../../repositories/filters/ComponenteFilterBuilder.js';
+import ItemFilterBuilder from '../../../../repositories/filters/ItemFilterBuilder.js';
 
-jest.mock('../../../../models/Componente.js', () => {
-    return 'mock-componente-model';
+jest.mock('../../../../models/Item.js', () => {
+    return 'mock-item-model';
 });
 
 jest.mock('../../../../models/Localizacao.js', () => {
@@ -42,50 +42,50 @@ jest.mock('mongoose', () => {
 import mongoose from 'mongoose';
 import Localizacao from '../../../../models/Localizacao.js';
 import Categoria from '../../../../models/Categoria.js';
-import ComponenteRepository from '../../../../repositories/ComponenteRepository.js';
+import ItemRepository from '../../../../repositories/ItemRepository.js';
 
-jest.mock('../../../../repositories/ComponenteRepository.js', () => {
+jest.mock('../../../../repositories/ItemRepository.js', () => {
     return jest.fn().mockImplementation(() => ({
     }));
 });
 
-describe('ComponenteFilterBuilder', () => {
-    let componenteFilterBuilder;
+describe('ItemFilterBuilder', () => {
+    let itemFilterBuilder;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        componenteFilterBuilder = new ComponenteFilterBuilder();
+        itemFilterBuilder = new ItemFilterBuilder();
     });
 
     describe('constructor', () => {
         test('deve inicializar com filtros vazios', () => {
-            expect(componenteFilterBuilder.filtros).toEqual({});
+            expect(itemFilterBuilder.filtros).toEqual({});
         });
 
-        test('deve inicializar com instância de ComponenteRepository', () => {
-            expect(componenteFilterBuilder.componenteRepository).toBeTruthy();
+        test('deve inicializar com instância de ItemRepository', () => {
+            expect(itemFilterBuilder.itemRepository).toBeTruthy();
         });
 
-        test('deve inicializar com referência ao ComponenteModel', () => {
-            expect(componenteFilterBuilder.componenteModel).toBe('mock-componente-model');
+        test('deve inicializar com referência ao ItemModel', () => {
+            expect(itemFilterBuilder.itemModel).toBe('mock-item-model');
         });
     });
 
     describe('comNome', () => {
         test('deve adicionar filtro de nome quando nome é fornecido', () => {
             const nome = 'Resistor';
-            const resultado = componenteFilterBuilder.comNome(nome);
+            const resultado = itemFilterBuilder.comNome(nome);
 
-            expect(componenteFilterBuilder.filtros.nome).toEqual({ $regex: nome, $options: 'i' });
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.nome).toEqual({ $regex: nome, $options: 'i' });
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('não deve adicionar filtro para valores inválidos (undefined, null, string vazia)', () => {
             [undefined, null, ''].forEach(valor => {
-                componenteFilterBuilder.filtros = {}; // Reset
-                const resultado = componenteFilterBuilder.comNome(valor);
-                expect(componenteFilterBuilder.filtros.nome).toBeUndefined();
-                expect(resultado).toBe(componenteFilterBuilder);
+                itemFilterBuilder.filtros = {}; // Reset
+                const resultado = itemFilterBuilder.comNome(valor);
+                expect(itemFilterBuilder.filtros.nome).toBeUndefined();
+                expect(resultado).toBe(itemFilterBuilder);
             });
         });
     });
@@ -93,44 +93,44 @@ describe('ComponenteFilterBuilder', () => {
     describe('comQuantidade', () => {
         test('deve adicionar filtro de quantidade quando quantidade é número válido como string', () => {
             const quantidade = '10';
-            const resultado = componenteFilterBuilder.comQuantidade(quantidade);
+            const resultado = itemFilterBuilder.comQuantidade(quantidade);
 
-            expect(componenteFilterBuilder.filtros.quantidade).toBe(10);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.quantidade).toBe(10);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve adicionar filtro de quantidade quando quantidade é número', () => {
             const quantidade = 15;
-            const resultado = componenteFilterBuilder.comQuantidade(quantidade);
+            const resultado = itemFilterBuilder.comQuantidade(quantidade);
 
-            expect(componenteFilterBuilder.filtros.quantidade).toBe(15);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.quantidade).toBe(15);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('não deve adicionar filtro para valores inválidos (undefined, null, string vazia, não-numérico)', () => {
             [undefined, null, '', 'abc'].forEach(valor => {
-                componenteFilterBuilder.filtros = {}; // Reset
-                const resultado = componenteFilterBuilder.comQuantidade(valor);
-                expect(componenteFilterBuilder.filtros.quantidade).toBeUndefined();
-                expect(resultado).toBe(componenteFilterBuilder);
+                itemFilterBuilder.filtros = {}; // Reset
+                const resultado = itemFilterBuilder.comQuantidade(valor);
+                expect(itemFilterBuilder.filtros.quantidade).toBeUndefined();
+                expect(resultado).toBe(itemFilterBuilder);
             });
         });
     });
 
     describe('comEstoqueMinimo', () => {
         test('deve adicionar filtro de estoque mínimo quando valor é "true"', () => {
-            const resultado = componenteFilterBuilder.comEstoqueMinimo('true');
+            const resultado = itemFilterBuilder.comEstoqueMinimo('true');
 
-            expect(componenteFilterBuilder.filtros.$expr).toEqual({ $lt: ["$quantidade", "$estoque_minimo"] });
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.$expr).toEqual({ $lt: ["$quantidade", "$estoque_minimo"] });
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('não deve adicionar filtro para valores inválidos (não "true")', () => {
             ['false', undefined, null, ''].forEach(valor => {
-                componenteFilterBuilder.filtros = {}; // Reset
-                const resultado = componenteFilterBuilder.comEstoqueMinimo(valor);
-                expect(componenteFilterBuilder.filtros.$expr).toBeUndefined();
-                expect(resultado).toBe(componenteFilterBuilder);
+                itemFilterBuilder.filtros = {}; // Reset
+                const resultado = itemFilterBuilder.comEstoqueMinimo(valor);
+                expect(itemFilterBuilder.filtros.$expr).toBeUndefined();
+                expect(resultado).toBe(itemFilterBuilder);
             });
         });
     });
@@ -145,12 +145,12 @@ describe('ComponenteFilterBuilder', () => {
             const mockCategoria = { _id: categoriaId, categoria: 'Resistores' };
             Categoria.findById.mockResolvedValue(mockCategoria);
 
-            const resultado = await componenteFilterBuilder.comCategoria(categoriaId);
+            const resultado = await itemFilterBuilder.comCategoria(categoriaId);
 
             expect(mongoose.Types.ObjectId.isValid).toHaveBeenCalledWith(categoriaId);
             expect(Categoria.findById).toHaveBeenCalledWith(categoriaId);
-            expect(componenteFilterBuilder.filtros.categoria).toBe(categoriaId);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.categoria).toBe(categoriaId);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve definir filtro como vazio quando ObjectId é válido mas categoria não existe', async () => {
@@ -158,12 +158,12 @@ describe('ComponenteFilterBuilder', () => {
             mongoose.Types.ObjectId.isValid.mockReturnValue(true);
             Categoria.findById.mockResolvedValue(null);
 
-            const resultado = await componenteFilterBuilder.comCategoria(categoriaId);
+            const resultado = await itemFilterBuilder.comCategoria(categoriaId);
 
             expect(mongoose.Types.ObjectId.isValid).toHaveBeenCalledWith(categoriaId);
             expect(Categoria.findById).toHaveBeenCalledWith(categoriaId);
-            expect(componenteFilterBuilder.filtros.categoria).toEqual({ $in: [] });
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.categoria).toEqual({ $in: [] });
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve buscar categoria por nome e adicionar filtro quando categoria existe', async () => {
@@ -173,14 +173,14 @@ describe('ComponenteFilterBuilder', () => {
             const mockCategoria = { _id: 'someId', categoria: categoriaNome };
             Categoria.findOne.mockResolvedValue(mockCategoria);
 
-            const resultado = await componenteFilterBuilder.comCategoria(categoriaNome);
+            const resultado = await itemFilterBuilder.comCategoria(categoriaNome);
 
             expect(mongoose.Types.ObjectId.isValid).toHaveBeenCalledWith(categoriaNome);
             expect(Categoria.findOne).toHaveBeenCalledWith({
                 nome: { $regex: categoriaNome, $options: 'i' },
             });
-            expect(componenteFilterBuilder.filtros.categoria).toBe('someId');
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.categoria).toBe('someId');
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve definir filtro como vazio quando categoria por nome não existe', async () => {
@@ -188,30 +188,30 @@ describe('ComponenteFilterBuilder', () => {
             mongoose.Types.ObjectId.isValid.mockReturnValue(false);
             Categoria.findOne.mockResolvedValue(null);
 
-            const resultado = await componenteFilterBuilder.comCategoria(categoriaNome);
+            const resultado = await itemFilterBuilder.comCategoria(categoriaNome);
 
             expect(mongoose.Types.ObjectId.isValid).toHaveBeenCalledWith(categoriaNome);
             expect(Categoria.findOne).toHaveBeenCalledWith({
                 nome: { $regex: categoriaNome, $options: 'i' },
             });
-            expect(componenteFilterBuilder.filtros.categoria).toEqual({ $in: [] });
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.categoria).toEqual({ $in: [] });
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('não deve adicionar filtro para valores inválidos', async () => {
             const valoresInvalidos = [undefined, null, ''];
             
             for (const valor of valoresInvalidos) {
-                componenteFilterBuilder.filtros = {}; // Reset
+                itemFilterBuilder.filtros = {}; // Reset
                 mongoose.Types.ObjectId.isValid.mockReturnValue(false);
                 
-                const resultado = await componenteFilterBuilder.comCategoria(valor);
+                const resultado = await itemFilterBuilder.comCategoria(valor);
                 
                 expect(mongoose.Types.ObjectId.isValid).not.toHaveBeenCalled();
                 expect(Categoria.findById).not.toHaveBeenCalled();
                 expect(Categoria.findOne).not.toHaveBeenCalled();
-                expect(componenteFilterBuilder.filtros.categoria).toBeUndefined();
-                expect(resultado).toBe(componenteFilterBuilder);
+                expect(itemFilterBuilder.filtros.categoria).toBeUndefined();
+                expect(resultado).toBe(itemFilterBuilder);
                 
                 jest.clearAllMocks();
             }
@@ -220,49 +220,49 @@ describe('ComponenteFilterBuilder', () => {
 
     describe('comAtivo', () => {
         test('deve definir filtro como true quando ativo é "true"', () => {
-            const resultado = componenteFilterBuilder.comAtivo('true');
+            const resultado = itemFilterBuilder.comAtivo('true');
 
-            expect(componenteFilterBuilder.filtros.ativo).toBe(true);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.ativo).toBe(true);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve definir filtro como false quando ativo é "false"', () => {
-            const resultado = componenteFilterBuilder.comAtivo('false');
+            const resultado = itemFilterBuilder.comAtivo('false');
 
-            expect(componenteFilterBuilder.filtros.ativo).toBe(false);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.ativo).toBe(false);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('deve definir filtro como true quando ativo é undefined (usando valor padrão)', () => {
-            const resultado = componenteFilterBuilder.comAtivo();
+            const resultado = itemFilterBuilder.comAtivo();
 
-            expect(componenteFilterBuilder.filtros.ativo).toBe(true);
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.ativo).toBe(true);
+            expect(resultado).toBe(itemFilterBuilder);
         });
 
         test('não deve adicionar filtro quando ativo não é "true" nem "false"', () => {
-            const resultado = componenteFilterBuilder.comAtivo('outro');
+            const resultado = itemFilterBuilder.comAtivo('outro');
 
-            expect(componenteFilterBuilder.filtros.ativo).toBeUndefined();
-            expect(resultado).toBe(componenteFilterBuilder);
+            expect(itemFilterBuilder.filtros.ativo).toBeUndefined();
+            expect(resultado).toBe(itemFilterBuilder);
         });
     });
 
     describe('build', () => {
         test('deve retornar filtros vazios quando nenhum filtro foi adicionado', () => {
-            const filtros = componenteFilterBuilder.build();
+            const filtros = itemFilterBuilder.build();
             expect(filtros).toEqual({});
         });
 
         test('deve retornar todos os filtros adicionados corretamente', () => {
-            componenteFilterBuilder.comNome('Resistor');
-            componenteFilterBuilder.comQuantidade('10');
-            componenteFilterBuilder.comEstoqueMinimo('true');
-            componenteFilterBuilder.comAtivo('false');
-            componenteFilterBuilder.filtros.localizacao = 'localizacaoId';
-            componenteFilterBuilder.filtros.categoria = 'categoriaId';
+            itemFilterBuilder.comNome('Resistor');
+            itemFilterBuilder.comQuantidade('10');
+            itemFilterBuilder.comEstoqueMinimo('true');
+            itemFilterBuilder.comAtivo('false');
+            itemFilterBuilder.filtros.localizacao = 'localizacaoId';
+            itemFilterBuilder.filtros.categoria = 'categoriaId';
 
-            const filtros = componenteFilterBuilder.build();
+            const filtros = itemFilterBuilder.build();
 
             expect(filtros).toEqual({
                 nome: { $regex: 'Resistor', $options: 'i' },
@@ -277,7 +277,7 @@ describe('ComponenteFilterBuilder', () => {
 
     describe('Encadeamento de métodos (fluent interface)', () => {
         test('deve permitir encadear múltiplos métodos síncronos e construir filtros corretamente', () => {
-            const filtros = componenteFilterBuilder
+            const filtros = itemFilterBuilder
                 .comNome('Resistor')
                 .comQuantidade('10')
                 .comEstoqueMinimo('true')
@@ -298,12 +298,12 @@ describe('ComponenteFilterBuilder', () => {
             Localizacao.findById.mockResolvedValue({ _id: 'localizacaoId', localizacao: 'Prateleira A' });
             Categoria.findById.mockResolvedValue({ _id: 'categoriaId', categoria: 'Resistores' });
 
-            componenteFilterBuilder.comNome('Resistor');
-            componenteFilterBuilder.comQuantidade('10');
-            componenteFilterBuilder.comAtivo('true');
-            await componenteFilterBuilder.comCategoria('categoriaId');
+            itemFilterBuilder.comNome('Resistor');
+            itemFilterBuilder.comQuantidade('10');
+            itemFilterBuilder.comAtivo('true');
+            await itemFilterBuilder.comCategoria('categoriaId');
 
-            const filtros = componenteFilterBuilder.build();
+            const filtros = itemFilterBuilder.build();
 
             expect(filtros).toEqual({
                 nome: { $regex: 'Resistor', $options: 'i' },

@@ -1,26 +1,26 @@
-import ComponenteFilterBuilder from './filters/ComponenteFilterBuilder.js';
-import ComponenteModel from '../models/Componente.js';
+import ItemFilterBuilder from './filters/ItemFilterBuilder.js';
+import ItemModel from '../models/Item.js';
 import MovimentacaoModel from '../models/Movimentacao.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
-class ComponenteRepository {
+class ItemRepository {
     constructor({
-        componenteModel = ComponenteModel,
+        itemModel = ItemModel,
     } = {}) {
-        this.model = componenteModel;
+        this.model = itemModel;
     };
 
     async criar(parsedData) {
-        const componente = new this.model(parsedData);
-        const componenteSalvo = await componente.save();
-        return await this.model.findById(componenteSalvo._id)
+        const item = new this.model(parsedData);
+        const itemSalvo = await item.save();
+        return await this.model.findById(itemSalvo._id)
             .populate('categoria')
     };
 
     async listar(req) {
         const id = req.params.id || null;
 
-        // Se um ID for fornecido, retorna o componente enriquecido com estatísticas.
+        // Se um ID for fornecido, retorna o item enriquecido com estatísticas.
         if (id) {
             const data = await this.model.findOne({ _id: id })
                 .populate('categoria');
@@ -29,9 +29,9 @@ class ComponenteRepository {
                 throw new CustomError({
                     statusCode: 404,
                     errorType: 'resourceNotFound',
-                    field: 'Componente',
+                    field: 'Item',
                     details: [],
-                    customMessage: messages.error.resourceNotFound('Componente')
+                    customMessage: messages.error.resourceNotFound('Item')
                 });
             };
 
@@ -45,7 +45,7 @@ class ComponenteRepository {
         const { nome, quantidade, estoque_minimo, categoria, ativo, status, page = 1 } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
 
-        const filterBuilder = new ComponenteFilterBuilder()
+        const filterBuilder = new ItemFilterBuilder()
             .comNome(nome || '')
             .comQuantidade(quantidade || '')
             .comEstoqueMinimo(estoque_minimo || '')
@@ -58,9 +58,9 @@ class ComponenteRepository {
             throw new CustomError({
                 statusCode: 500,
                 errorType: 'internalServerError',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.internalServerError('Componente')
+                customMessage: messages.error.internalServerError('Item')
             });
         };
 
@@ -77,12 +77,12 @@ class ComponenteRepository {
 
         const resultado = await this.model.paginate(filtros, options);
 
-        // Enriquecer cada componente com estatísticas utilizando o length dos arrays.
+        // Enriquecer cada item com estatísticas utilizando o length dos arrays.
         resultado.docs = resultado.docs.map(doc => {
-            const componenteObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
+            const itemObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
 
             return {
-                ...componenteObj
+                ...itemObj
             };
         });
 
@@ -90,49 +90,49 @@ class ComponenteRepository {
     };
 
     async atualizar(id, parsedData, req) {
-        const componente = await this.model.findOneAndUpdate({ _id: id }, parsedData, { new: true })
+        const item = await this.model.findOneAndUpdate({ _id: id }, parsedData, { new: true })
             .populate('categoria')
             .lean();
-        if (!componente) {
+        if (!item) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.resourceNotFound('Componente')
+                customMessage: messages.error.resourceNotFound('Item')
             });
         };
 
-        return componente;
+        return item;
     };
 
     async deletar(id, req) {
-        const existeMovimentacao = await MovimentacaoModel.exists({ componente: id });
+        const existeMovimentacao = await MovimentacaoModel.exists({ item: id });
         if (existeMovimentacao) {
             throw new CustomError({
                 statusCode: 400,
                 errorType: 'resourceInUse',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: 'Não é possível deletar: componente está vinculado a movimentações.'
+                customMessage: 'Não é possível deletar: item está vinculado a movimentações.'
             });
         };
 
-        const componente = await this.model.findOne({ _id: id })
+        const item = await this.model.findOne({ _id: id })
             .populate('categoria');
 
-        if (!componente) {
+        if (!item) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.resourceNotFound('Componente')
+                customMessage: messages.error.resourceNotFound('Item')
             });
         }
 
         await this.model.findOneAndDelete({ _id: id });
-        return componente;
+        return item;
     };
 
     // Métodos auxiliares.
@@ -141,19 +141,19 @@ class ComponenteRepository {
         let query = this.model.findOne({ _id: id })
             .populate('categoria');
 
-        const componente = await query;
+        const item = await query;
 
-        if (!componente) {
+        if (!item) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.resourceNotFound('Componente')
+                customMessage: messages.error.resourceNotFound('Item')
             });
         };
 
-        return componente;
+        return item;
     };
 
     async buscarPorNome(nome, idIgnorado, req) {
@@ -170,4 +170,4 @@ class ComponenteRepository {
     };
 };
 
-export default ComponenteRepository;
+export default ItemRepository;

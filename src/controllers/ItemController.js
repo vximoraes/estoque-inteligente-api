@@ -1,32 +1,32 @@
-import ComponenteService from '../services/ComponenteService.js';
-import { ComponenteQuerySchema, ComponenteIdSchema } from '../utils/validators/schemas/zod/querys/ComponenteQuerySchema.js';
-import { ComponenteSchema, ComponenteUpdateSchema } from '../utils/validators/schemas/zod/ComponenteSchema.js';
+import ItemService from '../services/ItemService.js';
+import { ItemQuerySchema, ItemIdSchema } from '../utils/validators/schemas/zod/querys/ItemQuerySchema.js';
+import { ItemSchema, ItemUpdateSchema } from '../utils/validators/schemas/zod/ItemSchema.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import { UsuarioIdSchema } from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
 
-class ComponenteController {
+class ItemController {
     constructor() {
-        this.service = new ComponenteService();
+        this.service = new ItemService();
     };
 
     async criar(req, res) {
-        const parsedData = ComponenteSchema.parse(req.body);
+        const parsedData = ItemSchema.parse(req.body);
         let data = await this.service.criar(parsedData, req);
 
-        let componenteLimpo = data.toObject();
+        let itemLimpo = data.toObject();
 
-        return CommonResponse.created(res, componenteLimpo);
+        return CommonResponse.created(res, itemLimpo);
     };
 
     async listar(req, res) {
         const { id } = req.params || {};
         if (id) {
-            ComponenteIdSchema.parse(id);
+            ItemIdSchema.parse(id);
         };
 
         const query = req.query || {};
         if (Object.keys(query).length !== 0) {
-            await ComponenteQuerySchema.parseAsync(query);
+            await ItemQuerySchema.parseAsync(query);
         };
 
         const data = await this.service.listar(req);
@@ -36,21 +36,21 @@ class ComponenteController {
 
     async atualizar(req, res) {
         const { id } = req.params;
-        ComponenteIdSchema.parse(id);
+        ItemIdSchema.parse(id);
 
-        const parsedData = ComponenteUpdateSchema.parse(req.body);
+        const parsedData = ItemUpdateSchema.parse(req.body);
         const data = await this.service.atualizar(id, parsedData, req);
 
-        return CommonResponse.success(res, data, 200, 'Componente atualizado com sucesso. Porém, a quantidade só pode ser alterada por movimentação.');
+        return CommonResponse.success(res, data, 200, 'Item atualizado com sucesso. Porém, a quantidade só pode ser alterada por movimentação.');
     };
 
     async inativar(req, res) {
         const { id } = req.params || {};
-        ComponenteIdSchema.parse(id);
+        ItemIdSchema.parse(id);
 
         const data = await this.service.inativar(id, req);
 
-        return CommonResponse.success(res, data, 200, 'Componente inativado com sucesso.');
+        return CommonResponse.success(res, data, 200, 'Item inativado com sucesso.');
     };
 
         async uploadFoto(req, res) {
@@ -63,7 +63,7 @@ class ComponenteController {
 
     async deletarFoto(req, res) {
         const { id } = req.params || {}
-        ComponenteIdSchema.parse(id)
+        ItemIdSchema.parse(id)
 
         const data = await this.service.deletarFoto(req, id)
 
@@ -71,4 +71,4 @@ class ComponenteController {
     }
 };
 
-export default ComponenteController;
+export default ItemController;

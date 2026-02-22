@@ -1,33 +1,33 @@
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
-import Componente from '../../models/Componente.js';
+import Item from '../../models/Item.js';
 import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const componenteJsonSchema = Componente.schema.jsonSchema();
-delete componenteJsonSchema.properties.__v;
+const itemJsonSchema = Item.schema.jsonSchema();
+delete itemJsonSchema.properties.__v;
 
-const componentesSchemas = {
-    ComponenteFiltro: {
+const itemsSchemas = {
+    ItemFiltro: {
         type: "object",
         properties: {
-            nome: componenteJsonSchema.properties.nome,
-            quantidade: componenteJsonSchema.properties.quantidade,
-            estoque_minimo: componenteJsonSchema.properties.estoque_minimo,
-            categoria: componenteJsonSchema.properties.categoria,
-            ativo: componenteJsonSchema.properties.ativo,
-            status: componenteJsonSchema.properties.status,
+            nome: itemJsonSchema.properties.nome,
+            quantidade: itemJsonSchema.properties.quantidade,
+            estoque_minimo: itemJsonSchema.properties.estoque_minimo,
+            categoria: itemJsonSchema.properties.categoria,
+            ativo: itemJsonSchema.properties.ativo,
+            status: itemJsonSchema.properties.status,
         }
     },
-    ComponenteListagem: {
+    ItemListagem: {
         type: "object",
         properties: {
             data: {
                 type: "array",
                 items: {
-                    $ref: "#/components/schemas/ComponenteItem"
+                    $ref: "#/components/schemas/ItemResumo"
                 }
             },
             totalDocs: { type: "number", example: 100 },
@@ -40,27 +40,27 @@ const componentesSchemas = {
             prevPage: { type: "number", nullable: true, example: null },
             nextPage: { type: "number", example: 2 }
         },
-        description: "Schema para listagem paginada de componentes"
+        description: "Schema para listagem paginada de items"
     },
-    ComponenteItem: {
-        ...deepCopy(componenteJsonSchema),
-        description: "Schema para item de componente na listagem"
+    ItemResumo: {
+        ...deepCopy(itemJsonSchema),
+        description: "Schema para item de item na listagem"
     },
-    ComponenteDetalhes: {
-        ...deepCopy(componenteJsonSchema),
-        description: "Schema para detalhes de um componente"
+    ItemDetalhes: {
+        ...deepCopy(itemJsonSchema),
+        description: "Schema para detalhes de um item"
     },
-    ComponentePost: {
-        ...deepCopy(componenteJsonSchema),
+    ItemPost: {
+        ...deepCopy(itemJsonSchema),
         required: ["nome", "estoque_minimo", "categoria"],
-        description: "Schema para criação de componente"
+        description: "Schema para criação de item"
     },
-    ComponentePutPatch: {
-        ...deepCopy(componenteJsonSchema),
+    ItemPutPatch: {
+        ...deepCopy(itemJsonSchema),
         required: [],
-        description: "Schema para atualização de componente"
+        description: "Schema para atualização de item"
     },
-    ComponenteUploadFotoResposta: {
+    ItemUploadFotoResposta: {
         type: "object",
         properties: {
             error: {
@@ -94,28 +94,28 @@ const componentesSchemas = {
                 example: []
             }
         },
-        description: "Schema para resposta de upload de foto do componente"
+        description: "Schema para resposta de upload de foto do item"
     }
 };
 
 const removalMapping = {
-    ComponenteItem: ['__v'],
-    ComponenteDetalhes: ['__v'],
-    ComponentePost: ['createdAt', 'updatedAt', '__v', '_id', 'quantidade'],
-    ComponentePutPatch: ['createdAt', 'updatedAt', '__v', '_id', 'quantidade']
+    ItemResumo: ['__v'],
+    ItemDetalhes: ['__v'],
+    ItemPost: ['createdAt', 'updatedAt', '__v', '_id', 'quantidade'],
+    ItemPutPatch: ['createdAt', 'updatedAt', '__v', '_id', 'quantidade']
 }
 
 Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
-    if (componentesSchemas[schemaKey]) {
-        removeFieldsRecursively(componentesSchemas[schemaKey], fields);
+    if (itemsSchemas[schemaKey]) {
+        removeFieldsRecursively(itemsSchemas[schemaKey], fields);
     }
 });
 
-const componenteMongooseSchema = Componente.schema;
+const itemMongooseSchema = Item.schema;
 
-componentesSchemas.ComponenteItem.example = await generateExample(componentesSchemas.ComponenteItem, null, componenteMongooseSchema);
-componentesSchemas.ComponenteDetalhes.example = await generateExample(componentesSchemas.ComponenteDetalhes, null, componenteMongooseSchema);
-componentesSchemas.ComponentePost.example = {
+itemsSchemas.ItemResumo.example = await generateExample(itemsSchemas.ItemResumo, null, itemMongooseSchema);
+itemsSchemas.ItemDetalhes.example = await generateExample(itemsSchemas.ItemDetalhes, null, itemMongooseSchema);
+itemsSchemas.ItemPost.example = {
     nome: "Resistor 10k Ohm",
     estoque_minimo: "50",
     descricao: "Resistor de precisão 1/4W 5%",
@@ -123,11 +123,11 @@ componentesSchemas.ComponentePost.example = {
     categoria: "507f1f77bcf86cd799439012",
     ativo: true
 };
-componentesSchemas.ComponentePutPatch.example = {
+itemsSchemas.ItemPutPatch.example = {
     nome: "Resistor 10k Ohm - Atualizado",
     estoque_minimo: "75",
     descricao: "Resistor de precisão 1/4W 5% - Versão atualizada",
     ativo: true
 };
 
-export default componentesSchemas;
+export default itemsSchemas;

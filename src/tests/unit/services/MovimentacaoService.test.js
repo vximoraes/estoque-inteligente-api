@@ -1,17 +1,17 @@
 import MovimentacaoService from '../../../services/MovimentacaoService.js';
 import MovimentacaoRepository from '../../../repositories/MovimentacaoRepository.js';
-import Componente from '../../../models/Componente.js';
+import Item from '../../../models/Item.js';
 import Fornecedor from '../../../models/Fornecedor.js';
 import Estoque from '../../../models/Estoque.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 import mongoose from 'mongoose';
 
 jest.mock('../../../repositories/MovimentacaoRepository.js');
-jest.mock('../../../models/Componente.js');
+jest.mock('../../../models/Item.js');
 jest.mock('../../../models/Fornecedor.js');
 jest.mock('../../../models/Estoque.js');
 
-const makeComponente = (props = {}) => ({
+const makeItem = (props = {}) => ({
     _id: new mongoose.Types.ObjectId(),
     quantidade: 10,
     save: jest.fn().mockResolvedValue(undefined),
@@ -19,7 +19,7 @@ const makeComponente = (props = {}) => ({
 });
 const makeFornecedor = (props = {}) => ({ _id: new mongoose.Types.ObjectId(), ...props });
 const makeMovimentacao = (props = {}) => ({ _id: new mongoose.Types.ObjectId(), ...props });
-const makeEstoque = (props = {}) => ({ componente: new mongoose.Types.ObjectId(), localizacao: new mongoose.Types.ObjectId(), quantidade: 10, ...props });
+const makeEstoque = (props = {}) => ({ item: new mongoose.Types.ObjectId(), localizacao: new mongoose.Types.ObjectId(), quantidade: 10, ...props });
 
 describe('MovimentacaoService', () => {
     let service, repositoryMock;
@@ -36,14 +36,14 @@ describe('MovimentacaoService', () => {
 
     describe('criar', () => {
         it('deve cadastrar movimentação de entrada com sucesso', async () => {
-            const componente = makeComponente();
+            const item = makeItem();
             const parsedData = {
-                componente: componente._id,
+                item: item._id,
                 tipo: 'entrada',
                 quantidade: 5
             };
             const req = { user_id: 'user123' };
-            Componente.findOne.mockResolvedValue(componente);
+            Item.findOne.mockResolvedValue(item);
             repositoryMock.criar.mockResolvedValue(makeMovimentacao(parsedData));
 
             const result = await service.criar({ ...parsedData }, req);
@@ -51,10 +51,10 @@ describe('MovimentacaoService', () => {
         });
 
         it('deve cadastrar movimentação de saída com sucesso (sem fornecedor)', async () => {
-            const componente = makeComponente({ quantidade: 10 });
+            const item = makeItem({ quantidade: 10 });
             const localizacao = new mongoose.Types.ObjectId();
             const parsedData = {
-                componente: componente._id,
+                item: item._id,
                 tipo: 'saida',
                 quantidade: 3,
                 localizacao: localizacao
@@ -64,25 +64,25 @@ describe('MovimentacaoService', () => {
             // Mock do Estoque
             Estoque.findOne.mockResolvedValue(makeEstoque({ quantidade: 10 }));
             
-            Componente.findOne.mockResolvedValue(componente);
+            Item.findOne.mockResolvedValue(item);
             repositoryMock.criar.mockResolvedValue(makeMovimentacao(parsedData));
 
             const result = await service.criar({ ...parsedData }, req);
             expect(repositoryMock.criar).toHaveBeenCalled();
         });
 
-        it('deve lançar erro se componente não existir', async () => {
+        it('deve lançar erro se item não existir', async () => {
             const req = { user_id: 'user123' };
-            Componente.findOne.mockResolvedValue(null);
-            await expect(service.criar({ componente: new mongoose.Types.ObjectId(), tipo: 'entrada', quantidade: 1 }, req))
+            Item.findOne.mockResolvedValue(null);
+            await expect(service.criar({ item: new mongoose.Types.ObjectId(), tipo: 'entrada', quantidade: 1 }, req))
                 .rejects.toThrow(CustomError);
         });
 
         it('deve lançar erro se quantidade insuficiente na saída', async () => {
-            const componente = makeComponente({ quantidade: 2 });
+            const item = makeItem({ quantidade: 2 });
             const localizacao = new mongoose.Types.ObjectId();
             const parsedData = {
-                componente: componente._id,
+                item: item._id,
                 tipo: 'saida',
                 quantidade: 5,
                 localizacao: localizacao
@@ -92,18 +92,18 @@ describe('MovimentacaoService', () => {
             // Mock do Estoque com quantidade insuficiente
             Estoque.findOne.mockResolvedValue(makeEstoque({ quantidade: 2 }));
             
-            Componente.findOne.mockResolvedValue(componente);
+            Item.findOne.mockResolvedValue(item);
             await expect(service.criar(parsedData, req))
                 .rejects.toThrow(CustomError);
         });        it('deve lidar corretamente com tipo diferente de entrada/saida', async () => {
-            const componente = makeComponente({ quantidade: 10 });
+            const item = makeItem({ quantidade: 10 });
             const parsedData = {
-                componente: componente._id,
+                item: item._id,
                 tipo: 'outro',  
                 quantidade: 5
             };
             const req = { user_id: 'user123' };
-            Componente.findOne.mockResolvedValue(componente);
+            Item.findOne.mockResolvedValue(item);
             repositoryMock.criar.mockResolvedValue(makeMovimentacao(parsedData));
 
             const result = await service.criar({ ...parsedData }, req);

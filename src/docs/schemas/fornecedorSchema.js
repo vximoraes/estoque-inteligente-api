@@ -82,13 +82,13 @@ fornecedoresSchemas.FornecedorPost.example = {
     nome: "TechComponents LTDA",
     url: "https://www.techcomponents.com.br",
     contato: "(11) 98765-4321",
-    descricao: "Fornecedor especializado em componentes eletrônicos"
+    descricao: "Fornecedor especializado em itens do estoque"
 };
 fornecedoresSchemas.FornecedorPutPatch.example = {
     nome: "TechComponents LTDA - Atualizado",
     url: "https://www.newtechcomponents.com.br",
     contato: "(11) 91234-5678",
-    descricao: "Fornecedor atualizado especializado em componentes eletrônicos avançados"
+    descricao: "Fornecedor atualizado especializado em itens diversos avançados"
 };
 
 export default fornecedoresSchemas;

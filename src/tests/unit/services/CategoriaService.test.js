@@ -79,9 +79,9 @@ describe('CategoriaService', () => {
     });
 
     describe('inativar', () => {
-        it('deve inativar categoria existente sem componentes ativos', async () => {
-            const ComponenteModel = require('../../../models/Componente.js').default;
-            ComponenteModel.exists = jest.fn().mockResolvedValue(false);
+        it('deve inativar categoria existente sem items ativos', async () => {
+            const ItemModel = require('../../../models/Item.js').default;
+            ItemModel.exists = jest.fn().mockResolvedValue(false);
             
             repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
             repositoryMock.atualizar.mockResolvedValue(makeCategoria({ ativo: false }));
@@ -92,16 +92,16 @@ describe('CategoriaService', () => {
             repositoryMock.buscarPorId.mockResolvedValue(null);
             await expect(service.inativar('catX', {})).rejects.toThrow(CustomError);
         });
-        it('deve lançar erro se categoria estiver vinculada a componentes ativos', async () => {
-            const ComponenteModel = require('../../../models/Componente.js').default;
-            ComponenteModel.exists = jest.fn().mockResolvedValue(true);
+        it('deve lançar erro se categoria estiver vinculada a items ativos', async () => {
+            const ItemModel = require('../../../models/Item.js').default;
+            ItemModel.exists = jest.fn().mockResolvedValue(true);
             
             repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
-            await expect(service.inativar('cat1', {})).rejects.toThrow('Categoria vinculada a componentes ativos');
+            await expect(service.inativar('cat1', {})).rejects.toThrow('Categoria vinculada a items ativos');
         });
         it('deve lançar erro inesperado do repository', async () => {
-            const ComponenteModel = require('../../../models/Componente.js').default;
-            ComponenteModel.exists = jest.fn().mockResolvedValue(false);
+            const ItemModel = require('../../../models/Item.js').default;
+            ItemModel.exists = jest.fn().mockResolvedValue(false);
             
             repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
             repositoryMock.atualizar.mockRejectedValue(new Error('DB error'));

@@ -1,12 +1,12 @@
-import ComponenteRepository from '../repositories/ComponenteRepository.js';
+import ItemRepository from '../repositories/ItemRepository.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import CategoriaModel from '../models/Categoria.js';
 import minioClient from '../config/MinIO.js';
 import compress from '../config/SharpConfig.js';
 
-class ComponenteService {
+class ItemService {
     constructor() {
-        this.repository = new ComponenteRepository();
+        this.repository = new ItemRepository();
     };
 
     async criar(parsedData, req) {
@@ -28,7 +28,7 @@ class ComponenteService {
     };
 
     async atualizar(id, parsedData, req) {
-        await this.ensureComponentExists(id, req);
+        await this.ensureItemExists(id, req);
         await this.validateNome(parsedData.nome, id, req);
 
         delete parsedData.quantidade;
@@ -39,7 +39,7 @@ class ComponenteService {
     };
 
     async inativar(id, req) {
-        await this.ensureComponentExists(id, req);
+        await this.ensureItemExists(id, req);
 
         const data = await this.repository.atualizar(id, { ativo: false }, req);
 
@@ -49,8 +49,8 @@ class ComponenteService {
     // Métodos auxiliares.
 
     async validateNome(nome, id = null, req) {
-        const componenteExistente = await this.repository.buscarPorNome(nome, id, req);
-        if (componenteExistente) {
+        const itemExistente = await this.repository.buscarPorNome(nome, id, req);
+        if (itemExistente) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
@@ -61,19 +61,19 @@ class ComponenteService {
         };
     };
 
-    async ensureComponentExists(id, req) {
-        const componenteExistente = await this.repository.buscarPorId(id, false, req);
-        if (!componenteExistente) {
+    async ensureItemExists(id, req) {
+        const itemExistente = await this.repository.buscarPorId(id, false, req);
+        if (!itemExistente) {
             throw new CustomError({
                 statusCode: 404,
                 errorType: 'resourceNotFound',
-                field: 'Componente',
+                field: 'Item',
                 details: [],
-                customMessage: messages.error.resourceNotFound('Componente'),
+                customMessage: messages.error.resourceNotFound('Item'),
             });
         };
 
-        return componenteExistente;
+        return itemExistente;
     };
 
     async validateCategoria(categoriaId, req) {
@@ -144,4 +144,4 @@ class ComponenteService {
     }
 };
 
-export default ComponenteService;
+export default ItemService;

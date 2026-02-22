@@ -1,7 +1,7 @@
 import authSchemas from "../schemas/authSchema.js";
 import usuariosSchemas from "../schemas/usuariosSchema.js";
 import categoriasSchemas from "../schemas/categoriaSchema.js";
-import componentesSchemas from "../schemas/componenteSchema.js";
+import itemsSchemas from "../schemas/itemSchema.js";
 import fornecedoresSchemas from "../schemas/fornecedorSchema.js";
 import localizacoesSchemas from "../schemas/localizacaoSchema.js";
 import estoquesSchemas from "../schemas/estoqueSchema.js";
@@ -13,7 +13,7 @@ import rotasSchemas from "../schemas/rotaSchema.js";
 import usuariosPaths from "../paths/usuarios.js";
 import authPaths from "../paths/auth.js";
 import categoriasPaths from "../paths/categoria.js";
-import componentesPaths from "../paths/componente.js";
+import itemsPaths from "../paths/item.js";
 import fornecedoresPaths from "../paths/fornecedor.js";
 import localizacoesPaths from "../paths/localizacao.js";
 import estoquesPaths from "../paths/estoque.js";
@@ -38,12 +38,12 @@ const getSwaggerOptions = () => {
         swaggerDefinition: {
             openapi: "3.0.0",
             info: {
-                title: "API Componentes Eletrônicos",
+                title: "API Estoque Inteligente",
                 version: "1.0.0",
-                description: "API para gestão de componentes eletrônicos \n\nÉ necessário autenticar com token JWT antes de utilizar a maioria das rotas. Faça isso na rota /login com um email e senha válido. Esta API conta com refresh token, que pode ser obtido na rota /refresh, e com logout, que pode ser feito na rota /logout. Para revogação de acesso use a rota /revoke. Para mais informações, acesse a documentação.",
+                description: "API para gestão de estoque inteligente \n\nÉ necessário autenticar com token JWT antes de utilizar a maioria das rotas. Faça isso na rota /login com um email e senha válido. Esta API conta com refresh token, que pode ser obtido na rota /refresh, e com logout, que pode ser feito na rota /logout. Para revogação de acesso use a rota /revoke. Para mais informações, acesse a documentação.",
                 contact: {
                     name: "Equipe de Desenvolvimento",
-                    email: "dev@componentes-eletronicos.com",
+                    email: "dev@estoque-inteligente.com",
                 },
             },
             servers: getServersInCorrectOrder(),
@@ -57,12 +57,12 @@ const getSwaggerOptions = () => {
                     description: "Rotas para gestão de usuários"
                 },
                 {
-                    name: "Componentes",
-                    description: "Rotas para gestão de componentes eletrônicos"
+                    name: "Items",
+                    description: "Rotas para gestão de itens do estoque"
                 },
                 {
                     name: "Categorias",
-                    description: "Rotas para gestão de categorias de componentes"
+                    description: "Rotas para gestão de categorias"
                 },
                 {
                     name: "Fornecedores",
@@ -70,15 +70,15 @@ const getSwaggerOptions = () => {
                 },
                 {
                     name: "Localização",
-                    description: "Rotas para gestão de localização de componentes"
+                    description: "Rotas para gestão de localização"
                 },
                 {
                     name: "Estoque",
-                    description: "Rotas para gestão de estoque de componentes"
+                    description: "Rotas para gestão de estoque"
                 },
                 {
                     name: "Movimentação",
-                    description: "Rotas para gestão de movimentação de componentes"
+                    description: "Rotas para gestão de movimentações"
                 },
                 {
                     name: "Orçamentos",
@@ -101,7 +101,7 @@ const getSwaggerOptions = () => {
                 ...authPaths,
                 ...usuariosPaths,
                 ...categoriasPaths,
-                ...componentesPaths,
+                ...itemsPaths,
                 ...fornecedoresPaths,
                 ...localizacoesPaths,
                 ...estoquesPaths,
@@ -123,7 +123,7 @@ const getSwaggerOptions = () => {
                     ...authSchemas,
                     ...usuariosSchemas,
                     ...categoriasSchemas,
-                    ...componentesSchemas,
+                    ...itemsSchemas,
                     ...fornecedoresSchemas,
                     ...localizacoesSchemas,
                     ...estoquesSchemas,

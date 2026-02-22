@@ -1,7 +1,7 @@
-import { ComponenteSchema, ComponenteUpdateSchema } from '../../../../../../utils/validators/schemas/zod/ComponenteSchema.js';
+import { ItemSchema, ItemUpdateSchema } from '../../../../../../utils/validators/schemas/zod/ItemSchema.js';
 import mongoose from 'mongoose';
 
-describe('ComponenteSchema', () => {
+describe('ItemSchema', () => {
     const objectId = new mongoose.Types.ObjectId().toString();
 
     it('deve validar dados válidos corretamente', () => {
@@ -13,7 +13,7 @@ describe('ComponenteSchema', () => {
             categoria: objectId,
             ativo: false,
         };
-        const resultado = ComponenteSchema.parse(dadosValidos);
+        const resultado = ItemSchema.parse(dadosValidos);
         expect(resultado.nome).toBe('Resistor');
         expect(resultado.estoque_minimo).toBe(10);
         expect(resultado.descricao).toBe('Resistor 1k');
@@ -28,7 +28,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '5',
             categoria: objectId,
         };
-        const resultado = ComponenteSchema.parse(dadosValidos);
+        const resultado = ItemSchema.parse(dadosValidos);
         expect(resultado.ativo).toBe(true);
     });
 
@@ -37,7 +37,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '10',
             categoria: objectId,
         };
-        expect(() => ComponenteSchema.parse(dadosInvalidos)).toThrow();
+        expect(() => ItemSchema.parse(dadosInvalidos)).toThrow();
     });
 
     it('deve lançar erro quando "nome" está vazio', () => {
@@ -46,7 +46,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '10',
             categoria: objectId,
         };
-        expect(() => ComponenteSchema.parse(dadosInvalidos)).toThrow('Nome não pode ser vazio');
+        expect(() => ItemSchema.parse(dadosInvalidos)).toThrow('Nome não pode ser vazio');
     });
 
     it('deve lançar erro quando "estoque_minimo" não é número', () => {
@@ -55,7 +55,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: 'dez',
             categoria: objectId,
         };
-        expect(() => ComponenteSchema.parse(dadosInvalidos)).toThrow('Estoque mínimo deve ser inteiro');
+        expect(() => ItemSchema.parse(dadosInvalidos)).toThrow('Estoque mínimo deve ser inteiro');
     });
 
     it('deve lançar erro quando "categoria" não é ObjectId', () => {
@@ -64,7 +64,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '10',
             categoria: '123',
         };
-        expect(() => ComponenteSchema.parse(dadosInvalidos)).toThrow();
+        expect(() => ItemSchema.parse(dadosInvalidos)).toThrow();
     });
 
     it('deve lançar erro quando "ativo" não é booleano', () => {
@@ -74,7 +74,7 @@ describe('ComponenteSchema', () => {
             categoria: objectId,
             ativo: 'sim',
         };
-        expect(() => ComponenteSchema.parse(dadosInvalidos)).toThrow();
+        expect(() => ItemSchema.parse(dadosInvalidos)).toThrow();
     });
 
     it('deve tratar corretamente valores undefined para estoque_minimo', () => {
@@ -83,7 +83,7 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '',
             categoria: objectId,
         };
-        const resultado = ComponenteSchema.parse(dados);
+        const resultado = ItemSchema.parse(dados);
         expect(resultado.estoque_minimo).toBeUndefined();
     });
     
@@ -95,22 +95,22 @@ describe('ComponenteSchema', () => {
             estoque_minimo: '10',
             categoria: objectId,
         };
-        const resultado = ComponenteSchema.parse(dados);
+        const resultado = ItemSchema.parse(dados);
         expect(resultado.nome).toBe('Resistor');
     });
 });
 
-describe('ComponenteUpdateSchema', () => {
+describe('ItemUpdateSchema', () => {
     const objectId = new mongoose.Types.ObjectId().toString();
 
     it('deve validar dados parciais corretamente', () => {
         const dadosParciais = { nome: 'Novo Nome' };
-        const resultado = ComponenteUpdateSchema.parse(dadosParciais);
+        const resultado = ItemUpdateSchema.parse(dadosParciais);
         expect(resultado.nome).toBe('Novo Nome');
     });
 
     it('deve aceitar objeto vazio e manter campos indefinidos', () => {
-        const resultado = ComponenteUpdateSchema.parse({});
+        const resultado = ItemUpdateSchema.parse({});
         expect(resultado.nome).toBeUndefined();
         expect(resultado.estoque_minimo).toBeUndefined();
         expect(resultado.categoria).toBeUndefined();
@@ -119,12 +119,12 @@ describe('ComponenteUpdateSchema', () => {
 
     it('deve lançar erro quando "nome" está vazio', () => {
         const dadosInvalidos = { nome: '   ' };
-        expect(() => ComponenteUpdateSchema.parse(dadosInvalidos)).toThrow('Nome não pode ser vazio');
+        expect(() => ItemUpdateSchema.parse(dadosInvalidos)).toThrow('Nome não pode ser vazio');
     });
 
     it('deve lançar erro quando "estoque_minimo" não é número', () => {
         const dadosInvalidos = { estoque_minimo: 'dez' };
-        expect(() => ComponenteUpdateSchema.parse(dadosInvalidos)).toThrow('Estoque mínimo deve ser inteiro');
+        expect(() => ItemUpdateSchema.parse(dadosInvalidos)).toThrow('Estoque mínimo deve ser inteiro');
     });
 
 
@@ -133,11 +133,11 @@ describe('ComponenteUpdateSchema', () => {
 
     it('deve lançar erro quando "categoria" não é ObjectId', () => {
         const dadosInvalidos = { categoria: '123' };
-        expect(() => ComponenteUpdateSchema.parse(dadosInvalidos)).toThrow();
+        expect(() => ItemUpdateSchema.parse(dadosInvalidos)).toThrow();
     });
 
     it('deve lançar erro quando "ativo" não é booleano', () => {
         const dadosInvalidos = { ativo: 'sim' };
-        expect(() => ComponenteUpdateSchema.parse(dadosInvalidos)).toThrow();
+        expect(() => ItemUpdateSchema.parse(dadosInvalidos)).toThrow();
     });
 });

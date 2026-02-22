@@ -20,7 +20,7 @@ const movimentacoesSchemas = {
                 description: "Data da movimentação (YYYY-MM-DD)"
             },
             quantidade: movimentacaoJsonSchema.properties.quantidade,
-            componente: movimentacaoJsonSchema.properties.componente,
+            item: movimentacaoJsonSchema.properties.item,
             fornecedor: movimentacaoJsonSchema.properties.fornecedor,
         }
     },
@@ -55,7 +55,7 @@ const movimentacoesSchemas = {
     },
     MovimentacaoPost: {
         ...deepCopy(movimentacaoJsonSchema),
-        required: ["componente", "tipo", "quantidade"],
+        required: ["item", "tipo", "quantidade"],
         description: "Schema para criação de movimentação"
     }
 };
@@ -79,7 +79,7 @@ movimentacoesSchemas.MovimentacaoDetalhes.example = await generateExample(movime
 movimentacoesSchemas.MovimentacaoPost.example = {
     tipo: "entrada",
     quantidade: "10",
-    componente: "507f1f77bcf86cd799439011",
+    item: "507f1f77bcf86cd799439011",
     fornecedor: "507f1f77bcf86cd799439012"
 };
 

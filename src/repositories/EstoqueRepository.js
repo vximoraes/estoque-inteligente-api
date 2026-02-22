@@ -12,18 +12,18 @@ class EstoqueRepository {
         const estoque = new this.model(parsedData);
         const estoqueSalvo = await estoque.save();
         return await this.model.findById(estoqueSalvo._id)
-            .populate('componente')
+            .populate('item')
             .populate('localizacao');
     };
 
     async listar(req) {
-        const { componente, localizacao, quantidade, page = 1 } = req.query;
+        const { item, localizacao, quantidade, page = 1 } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
 
         const filtros = {};
 
-        if (componente) {
-            filtros.componente = componente;
+        if (item) {
+            filtros.item = item;
         }
 
         if (localizacao) {
@@ -41,7 +41,7 @@ class EstoqueRepository {
             page: parseInt(page),
             limit: parseInt(limite),
             populate: [
-                'componente',
+                'item',
                 'localizacao'
             ],
             sort: { createdAt: -1 },
@@ -52,13 +52,13 @@ class EstoqueRepository {
         return resultado;
     };
 
-    async listarPorComponente(req) {
-        const { componenteId } = req.params;
+    async listarPorItem(req) {
+        const { itemId } = req.params;
         const { localizacao, quantidade, page = 1 } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
 
         const filtros = { 
-            componente: componenteId 
+            item: itemId 
         };
 
         if (localizacao) {
@@ -76,7 +76,7 @@ class EstoqueRepository {
             page: parseInt(page),
             limit: parseInt(limite),
             populate: [
-                'componente',
+                'item',
                 'localizacao'
             ],
             sort: { createdAt: -1 },
@@ -93,7 +93,7 @@ class EstoqueRepository {
             parsedData, 
             { new: true }
         )
-            .populate('componente')
+            .populate('item')
             .populate('localizacao')
             .lean();
             
@@ -112,7 +112,7 @@ class EstoqueRepository {
 
     async deletar(id, req) {
         const estoque = await this.model.findOne({ _id: id })
-            .populate('componente')
+            .populate('item')
             .populate('localizacao');
 
         if (!estoque) {
@@ -133,7 +133,7 @@ class EstoqueRepository {
 
     async buscarPorId(id, req) {
         const estoque = await this.model.findOne({ _id: id })
-            .populate('componente')
+            .populate('item')
             .populate('localizacao');
 
         if (!estoque) {

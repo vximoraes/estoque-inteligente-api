@@ -1,11 +1,11 @@
 import CategoriaRepository from '../../../repositories/CategoriaRepository.js';
 import CategoriaModel from '../../../models/Categoria.js';
-import ComponenteModel from '../../../models/Componente.js';
+import ItemModel from '../../../models/Item.js';
 import CategoriaFilterBuilder from '../../../repositories/filters/CategoriaFilterBuilder.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../models/Categoria.js');
-jest.mock('../../../models/Componente.js');
+jest.mock('../../../models/Item.js');
 jest.mock('../../../repositories/filters/CategoriaFilterBuilder.js');
 
 const mockFindById = jest.fn();
@@ -25,7 +25,7 @@ beforeEach(() => {
     CategoriaModel.findByIdAndDelete = mockFindByIdAndDelete;
     CategoriaModel.findOne = mockFindOne;
     CategoriaModel.paginate = mockPaginate;
-    ComponenteModel.exists = jest.fn();
+    ItemModel.exists = jest.fn();
 });
 
 describe('CategoriaRepository', () => {

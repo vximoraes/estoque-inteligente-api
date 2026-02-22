@@ -69,41 +69,41 @@ describe('OrcamentoService', () => {
         });
     });
 
-    describe('manipulação de componentes', () => {
-        it('deve adicionar componente', async () => {
+    describe('manipulação de items', () => {
+        it('deve adicionar item', async () => {
             const req = { user_id: 'user123' };
-            repository.adicionarComponente.mockResolvedValue({ _id: 'id', componentes: [{ nome: 'C1' }] });
-            const result = await service.adicionarComponente('id', { nome: 'C1' }, req);
-            expect(repository.adicionarComponente).toHaveBeenCalledWith('id', { nome: 'C1' }, req);
-            expect(result).toEqual(expect.objectContaining({ componentes: expect.any(Array) }));
+            repository.adicionarItem.mockResolvedValue({ _id: 'id', items: [{ nome: 'C1' }] });
+            const result = await service.adicionarItem('id', { nome: 'C1' }, req);
+            expect(repository.adicionarItem).toHaveBeenCalledWith('id', { nome: 'C1' }, req);
+            expect(result).toEqual(expect.objectContaining({ items: expect.any(Array) }));
         });
-        it('deve atualizar componente', async () => {
+        it('deve atualizar item', async () => {
             const req = { user_id: 'user123' };
-            repository.atualizarComponente.mockResolvedValue({ _id: 'id', componentes: [{ nome: 'C1', quantidade: 2 }] });
-            const result = await service.atualizarComponente('id', 'cid', { quantidade: 2 }, req);
-            expect(repository.atualizarComponente).toHaveBeenCalledWith('id', 'cid', { quantidade: 2 }, req);
-            expect(result).toEqual(expect.objectContaining({ componentes: expect.any(Array) }));
+            repository.atualizarItem.mockResolvedValue({ _id: 'id', items: [{ nome: 'C1', quantidade: 2 }] });
+            const result = await service.atualizarItem('id', 'cid', { quantidade: 2 }, req);
+            expect(repository.atualizarItem).toHaveBeenCalledWith('id', 'cid', { quantidade: 2 }, req);
+            expect(result).toEqual(expect.objectContaining({ items: expect.any(Array) }));
         });
-        it('deve remover componente', async () => {
+        it('deve remover item', async () => {
             const req = { user_id: 'user123' };
-            repository.removerComponente.mockResolvedValue({ _id: 'id', componentes: [] });
-            const result = await service.removerComponente('id', 'cid', req);
-            expect(repository.removerComponente).toHaveBeenCalledWith('id', 'cid', req);
-            expect(result).toEqual(expect.objectContaining({ componentes: [] }));
+            repository.removerItem.mockResolvedValue({ _id: 'id', items: [] });
+            const result = await service.removerItem('id', 'cid', req);
+            expect(repository.removerItem).toHaveBeenCalledWith('id', 'cid', req);
+            expect(result).toEqual(expect.objectContaining({ items: [] }));
         });
-        it('deve retornar componente por id', async () => {
-            repository.buscarPorId.mockResolvedValue({ componentes: [{ _id: 'cid', nome: 'C1' }] });
-            const comp = await service.getComponenteById('id', 'cid');
+        it('deve retornar item por id', async () => {
+            repository.buscarPorId.mockResolvedValue({ items: [{ _id: 'cid', nome: 'C1' }] });
+            const comp = await service.getItemById('id', 'cid');
             expect(comp).toEqual(expect.objectContaining({ _id: 'cid' }));
         });
-        it('deve retornar null se orçamento não existe ao buscar componente', async () => {
+        it('deve retornar null se orçamento não existe ao buscar item', async () => {
             repository.buscarPorId.mockResolvedValue(null);
-            const comp = await service.getComponenteById('id', 'cid');
+            const comp = await service.getItemById('id', 'cid');
             expect(comp).toBeNull();
         });
-        it('deve retornar null se componente não existe', async () => {
-            repository.buscarPorId.mockResolvedValue({ componentes: [{ _id: 'other' }] });
-            const comp = await service.getComponenteById('id', 'cid');
+        it('deve retornar null se item não existe', async () => {
+            repository.buscarPorId.mockResolvedValue({ items: [{ _id: 'other' }] });
+            const comp = await service.getItemById('id', 'cid');
             expect(comp).toBeNull();
         });
     });

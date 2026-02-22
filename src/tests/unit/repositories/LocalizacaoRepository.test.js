@@ -2,10 +2,10 @@ import LocalizacaoRepository from '../../../repositories/LocalizacaoRepository.j
 import { CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../models/Localizacao.js');
-jest.mock('../../../models/Componente.js');
+jest.mock('../../../models/Item.js');
 
 import LocalizacaoModel from '../../../models/Localizacao.js';
-import ComponenteModel from '../../../models/Componente.js';
+import ItemModel from '../../../models/Item.js';
 
 describe('LocalizacaoRepository', () => {
     let repository;

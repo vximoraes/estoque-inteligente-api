@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import objectIdSchema from './ObjectIdSchema.js';
 
-const ComponenteSchema = z.object({
+const ItemSchema = z.object({
     nome: z
         .string()
         .refine((val) => !val || val.trim().length > 0, {
@@ -30,6 +30,6 @@ const ComponenteSchema = z.object({
         .default(true),
 });
 
-const ComponenteUpdateSchema = ComponenteSchema.partial();
+const ItemUpdateSchema = ItemSchema.partial();
 
-export { ComponenteSchema, ComponenteUpdateSchema };
+export { ItemSchema, ItemUpdateSchema };

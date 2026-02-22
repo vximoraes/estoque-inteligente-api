@@ -47,7 +47,7 @@ describe('MovimentacaoController', () => {
     describe('método criar', () => {
         it('deve criar uma movimentação com dados válidos', async () => {
             const movimentacaoData = {
-                componente: '64f234a0c781a7b30c2fe445',
+                item: '64f234a0c781a7b30c2fe445',
                 tipo: 'entrada',
                 quantidade: 10,
                 data: new Date(),
@@ -89,7 +89,7 @@ describe('MovimentacaoController', () => {
             await expect(controller.criar(mockReq, mockRes)).rejects.toThrow();
         }); it('deve lançar erro se o serviço falhar', async () => {
             const movimentacaoData = {
-                componente: '64f234a0c781a7b30c2fe445',
+                item: '64f234a0c781a7b30c2fe445',
                 tipo: 'entrada',
                 quantidade: 10,
                 data: new Date(),
@@ -107,7 +107,7 @@ describe('MovimentacaoController', () => {
             const movimentacoes = [
                 {
                     _id: '64f234a0c781a7b30c2fe447',
-                    componente: '64f234a0c781a7b30c2fe445',
+                    item: '64f234a0c781a7b30c2fe445',
                     tipo: 'entrada',
                     quantidade: 10,
                     data: new Date(),
@@ -115,7 +115,7 @@ describe('MovimentacaoController', () => {
                 },
                 {
                     _id: '64f234a0c781a7b30c2fe448',
-                    componente: '64f234a0c781a7b30c2fe445',
+                    item: '64f234a0c781a7b30c2fe445',
                     tipo: 'saida',
                     quantidade: 5,
                     data: new Date()
@@ -132,7 +132,7 @@ describe('MovimentacaoController', () => {
 
             const movimentacao = {
                 _id: movimentacaoId,
-                componente: '64f234a0c781a7b30c2fe445',
+                item: '64f234a0c781a7b30c2fe445',
                 tipo: 'entrada',
                 quantidade: 10,
                 data: new Date(),
@@ -147,14 +147,14 @@ describe('MovimentacaoController', () => {
         }); it('deve validar os query params quando fornecidos', async () => {
             const queryParams = {
                 tipo: 'entrada',
-                componente: '64f234a0c781a7b30c2fe445'
+                item: '64f234a0c781a7b30c2fe445'
             };
             mockReq.query = queryParams;
 
             const movimentacoes = [
                 {
                     _id: '64f234a0c781a7b30c2fe447',
-                    componente: '64f234a0c781a7b30c2fe445',
+                    item: '64f234a0c781a7b30c2fe445',
                     tipo: 'entrada',
                     quantidade: 10,
                     data: new Date(),

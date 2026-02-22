@@ -1,6 +1,6 @@
 import EstoqueRepository from '../repositories/EstoqueRepository.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
-import ComponenteModel from '../models/Componente.js';
+import ItemModel from '../models/Item.js';
 import LocalizacaoModel from '../models/Localizacao.js';
 
 class EstoqueService {
@@ -20,8 +20,8 @@ class EstoqueService {
         return data;
     };
 
-    async listarPorComponente(req) {
-        const data = await this.repository.listarPorComponente(req);
+    async listarPorItem(req) {
+        const data = await this.repository.listarPorItem(req);
 
         return data;
     };

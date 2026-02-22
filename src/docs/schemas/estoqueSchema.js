@@ -8,13 +8,13 @@ const EstoqueBasico = {
     properties: {
         _id: estoqueJsonSchema.properties._id,
         quantidade: estoqueJsonSchema.properties.quantidade,
-        componente: estoqueJsonSchema.properties.componente,
+        item: estoqueJsonSchema.properties.item,
         localizacao: estoqueJsonSchema.properties.localizacao,
         usuario: estoqueJsonSchema.properties.usuario,
         createdAt: estoqueJsonSchema.properties.createdAt,
         updatedAt: estoqueJsonSchema.properties.updatedAt
     },
-    required: ["quantidade", "componente", "localizacao", "usuario"],
+    required: ["quantidade", "item", "localizacao", "usuario"],
 };
 
 const EstoqueCompleto = {
@@ -22,13 +22,13 @@ const EstoqueCompleto = {
     properties: {
         _id: estoqueJsonSchema.properties._id,
         quantidade: estoqueJsonSchema.properties.quantidade,
-        componente: { $ref: "#/components/schemas/ComponenteCompleto" },
+        item: { $ref: "#/components/schemas/ItemCompleto" },
         localizacao: { $ref: "#/components/schemas/LocalizacaoCompleto" },
         usuario: estoqueJsonSchema.properties.usuario,
         createdAt: estoqueJsonSchema.properties.createdAt,
         updatedAt: estoqueJsonSchema.properties.updatedAt
     },
-    required: ["quantidade", "componente", "localizacao", "usuario"],
+    required: ["quantidade", "item", "localizacao", "usuario"],
 };
 
 const EstoqueRequest = {
@@ -39,10 +39,10 @@ const EstoqueRequest = {
             minimum: 0,
             description: "Quantidade em estoque"
         },
-        componente: {
+        item: {
             type: "string",
             format: "objectid", 
-            description: "ID do componente"
+            description: "ID do item"
         },
         localizacao: {
             type: "string",
@@ -50,7 +50,7 @@ const EstoqueRequest = {
             description: "ID da localização"
         }
     },
-    required: ["quantidade", "componente", "localizacao"],
+    required: ["quantidade", "item", "localizacao"],
 };
 
 const EstoqueUpdateRequest = {
@@ -73,7 +73,7 @@ const EstoqueUpdateRequest = {
 const EstoqueExemplo = {
     _id: "507f1f77bcf86cd799439011",
     quantidade: 150,
-    componente: "507f1f77bcf86cd799439012",
+    item: "507f1f77bcf86cd799439012",
     localizacao: "507f1f77bcf86cd799439013", 
     usuario: "507f1f77bcf86cd799439014",
     createdAt: "2024-01-15T10:30:00.000Z",
@@ -83,7 +83,7 @@ const EstoqueExemplo = {
 const EstoqueCompletoExemplo = {
     _id: "507f1f77bcf86cd799439011",
     quantidade: 150,
-    componente: {
+    item: {
         _id: "507f1f77bcf86cd799439012",
         nome: "Resistor 10kΩ",
         codigo: "RES-10K-001",

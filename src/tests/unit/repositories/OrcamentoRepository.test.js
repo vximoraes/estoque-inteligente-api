@@ -82,52 +82,52 @@ describe('OrcamentoRepository', () => {
         await expect(repository.deletar('id', req)).rejects.toThrow('não encontrado');
     });
 
-    it('deve adicionar componente', async () => {
-        const fake = { _id: 'id', componentes: [], save: jest.fn(), toObject: () => ({ _id: 'id', componentes: [] }) };
+    it('deve adicionar item', async () => {
+        const fake = { _id: 'id', items: [], save: jest.fn(), toObject: () => ({ _id: 'id', items: [] }) };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
-        const result = await repository.adicionarComponente('id', { nome: 'C' }, req);
+        const result = await repository.adicionarItem('id', { nome: 'C' }, req);
         expect(result._id).toBe('id');
     });
 
-    it('deve lançar erro ao adicionar componente em orçamento inexistente', async () => {
+    it('deve lançar erro ao adicionar item em orçamento inexistente', async () => {
         MockModel.findOne.mockResolvedValue(null);
         const req = { user_id: 'user123' };
-        await expect(repository.adicionarComponente('id', { nome: 'C' }, req)).rejects.toThrow('não encontrado');
+        await expect(repository.adicionarItem('id', { nome: 'C' }, req)).rejects.toThrow('não encontrado');
     });
 
-    it('deve atualizar componente', async () => {
+    it('deve atualizar item', async () => {
         const comp = { _id: 'cid', toObject: () => ({ _id: 'cid' }) };
-        const fake = { _id: 'id', componentes: [comp], save: jest.fn() };
+        const fake = { _id: 'id', items: [comp], save: jest.fn() };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
-        const result = await repository.atualizarComponente('id', 'cid', { nome: 'Novo' }, req);
+        const result = await repository.atualizarItem('id', 'cid', { nome: 'Novo' }, req);
         expect(result._id).toBe('id');
     });
 
-    it('deve lançar erro ao atualizar componente inexistente', async () => {
-        const fake = { _id: 'id', componentes: [{ _id: 'other' }] };
+    it('deve lançar erro ao atualizar item inexistente', async () => {
+        const fake = { _id: 'id', items: [{ _id: 'other' }] };
         MockModel.findOne.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
-        await expect(repository.atualizarComponente('id', 'cid', { nome: 'Novo' }, req)).rejects.toThrow('Componente não encontrado');
+        await expect(repository.atualizarItem('id', 'cid', { nome: 'Novo' }, req)).rejects.toThrow('Item não encontrado');
     });
 
-    it('deve remover componente', async () => {
+    it('deve remover item', async () => {
         const comp = { _id: 'cid', subtotal: 1 };
-        const fake = { _id: 'id', componentes: [comp], save: jest.fn() };
+        const fake = { _id: 'id', items: [comp], save: jest.fn() };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
-        const result = await repository.removerComponente('id', 'cid', req);
+        const result = await repository.removerItem('id', 'cid', req);
         expect(result._id).toBe('id');
     });
 
-    it('deve lançar erro ao remover componente de orçamento inexistente', async () => {
+    it('deve lançar erro ao remover item de orçamento inexistente', async () => {
         MockModel.findOne.mockResolvedValue(null);
         const req = { user_id: 'user123' };
-        await expect(repository.removerComponente('id', 'cid', req)).rejects.toThrow('não encontrado');
+        await expect(repository.removerItem('id', 'cid', req)).rejects.toThrow('não encontrado');
     });
 
     it('deve buscar por id', async () => {

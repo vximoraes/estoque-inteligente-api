@@ -1,14 +1,14 @@
-import ComponenteService from '../../../services/ComponenteService.js';
-import ComponenteRepository from '../../../repositories/ComponenteRepository.js';
+import ItemService from '../../../services/ItemService.js';
+import ItemRepository from '../../../repositories/ItemRepository.js';
 import LocalizacaoModel from '../../../models/Localizacao.js';
 import CategoriaModel from '../../../models/Categoria.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../repositories/ComponenteRepository.js');
+jest.mock('../../../repositories/ItemRepository.js');
 jest.mock('../../../models/Localizacao.js');
 jest.mock('../../../models/Categoria.js');
 
-const makeComponente = (props = {}) => ({
+const makeItem = (props = {}) => ({
     _id: 'comp1',
     nome: 'Resistor',
     quantidade: 10,
@@ -22,10 +22,10 @@ const makeComponente = (props = {}) => ({
 const makeCategoria = (props = {}) => ({ _id: 'cat1', nome: 'Passivo', ...props });
 const makeLocalizacao = (props = {}) => ({ _id: 'loc1', nome: 'Estoque', ...props });
 
-describe('ComponenteService', () => {
+describe('ItemService', () => {
     let service, repositoryMock;
     beforeEach(() => {
-        ComponenteRepository.mockClear();
+        ItemRepository.mockClear();
         repositoryMock = {
             criar: jest.fn(),
             listar: jest.fn(),
@@ -34,18 +34,18 @@ describe('ComponenteService', () => {
             buscarPorNome: jest.fn(),
             buscarPorId: jest.fn()
         };
-        ComponenteRepository.mockImplementation(() => repositoryMock);
-        service = new ComponenteService();
+        ItemRepository.mockImplementation(() => repositoryMock);
+        service = new ItemService();
         jest.clearAllMocks();
     });
 
     describe('criar', () => {
-        it('deve cadastrar componente com dados válidos', async () => {
+        it('deve cadastrar item com dados válidos', async () => {
             const req = { user_id: 'user1' };
             repositoryMock.buscarPorNome.mockResolvedValue(null);
             LocalizacaoModel.findOne.mockResolvedValue(makeLocalizacao());
             CategoriaModel.findOne.mockResolvedValue(makeCategoria());
-            repositoryMock.criar.mockResolvedValue(makeComponente());
+            repositoryMock.criar.mockResolvedValue(makeItem());
             const result = await service.criar({
                 nome: 'Resistor',
                 quantidade: 10,
@@ -59,7 +59,7 @@ describe('ComponenteService', () => {
         });
         it('deve lançar erro se nome já existir', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorNome.mockResolvedValue(makeComponente());
+            repositoryMock.buscarPorNome.mockResolvedValue(makeItem());
             await expect(service.criar({ nome: 'Resistor', localizacao: 'loc1', categoria: 'cat1' }, req))
                 .rejects.toThrow(CustomError);
         });
@@ -84,8 +84,8 @@ describe('ComponenteService', () => {
     });
 
     describe('listar', () => {
-        it('deve retornar todos os componentes', async () => {
-            const comps = [makeComponente(), makeComponente({ _id: 'comp2', nome: 'Capacitor' })];
+        it('deve retornar todos os items', async () => {
+            const comps = [makeItem(), makeItem({ _id: 'comp2', nome: 'Capacitor' })];
             repositoryMock.listar.mockResolvedValue(comps);
             const result = await service.listar({});
             expect(result).toEqual(comps);
@@ -97,16 +97,16 @@ describe('ComponenteService', () => {
     });
 
     describe('atualizar', () => {
-        it('deve atualizar dados do componente, exceto quantidade', async () => {
+        it('deve atualizar dados do item, exceto quantidade', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
             repositoryMock.buscarPorNome.mockResolvedValue(null);
-            repositoryMock.atualizar.mockResolvedValue(makeComponente({ nome: 'Novo Nome', quantidade: 10 }));
+            repositoryMock.atualizar.mockResolvedValue(makeItem({ nome: 'Novo Nome', quantidade: 10 }));
             const result = await service.atualizar('comp1', { nome: 'Novo Nome', quantidade: 999 }, req);
             expect(result.nome).toBe('Novo Nome');
             expect(repositoryMock.atualizar).toHaveBeenCalledWith('comp1', { nome: 'Novo Nome' }, req);
         });
-        it('deve lançar erro se componente não existir', async () => {
+        it('deve lançar erro se item não existir', async () => {
             const req = { user_id: 'user1' };
             repositoryMock.buscarPorId.mockResolvedValue(null);
             await expect(service.atualizar('compX', { nome: 'Qualquer' }, req))
@@ -114,14 +114,14 @@ describe('ComponenteService', () => {
         });
         it('deve lançar erro se tentar atualizar para nome já existente', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
-            repositoryMock.buscarPorNome.mockResolvedValue(makeComponente({ _id: 'comp2', nome: 'Duplicado' }));
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+            repositoryMock.buscarPorNome.mockResolvedValue(makeItem({ _id: 'comp2', nome: 'Duplicado' }));
             await expect(service.atualizar('comp1', { nome: 'Duplicado' }, req))
                 .rejects.toThrow(CustomError);
         });
         it('deve lançar erro inesperado do repository', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
             repositoryMock.buscarPorNome.mockResolvedValue(null);
             repositoryMock.atualizar.mockRejectedValue(new Error('DB error'));
             await expect(service.atualizar('comp1', { nome: 'Novo' }, req)).rejects.toThrow('DB error');
@@ -129,21 +129,21 @@ describe('ComponenteService', () => {
     });
 
     describe('inativar', () => {
-        it('deve inativar componente existente', async () => {
+        it('deve inativar item existente', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
-            repositoryMock.atualizar.mockResolvedValue({ nome: 'Componente', ativo: false });
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+            repositoryMock.atualizar.mockResolvedValue({ nome: 'Item', ativo: false });
             const result = await service.inativar('comp1', req);
             expect(result).toHaveProperty('ativo', false);
         });
-        it('deve lançar erro se componente não existir', async () => {
+        it('deve lançar erro se item não existir', async () => {
             const req = { user_id: 'user1' };
             repositoryMock.buscarPorId.mockResolvedValue(null);
             await expect(service.inativar('compX', req)).rejects.toThrow(CustomError);
         });
         it('deve lançar erro inesperado do repository', async () => {
             const req = { user_id: 'user1' };
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
             repositoryMock.atualizar.mockRejectedValue(new Error('DB error'));
             await expect(service.inativar('comp1', req)).rejects.toThrow('DB error');
         });
@@ -151,20 +151,20 @@ describe('ComponenteService', () => {
 
     describe('Métodos auxiliares', () => {
         it('validateNome lança erro se nome já existir', async () => {
-            repositoryMock.buscarPorNome.mockResolvedValue(makeComponente());
+            repositoryMock.buscarPorNome.mockResolvedValue(makeItem());
             await expect(service.validateNome('Resistor')).rejects.toThrow(CustomError);
         });
         it('validateNome não lança erro se nome for único', async () => {
             repositoryMock.buscarPorNome.mockResolvedValue(null);
             await expect(service.validateNome('Unico')).resolves.toBeUndefined();
         });
-        it('ensureComponentExists lança erro se não existir', async () => {
+        it('ensureItemExists lança erro se não existir', async () => {
             repositoryMock.buscarPorId.mockResolvedValue(null);
-            await expect(service.ensureComponentExists('compX')).rejects.toThrow(CustomError);
+            await expect(service.ensureItemExists('compX')).rejects.toThrow(CustomError);
         });
-        it('ensureComponentExists retorna componente se existir', async () => {
-            repositoryMock.buscarPorId.mockResolvedValue(makeComponente());
-            await expect(service.ensureComponentExists('comp1')).resolves.toHaveProperty('_id', 'comp1');
+        it('ensureItemExists retorna item se existir', async () => {
+            repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+            await expect(service.ensureItemExists('comp1')).resolves.toHaveProperty('_id', 'comp1');
         });
 
         it('validateCategoria lança erro se não existir', async () => {

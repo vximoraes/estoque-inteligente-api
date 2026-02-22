@@ -85,7 +85,7 @@ describe('LocalizacaoService', () => {
     });
 
     describe('inativar', () => {
-        it('deve inativar localização existente sem componentes ativos', async () => {
+        it('deve inativar localização existente sem items ativos', async () => {
             const locId = new mongoose.Types.ObjectId();
             const localizacao = makeLocalizacao();
             localizacao._id = locId;
@@ -104,7 +104,7 @@ describe('LocalizacaoService', () => {
             repositoryMock.buscarPorId.mockResolvedValue(null);
             await expect(service.inativar(locId.toString(), {})).rejects.toThrow(CustomError);
         });
-        it('deve lançar erro se localização tiver componentes ativos', async () => {
+        it('deve lançar erro se localização tiver items ativos', async () => {
             const locId = new mongoose.Types.ObjectId();
             const localizacao = makeLocalizacao();
             localizacao._id = locId;
@@ -112,11 +112,11 @@ describe('LocalizacaoService', () => {
             repositoryMock.buscarPorId.mockResolvedValue(localizacao);
             EstoqueModel.find = jest.fn().mockReturnValue({
                 populate: jest.fn().mockResolvedValue([
-                    { componente: { ativo: true } }
+                    { item: { ativo: true } }
                 ])
             });
             
-            await expect(service.inativar(locId.toString(), {})).rejects.toThrow('Localização possui estoque de componentes ativos');
+            await expect(service.inativar(locId.toString(), {})).rejects.toThrow('Localização possui estoque de items ativos');
         });
         it('deve lançar erro inesperado do repository', async () => {
             const locId = new mongoose.Types.ObjectId();

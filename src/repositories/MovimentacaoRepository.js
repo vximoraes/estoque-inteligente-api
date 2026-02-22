@@ -14,13 +14,13 @@ class MovimentacaoRepository {
         const movimentacaoSalva = await movimentacao.save();
         
         await this.model.atualizarEstoque(
-            movimentacaoSalva.componente,
+            movimentacaoSalva.item,
             movimentacaoSalva.localizacao,
             movimentacaoSalva.usuario
         );
         
         return await this.model.findById(movimentacaoSalva._id)
-            .populate('componente')
+            .populate('item')
             .populate('localizacao');
     };
 
@@ -30,7 +30,7 @@ class MovimentacaoRepository {
         // Se um ID for fornecido, retorna a movimentação enriquecida com estatísticas.
         if (id) {
             const data = await this.model.findOne({ _id: id })
-                .populate('componente')
+                .populate('item')
                 .populate('localizacao');
 
             if (!data) {
@@ -50,7 +50,7 @@ class MovimentacaoRepository {
             return dataWithStats;
         };
 
-        const { tipo, data, quantidade, componente, localizacao, page = 1 } = req.query;
+        const { tipo, data, quantidade, item, localizacao, page = 1 } = req.query;
         const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
 
         const filterBuilder = new MovimentacaoFilterBuilder()
@@ -58,7 +58,7 @@ class MovimentacaoRepository {
             .comData(data || '')
             .comQuantidade(quantidade || '')
 
-        await filterBuilder.comComponente(componente || '');
+        await filterBuilder.comItem(item || '');
         await filterBuilder.comLocalizacao(localizacao || '');
 
         if (typeof filterBuilder.build !== 'function') {
@@ -77,7 +77,7 @@ class MovimentacaoRepository {
             page: parseInt(page),
             limit: parseInt(limite),
             populate: [
-                'componente',
+                'item',
                 'localizacao'
             ],
             sort: { data_hora: -1 },

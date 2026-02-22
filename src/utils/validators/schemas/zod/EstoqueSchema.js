@@ -19,7 +19,7 @@ const EstoqueSchema = z.object({
             }
             return num;
         })),
-    componente: objectIdSchema,
+    item: objectIdSchema,
     localizacao: objectIdSchema,
 });
 

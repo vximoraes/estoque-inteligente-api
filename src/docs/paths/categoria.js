@@ -8,10 +8,10 @@ const categoriasRoutes = {
             tags: ["Categorias"],
             summary: "Cria uma nova categoria",
             description: `
-            + Caso de uso: Criação de nova categoria de componentes no sistema.
+            + Caso de uso: Criação de nova categoria de items no sistema.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado criar uma nova categoria para organizar componentes eletrônicos.
+                - Permitir ao usuário autenticado criar uma nova categoria para organizar itens do estoque.
                 + Recebe no corpo da requisição:
                     - Objeto conforme schema **CategoriaPost**, contendo o nome da categoria.
 
@@ -218,7 +218,7 @@ const categoriasRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a categoria existe antes de excluir.
-                - Não permitir exclusão se há componentes vinculados à categoria.  
+                - Não permitir exclusão se há items vinculados à categoria.  
                 - Registrar log de auditoria sobre a operação.  
                 - Garantir que não haja vínculos críticos pendentes.
 

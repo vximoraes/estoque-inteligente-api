@@ -21,9 +21,9 @@ class Movimentacao {
                 min: 0,
                 max: 999999999
             },
-            componente: {
+            item: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "componentes",
+                ref: "items",
                 required: true,
             },
             localizacao: {
@@ -40,14 +40,14 @@ class Movimentacao {
 
         // Middleware para atualizar estoque após salvar movimentação
         movimentacaoSchema.post('save', async function() {
-            await this.constructor.atualizarEstoque(this.componente, this.localizacao, this.usuario);
+            await this.constructor.atualizarEstoque(this.item, this.localizacao, this.usuario);
         });
 
         // Middleware para atualizar estoque após deletar movimentação
         movimentacaoSchema.post('deleteOne', async function() {
             const doc = await this.model.findOne(this.getQuery());
             if (doc) {
-                await this.model.atualizarEstoque(doc.componente, doc.localizacao, doc.usuario);
+                await this.model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
             }
         });
 
@@ -55,19 +55,19 @@ class Movimentacao {
         movimentacaoSchema.post(['updateOne', 'findOneAndUpdate'], async function() {
             const doc = await this.model.findOne(this.getQuery());
             if (doc) {
-                await this.model.atualizarEstoque(doc.componente, doc.localizacao, doc.usuario);
+                await this.model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
             }
         });
 
         // Método estático para atualizar estoque
-        movimentacaoSchema.statics.atualizarEstoque = async function(componenteId, localizacaoId, usuarioId) {
+        movimentacaoSchema.statics.atualizarEstoque = async function(itemId, localizacaoId, usuarioId) {
             const EstoqueModel = mongoose.model('estoques');
             
             // Calcular quantidade total baseada nas movimentações
             const resultado = await this.aggregate([
                 { 
                     $match: { 
-                        componente: componenteId, 
+                        item: itemId, 
                         localizacao: localizacaoId
                     } 
                 },
@@ -92,7 +92,7 @@ class Movimentacao {
             // Atualizar ou criar registro de estoque
             await EstoqueModel.findOneAndUpdate(
                 { 
-                    componente: componenteId, 
+                    item: itemId, 
                     localizacao: localizacaoId
                 },
                 { 
@@ -105,8 +105,8 @@ class Movimentacao {
                 }
             );
 
-            // Atualizar quantidade total do componente
-            await EstoqueModel.atualizarQuantidadeComponente(componenteId);
+            // Atualizar quantidade total do item
+            await EstoqueModel.atualizarQuantidadeItem(itemId);
         };
 
         movimentacaoSchema.plugin(mongoosePaginate);

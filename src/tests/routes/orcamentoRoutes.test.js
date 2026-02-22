@@ -13,11 +13,11 @@ describe("Orçamentos", () => {
     let token;
     let orcamentoId;
     let protocolo;
-    let componenteId;
-    let componenteRealId;
+    let itemId;
+    let itemRealId;
     let fornecedorRealId;
 
-    const criarComponenteEFornecedor = async () => {
+    const criarItemEFornecedor = async () => {
         const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
 
         const catRes = await request(BASE_URL)
@@ -39,18 +39,18 @@ describe("Orçamentos", () => {
         const fornecedor = fornRes.body.data._id;
 
         const compRes = await request(BASE_URL)
-            .post('/componentes')
+            .post('/items')
             .set('Authorization', `Bearer ${token}`)
             .send({ 
-                nome: `Componente Teste ${unique}`,
+                nome: `Item Teste ${unique}`,
                 categoria,
                 localizacao,
                 estoque_minimo: '10',
                 valor_unitario: '1.5'
             });
-        const componente = compRes.body.data._id;
+        const item = compRes.body.data._id;
         
-        return { componente, fornecedor };
+        return { item, fornecedor };
     };
 
     beforeAll(async () => {
@@ -72,8 +72,8 @@ describe("Orçamentos", () => {
         token = loginRes.body?.data?.user?.accesstoken;
         expect(token).toBeTruthy();
 
-        const { componente, fornecedor } = await criarComponenteEFornecedor();
-        componenteRealId = componente;
+        const { item, fornecedor } = await criarItemEFornecedor();
+        itemRealId = item;
         fornecedorRealId = fornecedor;
     }, 15000);
 
@@ -87,15 +87,15 @@ describe("Orçamentos", () => {
 
     it("Deve cadastrar orçamento válido (POST)", async () => {
         protocolo = "PROTOCOLO-" + Date.now();
-        const componente = {
-            componente: componenteRealId,
+        const item = {
+            item: itemRealId,
             fornecedor: fornecedorRealId,
             quantidade: 2,
             valor_unitario: 0.5
         };
         const obj = {
             nome: "Orçamento Teste",
-            componentes: [componente]
+            items: [item]
         };
         const res = await request(BASE_URL)
             .post("/orcamentos")
@@ -104,8 +104,8 @@ describe("Orçamentos", () => {
         expect(res.status).toBe(201);
         orcamentoId = res.body.data._id;
         expect(res.body.data).toHaveProperty("_id");
-        if (Array.isArray(res.body.data.componentes)) {
-            expect(res.body.data.componentes.length).toBeGreaterThan(0);
+        if (Array.isArray(res.body.data.items)) {
+            expect(res.body.data.items.length).toBeGreaterThan(0);
         } else {
             expect(true).toBe(true);
         }
@@ -153,15 +153,15 @@ describe("Orçamentos", () => {
     });
 
     it("Deve remover orçamento (DELETE)", async () => {
-        const componente = {
-            componente: componenteRealId,
+        const item = {
+            item: itemRealId,
             fornecedor: fornecedorRealId,
             quantidade: 2,
             valor_unitario: 0.5
         };
         const obj = {
             nome: "Orçamento Remover",
-            componentes: [componente]
+            items: [item]
         };
         const res1 = await request(BASE_URL)
             .post("/orcamentos")
@@ -178,26 +178,26 @@ describe("Orçamentos", () => {
             });
     });
 
-    it("Deve adicionar componente ao orçamento", async () => {
+    it("Deve adicionar item ao orçamento", async () => {
         const comp = {
-            componente: componenteRealId,
+            item: itemRealId,
             fornecedor: fornecedorRealId,
             quantidade: 1,
             valor_unitario: 2
         };
         const res = await request(BASE_URL)
-            .post(`/orcamentos/${orcamentoId}/componentes`)
+            .post(`/orcamentos/${orcamentoId}/items`)
             .set("Authorization", `Bearer ${token}`)
             .send(comp)
             .expect(200);
-        componenteId = res.body.data._id;
+        itemId = res.body.data._id;
         expect(res.body.data._id).toBeDefined();
     });
 
-    it("Deve atualizar componente do orçamento", async () => {
-        expect(componenteId).toBeDefined();
+    it("Deve atualizar item do orçamento", async () => {
+        expect(itemId).toBeDefined();
         const res = await request(BASE_URL)
-            .patch(`/orcamentos/${orcamentoId}/componentes/${componenteId}`)
+            .patch(`/orcamentos/${orcamentoId}/items/${itemId}`)
             .set("Authorization", `Bearer ${token}`)
             .send({ quantidade: "5" })
             .expect(res => {
@@ -208,24 +208,24 @@ describe("Orçamentos", () => {
         }
     });
 
-    it("Deve remover componente do orçamento", async () => {
+    it("Deve remover item do orçamento", async () => {
         await request(BASE_URL)
-            .delete(`/orcamentos/${orcamentoId}/componentes/${componenteId}`)
+            .delete(`/orcamentos/${orcamentoId}/items/${itemId}`)
             .set("Authorization", `Bearer ${token}`)
             .expect(200);
     });
     
     it("Deve aplicar filtro de busca por nome", async () => {
         const nomeFiltro = "OrcamentoFiltro" + Date.now();
-        const componente = {
-            componente: componenteRealId,
+        const item = {
+            item: itemRealId,
             fornecedor: fornecedorRealId,
             quantidade: 1,
             valor_unitario: 0.5
         };
         const obj = {
             nome: nomeFiltro,
-            componentes: [componente]
+            items: [item]
         };
         await request(BASE_URL)
             .post("/orcamentos")
@@ -239,15 +239,15 @@ describe("Orçamentos", () => {
     });
 
     it("Resposta não deve conter campos desnecessários", async () => {
-        const componente = {
-            componente: componenteRealId,
+        const item = {
+            item: itemRealId,
             fornecedor: fornecedorRealId,
             quantidade: 1,
             valor_unitario: 0.5
         };
         const obj = {
             nome: "Orçamento Limpo" + Date.now(),
-            componentes: [componente]
+            items: [item]
         };
         const res = await request(BASE_URL)
             .post("/orcamentos")

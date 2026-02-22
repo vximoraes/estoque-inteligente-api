@@ -1,29 +1,29 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Orcamento from '../models/Orcamento.js';
-import Componente from '../models/Componente.js';
+import Item from '../models/Item.js';
 import Fornecedor from '../models/Fornecedor.js';
 
 export default async function orcamentoSeed(adminId) {
-    const componenteList = await Componente.find({});
+    const itemList = await Item.find({});
     const fornecedorList = await Fornecedor.find({});
     
     await Orcamento.deleteMany({});
 
     for (let i = 0; i < 5; i++) {
-        const componentes = [];
+        const items = [];
         
-        const numComponentes = Math.floor(Math.random() * 4) + 2;
+        const numItems = Math.floor(Math.random() * 4) + 2;
         
-        for (let j = 0; j < numComponentes; j++) {
-            const componenteRandom = componenteList[Math.floor(Math.random() * componenteList.length)];
+        for (let j = 0; j < numItems; j++) {
+            const itemRandom = itemList[Math.floor(Math.random() * itemList.length)];
             const fornecedorRandom = fornecedorList[Math.floor(Math.random() * fornecedorList.length)];
             
             const quantidade = Math.floor(Math.random() * 10) + 1;
             const valor_unitario = parseFloat((Math.random() * 100 + 5).toFixed(2));
             
-            componentes.push({
-                componente: componenteRandom._id,
-                nome: componenteRandom.nome, 
+            items.push({
+                item: itemRandom._id,
+                nome: itemRandom.nome, 
                 fornecedor: fornecedorRandom._id,
                 quantidade,
                 valor_unitario,
@@ -34,7 +34,7 @@ export default async function orcamentoSeed(adminId) {
         const orcamento = {
             nome: fakeMappings.Orcamento.nome.apply(),
             descricao: fakeMappings.Orcamento.descricao.apply(),
-            componentes,
+            items,
             usuario: adminId,
             ativo: true
         };

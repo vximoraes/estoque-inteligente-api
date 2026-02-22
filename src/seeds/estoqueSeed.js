@@ -1,17 +1,17 @@
 import { fakeMappings } from "./globalFakeMapping.js";
 import Estoque from "../models/Estoque.js";
-import Componente from "../models/Componente.js";
+import Item from "../models/Item.js";
 import Localizacao from "../models/Localizacao.js";
 import Usuario from "../models/Usuario.js";
 
 export default async function estoqueSeed() {
-    const componenteList = await Componente.find({});
+    const itemList = await Item.find({});
     const localizacaoList = await Localizacao.find({});
     const usuarios = await Usuario.find({});
 
     await Estoque.deleteMany({});
 
-    for (let componente of componenteList) {
+    for (let item of itemList) {
         const numLocalizacoes = Math.floor(Math.random() * 3) + 1;
         const localizacoesSelecionadas = [];
         
@@ -29,7 +29,7 @@ export default async function estoqueSeed() {
             
             const estoque = {
                 quantidade: fakeMappings.Estoque.quantidade.apply(),
-                componente: componente._id,
+                item: item._id,
                 localizacao: localizacao._id,
                 usuario: usuarioRandom._id
             };
@@ -38,7 +38,7 @@ export default async function estoqueSeed() {
         }
     }
 
-    for (let componente of componenteList) {
-        await Estoque.atualizarQuantidadeComponente(componente._id);
+    for (let item of itemList) {
+        await Estoque.atualizarQuantidadeItem(item._id);
     }
 };

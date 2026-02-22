@@ -2,7 +2,7 @@ import { z } from 'zod';
 import objectIdSchema from '../ObjectIdSchema.js';
 
 const EstoqueQuerySchema = z.object({
-    componente: objectIdSchema.optional(),
+    item: objectIdSchema.optional(),
     localizacao: objectIdSchema.optional(),
     quantidade: z.string().optional(),
     page: z.string().optional(),

@@ -28,16 +28,16 @@ class EstoqueController {
         return CommonResponse.success(res, data);
     };
 
-    async listarPorComponente(req, res) {
-        const { componenteId } = req.params || {};
-        EstoqueIdSchema.parse(componenteId);
+    async listarPorItem(req, res) {
+        const { itemId } = req.params || {};
+        EstoqueIdSchema.parse(itemId);
 
         const query = req.query || {};
         if (Object.keys(query).length !== 0) {
             await EstoqueQuerySchema.parseAsync(query);
         };
 
-        const data = await this.service.listarPorComponente(req);
+        const data = await this.service.listarPorItem(req);
 
         return CommonResponse.success(res, data);
     };

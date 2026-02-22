@@ -88,7 +88,7 @@ const notificacaoMongooseSchema = Notificacao.schema;
 notificacoesSchemas.NotificacaoItem.example = await generateExample(notificacoesSchemas.NotificacaoItem, null, notificacaoMongooseSchema);
 notificacoesSchemas.NotificacaoDetalhes.example = await generateExample(notificacoesSchemas.NotificacaoDetalhes, null, notificacaoMongooseSchema);
 notificacoesSchemas.NotificacaoPost.example = {
-    mensagem: "Estoque baixo do componente Resistor 10k"
+    mensagem: "Estoque baixo do item Resistor 10k"
 };
 
 export default notificacoesSchemas;

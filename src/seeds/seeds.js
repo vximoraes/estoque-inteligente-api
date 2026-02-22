@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import DbConnect from "../config/DbConnect.js";
 import categoriaSeed from "./categoriaSeed.js";
 import localizacaoSeed from "./localizacaoSeed.js";
-import componenteSeed from "./componenteSeed.js";
+import itemSeed from "./itemSeed.js";
 import fornecedorSeed from "./fornecedorSeed.js";
 import movimentacaoSeed from "./movimentacaoSeed.js";
 import usuarioSeed from "./usuarioSeed.js";
@@ -19,7 +19,7 @@ try {
     const { adminId } = await usuarioSeed(); 
     await categoriaSeed(adminId);
     await localizacaoSeed(adminId);
-    await componenteSeed(adminId);
+    await itemSeed(adminId);
     await fornecedorSeed(adminId);
     await movimentacaoSeed(adminId);
     await notificacaoSeed(adminId);

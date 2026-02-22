@@ -1,6 +1,6 @@
 import OrcamentoController from '../../../controllers/OrcamentoController.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
-import Componente from '../../../models/Componente.js';
+import Item from '../../../models/Item.js';
 import Fornecedor from '../../../models/Fornecedor.js';
 
 jest.mock('../../../services/OrcamentoService.js', () => {
@@ -9,14 +9,14 @@ jest.mock('../../../services/OrcamentoService.js', () => {
         listar: jest.fn(),
         atualizar: jest.fn(),
         deletar: jest.fn(),
-        adicionarComponente: jest.fn(),
-        atualizarComponente: jest.fn(),
-        removerComponente: jest.fn(),
-        getComponenteById: jest.fn(),
+        adicionarItem: jest.fn(),
+        atualizarItem: jest.fn(),
+        removerItem: jest.fn(),
+        getItemById: jest.fn(),
     }));
 });
 
-jest.mock('../../../models/Componente.js', () => ({
+jest.mock('../../../models/Item.js', () => ({
     findById: jest.fn()
 }));
 
@@ -40,7 +40,7 @@ describe('OrcamentoController', () => {
         res = mockRes();
         jest.clearAllMocks();
         
-        Componente.findById.mockImplementation((id) => {
+        Item.findById.mockImplementation((id) => {
             if (id === '507f1f77bcf86cd799439012') return Promise.resolve({ _id: id, nome: 'Resistor' });
             if (id === '507f1f77bcf86cd799439014') return Promise.resolve({ _id: id, nome: 'Capacitor' });
             return Promise.resolve(null);
@@ -59,9 +59,9 @@ describe('OrcamentoController', () => {
             const req = {
                 body: {
                     nome: 'Orçamento Teste',
-                    componentes: [
-                        { componente: '507f1f77bcf86cd799439012', fornecedor: '507f1f77bcf86cd799439013', quantidade: '2', valor_unitario: '1.5' },
-                        { componente: '507f1f77bcf86cd799439014', fornecedor: '507f1f77bcf86cd799439015', quantidade: '1', valor_unitario: '2' }
+                    items: [
+                        { item: '507f1f77bcf86cd799439012', fornecedor: '507f1f77bcf86cd799439013', quantidade: '2', valor_unitario: '1.5' },
+                        { item: '507f1f77bcf86cd799439014', fornecedor: '507f1f77bcf86cd799439015', quantidade: '1', valor_unitario: '2' }
                     ]
                 }
             };
@@ -76,7 +76,7 @@ describe('OrcamentoController', () => {
         });
 
         it('deve retornar erro 400 para dados inválidos', async () => {
-            const req = { body: { nome: '', componentes: [] } };
+            const req = { body: { nome: '', items: [] } };
             await expect(controller.criar(req, res)).rejects.toThrow();
         });
     });
@@ -124,61 +124,61 @@ describe('OrcamentoController', () => {
         });
     });
 
-    describe('adicionarComponente', () => {
-        it('deve adicionar componente válido', async () => {
-            const req = { params: { orcamentoId: '507f1f77bcf86cd799439011' }, body: { componente: '507f1f77bcf86cd799439012', fornecedor: '507f1f77bcf86cd799439013', quantidade: '2', valor_unitario: '1.5' } };
-            service.adicionarComponente.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', componente_orcamento: [{ nome: 'Resistor' }] });
-            await controller.adicionarComponente(req, res);
-            expect(service.adicionarComponente).toHaveBeenCalled();
+    describe('adicionarItem', () => {
+        it('deve adicionar item válido', async () => {
+            const req = { params: { orcamentoId: '507f1f77bcf86cd799439011' }, body: { item: '507f1f77bcf86cd799439012', fornecedor: '507f1f77bcf86cd799439013', quantidade: '2', valor_unitario: '1.5' } };
+            service.adicionarItem.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', item_orcamento: [{ nome: 'Resistor' }] });
+            await controller.adicionarItem(req, res);
+            expect(service.adicionarItem).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('adicionado') }));
         });
         it('deve retornar erro 400 para dados inválidos', async () => {
-            const req = { params: { orcamentoId: '507f1f77bcf86cd799439011' }, body: { componente: '', quantidade: '0', fornecedor: '' } };
-            await expect(controller.adicionarComponente(req, res)).rejects.toThrow();
+            const req = { params: { orcamentoId: '507f1f77bcf86cd799439011' }, body: { item: '', quantidade: '0', fornecedor: '' } };
+            await expect(controller.adicionarItem(req, res)).rejects.toThrow();
         });
     });
 
-    describe('atualizarComponente', () => {
-        it('deve atualizar componente existente', async () => {
+    describe('atualizarItem', () => {
+        it('deve atualizar item existente', async () => {
             const req = { params: { orcamentoId: '507f1f77bcf86cd799439011', id: '507f1f77bcf86cd799439012' }, body: { quantidade: '5' } };
-            service.getComponenteById.mockResolvedValue({ _id: '507f1f77bcf86cd799439012', nome: 'Resistor', quantidade: '2', valor_unitario: '1.5' });
-            service.atualizarComponente.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', componente_orcamento: [{ _id: '507f1f77bcf86cd799439012', quantidade: '5' }] });
-            await controller.atualizarComponente(req, res);
-            expect(service.atualizarComponente).toHaveBeenCalled();
+            service.getItemById.mockResolvedValue({ _id: '507f1f77bcf86cd799439012', nome: 'Resistor', quantidade: '2', valor_unitario: '1.5' });
+            service.atualizarItem.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', item_orcamento: [{ _id: '507f1f77bcf86cd799439012', quantidade: '5' }] });
+            await controller.atualizarItem(req, res);
+            expect(service.atualizarItem).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('atualizado') }));
         });
-        it('deve retornar erro 404 para componente inexistente', async () => {
+        it('deve retornar erro 404 para item inexistente', async () => {
             const req = { params: { orcamentoId: '507f1f77bcf86cd799439011', id: '507f1f77bcf86cd799439012' }, body: { quantidade: '5' } };
-            service.getComponenteById.mockResolvedValue(null);
-            await controller.atualizarComponente(req, res);
+            service.getItemById.mockResolvedValue(null);
+            await controller.atualizarItem(req, res);
             expect(res.status).toHaveBeenCalledWith(404);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 404, error: true, message: expect.any(String) }));
-            expect(res.json.mock.calls[0][0].errors[0].message).toMatch(/componente/i);
+            expect(res.json.mock.calls[0][0].errors[0].message).toMatch(/item/i);
         });
         it('deve retornar erro 400 se nenhum campo enviado', async () => {
             const req = { params: { orcamentoId: '507f1f77bcf86cd799439011', id: '507f1f77bcf86cd799439012' }, body: {} };
-            await controller.atualizarComponente(req, res);
+            await controller.atualizarItem(req, res);
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 400, error: true, message: expect.any(String) }));
             expect(res.json.mock.calls[0][0].errors[0].message).toMatch(/nenhum campo/i);
         });
     });
 
-    describe('removerComponente', () => {
-        it('deve remover componente existente', async () => {
+    describe('removerItem', () => {
+        it('deve remover item existente', async () => {
             const req = { params: { orcamentoId: '507f1f77bcf86cd799439011', id: 'cid' } };
-            service.removerComponente.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', componente_orcamento: [] });
-            await controller.removerComponente(req, res);
-            expect(service.removerComponente).toHaveBeenCalledWith('507f1f77bcf86cd799439011', 'cid', req);
+            service.removerItem.mockResolvedValue({ _id: '507f1f77bcf86cd799439011', item_orcamento: [] });
+            await controller.removerItem(req, res);
+            expect(service.removerItem).toHaveBeenCalledWith('507f1f77bcf86cd799439011', 'cid', req);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('removido') }));
         });
-        it('deve retornar erro 404 para componente inexistente', async () => {
+        it('deve retornar erro 404 para item inexistente', async () => {
             const req = { params: { orcamentoId: '507f1f77bcf86cd799439011', id: 'cid' } };
-            service.removerComponente.mockRejectedValue({ status: 404 });
-            await expect(controller.removerComponente(req, res)).rejects.toBeDefined();
+            service.removerItem.mockRejectedValue({ status: 404 });
+            await expect(controller.removerItem(req, res)).rejects.toBeDefined();
         });
     });
 

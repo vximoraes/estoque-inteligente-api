@@ -11,7 +11,7 @@ const localizacoesRoutes = {
             + Caso de uso: Criação de nova localização no sistema.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado criar uma nova localização para organizar componentes eletrônicos.
+                - Permitir ao usuário autenticado criar uma nova localização para organizar itens do estoque.
                 + Recebe no corpo da requisição:
                     - Objeto conforme schema **LocalizacaoPost**, contendo o nome da localização.
 
@@ -220,7 +220,7 @@ const localizacoesRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a localização existe antes de excluir.
-                - Não permitir exclusão se há componentes vinculados à localização.  
+                - Não permitir exclusão se há items vinculados à localização.  
                 - Registrar log de auditoria sobre a operação.  
                 - Garantir que não haja vínculos críticos pendentes.
 

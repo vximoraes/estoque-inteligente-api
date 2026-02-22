@@ -1,7 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import "../../../src/routes/componenteRoutes";
+import "../../../src/routes/itemRoutes";
 
 dotenv.config();
 
@@ -35,11 +35,11 @@ const criarCategoriaELocalizacao = async () => {
     return { categoria, localizacao };
 };
 
-const criarComponenteValido = async (override = {}) => {
+const criarItemValido = async (override = {}) => {
     const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
     const { categoria, localizacao } = await criarCategoriaELocalizacao();
     return {
-        nome: `Componente Teste ${unique}`,
+        nome: `Item Teste ${unique}`,
         categoria,
         localizacao,
         estoque_minimo: '10',
@@ -48,8 +48,8 @@ const criarComponenteValido = async (override = {}) => {
     };
 };
 
-describe('Rotas de Componente', () => {
-    let componenteId;
+describe('Rotas de Item', () => {
+    let itemId;
 
     beforeAll(async () => {
         try {
@@ -73,8 +73,8 @@ describe('Rotas de Componente', () => {
         expect(token).toBeTruthy();
     });
 
-    describe('POST /componentes', () => {
-        it('deve cadastrar componente válido', async () => {
+    describe('POST /items', () => {
+        it('deve cadastrar item válido', async () => {
             // Criar categoria e localização diretamente
             const unique = Date.now();
             const catRes = await request(BASE_URL)
@@ -94,9 +94,9 @@ describe('Rotas de Componente', () => {
             // Esperar persistência
             await new Promise(r => setTimeout(r, 200));
             
-            // Criar componente com campos como string
+            // Criar item com campos como string
             const dados = {
-                nome: `Componente Teste ${unique}`,
+                nome: `Item Teste ${unique}`,
                 categoria,
                 localizacao,
                 estoque_minimo: '10', 
@@ -104,7 +104,7 @@ describe('Rotas de Componente', () => {
             };
             
             const res = await request(BASE_URL)
-                .post('/componentes')
+                .post('/items')
                 .set('Authorization', `Bearer ${token}`)
                 .send(dados);
                 
@@ -114,7 +114,7 @@ describe('Rotas de Componente', () => {
             expect(res.body.data).toHaveProperty('status', 'Indisponível');
         }, 30000);
         
-        it('deve cadastrar componente com status calculado automaticamente', async () => {
+        it('deve cadastrar item com status calculado automaticamente', async () => {
             const unique = Date.now();
             const catRes = await request(BASE_URL)
                 .post('/categorias')
@@ -133,7 +133,7 @@ describe('Rotas de Componente', () => {
             await new Promise(r => setTimeout(r, 200));
             
             const dados = {
-                nome: `Componente Teste Status ${unique}`,
+                nome: `Item Teste Status ${unique}`,
                 categoria,
                 localizacao,
                 estoque_minimo: '10', 
@@ -141,7 +141,7 @@ describe('Rotas de Componente', () => {
             };
             
             const res = await request(BASE_URL)
-                .post('/componentes')
+                .post('/items')
                 .set('Authorization', `Bearer ${token}`)
                 .send(dados);
                 
@@ -149,25 +149,25 @@ describe('Rotas de Componente', () => {
             expect(res.body.data).toHaveProperty('status', 'Indisponível');
         }, 15000);
         it('deve falhar ao cadastrar sem campos obrigatórios', async () => {
-            const res = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send({});
+            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send({});
             expect([400, 422]).toContain(res.status);
         });
         it('deve falhar ao cadastrar com nome já existente', async () => {
-            const dados = await criarComponenteValido();
-            await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
-            const res = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+            const dados = await criarItemValido();
+            await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             expect([400, 409, 422]).toContain(res.status);
         });
         it('deve falhar ao cadastrar com categoria inexistente', async () => {
-            const dados = await criarComponenteValido({ categoria: new mongoose.Types.ObjectId().toString() });
-            const res = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+            const dados = await criarItemValido({ categoria: new mongoose.Types.ObjectId().toString() });
+            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             expect([400, 404, 422]).toContain(res.status);
         });
     });
 
-    describe('GET /componentes', () => {
-        it('deve listar todos os componentes', async () => {
-            const res = await request(BASE_URL).get('/componentes').set('Authorization', `Bearer ${token}`);
+    describe('GET /items', () => {
+        it('deve listar todos os items', async () => {
+            const res = await request(BASE_URL).get('/items').set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             let lista = res.body.data;
             if (!Array.isArray(lista)) {
@@ -179,103 +179,103 @@ describe('Rotas de Componente', () => {
         });
     });
 
-    describe('GET /componentes/:id', () => {
-        it('deve retornar componente por id', async () => {
-            const dados = await criarComponenteValido();
-            const compRes = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+    describe('GET /items/:id', () => {
+        it('deve retornar item por id', async () => {
+            const dados = await criarItemValido();
+            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
-            const res = await request(BASE_URL).get(`/componentes/${id}`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).get(`/items/${id}`).set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             expect(res.body.data).toHaveProperty('_id', id);
         }, 15000);
-        it('deve retornar 404 para componente inexistente', async () => {
+        it('deve retornar 404 para item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).get(`/componentes/${id}`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).get(`/items/${id}`).set('Authorization', `Bearer ${token}`);
             expect(res.status).toBe(404);
         });
     });
 
-    describe('PATCH /componentes/:id', () => {
-        it('deve atualizar campos permitidos do componente', async () => {
-            const dados = await criarComponenteValido();
-            const compRes = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+    describe('PATCH /items/:id', () => {
+        it('deve atualizar campos permitidos do item', async () => {
+            const dados = await criarItemValido();
+            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             const novoNome = dados.nome + ' Atualizado';
-            const res = await request(BASE_URL).patch(`/componentes/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: novoNome });
+            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: novoNome });
             expect([200, 201]).toContain(res.status);
             expect(res.body.data.nome).toBe(novoNome);
         });
         
-        it('deve atualizar status do componente automaticamente', async () => {
-            const dados = await criarComponenteValido();
-            const compRes = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+        it('deve atualizar status do item automaticamente', async () => {
+            const dados = await criarItemValido();
+            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             const novoEstoqueMinimo = '5';
-            const res = await request(BASE_URL).patch(`/componentes/${id}`).set('Authorization', `Bearer ${token}`).send({ estoque_minimo: novoEstoqueMinimo });
+            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ estoque_minimo: novoEstoqueMinimo });
             expect([200, 201]).toContain(res.status);
             // Status deve continuar 'Indisponível' pois quantidade = 0
             expect(res.body.data.status).toBe('Indisponível');
         });
         it('não deve permitir atualizar quantidade diretamente', async () => {
-            // Cria um componente válido para testar a atualização
-            const dados = await criarComponenteValido();
-            // Realiza o cadastro do componente
-            const compRes = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
-            // Aguarda persistência do componente
+            // Cria um item válido para testar a atualização
+            const dados = await criarItemValido();
+            // Realiza o cadastro do item
+            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            // Aguarda persistência do item
             await new Promise(r => setTimeout(r, 100));
-            // Garante que o componente foi criado corretamente
+            // Garante que o item foi criado corretamente
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             // Tenta atualizar o campo 'quantidade' diretamente via PATCH
-            const res = await request(BASE_URL).patch(`/componentes/${id}`).set('Authorization', `Bearer ${token}`).send({ quantidade: 999 });
+            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ quantidade: 999 });
             // Verifica se a requisição foi aceita (status 200 ou 201)
             expect([200, 201]).toContain(res.status);
             // Garante que o valor de 'quantidade' não foi alterado para 999
             expect(res.body.data.quantidade).not.toBe(999);
         }, 15000);
         it('deve falhar ao atualizar para nome já existente', async () => {
-            const dados1 = await criarComponenteValido();
-            const dados2 = await criarComponenteValido();
-            const comp1 = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados1);
-            const comp2 = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados2);
+            const dados1 = await criarItemValido();
+            const dados2 = await criarItemValido();
+            const comp1 = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados1);
+            const comp2 = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados2);
             await new Promise(r => setTimeout(r, 100));
             expect(comp2.body.data).toBeTruthy();
-            const res = await request(BASE_URL).patch(`/componentes/${comp2.body.data._id}`).set('Authorization', `Bearer ${token}`).send({ nome: dados1.nome });
+            const res = await request(BASE_URL).patch(`/items/${comp2.body.data._id}`).set('Authorization', `Bearer ${token}`).send({ nome: dados1.nome });
             expect([400, 409, 422]).toContain(res.status);
         }, 15000);
-        it('deve retornar 404 ao atualizar componente inexistente', async () => {
+        it('deve retornar 404 ao atualizar item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).patch(`/componentes/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: 'Qualquer' });
+            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: 'Qualquer' });
             expect(res.status).toBe(404);
         });
     });
 
-    describe('PATCH /componentes/:id/inativar', () => {
-        it('deve inativar componente existente', async () => {
-            const dados = await criarComponenteValido();
-            const compRes = await request(BASE_URL).post('/componentes').set('Authorization', `Bearer ${token}`).send(dados);
+    describe('PATCH /items/:id/inativar', () => {
+        it('deve inativar item existente', async () => {
+            const dados = await criarItemValido();
+            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
-            const res = await request(BASE_URL).patch(`/componentes/${id}/inativar`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).patch(`/items/${id}/inativar`).set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             expect(res.body.data.ativo).toBe(false);
         });
-        it('deve retornar 404 ao inativar componente inexistente', async () => {
+        it('deve retornar 404 ao inativar item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).patch(`/componentes/${id}/inativar`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).patch(`/items/${id}/inativar`).set('Authorization', `Bearer ${token}`);
             expect(res.status).toBe(404);
         });
     });
 
     it('deve retornar erro 500 para falha inesperada', async () => {
-        const res = await request(BASE_URL).get('/componentes/erro-interno').set('Authorization', `Bearer ${token}`);
+        const res = await request(BASE_URL).get('/items/erro-interno').set('Authorization', `Bearer ${token}`);
         expect([500, 400, 404]).toContain(res.status);
     });
 });

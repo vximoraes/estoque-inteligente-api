@@ -8,12 +8,12 @@ export default {
             
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado são retornados.
-            - Suporte a filtros por componente, localização e quantidade.
+            - Suporte a filtros por item, localização e quantidade.
             - Resultados paginados com limite máximo de 100 itens por página.
             - Ordenação padrão por data de criação (mais recentes primeiro).
             
             **Filtros disponíveis:**
-            - componente: ObjectId do componente
+            - item: ObjectId do item
             - localizacao: ObjectId da localização  
             - quantidade: Quantidade específica em estoque
             - page: Página atual (padrão: 1)
@@ -25,10 +25,10 @@ export default {
             security: [{ "Bearer": [] }],
             parameters: [
                 {
-                    name: "componente",
+                    name: "item",
                     in: "query",
                     schema: { type: "string", format: "objectid" },
-                    description: "Filtrar por ID do componente"
+                    description: "Filtrar por ID do item"
                 },
                 {
                     name: "localizacao", 
@@ -93,16 +93,16 @@ export default {
             }
         }
     },
-    "/estoques/componente/{componenteId}": {
+    "/estoques/item/{itemId}": {
         get: {
-            summary: "Listar estoques de um componente específico",
+            summary: "Listar estoques de um item específico",
             description: `
             **Funcionalidade:**
-            - Permitir ao usuário autenticado listar todos os estoques que contêm um componente específico.
+            - Permitir ao usuário autenticado listar todos os estoques que contêm um item específico.
             
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado são retornados.
-            - Filtrados automaticamente pelo componenteId fornecido na URL.
+            - Filtrados automaticamente pelo itemId fornecido na URL.
             - Suporte a filtros adicionais por localização e quantidade.
             - Resultados paginados com limite máximo de 100 itens por página.
             - Ordenação padrão por data de criação (mais recentes primeiro).
@@ -113,17 +113,17 @@ export default {
             - page: Página atual (padrão: 1)
             - limite: Limite de itens por página (máximo: 100, padrão: 10)
             
-            **Casos de uso:** Verificar em quais localizações um componente específico está armazenado e suas quantidades.
+            **Casos de uso:** Verificar em quais localizações um item específico está armazenado e suas quantidades.
             `,
             tags: ["Estoque"],
             security: [{ "Bearer": [] }],
             parameters: [
                 {
-                    name: "componenteId",
+                    name: "itemId",
                     in: "path",
                     required: true,
                     schema: { type: "string", format: "objectid" },
-                    description: "ID do componente para buscar estoques"
+                    description: "ID do item para buscar estoques"
                 },
                 {
                     name: "localizacao",
@@ -152,7 +152,7 @@ export default {
             ],
             responses: {
                 200: {
-                    description: "Estoques do componente retornados com sucesso",
+                    description: "Estoques do item retornados com sucesso",
                     content: {
                         "application/json": {
                             schema: {
@@ -199,7 +199,7 @@ export default {
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado podem ser acessados.
             - Retorna erro 404 se o estoque não for encontrado ou não pertencer ao usuário.
-            - Inclui dados completos do componente e localização (populate).
+            - Inclui dados completos do item e localização (populate).
             
             **Casos de uso:** Visualizar detalhes específicos de um estoque, verificar dados para edição.
             `,

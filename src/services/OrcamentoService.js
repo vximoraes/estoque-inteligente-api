@@ -44,26 +44,26 @@ class OrcamentoService {
         return data;
     };
 
-    // Manipular componentes.
+    // Manipular items.
 
-    async adicionarComponente(orcamentoId, novoComponente, req) {
-        return await this.repository.adicionarComponente(orcamentoId, novoComponente, req);
+    async adicionarItem(orcamentoId, novoItem, req) {
+        return await this.repository.adicionarItem(orcamentoId, novoItem, req);
     };
 
-    async atualizarComponente(orcamentoId, componenteId, componenteAtualizado, req) {
-        return await this.repository.atualizarComponente(orcamentoId, componenteId, componenteAtualizado, req);
+    async atualizarItem(orcamentoId, itemId, itemAtualizado, req) {
+        return await this.repository.atualizarItem(orcamentoId, itemId, itemAtualizado, req);
     };
 
-    async removerComponente(orcamentoId, componenteId, req) {
-        return await this.repository.removerComponente(orcamentoId, componenteId, req);
+    async removerItem(orcamentoId, itemId, req) {
+        return await this.repository.removerItem(orcamentoId, itemId, req);
     };
 
-    async getComponenteById(orcamentoId, componenteId, req) {
+    async getItemById(orcamentoId, itemId, req) {
         const orcamento = await this.repository.buscarPorId(orcamentoId, false, req);
         if (!orcamento) return null;
 
-        const componentes = Array.isArray(orcamento.componentes) ? orcamento.componentes : [];
-        const comp = componentes.find(c => c && c._id && c._id.toString() === componenteId);
+        const items = Array.isArray(orcamento.items) ? orcamento.items : [];
+        const comp = items.find(c => c && c._id && c._id.toString() === itemId);
 
         return comp || null;
     };

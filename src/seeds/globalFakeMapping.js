@@ -53,7 +53,7 @@ export const fakeMappings = {
 
     Notificacao: {
         mensagem: () => {
-            const dispositivo = fakeMappings.Componente.nome();
+            const dispositivo = fakeMappings.Item.nome();
             const quantidade = fakebr.random.number({ min: 1, max: 50 });
             return `${dispositivo} está com estoque baixo (${quantidade} unidades)`;
         },
@@ -77,7 +77,7 @@ export const fakeMappings = {
         usuario: () => new mongoose.Types.ObjectId().toString(),
         },
 
-        Componente: {
+        Item: {
         nomesFixos: [
             "Placa Arduino Uno",
             "Placa Arduino Mega",
@@ -100,7 +100,7 @@ export const fakeMappings = {
             "Sensor Ultrassônico HC-SR04",
             "Módulo Sensor de Luz LDR"
         ],
-        nome: () => fakebr.helpers.randomize(fakeMappings.Componente.nomesFixos),
+        nome: () => fakebr.helpers.randomize(fakeMappings.Item.nomesFixos),
         quantidade: () => fakebr.random.number({ min: 0, max: 100 }),
         estoque_minimo: () => fakebr.random.number({ min: 1, max: 20 }),
         descricao: () => fakebr.lorem.sentence(),
@@ -113,7 +113,7 @@ export const fakeMappings = {
 
         Estoque: {
         quantidade: () => fakebr.random.number({ min: 0, max: 100 }),
-        componente: () => new mongoose.Types.ObjectId().toString(),
+        item: () => new mongoose.Types.ObjectId().toString(),
         localizacao: () => new mongoose.Types.ObjectId().toString(),
         usuario: () => new mongoose.Types.ObjectId().toString(),
         },
@@ -131,7 +131,7 @@ export const fakeMappings = {
         tipo: () => fakebr.helpers.randomize(fakeMappings.Movimentacao.tipos),
         data_hora: () => new Date().toISOString(),
         quantidade: () => fakebr.random.number({ min: 1, max: 10 }),
-        componente: () => new mongoose.Types.ObjectId().toString(),
+        item: () => new mongoose.Types.ObjectId().toString(),
         localizacao: () => new mongoose.Types.ObjectId().toString(),
         usuario: () => new mongoose.Types.ObjectId().toString(),
         },
@@ -142,7 +142,7 @@ export const fakeMappings = {
         nome: () => `Projeto ${fakeMappings.Orcamento.adjetivoNome()} - ${fakeMappings.Orcamento.produtoNome()}`,
         descricao: () => fakebr.lorem.sentence(),
         total: () => 0, // Será calculado automaticamente pelo middleware
-        componentes: () => [], // Será preenchido no seed
+        items: () => [], // Será preenchido no seed
         usuario: () => new mongoose.Types.ObjectId().toString(),
     },
 };

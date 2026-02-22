@@ -1,6 +1,6 @@
 services:
     mongodb:
-        container_name: mongodb-componentes-eletronicos
+        container_name: mongodb-estoque-inteligente
         image: mongo:8
         volumes:
             - vol-mongodb:/data/db
@@ -9,7 +9,7 @@ services:
             - "27017:27017"
         restart: always
         healthcheck:
-            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/componentes-eletronicos --quiet
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/estoque-inteligente --quiet
             interval: 10s
             timeout: 10s
             retries: 5
@@ -17,7 +17,7 @@ services:
 
     minio:
         image: minio/minio:latest
-        container_name: minio-componentes-eletronicos
+        container_name: minio-estoque-inteligente
         command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
         ports:
             - "${MINIO_PORT}:${MINIO_PORT}"
@@ -36,13 +36,13 @@ services:
             retries: 5
 
     api:
-        container_name: componentes-eletronicos-api
+        container_name: estoque-inteligente-api
         build: .
         ports:
             - "${PORT}:${PORT}"
         environment:
             - NODE_ENV=production
-            - DB_URL=mongodb://mongodb:27017/componentes-eletronicos
+            - DB_URL=mongodb://mongodb:27017/estoque-inteligente
             - MINIO_ENDPOINT=minio
             - MINIO_PORT=${MINIO_PORT}
             - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
@@ -60,16 +60,16 @@ services:
         restart: always
 
     frontend:
-        container_name: componentes-eletronicos-front
+        container_name: estoque-inteligente-front
         build:
-            context: ../componentes-eletronicos-front
+            context: ../estoque-inteligente-front
             dockerfile: Dockerfile
             args:
                 - NEXT_PUBLIC_API_URL=http://localhost:${PORT}
         ports:
             - "${FRONTEND_PORT}:${FRONTEND_PORT}"
         env_file:
-            - ../componentes-eletronicos-front/.env.local
+            - ../estoque-inteligente-front/.env.local
         restart: always
         depends_on:
             - api

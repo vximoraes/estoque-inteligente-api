@@ -108,9 +108,9 @@ class OrcamentoRepository {
         return orcamento;
     };
 
-    // Manipular componentes.
+    // Manipular items.
 
-    async adicionarComponente(orcamentoId, novoComponente, req) {
+    async adicionarItem(orcamentoId, novoItem, req) {
         const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
         if (!orcamento) throw new CustomError({
             statusCode: 404,
@@ -120,14 +120,14 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        orcamento.componentes.push(novoComponente);
-        orcamento.total = parseFloat(orcamento.componentes.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        orcamento.items.push(novoItem);
+        orcamento.total = parseFloat(orcamento.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;
     };
 
-    async atualizarComponente(orcamentoId, componenteId, componenteAtualizado, req) {
+    async atualizarItem(orcamentoId, itemId, itemAtualizado, req) {
         const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
         if (!orcamento) throw new CustomError({
             statusCode: 404,
@@ -137,25 +137,25 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        const componentes = Array.isArray(orcamento.componentes) ? orcamento.componentes : [];
-        const idx = componentes.findIndex(c => c && c._id && c._id.toString() === componenteId);
+        const items = Array.isArray(orcamento.items) ? orcamento.items : [];
+        const idx = items.findIndex(c => c && c._id && c._id.toString() === itemId);
         if (idx === -1) throw new CustomError({
             statusCode: 404,
             errorType: 'resourceNotFound',
-            field: 'Componente',
+            field: 'Item',
             details: [],
-            customMessage: 'Componente não encontrado.'
+            customMessage: 'Item não encontrado.'
         });
 
-        componentes[idx] = { ...((typeof componentes[idx].toObject === 'function') ? componentes[idx].toObject() : componentes[idx]), ...componenteAtualizado };
-        orcamento.componentes = componentes;
-        orcamento.total = parseFloat(componentes.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        items[idx] = { ...((typeof items[idx].toObject === 'function') ? items[idx].toObject() : items[idx]), ...itemAtualizado };
+        orcamento.items = items;
+        orcamento.total = parseFloat(items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;
     };
 
-    async removerComponente(orcamentoId, componenteId, req) {
+    async removerItem(orcamentoId, itemId, req) {
         const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
         if (!orcamento) throw new CustomError({
             statusCode: 404,
@@ -165,8 +165,8 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        orcamento.componentes = orcamento.componentes.filter(c => c._id.toString() !== componenteId);
-        orcamento.total = parseFloat(orcamento.componentes.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        orcamento.items = orcamento.items.filter(c => c._id.toString() !== itemId);
+        orcamento.total = parseFloat(orcamento.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;

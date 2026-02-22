@@ -1,7 +1,7 @@
 import MovimentacaoFilterBuilder from '../../../../repositories/filters/MovimentacaoFilterBuilder.js';
 import mongoose from 'mongoose';
 
-jest.mock('../../../../models/Componente.js', () => ({
+jest.mock('../../../../models/Item.js', () => ({
     findById: jest.fn(),
     findOne: jest.fn()
 }));
@@ -10,7 +10,7 @@ jest.mock('../../../../models/Fornecedor.js', () => ({
     findOne: jest.fn()
 }));
 
-const Componente = require('../../../../models/Componente.js');
+const Item = require('../../../../models/Item.js');
 const Fornecedor = require('../../../../models/Fornecedor.js');
 
 describe('MovimentacaoFilterBuilder', () => {
@@ -51,38 +51,38 @@ describe('MovimentacaoFilterBuilder', () => {
         expect(builder.build()).toEqual({});
     });
 
-    describe('comComponente', () => {
-        it('deve adicionar filtro de componente por ObjectId válido e encontrado', async () => {
+    describe('comItem', () => {
+        it('deve adicionar filtro de item por ObjectId válido e encontrado', async () => {
             const builder = new MovimentacaoFilterBuilder();
             jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
-            Componente.findById.mockResolvedValue({ _id: 'c1' });
-            await builder.comComponente('c1');
-            expect(builder.build()).toEqual({ componente: 'c1' });
+            Item.findById.mockResolvedValue({ _id: 'c1' });
+            await builder.comItem('c1');
+            expect(builder.build()).toEqual({ item: 'c1' });
         });
-        it('deve adicionar filtro de componente por ObjectId válido e não encontrado', async () => {
+        it('deve adicionar filtro de item por ObjectId válido e não encontrado', async () => {
             const builder = new MovimentacaoFilterBuilder();
             jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
-            Componente.findById.mockResolvedValue(null);
-            await builder.comComponente('c1');
-            expect(builder.build()).toEqual({ componente: { $in: [] } });
+            Item.findById.mockResolvedValue(null);
+            await builder.comItem('c1');
+            expect(builder.build()).toEqual({ item: { $in: [] } });
         });
-        it('deve adicionar filtro de componente por string encontrada', async () => {
+        it('deve adicionar filtro de item por string encontrada', async () => {
             const builder = new MovimentacaoFilterBuilder();
             jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
-            Componente.findOne.mockResolvedValue({ _id: 'c2' });
-            await builder.comComponente('resistor');
-            expect(builder.build()).toEqual({ componente: 'c2' });
+            Item.findOne.mockResolvedValue({ _id: 'c2' });
+            await builder.comItem('resistor');
+            expect(builder.build()).toEqual({ item: 'c2' });
         });
-        it('deve adicionar filtro de componente por string não encontrada', async () => {
+        it('deve adicionar filtro de item por string não encontrada', async () => {
             const builder = new MovimentacaoFilterBuilder();
             jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
-            Componente.findOne.mockResolvedValue(null);
-            await builder.comComponente('capacitor');
-            expect(builder.build()).toEqual({ componente: { $in: [] } });
+            Item.findOne.mockResolvedValue(null);
+            await builder.comItem('capacitor');
+            expect(builder.build()).toEqual({ item: { $in: [] } });
         });
         it('não deve adicionar filtro se valor for vazio', async () => {
             const builder = new MovimentacaoFilterBuilder();
-            await builder.comComponente('');
+            await builder.comItem('');
             expect(builder.build()).toEqual({});
         });
     });

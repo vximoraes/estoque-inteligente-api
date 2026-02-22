@@ -8,19 +8,19 @@ const orcamentosRoutes = {
             tags: ["Orçamentos"],
             summary: "Cria um novo orçamento",
             description: `
-            + Caso de uso: Criar um novo orçamento com componentes e seus respectivos valores.
+            + Caso de uso: Criar um novo orçamento com items e seus respectivos valores.
             
             + Função de Negócio:
                 - Permitir ao usuário criar orçamentos para projetos específicos.
                 + Recebe no corpo da requisição:
-                    - Objeto conforme schema **OrcamentoPost**, contendo dados do orçamento e componentes.
+                    - Objeto conforme schema **OrcamentoPost**, contendo dados do orçamento e items.
 
             + Regras de Negócio:
-                - Campos obrigatórios: nome, componente_orcamento (array).
+                - Campos obrigatórios: nome, item_orcamento (array).
                 - Protocolo é gerado automaticamente pelo sistema (UUID).
-                - Valor total é calculado automaticamente baseado nos componentes.
-                - Cada componente deve ter: nome, fornecedor, quantidade, valor_unitario.
-                - Subtotal de cada componente é calculado automaticamente.
+                - Valor total é calculado automaticamente baseado nos items.
+                - Cada item deve ter: nome, fornecedor, quantidade, valor_unitario.
+                - Subtotal de cada item é calculado automaticamente.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **OrcamentoDetalhes**, contendo todos os dados do orçamento criado.
@@ -128,7 +128,7 @@ const orcamentosRoutes = {
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência do orçamento.  
-                - Retorna orçamento com todos os componentes e cálculos.
+                - Retorna orçamento com todos os items e cálculos.
 
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados completos do orçamento.
@@ -169,8 +169,8 @@ const orcamentosRoutes = {
 
             + Regras de Negócio:
                 - Permite atualização parcial de nome e descrição.
-                - Não permite alterar componentes diretamente (usar rotas específicas).
-                - Valor total permanece baseado nos componentes existentes.
+                - Não permite alterar items diretamente (usar rotas específicas).
+                - Valor total permanece baseado nos items existentes.
 
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados atualizados.
@@ -219,7 +219,7 @@ const orcamentosRoutes = {
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência do orçamento.
-                - Remove orçamento e todos os componentes associados.
+                - Remove orçamento e todos os items associados.
 
             + Resultado Esperado:
                 - HTTP 200 OK com confirmação de remoção.
@@ -246,24 +246,24 @@ const orcamentosRoutes = {
             }
         }
     },
-    "/orcamentos/{orcamentoId}/componentes": {
+    "/orcamentos/{orcamentoId}/items": {
         get: {
             tags: ["Orçamentos"],
-            summary: "Lista componentes de um orçamento",
+            summary: "Lista items de um orçamento",
             description: `
-            + Caso de uso: Listar todos os componentes de um orçamento específico.
+            + Caso de uso: Listar todos os items de um orçamento específico.
             
             + Função de Negócio:
-                - Permitir ao usuário visualizar todos os componentes de um orçamento.
+                - Permitir ao usuário visualizar todos os items de um orçamento.
                 + Recebe como path parameter:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
 
             + Regras de Negócio:
                 - Orçamento deve existir.
-                - Retorna lista completa de componentes com seus detalhes.
+                - Retorna lista completa de items com seus detalhes.
 
             + Resultado Esperado:
-                - HTTP 200 OK com array de componentes do orçamento.
+                - HTTP 200 OK com array de items do orçamento.
         `,
             security: [{ bearerAuth: [] }],
             parameters: [
@@ -279,7 +279,7 @@ const orcamentosRoutes = {
             ],
             responses: {
                 200: {
-                    description: "Componentes do orçamento retornados com sucesso",
+                    description: "Items do orçamento retornados com sucesso",
                     content: {
                         "application/json": {
                             schema: {
@@ -288,12 +288,12 @@ const orcamentosRoutes = {
                                     data: {
                                         type: "array",
                                         items: {
-                                            $ref: "#/components/schemas/ComponenteOrcamento"
+                                            $ref: "#/components/schemas/ItemOrcamento"
                                         }
                                     },
                                     message: {
                                         type: "string",
-                                        example: "Componentes do orçamento listados com sucesso"
+                                        example: "Items do orçamento listados com sucesso"
                                     },
                                     errors: {
                                         type: "array",
@@ -313,22 +313,22 @@ const orcamentosRoutes = {
         },
         post: {
             tags: ["Orçamentos"],
-            summary: "Adiciona componente ao orçamento",
+            summary: "Adiciona item ao orçamento",
             description: `
-            + Caso de uso: Adicionar novo componente a um orçamento existente.
+            + Caso de uso: Adicionar novo item a um orçamento existente.
             
             + Função de Negócio:
-                - Permitir ao usuário adicionar componentes a orçamentos.
+                - Permitir ao usuário adicionar items a orçamentos.
                 + Recebe como path parameter:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
                 + Recebe no corpo da requisição:
-                    - Objeto conforme schema **ComponenteOrcamento** com dados do componente.
+                    - Objeto conforme schema **ItemOrcamento** com dados do item.
 
             + Regras de Negócio:
                 - Orçamento deve existir.
                 - Subtotal é calculado automaticamente.
                 - Valor total do orçamento é recalculado.
-                - Cada componente recebe um _id único.
+                - Cada item recebe um _id único.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **OrcamentoDetalhes**, contendo orçamento atualizado.
@@ -349,7 +349,7 @@ const orcamentosRoutes = {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/ComponenteOrcamento"
+                            $ref: "#/components/schemas/ItemOrcamento"
                         }
                     }
                 }
@@ -364,23 +364,23 @@ const orcamentosRoutes = {
             }
         }
     },
-    "/orcamentos/{orcamentoId}/componentes/{id}": {
+    "/orcamentos/{orcamentoId}/items/{id}": {
         patch: {
             tags: ["Orçamentos"],
-            summary: "Atualiza componente do orçamento",
+            summary: "Atualiza item do orçamento",
             description: `
-            + Caso de uso: Atualizar componente específico de um orçamento.
+            + Caso de uso: Atualizar item específico de um orçamento.
             
             + Função de Negócio:
-                - Permitir ao usuário atualizar dados de um componente do orçamento.
+                - Permitir ao usuário atualizar dados de um item do orçamento.
                 + Recebe como path parameters:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
-                    - **id**: identificador do componente (MongoDB ObjectId).
+                    - **id**: identificador do item (MongoDB ObjectId).
                 + Recebe no corpo da requisição:
-                    - Objeto conforme schema **ComponenteOrcamentoUpdate** com dados atualizados.
+                    - Objeto conforme schema **ItemOrcamentoUpdate** com dados atualizados.
 
             + Regras de Negócio:
-                - Orçamento e componente devem existir.
+                - Orçamento e item devem existir.
                 - Subtotal é recalculado automaticamente.
                 - Valor total do orçamento é recalculado.
 
@@ -405,14 +405,14 @@ const orcamentosRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             requestBody: {
                 content: {
                     "application/json": {
                         schema: {
-                            $ref: "#/components/schemas/ComponenteOrcamentoUpdate"
+                            $ref: "#/components/schemas/ItemOrcamentoUpdate"
                         }
                     }
                 }
@@ -428,18 +428,18 @@ const orcamentosRoutes = {
         },
         delete: {
             tags: ["Orçamentos"],
-            summary: "Remove componente do orçamento",
+            summary: "Remove item do orçamento",
             description: `
-            + Caso de uso: Remover componente específico de um orçamento.
+            + Caso de uso: Remover item específico de um orçamento.
             
             + Função de Negócio:
-                - Permitir ao usuário remover componentes desnecessários do orçamento.
+                - Permitir ao usuário remover items desnecessários do orçamento.
                 + Recebe como path parameters:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
-                    - **id**: identificador do componente (MongoDB ObjectId).
+                    - **id**: identificador do item (MongoDB ObjectId).
 
             + Regras de Negócio:
-                - Orçamento e componente devem existir.
+                - Orçamento e item devem existir.
                 - Valor total do orçamento é recalculado após remoção.
 
             + Resultado Esperado:
@@ -463,7 +463,7 @@ const orcamentosRoutes = {
                     schema: {
                         type: "string",
                     },
-                    description: "ID do componente"
+                    description: "ID do item"
                 }
             ],
             responses: {

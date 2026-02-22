@@ -8,19 +8,19 @@ const movimentacoesRoutes = {
             tags: ["Movimentação"],
             summary: "Registra uma nova movimentação",
             description: `
-            + Caso de uso: Registrar movimentação de um componente (entrada ou saída).
+            + Caso de uso: Registrar movimentação de um item (entrada ou saída).
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado registrar entrada ou saída de componentes do estoque.
+                - Permitir ao usuário autenticado registrar entrada ou saída de items do estoque.
                 + Recebe no corpo da requisição:
                     - Objeto conforme schema **MovimentacaoPost**, contendo dados da movimentação.
 
             + Regras de Negócio:
-                - Campos obrigatórios: componente, tipo (entrada/saida), quantidade.
+                - Campos obrigatórios: item, tipo (entrada/saida), quantidade.
                 - Para entrada: fornecedor é obrigatório e deve existir.
                 - Para saída: fornecedor não é necessário e ignorado caso seja informado no body.
                 - Não permite quantidade negativa ou maior que o estoque disponível (para saída).
-                - Atualiza a quantidade do componente automaticamente.
+                - Atualiza a quantidade do item automaticamente.
                 - Data/hora é gerada automaticamente pelo sistema.
 
             + Resultado Esperado:
@@ -55,7 +55,7 @@ const movimentacoesRoutes = {
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de movimentações registradas.
             + Recebe como query parameters (opcionais):
-                • filtros: tipo, data, componente, fornecedor, quantidade.  
+                • filtros: tipo, data, item, fornecedor, quantidade.  
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
@@ -63,7 +63,7 @@ const movimentacoesRoutes = {
             - Respeitar as permissões do usuário autenticado.  
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
-            - Retorna movimentações populadas com dados de componente e fornecedor.
+            - Retorna movimentações populadas com dados de item e fornecedor.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **MovimentacaoListagem**, contendo:
@@ -130,7 +130,7 @@ const movimentacoesRoutes = {
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência da movimentação.  
-                - Retorna movimentação populada com dados de componente e fornecedor.
+                - Retorna movimentação populada com dados de item e fornecedor.
                 - Checar permissões do solicitante para visualizar dados.
 
             + Resultado Esperado:
