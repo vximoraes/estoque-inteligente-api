@@ -17,7 +17,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "fix": "eslint . --fix && prettier --write ."
+    "fix": "eslint . --fix; prettier --write ."
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
