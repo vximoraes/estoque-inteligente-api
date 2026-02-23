@@ -1,4 +1,4 @@
-import { endOfDay, startOfDay, addDays } from "date-fns";
+import { endOfDay, startOfDay, addDays } from 'date-fns';
 
 /**
  * @func handleQuery
@@ -13,40 +13,44 @@ export default function (query, defaultSort) {
   let pagina = 1;
   let ordenar = defaultSort;
 
-  for(const [key, value] of Object.entries(query)) {
-    if(key === "pagina") {
+  for (const [key, value] of Object.entries(query)) {
+    if (key === 'pagina') {
       pagina = parseInt(value);
       continue;
     }
-    if(key === "ordenar") {
-      const sort = value.split("-");
+    if (key === 'ordenar') {
+      const sort = value.split('-');
       ordenar = { [sort[0]]: sort[1] };
       continue;
     }
     //Campo do usuario
-    if(key === "ativo") {
-      filtros[key] = value === "1";
+    if (key === 'ativo') {
+      filtros[key] = value === '1';
       continue;
     }
     //Campo do usuario e do projeto
-    if (key === "turnos") {
-      const turnos = value.split(",");
+    if (key === 'turnos') {
+      const turnos = value.split(',');
       for (const turno of turnos) {
         filtros[`turnos.${turno}`] = true;
       }
       continue;
     }
     // Campo do projeto
-    if (key === "estudantes") {
-      const estudantes = value.split(",");
+    if (key === 'estudantes') {
+      const estudantes = value.split(',');
       filtros[key] = { $elemMatch: { $in: estudantes } };
       continue;
     }
 
     // Depois verificar se essa é uma boa maneira de filtrar datas ou é melhor nem ter.
     // Inicio e termino é campo do projeto e do estagio, e o liberado e do refeicaoTurma
-    if (key === "data_inicio" || key === "data_termino" || key === "data_liberado") {
-      const datas = value.split(",");
+    if (
+      key === 'data_inicio' ||
+      key === 'data_termino' ||
+      key === 'data_liberado'
+    ) {
+      const datas = value.split(',');
       filtros[key] = {
         // Depois vê se é possível refatorar isso e deixar melhor, mexer com datas é uma #####
         $gte: startOfDay(addDays(datas[0], 1)),
@@ -66,13 +70,13 @@ export default function (query, defaultSort) {
     // }
 
     //Campo do estudante e da turma
-    if (key === "turma" || key === "curso") {
+    if (key === 'turma' || key === 'curso') {
       filtros[key] = value;
       continue;
     }
     //O resto é tratado com filtro
-    if(value) {
-      filtros[key] = { $regex: new RegExp(value, "i") };
+    if (value) {
+      filtros[key] = { $regex: new RegExp(value, 'i') };
     }
   }
 

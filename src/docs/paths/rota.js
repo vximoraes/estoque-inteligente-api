@@ -1,13 +1,13 @@
-import rotasSchemas from "../schemas/rotaSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import rotasSchemas from '../schemas/rotaSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const rotasRoutes = {
-    "/rotas": {
-        post: {
-            tags: ["Rotas"],
-            summary: "Cria uma nova rota",
-            description: `
+  '/rotas': {
+    post: {
+      tags: ['Rotas'],
+      summary: 'Cria uma nova rota',
+      description: `
             + Caso de uso: Criação de nova rota de acesso no sistema para controle de permissões.
             
             + Função de Negócio:
@@ -25,30 +25,30 @@ const rotasRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **RotaDetalhes**, contendo todos os dados da rota criada.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/RotaPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/RotaPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/RotaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Rotas"],
-            summary: "Lista todas as rotas",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/RotaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Rotas'],
+      summary: 'Lista todas as rotas',
+      description: `
         + Caso de uso: Listagem de rotas para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -67,32 +67,32 @@ const rotasRoutes = {
                 • **docs**: array de rotas.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(rotasSchemas.RotaFiltro),
-            responses: {
-                200: {
-                    description: "Lista de rotas retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/RotaListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(rotasSchemas.RotaFiltro),
+      responses: {
+        200: {
+          description: 'Lista de rotas retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/RotaListagem',
+              },
+            },
+          },
         },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/rotas/{id}": {
-        get: {
-            tags: ["Rotas"],
-            summary: "Obtém detalhes de uma rota",
-            description: `
+  },
+  '/rotas/{id}': {
+    get: {
+      tags: ['Rotas'],
+      summary: 'Obtém detalhes de uma rota',
+      description: `
             + Caso de uso: Consulta de detalhes de rota específica.
             
             + Função de Negócio:
@@ -108,32 +108,32 @@ const rotasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **RotaDetalhes**, contendo dados completos da rota.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da rota"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/RotaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da rota',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/RotaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Rotas"],
-            summary: "Atualiza uma rota",
-            description: `
+    patch: {
+      tags: ['Rotas'],
+      summary: 'Atualiza uma rota',
+      description: `
             + Caso de uso: Atualização parcial de dados da rota.
             
             + Função de Negócio:
@@ -150,42 +150,42 @@ const rotasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **RotaDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da rota"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/RotaPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/RotaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da rota',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/RotaPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/RotaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        put: {
-            tags: ["Rotas"],
-            summary: "Substitui uma rota",
-            description: `
+    put: {
+      tags: ['Rotas'],
+      summary: 'Substitui uma rota',
+      description: `
             + Caso de uso: Substituição completa de dados da rota.
             
             + Função de Negócio:
@@ -202,42 +202,42 @@ const rotasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **RotaDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da rota"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/RotaPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/RotaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da rota',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/RotaPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/RotaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Rotas"],
-            summary: "Deleta uma rota",
-            description: `
+    delete: {
+      tags: ['Rotas'],
+      summary: 'Deleta uma rota',
+      description: `
             + Caso de uso: Exclusão de rota do sistema.
             
             + Função de Negócio:
@@ -253,28 +253,28 @@ const rotasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK - rota excluída com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da rota"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da rota',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default rotasRoutes;

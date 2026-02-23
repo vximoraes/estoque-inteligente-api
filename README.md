@@ -1,8 +1,9 @@
-# 🔌 Sistema de Gestão de Componentes Eletrônicos
+# Estoque Inteligente API
 
-Back-end para gerenciamento de estoque de componentes eletrônicos.
+Back-end para gerenciamento de estoque inteligente.
 
 ## Índice
+
 - [Funcionalidades](#-funcionalidades)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Instalação](#-instalação)
@@ -18,18 +19,19 @@ Back-end para gerenciamento de estoque de componentes eletrônicos.
 ## Funcionalidades
 
 - **Gestão de Usuários**: Cadastro, autenticação e controle de acesso
-- **Gerenciamento de Componentes**: CRUD completo de componentes eletrônicos
+- **Gerenciamento de Itens**: CRUD completo de itens do estoque
 - **Controle de Estoque**: Monitoramento de quantidades e alertas de estoque mínimo
-- **Organização por Categorias**: Classificação de componentes por categoria
-- **Localização de Componentes**: Controle de onde cada componente está armazenado
+- **Organização por Categorias**: Classificação de itens por categoria
+- **Localização de Itens**: Controle de onde cada item está armazenado
 - **Fornecedores**: Gestão de dados de fornecedores
 - **Movimentações**: Histórico de entradas e saídas de estoque
-- **Orçamentos**: Sistema de orçamentação com componentes
+- **Orçamentos**: Sistema de orçamentação com itens
 - **Notificações**: Sistema de notificações para alertas
 
 ## Tecnologias Utilizadas
 
 ### Backend
+
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
 - **MongoDB** - Banco de dados NoSQL
@@ -40,6 +42,7 @@ Back-end para gerenciamento de estoque de componentes eletrônicos.
 - **Docker** - Containerização
 
 ### Desenvolvimento
+
 - **Jest** - Framework de testes
 - **ESLint** - Linter para JavaScript
 - **Nodemon** - Hot reload em desenvolvimento
@@ -47,24 +50,15 @@ Back-end para gerenciamento de estoque de componentes eletrônicos.
 ## Instalação
 
 ### Pré-requisitos
+
 - Node.js (versão 18 ou superior)
 - MongoDB (local ou Atlas)
 - Git
 
-### Clonando o Repositório
-```bash
-git clone https://gitlab.fslab.dev/f-brica-de-software-ii-2025-1/componentes-eletronicos.git
-cd componentes-eletronicos
-```
-
-### Instalando Dependências
-```bash
-npm install
-```
-
 ## Configuração
 
 ### Variáveis de Ambiente
+
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
 ```env
@@ -73,8 +67,8 @@ PORT=3010
 
 # URL de conexão com o banco MongoDB
 # Exemplos:
-#   Local:  mongodb://localhost:27017/componentes-eletronicos
-#   Atlas:  mongodb+srv://<usuario>:<senha>@<cluster>.mongodb.net/componentes-eletronicos?retryWrites=true&w=majority
+#   Local:  mongodb://localhost:27017/estoque-inteligente
+#   Atlas:  mongodb+srv://<usuario>:<senha>@<cluster>.mongodb.net/estoque-inteligente?retryWrites=true&w=majority
 DB_URL="sua_url"
 
 # URL de conexão com o banco de testes (opcional)
@@ -103,29 +97,34 @@ MAIL_API_URL=http://localhost:3001
 ```
 
 ### Configuração do Banco de Dados
+
 O sistema se conecta automaticamente ao MongoDB usando a URI fornecida no arquivo `.env`.
 
 ## Executando o Projeto
 
 ### Desenvolvimento
+
 ```bash
 # Iniciar em modo desenvolvimento (com hot reload)
 npm run dev
 ```
 
 ### Produção
+
 ```bash
 # Iniciar em modo produção
 npm start
 ```
 
 ### Populando o Banco com Dados de Teste
+
 ```bash
 # Executar seeds para popular o banco
 npm run seed
 ```
 
 ### Executando Testes
+
 ```bash
 # Executar todos os testes com coverage
 npm test
@@ -134,6 +133,7 @@ npm test
 ## Docker
 
 ### Executando com Docker Compose
+
 ```bash
 # Subir a API com MongoDB e MinIO
 docker compose up --build
@@ -154,7 +154,7 @@ docker compose down -v
 ## Estrutura do Projeto
 
 ```
-componentes-eletronicos/
+estoque-inteligente-api/
 ├── src/
 │   ├── app.js                 # Configuração principal da aplicação
 │   ├── config/
@@ -182,23 +182,27 @@ componentes-eletronicos/
 ## API Endpoints
 
 ### Autenticação
+
 - `POST /auth/login` - Login de usuário
 
 ### Usuários
+
 - `GET /usuarios` - Listar usuários
 - `GET /usuarios/:id` - Buscar usuário por ID
 - `POST /usuarios` - Criar usuário
 - `PUT /usuarios/:id` - Atualizar usuário
 - `DELETE /usuarios/:id` - Excluir usuário
 
-### Componentes
-- `GET /componentes` - Listar componentes
-- `GET /componentes/:id` - Buscar componente por ID
-- `POST /componentes` - Criar componente
-- `PUT /componentes/:id` - Atualizar componente
-- `DELETE /componentes/:id` - Excluir componente
+### Itens
+
+- `GET /itens` - Listar itens
+- `GET /itens/:id` - Buscar item por ID
+- `POST /itens` - Criar item
+- `PUT /itens/:id` - Atualizar item
+- `DELETE /itens/:id` - Excluir item
 
 ### Categorias
+
 - `GET /categorias` - Listar categorias
 - `GET /categorias/:id` - Buscar categoria por ID
 - `POST /categorias` - Criar categoria
@@ -206,6 +210,7 @@ componentes-eletronicos/
 - `DELETE /categorias/:id` - Excluir categoria
 
 ### Fornecedores
+
 - `GET /fornecedores` - Listar fornecedores
 - `GET /fornecedores/:id` - Buscar fornecedor por ID
 - `POST /fornecedores` - Criar fornecedor
@@ -213,6 +218,7 @@ componentes-eletronicos/
 - `DELETE /fornecedores/:id` - Excluir fornecedor
 
 ### Localizações
+
 - `GET /localizacoes` - Listar localizações
 - `GET /localizacoes/:id` - Buscar localização por ID
 - `POST /localizacoes` - Criar localização
@@ -220,11 +226,13 @@ componentes-eletronicos/
 - `DELETE /localizacoes/:id` - Excluir localização
 
 ### Movimentações
+
 - `GET /movimentacoes` - Listar movimentações
 - `GET /movimentacoes/:id` - Buscar movimentação por ID
 - `POST /movimentacoes` - Criar movimentação
 
 ### Orçamentos
+
 - `GET /orcamentos` - Listar orçamentos
 - `GET /orcamentos/:id` - Buscar orçamento por ID
 - `POST /orcamentos` - Criar orçamento
@@ -232,6 +240,7 @@ componentes-eletronicos/
 - `DELETE /orcamentos/:id` - Excluir orçamento
 
 ### Notificações
+
 - `GET /notificacoes` - Listar notificações
 - `GET /notificacoes/:id` - Buscar notificação por ID
 - `POST /notificacoes` - Criar notificação
@@ -245,12 +254,14 @@ componentes-eletronicos/
 O projeto utiliza Jest para testes unitários e de integração.
 
 ### Executar Testes
+
 ```bash
 # Executar todos os testes
 npm run test
 ```
 
 ### Estrutura de Testes
+
 ```
 src/tests/
 ├── unit/          # Testes unitários
