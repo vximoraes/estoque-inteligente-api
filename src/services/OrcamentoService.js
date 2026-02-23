@@ -44,7 +44,7 @@ class OrcamentoService {
         return data;
     };
 
-    // Manipular items.
+    // Manipular itens.
 
     async adicionarItem(orcamentoId, novoItem, req) {
         return await this.repository.adicionarItem(orcamentoId, novoItem, req);
@@ -62,8 +62,8 @@ class OrcamentoService {
         const orcamento = await this.repository.buscarPorId(orcamentoId, false, req);
         if (!orcamento) return null;
 
-        const items = Array.isArray(orcamento.items) ? orcamento.items : [];
-        const comp = items.find(c => c && c._id && c._id.toString() === itemId);
+        const itens = Array.isArray(orcamento.itens) ? orcamento.itens : [];
+        const comp = itens.find(c => c && c._id && c._id.toString() === itemId);
 
         return comp || null;
     };

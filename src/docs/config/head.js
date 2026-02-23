@@ -1,7 +1,7 @@
 import authSchemas from "../schemas/authSchema.js";
 import usuariosSchemas from "../schemas/usuariosSchema.js";
 import categoriasSchemas from "../schemas/categoriaSchema.js";
-import itemsSchemas from "../schemas/itemSchema.js";
+import itensSchemas from "../schemas/itemSchema.js";
 import fornecedoresSchemas from "../schemas/fornecedorSchema.js";
 import localizacoesSchemas from "../schemas/localizacaoSchema.js";
 import estoquesSchemas from "../schemas/estoqueSchema.js";
@@ -13,7 +13,7 @@ import rotasSchemas from "../schemas/rotaSchema.js";
 import usuariosPaths from "../paths/usuarios.js";
 import authPaths from "../paths/auth.js";
 import categoriasPaths from "../paths/categoria.js";
-import itemsPaths from "../paths/item.js";
+import itensPaths from "../paths/item.js";
 import fornecedoresPaths from "../paths/fornecedor.js";
 import localizacoesPaths from "../paths/localizacao.js";
 import estoquesPaths from "../paths/estoque.js";
@@ -57,7 +57,7 @@ const getSwaggerOptions = () => {
                     description: "Rotas para gestão de usuários"
                 },
                 {
-                    name: "Items",
+                    name: "Itens",
                     description: "Rotas para gestão de itens do estoque"
                 },
                 {
@@ -101,7 +101,7 @@ const getSwaggerOptions = () => {
                 ...authPaths,
                 ...usuariosPaths,
                 ...categoriasPaths,
-                ...itemsPaths,
+                ...itensPaths,
                 ...fornecedoresPaths,
                 ...localizacoesPaths,
                 ...estoquesPaths,
@@ -123,7 +123,7 @@ const getSwaggerOptions = () => {
                     ...authSchemas,
                     ...usuariosSchemas,
                     ...categoriasSchemas,
-                    ...itemsSchemas,
+                    ...itensSchemas,
                     ...fornecedoresSchemas,
                     ...localizacoesSchemas,
                     ...estoquesSchemas,

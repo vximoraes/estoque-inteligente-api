@@ -84,7 +84,7 @@ class Item {
 
         itemSchema.plugin(mongoosePaginate);
 
-        this.model = mongoose.model("items", itemSchema);
+        this.model = mongoose.model("itens", itemSchema);
     };
 };
 

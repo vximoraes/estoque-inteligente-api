@@ -73,7 +73,7 @@ describe('Rotas de Item', () => {
         expect(token).toBeTruthy();
     });
 
-    describe('POST /items', () => {
+    describe('POST /itens', () => {
         it('deve cadastrar item válido', async () => {
             // Criar categoria e localização diretamente
             const unique = Date.now();
@@ -104,7 +104,7 @@ describe('Rotas de Item', () => {
             };
             
             const res = await request(BASE_URL)
-                .post('/items')
+                .post('/itens')
                 .set('Authorization', `Bearer ${token}`)
                 .send(dados);
                 
@@ -141,7 +141,7 @@ describe('Rotas de Item', () => {
             };
             
             const res = await request(BASE_URL)
-                .post('/items')
+                .post('/itens')
                 .set('Authorization', `Bearer ${token}`)
                 .send(dados);
                 
@@ -149,75 +149,75 @@ describe('Rotas de Item', () => {
             expect(res.body.data).toHaveProperty('status', 'Indisponível');
         }, 15000);
         it('deve falhar ao cadastrar sem campos obrigatórios', async () => {
-            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send({});
+            const res = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send({});
             expect([400, 422]).toContain(res.status);
         });
         it('deve falhar ao cadastrar com nome já existente', async () => {
             const dados = await criarItemValido();
-            await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
-            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
+            const res = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             expect([400, 409, 422]).toContain(res.status);
         });
         it('deve falhar ao cadastrar com categoria inexistente', async () => {
             const dados = await criarItemValido({ categoria: new mongoose.Types.ObjectId().toString() });
-            const res = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const res = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             expect([400, 404, 422]).toContain(res.status);
         });
     });
 
-    describe('GET /items', () => {
-        it('deve listar todos os items', async () => {
-            const res = await request(BASE_URL).get('/items').set('Authorization', `Bearer ${token}`);
+    describe('GET /itens', () => {
+        it('deve listar todos os itens', async () => {
+            const res = await request(BASE_URL).get('/itens').set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             let lista = res.body.data;
             if (!Array.isArray(lista)) {
                 if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-                else if (Array.isArray(res.body.data?.items)) lista = res.body.data.items;
+                else if (Array.isArray(res.body.data?.itens)) lista = res.body.data.itens;
                 else if (Array.isArray(res.body.data?.results)) lista = res.body.data.results;
             }
             expect(Array.isArray(lista)).toBe(true);
         });
     });
 
-    describe('GET /items/:id', () => {
+    describe('GET /itens/:id', () => {
         it('deve retornar item por id', async () => {
             const dados = await criarItemValido();
-            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const compRes = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
-            const res = await request(BASE_URL).get(`/items/${id}`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).get(`/itens/${id}`).set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             expect(res.body.data).toHaveProperty('_id', id);
         }, 15000);
         it('deve retornar 404 para item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).get(`/items/${id}`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).get(`/itens/${id}`).set('Authorization', `Bearer ${token}`);
             expect(res.status).toBe(404);
         });
     });
 
-    describe('PATCH /items/:id', () => {
+    describe('PATCH /itens/:id', () => {
         it('deve atualizar campos permitidos do item', async () => {
             const dados = await criarItemValido();
-            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const compRes = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             const novoNome = dados.nome + ' Atualizado';
-            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: novoNome });
+            const res = await request(BASE_URL).patch(`/itens/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: novoNome });
             expect([200, 201]).toContain(res.status);
             expect(res.body.data.nome).toBe(novoNome);
         });
         
         it('deve atualizar status do item automaticamente', async () => {
             const dados = await criarItemValido();
-            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const compRes = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             const novoEstoqueMinimo = '5';
-            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ estoque_minimo: novoEstoqueMinimo });
+            const res = await request(BASE_URL).patch(`/itens/${id}`).set('Authorization', `Bearer ${token}`).send({ estoque_minimo: novoEstoqueMinimo });
             expect([200, 201]).toContain(res.status);
             // Status deve continuar 'Indisponível' pois quantidade = 0
             expect(res.body.data.status).toBe('Indisponível');
@@ -226,14 +226,14 @@ describe('Rotas de Item', () => {
             // Cria um item válido para testar a atualização
             const dados = await criarItemValido();
             // Realiza o cadastro do item
-            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const compRes = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             // Aguarda persistência do item
             await new Promise(r => setTimeout(r, 100));
             // Garante que o item foi criado corretamente
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
             // Tenta atualizar o campo 'quantidade' diretamente via PATCH
-            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ quantidade: 999 });
+            const res = await request(BASE_URL).patch(`/itens/${id}`).set('Authorization', `Bearer ${token}`).send({ quantidade: 999 });
             // Verifica se a requisição foi aceita (status 200 ou 201)
             expect([200, 201]).toContain(res.status);
             // Garante que o valor de 'quantidade' não foi alterado para 999
@@ -242,40 +242,40 @@ describe('Rotas de Item', () => {
         it('deve falhar ao atualizar para nome já existente', async () => {
             const dados1 = await criarItemValido();
             const dados2 = await criarItemValido();
-            const comp1 = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados1);
-            const comp2 = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados2);
+            const comp1 = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados1);
+            const comp2 = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados2);
             await new Promise(r => setTimeout(r, 100));
             expect(comp2.body.data).toBeTruthy();
-            const res = await request(BASE_URL).patch(`/items/${comp2.body.data._id}`).set('Authorization', `Bearer ${token}`).send({ nome: dados1.nome });
+            const res = await request(BASE_URL).patch(`/itens/${comp2.body.data._id}`).set('Authorization', `Bearer ${token}`).send({ nome: dados1.nome });
             expect([400, 409, 422]).toContain(res.status);
         }, 15000);
         it('deve retornar 404 ao atualizar item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).patch(`/items/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: 'Qualquer' });
+            const res = await request(BASE_URL).patch(`/itens/${id}`).set('Authorization', `Bearer ${token}`).send({ nome: 'Qualquer' });
             expect(res.status).toBe(404);
         });
     });
 
-    describe('PATCH /items/:id/inativar', () => {
+    describe('PATCH /itens/:id/inativar', () => {
         it('deve inativar item existente', async () => {
             const dados = await criarItemValido();
-            const compRes = await request(BASE_URL).post('/items').set('Authorization', `Bearer ${token}`).send(dados);
+            const compRes = await request(BASE_URL).post('/itens').set('Authorization', `Bearer ${token}`).send(dados);
             await new Promise(r => setTimeout(r, 100));
             expect(compRes.body.data).toBeTruthy();
             const id = compRes.body.data._id;
-            const res = await request(BASE_URL).patch(`/items/${id}/inativar`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).patch(`/itens/${id}/inativar`).set('Authorization', `Bearer ${token}`);
             expect([200, 201]).toContain(res.status);
             expect(res.body.data.ativo).toBe(false);
         });
         it('deve retornar 404 ao inativar item inexistente', async () => {
             const id = new mongoose.Types.ObjectId();
-            const res = await request(BASE_URL).patch(`/items/${id}/inativar`).set('Authorization', `Bearer ${token}`);
+            const res = await request(BASE_URL).patch(`/itens/${id}/inativar`).set('Authorization', `Bearer ${token}`);
             expect(res.status).toBe(404);
         });
     });
 
     it('deve retornar erro 500 para falha inesperada', async () => {
-        const res = await request(BASE_URL).get('/items/erro-interno').set('Authorization', `Bearer ${token}`);
+        const res = await request(BASE_URL).get('/itens/erro-interno').set('Authorization', `Bearer ${token}`);
         expect([500, 400, 404]).toContain(res.status);
     });
 });

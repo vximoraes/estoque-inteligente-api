@@ -1,11 +1,11 @@
-import itemsSchemas from "../schemas/itemSchema.js";
+import itensSchemas from "../schemas/itemSchema.js";
 import commonResponses from "../schemas/swaggerCommonResponses.js";
 import { generateParameters } from "./utils/generateParameters.js";
 
-const itemsRoutes = {
-    "/items": {
+const itensRoutes = {
+    "/itens": {
         post: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Cria um novo item",
             description: `
             + Caso de uso: Criação de novo item do estoque no sistema.
@@ -51,13 +51,13 @@ const itemsRoutes = {
         },
         
         get: {
-            tags: ["Items"],
-            summary: "Lista todos os items",
+            tags: ["Itens"],
+            summary: "Lista todos os itens",
             description: `
-        + Caso de uso: Listagem de items para gerenciamento e consulta.
+        + Caso de uso: Listagem de itens para gerenciamento e consulta.
         
         + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de items cadastrados.
+            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de itens cadastrados.
             + Recebe como query parameters (opcionais):
                 • filtros: nome, categoria, ativo, status, estoque_minimo, quantidade.  
                 • paginação: page (número da página), limite (quantidade de itens por página).
@@ -67,15 +67,15 @@ const itemsRoutes = {
             - Respeitar as permissões do usuário autenticado.  
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
-            - Retorna items populados com dados de categoria e localização.
+            - Retorna itens populados com dados de categoria e localização.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **ItemListagem**, contendo:
-                • **data**: array de items.  
+                • **data**: array de itens.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
             security: [{ bearerAuth: [] }],
-            parameters: generateParameters(itemsSchemas.ItemFiltro).concat([
+            parameters: generateParameters(itensSchemas.ItemFiltro).concat([
                 {
                     name: "page",
                     in: "query",
@@ -102,7 +102,7 @@ const itemsRoutes = {
             ]),
             responses: {
                 200: {
-                    description: "Lista de items retornada com sucesso",
+                    description: "Lista de itens retornada com sucesso",
                     content: {
                         "application/json": {
                             schema: {
@@ -119,9 +119,9 @@ const itemsRoutes = {
             }
         },
     },
-    "/items/{id}": {
+    "/itens/{id}": {
         get: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Obtém detalhes de um item",
             description: `
             + Caso de uso: Consulta de detalhes de item específico.
@@ -163,7 +163,7 @@ const itemsRoutes = {
         },
 
         patch: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Atualiza um item",
             description: `
             + Caso de uso: Atualização parcial de dados do item.
@@ -216,9 +216,9 @@ const itemsRoutes = {
             }
         }
     },
-    "/items/{id}/inativar": {
+    "/itens/{id}/inativar": {
         patch: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Inativa um item",
             description: `
             + Caso de uso: Inativação de item preservando integridade referencial.
@@ -260,9 +260,9 @@ const itemsRoutes = {
             }
         }
     },
-    "/items/{id}/foto": {
+    "/itens/{id}/foto": {
         post: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Faz upload da foto do item",
             description: `
             + Caso de uso: Upload de foto do item do estoque.
@@ -278,7 +278,7 @@ const itemsRoutes = {
                 - Item deve existir e estar ativo.
                 - Arquivo deve ser uma imagem válida (formatos aceitos pelo multer).
                 - Tamanho do arquivo deve respeitar os limites configurados.
-                - Usuário deve ter permissão para alterar items.
+                - Usuário deve ter permissão para alterar itens.
 
             + Resultado Esperado:
                 - HTTP 201 Created com dados do item atualizado incluindo caminho da foto.
@@ -334,7 +334,7 @@ const itemsRoutes = {
             }
         },
         delete: {
-            tags: ["Items"],
+            tags: ["Itens"],
             summary: "Deleta a foto do item",
             description: `
             + Caso de uso: Remoção da foto do item do estoque.
@@ -347,7 +347,7 @@ const itemsRoutes = {
             + Regras de Negócio:
                 - Item deve existir no sistema.
                 - Remove o arquivo de imagem do MinIO/S3.
-                - Usuário deve ter permissão para alterar items.
+                - Usuário deve ter permissão para alterar itens.
                 - Operação é irreversível.
 
             + Resultado Esperado:
@@ -378,4 +378,4 @@ const itemsRoutes = {
     }
 };
 
-export default itemsRoutes;
+export default itensRoutes;

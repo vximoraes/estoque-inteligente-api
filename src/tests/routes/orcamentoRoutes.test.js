@@ -39,7 +39,7 @@ describe("Orçamentos", () => {
         const fornecedor = fornRes.body.data._id;
 
         const compRes = await request(BASE_URL)
-            .post('/items')
+            .post('/itens')
             .set('Authorization', `Bearer ${token}`)
             .send({ 
                 nome: `Item Teste ${unique}`,
@@ -95,7 +95,7 @@ describe("Orçamentos", () => {
         };
         const obj = {
             nome: "Orçamento Teste",
-            items: [item]
+            itens: [item]
         };
         const res = await request(BASE_URL)
             .post("/orcamentos")
@@ -104,8 +104,8 @@ describe("Orçamentos", () => {
         expect(res.status).toBe(201);
         orcamentoId = res.body.data._id;
         expect(res.body.data).toHaveProperty("_id");
-        if (Array.isArray(res.body.data.items)) {
-            expect(res.body.data.items.length).toBeGreaterThan(0);
+        if (Array.isArray(res.body.data.itens)) {
+            expect(res.body.data.itens.length).toBeGreaterThan(0);
         } else {
             expect(true).toBe(true);
         }
@@ -161,7 +161,7 @@ describe("Orçamentos", () => {
         };
         const obj = {
             nome: "Orçamento Remover",
-            items: [item]
+            itens: [item]
         };
         const res1 = await request(BASE_URL)
             .post("/orcamentos")
@@ -186,7 +186,7 @@ describe("Orçamentos", () => {
             valor_unitario: 2
         };
         const res = await request(BASE_URL)
-            .post(`/orcamentos/${orcamentoId}/items`)
+            .post(`/orcamentos/${orcamentoId}/itens`)
             .set("Authorization", `Bearer ${token}`)
             .send(comp)
             .expect(200);
@@ -197,7 +197,7 @@ describe("Orçamentos", () => {
     it("Deve atualizar item do orçamento", async () => {
         expect(itemId).toBeDefined();
         const res = await request(BASE_URL)
-            .patch(`/orcamentos/${orcamentoId}/items/${itemId}`)
+            .patch(`/orcamentos/${orcamentoId}/itens/${itemId}`)
             .set("Authorization", `Bearer ${token}`)
             .send({ quantidade: "5" })
             .expect(res => {
@@ -210,7 +210,7 @@ describe("Orçamentos", () => {
 
     it("Deve remover item do orçamento", async () => {
         await request(BASE_URL)
-            .delete(`/orcamentos/${orcamentoId}/items/${itemId}`)
+            .delete(`/orcamentos/${orcamentoId}/itens/${itemId}`)
             .set("Authorization", `Bearer ${token}`)
             .expect(200);
     });
@@ -225,7 +225,7 @@ describe("Orçamentos", () => {
         };
         const obj = {
             nome: nomeFiltro,
-            items: [item]
+            itens: [item]
         };
         await request(BASE_URL)
             .post("/orcamentos")
@@ -247,7 +247,7 @@ describe("Orçamentos", () => {
         };
         const obj = {
             nome: "Orçamento Limpo" + Date.now(),
-            items: [item]
+            itens: [item]
         };
         const res = await request(BASE_URL)
             .post("/orcamentos")

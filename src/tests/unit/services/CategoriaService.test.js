@@ -79,7 +79,7 @@ describe('CategoriaService', () => {
     });
 
     describe('inativar', () => {
-        it('deve inativar categoria existente sem items ativos', async () => {
+        it('deve inativar categoria existente sem itens ativos', async () => {
             const ItemModel = require('../../../models/Item.js').default;
             ItemModel.exists = jest.fn().mockResolvedValue(false);
             
@@ -92,12 +92,12 @@ describe('CategoriaService', () => {
             repositoryMock.buscarPorId.mockResolvedValue(null);
             await expect(service.inativar('catX', {})).rejects.toThrow(CustomError);
         });
-        it('deve lançar erro se categoria estiver vinculada a items ativos', async () => {
+        it('deve lançar erro se categoria estiver vinculada a itens ativos', async () => {
             const ItemModel = require('../../../models/Item.js').default;
             ItemModel.exists = jest.fn().mockResolvedValue(true);
             
             repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
-            await expect(service.inativar('cat1', {})).rejects.toThrow('Categoria vinculada a items ativos');
+            await expect(service.inativar('cat1', {})).rejects.toThrow('Categoria vinculada a itens ativos');
         });
         it('deve lançar erro inesperado do repository', async () => {
             const ItemModel = require('../../../models/Item.js').default;

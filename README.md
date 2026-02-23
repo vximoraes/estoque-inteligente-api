@@ -180,12 +180,12 @@ estoque-inteligente-api/
 - `PUT /usuarios/:id` - Atualizar usuário
 - `DELETE /usuarios/:id` - Excluir usuário
 
-### Items
-- `GET /items` - Listar itens
-- `GET /items/:id` - Buscar item por ID
-- `POST /items` - Criar item
-- `PUT /items/:id` - Atualizar item
-- `DELETE /items/:id` - Excluir item
+### Itens
+- `GET /itens` - Listar itens
+- `GET /itens/:id` - Buscar item por ID
+- `POST /itens` - Criar item
+- `PUT /itens/:id` - Atualizar item
+- `DELETE /itens/:id` - Excluir item
 
 ### Categorias
 - `GET /categorias` - Listar categorias

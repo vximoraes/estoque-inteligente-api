@@ -68,7 +68,7 @@ describe('ItemRepository', () => {
             await expect(repository.listar(req)).rejects.toThrow(CustomError);
         });
 
-        it('deve listar items com filtros', async () => {
+        it('deve listar itens com filtros', async () => {
             const req = { params: {}, query: { nome: 'C1', page: 1, limite: 10 }, user_id: 'user1' };
             const mockBuild = jest.fn(() => ({}));
             ItemFilterBuilder.mockImplementation(() => ({

@@ -3,7 +3,6 @@ import { fakeMappings } from "./globalFakeMapping.js";
 import bcrypt from 'bcrypt';
 
 export default async function seedRotas() {
-    // Remove
     await Rota.deleteMany();
 
     const rotas_array = [
@@ -18,9 +17,9 @@ export default async function seedRotas() {
         "categorias:id",
         "localizacoes",
         "localizacoes:id",
-        "items",
-        "items:id",
-        "items:id/foto",
+        "itens",
+        "itens:id",
+        "itens:id/foto",
         "estoques",
         "estoques:id",
         "fornecedores",

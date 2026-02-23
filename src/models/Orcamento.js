@@ -17,11 +17,11 @@ class Orcamento {
                 type: Number,
                 default: 0
             },
-            items: [
+            itens: [
                 {
                     item: {
                         type: mongoose.Schema.Types.ObjectId,
-                        ref: 'items',
+                        ref: 'itens',
                         required: true
                     },
                     nome: {
@@ -67,25 +67,25 @@ class Orcamento {
         // Middleware para calcular subtotal e total antes de salvar
         orcamentoSchema.pre('save', function() {
             // Calcular subtotal para cada item
-            this.items.forEach(comp => {
+            this.itens.forEach(comp => {
                 comp.subtotal = parseFloat((comp.quantidade * comp.valor_unitario).toFixed(2));
             });
             
             // Calcular total do orçamento
-            this.total = parseFloat(this.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+            this.total = parseFloat(this.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         });
 
         // Middleware para recalcular após update
         orcamentoSchema.pre(['updateOne', 'findOneAndUpdate'], function() {
             const update = this.getUpdate();
-            if (update.items) {
+            if (update.itens) {
                 // Calcular subtotal para cada item
-                update.items.forEach(comp => {
+                update.itens.forEach(comp => {
                     comp.subtotal = parseFloat((comp.quantidade * comp.valor_unitario).toFixed(2));
                 });
                 
                 // Calcular total do orçamento
-                update.total = parseFloat(update.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+                update.total = parseFloat(update.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
             }
         });
 

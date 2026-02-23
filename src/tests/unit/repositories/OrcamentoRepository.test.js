@@ -83,7 +83,7 @@ describe('OrcamentoRepository', () => {
     });
 
     it('deve adicionar item', async () => {
-        const fake = { _id: 'id', items: [], save: jest.fn(), toObject: () => ({ _id: 'id', items: [] }) };
+        const fake = { _id: 'id', itens: [], save: jest.fn(), toObject: () => ({ _id: 'id', itens: [] }) };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
@@ -99,7 +99,7 @@ describe('OrcamentoRepository', () => {
 
     it('deve atualizar item', async () => {
         const comp = { _id: 'cid', toObject: () => ({ _id: 'cid' }) };
-        const fake = { _id: 'id', items: [comp], save: jest.fn() };
+        const fake = { _id: 'id', itens: [comp], save: jest.fn() };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
@@ -108,7 +108,7 @@ describe('OrcamentoRepository', () => {
     });
 
     it('deve lançar erro ao atualizar item inexistente', async () => {
-        const fake = { _id: 'id', items: [{ _id: 'other' }] };
+        const fake = { _id: 'id', itens: [{ _id: 'other' }] };
         MockModel.findOne.mockResolvedValue(fake);
         const req = { user_id: 'user123' };
         await expect(repository.atualizarItem('id', 'cid', { nome: 'Novo' }, req)).rejects.toThrow('Item não encontrado');
@@ -116,7 +116,7 @@ describe('OrcamentoRepository', () => {
 
     it('deve remover item', async () => {
         const comp = { _id: 'cid', subtotal: 1 };
-        const fake = { _id: 'id', items: [comp], save: jest.fn() };
+        const fake = { _id: 'id', itens: [comp], save: jest.fn() };
         MockModel.findOne.mockResolvedValue(fake);
         fake.save.mockResolvedValue(fake);
         const req = { user_id: 'user123' };

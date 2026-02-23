@@ -14,7 +14,7 @@ class Estoque {
             },
             item: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'items',
+                ref: 'itens',
                 required: true
             },
             localizacao: {
@@ -57,7 +57,7 @@ class Estoque {
 
         // Método estático para atualizar quantidade total do item
         estoqueSchema.statics.atualizarQuantidadeItem = async function(itemId) {
-            const Item = mongoose.model('items');
+            const Item = mongoose.model('itens');
             const Notificacao = mongoose.model('notificacoes');
             
             // Soma todas as quantidades do item em todas as localizações

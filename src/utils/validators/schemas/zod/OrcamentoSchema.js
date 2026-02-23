@@ -39,12 +39,12 @@ const OrcamentoSchema = z.object({
     descricao: z
         .string()
         .optional(),
-    items: z
+    itens: z
         .array(ItemOrcamentoSchema)
         .min(1, { message: "Deve haver pelo menos um item no orçamento." }),
 });
 
-const OrcamentoUpdateSchema = OrcamentoSchema.omit({ items: true }).partial();
+const OrcamentoUpdateSchema = OrcamentoSchema.omit({ itens: true }).partial();
 const ItemOrcamentoUpdateSchema = ItemOrcamentoSchema.partial();
 
 export { OrcamentoSchema, OrcamentoUpdateSchema, ItemOrcamentoSchema, ItemOrcamentoUpdateSchema };

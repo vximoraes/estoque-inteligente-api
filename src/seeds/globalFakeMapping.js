@@ -142,7 +142,7 @@ export const fakeMappings = {
         nome: () => `Projeto ${fakeMappings.Orcamento.adjetivoNome()} - ${fakeMappings.Orcamento.produtoNome()}`,
         descricao: () => fakebr.lorem.sentence(),
         total: () => 0, // Será calculado automaticamente pelo middleware
-        items: () => [], // Será preenchido no seed
+        itens: () => [], // Será preenchido no seed
         usuario: () => new mongoose.Types.ObjectId().toString(),
     },
 };

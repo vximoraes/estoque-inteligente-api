@@ -9,7 +9,7 @@ mongooseSchemaJsonSchema(mongoose);
 const itemJsonSchema = Item.schema.jsonSchema();
 delete itemJsonSchema.properties.__v;
 
-const itemsSchemas = {
+const itensSchemas = {
     ItemFiltro: {
         type: "object",
         properties: {
@@ -40,7 +40,7 @@ const itemsSchemas = {
             prevPage: { type: "number", nullable: true, example: null },
             nextPage: { type: "number", example: 2 }
         },
-        description: "Schema para listagem paginada de items"
+        description: "Schema para listagem paginada de itens"
     },
     ItemResumo: {
         ...deepCopy(itemJsonSchema),
@@ -106,16 +106,16 @@ const removalMapping = {
 }
 
 Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
-    if (itemsSchemas[schemaKey]) {
-        removeFieldsRecursively(itemsSchemas[schemaKey], fields);
+    if (itensSchemas[schemaKey]) {
+        removeFieldsRecursively(itensSchemas[schemaKey], fields);
     }
 });
 
 const itemMongooseSchema = Item.schema;
 
-itemsSchemas.ItemResumo.example = await generateExample(itemsSchemas.ItemResumo, null, itemMongooseSchema);
-itemsSchemas.ItemDetalhes.example = await generateExample(itemsSchemas.ItemDetalhes, null, itemMongooseSchema);
-itemsSchemas.ItemPost.example = {
+itensSchemas.ItemResumo.example = await generateExample(itensSchemas.ItemResumo, null, itemMongooseSchema);
+itensSchemas.ItemDetalhes.example = await generateExample(itensSchemas.ItemDetalhes, null, itemMongooseSchema);
+itensSchemas.ItemPost.example = {
     nome: "Resistor 10k Ohm",
     estoque_minimo: "50",
     descricao: "Resistor de precisão 1/4W 5%",
@@ -123,11 +123,11 @@ itemsSchemas.ItemPost.example = {
     categoria: "507f1f77bcf86cd799439012",
     ativo: true
 };
-itemsSchemas.ItemPutPatch.example = {
+itensSchemas.ItemPutPatch.example = {
     nome: "Resistor 10k Ohm - Atualizado",
     estoque_minimo: "75",
     descricao: "Resistor de precisão 1/4W 5% - Versão atualizada",
     ativo: true
 };
 
-export default itemsSchemas;
+export default itensSchemas;

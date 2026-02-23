@@ -69,30 +69,30 @@ describe('OrcamentoService', () => {
         });
     });
 
-    describe('manipulação de items', () => {
+    describe('manipulação de itens', () => {
         it('deve adicionar item', async () => {
             const req = { user_id: 'user123' };
-            repository.adicionarItem.mockResolvedValue({ _id: 'id', items: [{ nome: 'C1' }] });
+            repository.adicionarItem.mockResolvedValue({ _id: 'id', itens: [{ nome: 'C1' }] });
             const result = await service.adicionarItem('id', { nome: 'C1' }, req);
             expect(repository.adicionarItem).toHaveBeenCalledWith('id', { nome: 'C1' }, req);
-            expect(result).toEqual(expect.objectContaining({ items: expect.any(Array) }));
+            expect(result).toEqual(expect.objectContaining({ itens: expect.any(Array) }));
         });
         it('deve atualizar item', async () => {
             const req = { user_id: 'user123' };
-            repository.atualizarItem.mockResolvedValue({ _id: 'id', items: [{ nome: 'C1', quantidade: 2 }] });
+            repository.atualizarItem.mockResolvedValue({ _id: 'id', itens: [{ nome: 'C1', quantidade: 2 }] });
             const result = await service.atualizarItem('id', 'cid', { quantidade: 2 }, req);
             expect(repository.atualizarItem).toHaveBeenCalledWith('id', 'cid', { quantidade: 2 }, req);
-            expect(result).toEqual(expect.objectContaining({ items: expect.any(Array) }));
+            expect(result).toEqual(expect.objectContaining({ itens: expect.any(Array) }));
         });
         it('deve remover item', async () => {
             const req = { user_id: 'user123' };
-            repository.removerItem.mockResolvedValue({ _id: 'id', items: [] });
+            repository.removerItem.mockResolvedValue({ _id: 'id', itens: [] });
             const result = await service.removerItem('id', 'cid', req);
             expect(repository.removerItem).toHaveBeenCalledWith('id', 'cid', req);
-            expect(result).toEqual(expect.objectContaining({ items: [] }));
+            expect(result).toEqual(expect.objectContaining({ itens: [] }));
         });
         it('deve retornar item por id', async () => {
-            repository.buscarPorId.mockResolvedValue({ items: [{ _id: 'cid', nome: 'C1' }] });
+            repository.buscarPorId.mockResolvedValue({ itens: [{ _id: 'cid', nome: 'C1' }] });
             const comp = await service.getItemById('id', 'cid');
             expect(comp).toEqual(expect.objectContaining({ _id: 'cid' }));
         });
@@ -102,7 +102,7 @@ describe('OrcamentoService', () => {
             expect(comp).toBeNull();
         });
         it('deve retornar null se item não existe', async () => {
-            repository.buscarPorId.mockResolvedValue({ items: [{ _id: 'other' }] });
+            repository.buscarPorId.mockResolvedValue({ itens: [{ _id: 'other' }] });
             const comp = await service.getItemById('id', 'cid');
             expect(comp).toBeNull();
         });

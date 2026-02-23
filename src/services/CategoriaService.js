@@ -34,7 +34,7 @@ class CategoriaService {
     async inativar(id, req) {
         await this.ensureCategoryExists(id, req);
 
-        // Verificar se existem items ativos vinculados a esta categoria
+        // Verificar se existem itens ativos vinculados a esta categoria
         const existeItemAtivo = await ItemModel.exists({ 
             categoria: id, 
             ativo: true 
@@ -46,7 +46,7 @@ class CategoriaService {
                 errorType: 'resourceInUse',
                 field: 'Categoria',
                 details: [],
-                customMessage: 'Categoria vinculada a items ativos.'
+                customMessage: 'Categoria vinculada a itens ativos.'
             });
         }
 

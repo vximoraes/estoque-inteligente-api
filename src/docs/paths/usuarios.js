@@ -62,7 +62,7 @@ const usuariosRoutes = {
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **UsuarioListagem**, contendo:
-                • **items**: array de usuários.  
+                • **itens**: array de usuários.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
             security: [{ bearerAuth: [] }],

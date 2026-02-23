@@ -108,7 +108,7 @@ class OrcamentoRepository {
         return orcamento;
     };
 
-    // Manipular items.
+    // Manipular itens.
 
     async adicionarItem(orcamentoId, novoItem, req) {
         const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
@@ -120,8 +120,8 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        orcamento.items.push(novoItem);
-        orcamento.total = parseFloat(orcamento.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        orcamento.itens.push(novoItem);
+        orcamento.total = parseFloat(orcamento.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;
@@ -137,8 +137,8 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        const items = Array.isArray(orcamento.items) ? orcamento.items : [];
-        const idx = items.findIndex(c => c && c._id && c._id.toString() === itemId);
+        const itens = Array.isArray(orcamento.itens) ? orcamento.itens : [];
+        const idx = itens.findIndex(c => c && c._id && c._id.toString() === itemId);
         if (idx === -1) throw new CustomError({
             statusCode: 404,
             errorType: 'resourceNotFound',
@@ -147,9 +147,9 @@ class OrcamentoRepository {
             customMessage: 'Item não encontrado.'
         });
 
-        items[idx] = { ...((typeof items[idx].toObject === 'function') ? items[idx].toObject() : items[idx]), ...itemAtualizado };
-        orcamento.items = items;
-        orcamento.total = parseFloat(items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        itens[idx] = { ...((typeof itens[idx].toObject === 'function') ? itens[idx].toObject() : itens[idx]), ...itemAtualizado };
+        orcamento.itens = itens;
+        orcamento.total = parseFloat(itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;
@@ -165,8 +165,8 @@ class OrcamentoRepository {
             customMessage: messages.error.resourceNotFound('Orçamento')
         });
 
-        orcamento.items = orcamento.items.filter(c => c._id.toString() !== itemId);
-        orcamento.total = parseFloat(orcamento.items.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
+        orcamento.itens = orcamento.itens.filter(c => c._id.toString() !== itemId);
+        orcamento.total = parseFloat(orcamento.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2));
         await orcamento.save();
 
         return orcamento;

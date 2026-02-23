@@ -102,7 +102,7 @@ const orcamentosSchemas = {
 const removalMapping = {
     OrcamentoItem: ['__v'],
     OrcamentoDetalhes: ['__v'],
-    OrcamentoPost: ['createdAt', 'updatedAt', '__v', '_id', 'protocolo', 'valor', 'items']
+    OrcamentoPost: ['createdAt', 'updatedAt', '__v', '_id', 'protocolo', 'valor', 'itens']
 }
 
 Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
@@ -117,7 +117,7 @@ orcamentosSchemas.OrcamentoItem.example = await generateExample(orcamentosSchema
 orcamentosSchemas.OrcamentoDetalhes.example = await generateExample(orcamentosSchemas.OrcamentoDetalhes, null, orcamentoMongooseSchema);
 orcamentosSchemas.OrcamentoPost.example = {
     nome: "Orçamento Sistema de Automação",
-    descricao: "Orçamento para items do sistema de automação residencial",
+    descricao: "Orçamento para itens do sistema de automação residencial",
     item_orcamento: [
         {
             nome: "Resistor 10k",

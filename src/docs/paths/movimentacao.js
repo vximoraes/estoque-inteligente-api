@@ -11,7 +11,7 @@ const movimentacoesRoutes = {
             + Caso de uso: Registrar movimentação de um item (entrada ou saída).
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado registrar entrada ou saída de items do estoque.
+                - Permitir ao usuário autenticado registrar entrada ou saída de itens do estoque.
                 + Recebe no corpo da requisição:
                     - Objeto conforme schema **MovimentacaoPost**, contendo dados da movimentação.
 

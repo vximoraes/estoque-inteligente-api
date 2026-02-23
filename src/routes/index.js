@@ -7,7 +7,7 @@ import auth from './authRoutes.js';
 import usuarios from './usuarioRoutes.js';
 import categorias from './categoriaRoutes.js';
 import localizacoes from './localizacaoRoutes.js';
-import items from './itemRoutes.js';
+import itens from './itemRoutes.js';
 import estoques from './estoqueRoutes.js';
 import fornecedores from './fornecedorRoutes.js';
 import movimentacoes from './movimentacaoRoutes.js';
@@ -40,7 +40,7 @@ const routes = (app) => {
         usuarios,
         categorias,
         localizacoes,
-        items,
+        itens,
         estoques,
         fornecedores,
         movimentacoes,

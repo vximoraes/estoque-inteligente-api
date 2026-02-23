@@ -23,7 +23,7 @@ class Movimentacao {
             },
             item: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "items",
+                ref: "itens",
                 required: true,
             },
             localizacao: {

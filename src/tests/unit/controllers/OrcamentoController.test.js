@@ -59,7 +59,7 @@ describe('OrcamentoController', () => {
             const req = {
                 body: {
                     nome: 'Orçamento Teste',
-                    items: [
+                    itens: [
                         { item: '507f1f77bcf86cd799439012', fornecedor: '507f1f77bcf86cd799439013', quantidade: '2', valor_unitario: '1.5' },
                         { item: '507f1f77bcf86cd799439014', fornecedor: '507f1f77bcf86cd799439015', quantidade: '1', valor_unitario: '2' }
                     ]
@@ -76,7 +76,7 @@ describe('OrcamentoController', () => {
         });
 
         it('deve retornar erro 400 para dados inválidos', async () => {
-            const req = { body: { nome: '', items: [] } };
+            const req = { body: { nome: '', itens: [] } };
             await expect(controller.criar(req, res)).rejects.toThrow();
         });
     });

@@ -10,18 +10,18 @@ export default async function orcamentoSeed(adminId) {
     await Orcamento.deleteMany({});
 
     for (let i = 0; i < 5; i++) {
-        const items = [];
+        const itens = [];
         
-        const numItems = Math.floor(Math.random() * 4) + 2;
+        const numItens = Math.floor(Math.random() * 4) + 2;
         
-        for (let j = 0; j < numItems; j++) {
+        for (let j = 0; j < numItens; j++) {
             const itemRandom = itemList[Math.floor(Math.random() * itemList.length)];
             const fornecedorRandom = fornecedorList[Math.floor(Math.random() * fornecedorList.length)];
             
             const quantidade = Math.floor(Math.random() * 10) + 1;
             const valor_unitario = parseFloat((Math.random() * 100 + 5).toFixed(2));
             
-            items.push({
+            itens.push({
                 item: itemRandom._id,
                 nome: itemRandom.nome, 
                 fornecedor: fornecedorRandom._id,
@@ -34,7 +34,7 @@ export default async function orcamentoSeed(adminId) {
         const orcamento = {
             nome: fakeMappings.Orcamento.nome.apply(),
             descricao: fakeMappings.Orcamento.descricao.apply(),
-            items,
+            itens,
             usuario: adminId,
             ativo: true
         };

@@ -5,15 +5,15 @@ describe('OrcamentoSchema', () => {
         const data = {
             nome: 'Orçamento Teste',
             descricao: 'Desc',
-            items: [
+            itens: [
                 { item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '2', valor_unitario: '1.5' },
                 { item: '64f234a0c781a7b30c2fe447', fornecedor: '64f234a0c781a7b30c2fe448', quantidade: '1', valor_unitario: '2' }
             ]
         };
         const result = OrcamentoSchema.safeParse(data);
         expect(result.success).toBe(true);
-        expect(result.data.items[0].quantidade).toBe(2);
-        expect(result.data.items[0].valor_unitario).toBe(1.5);
+        expect(result.data.itens[0].quantidade).toBe(2);
+        expect(result.data.itens[0].valor_unitario).toBe(1.5);
     });
 
     it('falha se faltar nome ou item_orcamento', () => {
@@ -22,8 +22,8 @@ describe('OrcamentoSchema', () => {
         expect(result.error.issues.length).toBeGreaterThan(0);
     });
 
-    it('falha se items for vazio', () => {
-        const data = { nome: 'Teste', items: [] };
+    it('falha se itens for vazio', () => {
+        const data = { nome: 'Teste', itens: [] };
         const result = OrcamentoSchema.safeParse(data);
         expect(result.success).toBe(false);
         expect(result.error.issues[0].message).toMatch(/pelo menos um item/i);
@@ -32,7 +32,7 @@ describe('OrcamentoSchema', () => {
     it('falha se nome for vazio', () => {
         const data = {
             nome: '',
-            items: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '1', valor_unitario: '1' }]
+            itens: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '1', valor_unitario: '1' }]
         };
         const result = OrcamentoSchema.safeParse(data);
         expect(result.success).toBe(false);
@@ -41,7 +41,7 @@ describe('OrcamentoSchema', () => {
     it('falha se quantidade não for inteiro > 0', () => {
         const data = {
             nome: 'Teste',
-            items: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '0', valor_unitario: '1' }]
+            itens: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '0', valor_unitario: '1' }]
         };
         const result = OrcamentoSchema.safeParse(data);
         expect(result.success).toBe(false);
@@ -51,7 +51,7 @@ describe('OrcamentoSchema', () => {
     it('falha se valor_unitario não for número', () => {
         const data = {
             nome: 'Teste',
-            items: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '1', valor_unitario: 'abc' }]
+            itens: [{ item: '64f234a0c781a7b30c2fe445', fornecedor: '64f234a0c781a7b30c2fe446', quantidade: '1', valor_unitario: 'abc' }]
         };
         const result = OrcamentoSchema.safeParse(data);
         expect(result.success).toBe(false);

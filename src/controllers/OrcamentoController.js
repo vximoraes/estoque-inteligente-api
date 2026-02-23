@@ -14,8 +14,8 @@ class OrcamentoController {
     async criar(req, res) {
         const parsedData = OrcamentoSchema.parse(req.body);
 
-        const itemsProcessados = [];
-        for (const comp of parsedData.items) {
+        const itensProcessados = [];
+        for (const comp of parsedData.itens) {
             const item = await Item.findById(comp.item);
             if (!item) {
                 throw new CustomError({
@@ -38,7 +38,7 @@ class OrcamentoController {
                 });
             }
 
-            itemsProcessados.push({
+            itensProcessados.push({
                 item: comp.item,
                 nome: item.nome, 
                 fornecedor: comp.fornecedor,
@@ -50,7 +50,7 @@ class OrcamentoController {
         const orcamentoParaSalvar = {
             nome: parsedData.nome,
             descricao: parsedData.descricao,
-            items: itemsProcessados
+            itens: itensProcessados
         };
 
         let data = await this.service.criar(orcamentoParaSalvar, req);
@@ -100,7 +100,7 @@ class OrcamentoController {
         return CommonResponse.success(res, data, 200, 'Orçamento inativado com sucesso.');
     };
 
-    // Manipular items.
+    // Manipular itens.
 
     async adicionarItem(req, res) {
         const { orcamentoId } = req.params;

@@ -50,7 +50,7 @@ data:
   MINIO_ACCESS_KEY: "<REPLACE_WITH_MINIO_ACCESS_KEY>"
   MINIO_SECRET_KEY: "<REPLACE_WITH_MINIO_SECRET_KEY>"
   MINIO_BUCKET: "usuarios"
-  MINIO_BUCKET_2: "items"
+  MINIO_BUCKET_2: "itens"
   MINIO_PUBLIC_URL: "https://minio.exemplo"
 
   # =============================================================================

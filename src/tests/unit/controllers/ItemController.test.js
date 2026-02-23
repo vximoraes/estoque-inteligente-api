@@ -45,7 +45,7 @@ describe('ItemController', () => {
     });
 
     describe('listar', () => {
-        it('deve listar items sem filtros', async () => {
+        it('deve listar itens sem filtros', async () => {
             serviceMock.listar.mockResolvedValue([{ nome: 'Resistor' }]);
             await controller.listar(req, res);
             expect(serviceMock.listar).toHaveBeenCalledWith(req);

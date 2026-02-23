@@ -114,7 +114,7 @@ describe('Modelo de Item', () => {
         await expect(c2.save()).rejects.toThrow();
     });
 
-    it('deve retornar todos os items cadastrados', async () => {
+    it('deve retornar todos os itens cadastrados', async () => {
         const c1 = new Item({
             nome: 'Diodo',
             estoque_minimo: 3,
@@ -133,9 +133,9 @@ describe('Modelo de Item', () => {
         });
         await c1.save();
         await c2.save();
-        const items = await Item.find();
-        expect(items.length).toBe(2);
-        const nomes = items.map(c => c.nome);
+        const itens = await Item.find();
+        expect(itens.length).toBe(2);
+        const nomes = itens.map(c => c.nome);
         expect(nomes).toContain('Diodo');
         expect(nomes).toContain('Transistor');
     });

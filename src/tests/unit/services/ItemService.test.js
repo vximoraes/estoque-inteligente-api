@@ -84,7 +84,7 @@ describe('ItemService', () => {
     });
 
     describe('listar', () => {
-        it('deve retornar todos os items', async () => {
+        it('deve retornar todos os itens', async () => {
             const comps = [makeItem(), makeItem({ _id: 'comp2', nome: 'Capacitor' })];
             repositoryMock.listar.mockResolvedValue(comps);
             const result = await service.listar({});

@@ -35,7 +35,7 @@ class LocalizacaoService {
     async inativar(id, req) {
         await this.ensureLocationExists(id, req);
 
-        // Verificar se existem estoques nesta localização vinculados a items ativos
+        // Verificar se existem estoques nesta localização vinculados a itens ativos
         const estoques = await EstoqueModel.find({ 
             localizacao: id 
         }).populate('item');
@@ -50,7 +50,7 @@ class LocalizacaoService {
                 errorType: 'resourceInUse',
                 field: 'Localizacao',
                 details: [],
-                customMessage: 'Localização possui estoque de items ativos.'
+                customMessage: 'Localização possui estoque de itens ativos.'
             });
         }
 

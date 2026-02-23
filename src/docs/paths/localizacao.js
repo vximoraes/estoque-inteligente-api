@@ -220,7 +220,7 @@ const localizacoesRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a localização existe antes de excluir.
-                - Não permitir exclusão se há items vinculados à localização.  
+                - Não permitir exclusão se há itens vinculados à localização.  
                 - Registrar log de auditoria sobre a operação.  
                 - Garantir que não haja vínculos críticos pendentes.
 

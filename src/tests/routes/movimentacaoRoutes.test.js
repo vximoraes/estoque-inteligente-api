@@ -37,7 +37,7 @@ const criarMovimentacaoValida = async (tipo = 'entrada', override = {}) => {
     // Cria item com todos os campos obrigatórios
     const itemNome = `Resistor ${unique}`;
     const compRes = await request(BASE_URL)
-        .post('/items')
+        .post('/itens')
         .set('Authorization', `Bearer ${token}`)
         .send({ 
             nome: itemNome, 

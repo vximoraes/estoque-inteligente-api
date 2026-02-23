@@ -8,17 +8,17 @@ const orcamentosRoutes = {
             tags: ["Orçamentos"],
             summary: "Cria um novo orçamento",
             description: `
-            + Caso de uso: Criar um novo orçamento com items e seus respectivos valores.
+            + Caso de uso: Criar um novo orçamento com itens e seus respectivos valores.
             
             + Função de Negócio:
                 - Permitir ao usuário criar orçamentos para projetos específicos.
                 + Recebe no corpo da requisição:
-                    - Objeto conforme schema **OrcamentoPost**, contendo dados do orçamento e items.
+                    - Objeto conforme schema **OrcamentoPost**, contendo dados do orçamento e itens.
 
             + Regras de Negócio:
                 - Campos obrigatórios: nome, item_orcamento (array).
                 - Protocolo é gerado automaticamente pelo sistema (UUID).
-                - Valor total é calculado automaticamente baseado nos items.
+                - Valor total é calculado automaticamente baseado nos itens.
                 - Cada item deve ter: nome, fornecedor, quantidade, valor_unitario.
                 - Subtotal de cada item é calculado automaticamente.
 
@@ -128,7 +128,7 @@ const orcamentosRoutes = {
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência do orçamento.  
-                - Retorna orçamento com todos os items e cálculos.
+                - Retorna orçamento com todos os itens e cálculos.
 
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados completos do orçamento.
@@ -169,8 +169,8 @@ const orcamentosRoutes = {
 
             + Regras de Negócio:
                 - Permite atualização parcial de nome e descrição.
-                - Não permite alterar items diretamente (usar rotas específicas).
-                - Valor total permanece baseado nos items existentes.
+                - Não permite alterar itens diretamente (usar rotas específicas).
+                - Valor total permanece baseado nos itens existentes.
 
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados atualizados.
@@ -219,7 +219,7 @@ const orcamentosRoutes = {
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência do orçamento.
-                - Remove orçamento e todos os items associados.
+                - Remove orçamento e todos os itens associados.
 
             + Resultado Esperado:
                 - HTTP 200 OK com confirmação de remoção.
@@ -246,24 +246,24 @@ const orcamentosRoutes = {
             }
         }
     },
-    "/orcamentos/{orcamentoId}/items": {
+    "/orcamentos/{orcamentoId}/itens": {
         get: {
             tags: ["Orçamentos"],
-            summary: "Lista items de um orçamento",
+            summary: "Lista itens de um orçamento",
             description: `
-            + Caso de uso: Listar todos os items de um orçamento específico.
+            + Caso de uso: Listar todos os itens de um orçamento específico.
             
             + Função de Negócio:
-                - Permitir ao usuário visualizar todos os items de um orçamento.
+                - Permitir ao usuário visualizar todos os itens de um orçamento.
                 + Recebe como path parameter:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
 
             + Regras de Negócio:
                 - Orçamento deve existir.
-                - Retorna lista completa de items com seus detalhes.
+                - Retorna lista completa de itens com seus detalhes.
 
             + Resultado Esperado:
-                - HTTP 200 OK com array de items do orçamento.
+                - HTTP 200 OK com array de itens do orçamento.
         `,
             security: [{ bearerAuth: [] }],
             parameters: [
@@ -279,7 +279,7 @@ const orcamentosRoutes = {
             ],
             responses: {
                 200: {
-                    description: "Items do orçamento retornados com sucesso",
+                    description: "Itens do orçamento retornados com sucesso",
                     content: {
                         "application/json": {
                             schema: {
@@ -293,7 +293,7 @@ const orcamentosRoutes = {
                                     },
                                     message: {
                                         type: "string",
-                                        example: "Items do orçamento listados com sucesso"
+                                        example: "Itens do orçamento listados com sucesso"
                                     },
                                     errors: {
                                         type: "array",
@@ -318,7 +318,7 @@ const orcamentosRoutes = {
             + Caso de uso: Adicionar novo item a um orçamento existente.
             
             + Função de Negócio:
-                - Permitir ao usuário adicionar items a orçamentos.
+                - Permitir ao usuário adicionar itens a orçamentos.
                 + Recebe como path parameter:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
                 + Recebe no corpo da requisição:
@@ -364,7 +364,7 @@ const orcamentosRoutes = {
             }
         }
     },
-    "/orcamentos/{orcamentoId}/items/{id}": {
+    "/orcamentos/{orcamentoId}/itens/{id}": {
         patch: {
             tags: ["Orçamentos"],
             summary: "Atualiza item do orçamento",
@@ -433,7 +433,7 @@ const orcamentosRoutes = {
             + Caso de uso: Remover item específico de um orçamento.
             
             + Função de Negócio:
-                - Permitir ao usuário remover items desnecessários do orçamento.
+                - Permitir ao usuário remover itens desnecessários do orçamento.
                 + Recebe como path parameters:
                     - **orcamentoId**: identificador do orçamento (MongoDB ObjectId).
                     - **id**: identificador do item (MongoDB ObjectId).
