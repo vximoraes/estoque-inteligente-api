@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
+import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
+import Estoque from '../../models/Estoque.js';
 
-const estoqueJsonSchema = mongoose.model('estoques').schema.jsonSchema();
+mongooseSchemaJsonSchema(mongoose);
+
+const estoqueJsonSchema = Estoque.schema.jsonSchema();
 
 const EstoqueBasico = {
   type: 'object',
