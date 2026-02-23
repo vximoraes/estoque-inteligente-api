@@ -47,11 +47,9 @@ describe('CategoriaRepository', () => {
   describe('listar', () => {
     it('deve retornar categoria por id', async () => {
       const req = { params: { id: 'id1' }, query: {}, user_id: 'user1' };
-      CategoriaModel.findOne = jest
-        .fn()
-        .mockResolvedValueOnce({
-          toObject: () => ({ nome: 'Cat1', _id: 'id1' }),
-        });
+      CategoriaModel.findOne = jest.fn().mockResolvedValueOnce({
+        toObject: () => ({ nome: 'Cat1', _id: 'id1' }),
+      });
       const result = await repository.listar(req);
       expect(result).toEqual({ nome: 'Cat1', _id: 'id1' });
     });

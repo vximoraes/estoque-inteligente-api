@@ -38,14 +38,12 @@ describe('Rotas de Notificação', () => {
     // Garante usuário admin e login
     const senhaAdmin = 'Senha@123';
     try {
-      await request(BASE_URL)
-        .post('/usuarios')
-        .send({
-          nome: 'Admin',
-          email: 'admin@admin.com',
-          senha: senhaAdmin,
-          ativo: true,
-        });
+      await request(BASE_URL).post('/usuarios').send({
+        nome: 'Admin',
+        email: 'admin@admin.com',
+        senha: senhaAdmin,
+        ativo: true,
+      });
     } catch (err) {}
     const loginRes = await request(BASE_URL)
       .post('/login')
@@ -116,10 +114,11 @@ describe('Rotas de Notificação', () => {
       let lista = res.body.data;
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens))
-          {lista = res.body.data.itens;}
-        else if (Array.isArray(res.body.data?.results))
-          {lista = res.body.data.results;}
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
       }
       expect(Array.isArray(lista)).toBe(true);
     });
@@ -135,10 +134,11 @@ describe('Rotas de Notificação', () => {
       let lista = res.body.data;
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens))
-          {lista = res.body.data.itens;}
-        else if (Array.isArray(res.body.data?.results))
-          {lista = res.body.data.results;}
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
       }
       const apenasDoUsuario = lista.filter((n) => {
         if (!usuarioId) return false;
@@ -167,10 +167,11 @@ describe('Rotas de Notificação', () => {
       let lista = res.body.data;
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens))
-          {lista = res.body.data.itens;}
-        else if (Array.isArray(res.body.data?.results))
-          {lista = res.body.data.results;}
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
       }
       const naoVisualizadas = lista.filter(
         (n) => n.visualizada === false || n.visualizada === 'false',
@@ -193,10 +194,11 @@ describe('Rotas de Notificação', () => {
       let lista = res.body.data;
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens))
-          {lista = res.body.data.itens;}
-        else if (Array.isArray(res.body.data?.results))
-          {lista = res.body.data.results;}
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
       }
       expect([200, 400, 422]).toContain(res.status);
       if (res.status === 200) {

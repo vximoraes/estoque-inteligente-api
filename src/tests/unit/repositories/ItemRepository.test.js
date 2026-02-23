@@ -142,11 +142,9 @@ describe('ItemRepository', () => {
     it('deve deletar item se não houver movimentação', async () => {
       const req = { user_id: 'user1' };
       MovimentacaoModel.exists.mockResolvedValueOnce(false);
-      ItemModel.findOne = jest
-        .fn()
-        .mockReturnValueOnce({
-          populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' }),
-        });
+      ItemModel.findOne = jest.fn().mockReturnValueOnce({
+        populate: jest.fn().mockResolvedValue({ nome: 'C1', _id: 'id1' }),
+      });
       ItemModel.findOneAndDelete = jest.fn().mockResolvedValueOnce(true);
       const result = await repository.deletar('id1', req);
       expect(result).toEqual({ nome: 'C1', _id: 'id1' });

@@ -87,10 +87,11 @@ describe('Rotas de Localização', () => {
       let lista = res.body.data;
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens))
-          {lista = res.body.data.itens;}
-        else if (Array.isArray(res.body.data?.results))
-          {lista = res.body.data.results;}
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
       }
       expect(Array.isArray(lista)).toBe(true);
     });

@@ -230,13 +230,11 @@ describe('Usuários', () => {
     const nomeBruto = await faker.name.lastName();
     const nome = nomeBruto.replace(/-/g, ' ');
     const nomeFiltro = 'Usuario Filtro' + ' ' + nome;
-    const resSignup = await request(BASE_URL)
-      .post('/signup')
-      .send({
-        nome: nomeFiltro,
-        email: faker.internet.email(),
-        senha: 'Senha1234!',
-      });
+    const resSignup = await request(BASE_URL).post('/signup').send({
+      nome: nomeFiltro,
+      email: faker.internet.email(),
+      senha: 'Senha1234!',
+    });
     expect([201, 500]).toContain(resSignup.status);
 
     const res = await request(BASE_URL)
