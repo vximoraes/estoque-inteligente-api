@@ -1,9 +1,9 @@
-import fs from "fs";
-import readline from "readline";
+import fs from 'fs';
+import readline from 'readline';
 
 /**
- * 
- * Pega a primeira linha de texto de um arquivo. 
+ *
+ * Pega a primeira linha de texto de um arquivo.
  * Código pego {@link https://stackoverflow.com/questions/28747719/what-is-the-most-efficient-way-to-read-only-the-first-line-of-a-file-in-node-js#answer-60193465 daqui}.
  */
 export default async function getFirstLine(pathToFile) {

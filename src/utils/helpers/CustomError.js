@@ -19,7 +19,13 @@
  * });
  */
 class CustomError extends Error {
-  constructor({ statusCode, errorType, field = null, details = [], customMessage = null } = {}) {
+  constructor({
+    statusCode,
+    errorType,
+    field = null,
+    details = [],
+    customMessage = null,
+  } = {}) {
     // Usa a mensagem passada ou, se ausente, usa a customMessage ou uma mensagem padrão.
     super(customMessage || 'An error occurred');
     this.name = 'CustomError';

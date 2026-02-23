@@ -1,13 +1,13 @@
-import movimentacoesSchemas from "../schemas/movimentacaoSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import movimentacoesSchemas from '../schemas/movimentacaoSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const movimentacoesRoutes = {
-    "/movimentacoes": {
-        post: {
-            tags: ["Movimentação"],
-            summary: "Registra uma nova movimentação",
-            description: `
+  '/movimentacoes': {
+    post: {
+      tags: ['Movimentação'],
+      summary: 'Registra uma nova movimentação',
+      description: `
             + Caso de uso: Registrar movimentação de um item (entrada ou saída).
             
             + Função de Negócio:
@@ -26,30 +26,30 @@ const movimentacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **MovimentacaoDetalhes**, contendo todos os dados da movimentação criada.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/MovimentacaoPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/MovimentacaoPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/MovimentacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Movimentação"],
-            summary: "Lista todas as movimentações",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/MovimentacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Movimentação'],
+      summary: 'Lista todas as movimentações',
+      description: `
         + Caso de uso: Listagem de movimentações para controle de estoque e auditoria.
         
         + Função de Negócio:
@@ -70,56 +70,58 @@ const movimentacoesRoutes = {
                 • **data**: array de movimentações.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(movimentacoesSchemas.MovimentacaoFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de movimentações retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/MovimentacaoListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(
+        movimentacoesSchemas.MovimentacaoFiltro,
+      ).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de movimentações retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/MovimentacaoListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/movimentacoes/{id}": {
-        get: {
-            tags: ["Movimentação"],
-            summary: "Obtém detalhes de uma movimentação",
-            description: `
+  },
+  '/movimentacoes/{id}': {
+    get: {
+      tags: ['Movimentação'],
+      summary: 'Obtém detalhes de uma movimentação',
+      description: `
             + Caso de uso: Consulta de detalhes de movimentação específica.
             
             + Função de Negócio:
@@ -136,28 +138,28 @@ const movimentacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **MovimentacaoDetalhes**, contendo dados completos da movimentação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da movimentação"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/MovimentacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da movimentação',
+        },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/MovimentacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default movimentacoesRoutes;

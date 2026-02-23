@@ -1,13 +1,13 @@
-import fornecedoresSchemas from "../schemas/fornecedorSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import fornecedoresSchemas from '../schemas/fornecedorSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const fornecedoresRoutes = {
-    "/fornecedores": {
-        post: {
-            tags: ["Fornecedores"],
-            summary: "Cria um novo fornecedor",
-            description: `
+  '/fornecedores': {
+    post: {
+      tags: ['Fornecedores'],
+      summary: 'Cria um novo fornecedor',
+      description: `
             + Caso de uso: Criação de novo fornecedor no sistema.
             
             + Função de Negócio:
@@ -24,30 +24,30 @@ const fornecedoresRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **FornecedorDetalhes**, contendo todos os dados do fornecedor criado.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/FornecedorPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/FornecedorPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/FornecedorDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Fornecedores"],
-            summary: "Lista todos os fornecedores",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/FornecedorDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Fornecedores'],
+      summary: 'Lista todos os fornecedores',
+      description: `
         + Caso de uso: Listagem de fornecedores para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -67,56 +67,58 @@ const fornecedoresRoutes = {
                 • **data**: array de fornecedores.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(fornecedoresSchemas.FornecedorFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de fornecedores retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/FornecedorListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(
+        fornecedoresSchemas.FornecedorFiltro,
+      ).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de fornecedores retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/FornecedorListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/fornecedores/{id}": {
-        get: {
-            tags: ["Fornecedores"],
-            summary: "Obtém detalhes de um fornecedor",
-            description: `
+  },
+  '/fornecedores/{id}': {
+    get: {
+      tags: ['Fornecedores'],
+      summary: 'Obtém detalhes de um fornecedor',
+      description: `
             + Caso de uso: Consulta de detalhes de fornecedor específico.
             
             + Função de Negócio:
@@ -132,32 +134,32 @@ const fornecedoresRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **FornecedorDetalhes**, contendo dados completos do fornecedor.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do fornecedor"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/FornecedorDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do fornecedor',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/FornecedorDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Fornecedores"],
-            summary: "Atualiza um fornecedor",
-            description: `
+    patch: {
+      tags: ['Fornecedores'],
+      summary: 'Atualiza um fornecedor',
+      description: `
             + Caso de uso: Atualização parcial de dados do fornecedor.
             
             + Função de Negócio:
@@ -175,42 +177,42 @@ const fornecedoresRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **FornecedorDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do fornecedor"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/FornecedorPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/FornecedorDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do fornecedor',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/FornecedorPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/FornecedorDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Fornecedores"],
-            summary: "Deleta um fornecedor",
-            description: `
+    delete: {
+      tags: ['Fornecedores'],
+      summary: 'Deleta um fornecedor',
+      description: `
             + Caso de uso: Exclusão de fornecedor.
             
             + Função de Negócio:
@@ -227,28 +229,28 @@ const fornecedoresRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK - fornecedor excluído com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do fornecedor"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do fornecedor',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default fornecedoresRoutes;

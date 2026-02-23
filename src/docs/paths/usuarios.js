@@ -1,13 +1,13 @@
-import usuariosSchemas from "../schemas/usuariosSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import usuariosSchemas from '../schemas/usuariosSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const usuariosRoutes = {
-    "/usuarios": {
-        post: {
-            tags: ["Usuários"],
-            summary: "Cria um novo usuário",
-            description: `
+  '/usuarios': {
+    post: {
+      tags: ['Usuários'],
+      summary: 'Cria um novo usuário',
+      description: `
             + Caso de uso: Criação de novo usuário no sistema.
             
             + Função de Negócio:
@@ -24,29 +24,29 @@ const usuariosRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **UsuarioDetalhes**, contendo todos os dados do usuário criado.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/UsuarioPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/UsuarioPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Usuários"],
-            summary: "Lista todos os usuários",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/UsuarioDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Usuários'],
+      summary: 'Lista todos os usuários',
+      description: `
         + Caso de uso: Listagem de usuários para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -65,32 +65,32 @@ const usuariosRoutes = {
                 • **itens**: array de usuários.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(usuariosSchemas.UsuarioFiltro),
-            responses: {
-                200: {
-                    description: "Lista de usuários retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/UsuarioListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(usuariosSchemas.UsuarioFiltro),
+      responses: {
+        200: {
+          description: 'Lista de usuários retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/UsuarioListagem',
+              },
+            },
+          },
         },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/usuarios/{id}": {
-        get: {
-            tags: ["Usuários"],
-            summary: "Obtém detalhes de um usuário",
-            description: `
+  },
+  '/usuarios/{id}': {
+    get: {
+      tags: ['Usuários'],
+      summary: 'Obtém detalhes de um usuário',
+      description: `
             + Caso de uso: Consulta de detalhes de usuário específico.
             
             + Função de Negócio:
@@ -106,31 +106,31 @@ const usuariosRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **UsuarioDetalhes**, contendo dados completos do usuário.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/UsuarioDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Usuários"],
-            summary: "Atualiza um usuário",
-            description: `
+    patch: {
+      tags: ['Usuários'],
+      summary: 'Atualiza um usuário',
+      description: `
             + Caso de uso: Atualização parcial de dados do usuário.
             
             + Função de Negócio:
@@ -147,40 +147,40 @@ const usuariosRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **UsuarioDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/UsuarioPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/UsuarioPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/UsuarioDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Usuários"],
-            summary: "Deleta um usuário",
-            description: `
+    delete: {
+      tags: ['Usuários'],
+      summary: 'Deleta um usuário',
+      description: `
             + Caso de uso: Exclusão ou inativação de usuário.
             
             + Função de Negócio:
@@ -196,32 +196,32 @@ const usuariosRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK - usuário excluído ou inativado com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    }
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/usuarios/{id}/foto": {
-        put: {
-            tags: ["Usuários"],
-            summary: "Faz upload da foto do usuário",
-            description: `
+  },
+  '/usuarios/{id}/foto': {
+    put: {
+      tags: ['Usuários'],
+      summary: 'Faz upload da foto do usuário',
+      description: `
             + Caso de uso: Upload de foto de perfil do usuário.
             
             + Função de Negócio:
@@ -245,59 +245,60 @@ const usuariosRoutes = {
                 - Em caso de arquivo inválido ou vazio, retorna erro 400.
                 - Em caso de arquivo maior que 5 MB, retorna erro 413.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do usuário"
-                }
-            ],
-            requestBody: {
-                required: true,
-                content: {
-                    "multipart/form-data": {
-                        schema: {
-                            type: "object",
-                            required: ["file"],
-                            properties: {
-                                file: {
-                                    type: "string",
-                                    format: "binary",
-                                    description: "Arquivo de imagem para foto de perfil (máx 5 MB)"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            responses: {
-                201: {
-                    description: "Foto atualizada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/UsuarioUploadFotoResposta"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                413: commonResponses[413](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do usuário',
         },
-        delete: {
-            tags: ["Usuários"],
-            summary: "Deleta a foto do usuário",
-            description: `
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['file'],
+              properties: {
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description:
+                    'Arquivo de imagem para foto de perfil (máx 5 MB)',
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Foto atualizada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/UsuarioUploadFotoResposta',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        413: commonResponses[413](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+    delete: {
+      tags: ['Usuários'],
+      summary: 'Deleta a foto do usuário',
+      description: `
             + Caso de uso: Remoção da foto de perfil do usuário.
             
             + Função de Negócio:
@@ -316,27 +317,27 @@ const usuariosRoutes = {
                 - Em caso de usuário inexistente, retorna erro 404.
                 - Em caso de erro no serviço de armazenamento, retorna erro 500.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do usuário"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do usuário',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default usuariosRoutes;

@@ -1,13 +1,13 @@
-import gruposSchemas from "../schemas/grupoSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import gruposSchemas from '../schemas/grupoSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const gruposRoutes = {
-    "/grupos": {
-        post: {
-            tags: ["Grupos"],
-            summary: "Cria um novo grupo",
-            description: `
+  '/grupos': {
+    post: {
+      tags: ['Grupos'],
+      summary: 'Cria um novo grupo',
+      description: `
             + Caso de uso: Criação de novo grupo para organização de usuários e permissões.
             
             + Função de Negócio:
@@ -25,30 +25,30 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **GrupoDetalhes**, contendo todos os dados do grupo criado.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/GrupoPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/GrupoPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Grupos"],
-            summary: "Lista todos os grupos",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/GrupoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Grupos'],
+      summary: 'Lista todos os grupos',
+      description: `
         + Caso de uso: Listagem de grupos para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -67,32 +67,32 @@ const gruposRoutes = {
                 • **docs**: array de grupos.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(gruposSchemas.GrupoFiltro),
-            responses: {
-                200: {
-                    description: "Lista de grupos retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/GrupoListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(gruposSchemas.GrupoFiltro),
+      responses: {
+        200: {
+          description: 'Lista de grupos retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/GrupoListagem',
+              },
+            },
+          },
         },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/grupos/{id}": {
-        get: {
-            tags: ["Grupos"],
-            summary: "Obtém detalhes de um grupo",
-            description: `
+  },
+  '/grupos/{id}': {
+    get: {
+      tags: ['Grupos'],
+      summary: 'Obtém detalhes de um grupo',
+      description: `
             + Caso de uso: Consulta de detalhes de grupo específico.
             
             + Função de Negócio:
@@ -108,32 +108,32 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **GrupoDetalhes**, contendo dados completos do grupo.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do grupo"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do grupo',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/GrupoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Grupos"],
-            summary: "Atualiza um grupo",
-            description: `
+    patch: {
+      tags: ['Grupos'],
+      summary: 'Atualiza um grupo',
+      description: `
             + Caso de uso: Atualização parcial de dados do grupo.
             
             + Função de Negócio:
@@ -150,42 +150,42 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **GrupoDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do grupo"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/GrupoPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do grupo',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/GrupoPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/GrupoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        put: {
-            tags: ["Grupos"],
-            summary: "Substitui um grupo",
-            description: `
+    put: {
+      tags: ['Grupos'],
+      summary: 'Substitui um grupo',
+      description: `
             + Caso de uso: Substituição completa de dados do grupo.
             
             + Função de Negócio:
@@ -202,42 +202,42 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **GrupoDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do grupo"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/GrupoPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do grupo',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/GrupoPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/GrupoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Grupos"],
-            summary: "Deleta um grupo",
-            description: `
+    delete: {
+      tags: ['Grupos'],
+      summary: 'Deleta um grupo',
+      description: `
             + Caso de uso: Exclusão de grupo do sistema.
             
             + Função de Negócio:
@@ -253,33 +253,33 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK - grupo excluído com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do grupo"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do grupo',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/grupos/{id}/rotas": {
-        post: {
-            tags: ["Grupos"],
-            summary: "Adiciona permissão (rota) ao grupo",
-            description: `
+  },
+  '/grupos/{id}/rotas': {
+    post: {
+      tags: ['Grupos'],
+      summary: 'Adiciona permissão (rota) ao grupo',
+      description: `
             + Caso de uso: Adicionar uma permissão específica a um grupo existente.
             
             + Função de Negócio:
@@ -298,37 +298,37 @@ const gruposRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **GrupoDetalhes**, contendo grupo atualizado com a nova permissão.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do grupo"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/PermissaoSchema"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do grupo',
+        },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/PermissaoSchema',
             },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/GrupoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/GrupoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default gruposRoutes;

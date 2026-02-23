@@ -1,13 +1,13 @@
-import localizacoesSchemas from "../schemas/localizacaoSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import localizacoesSchemas from '../schemas/localizacaoSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const localizacoesRoutes = {
-    "/localizacoes": {
-        post: {
-            tags: ["Localização"],
-            summary: "Cria uma nova localização",
-            description: `
+  '/localizacoes': {
+    post: {
+      tags: ['Localização'],
+      summary: 'Cria uma nova localização',
+      description: `
             + Caso de uso: Criação de nova localização no sistema.
             
             + Função de Negócio:
@@ -24,30 +24,30 @@ const localizacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **LocalizacaoDetalhes**, contendo todos os dados da localização criada.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/LocalizacaoPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/LocalizacaoPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/LocalizacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Localização"],
-            summary: "Lista todas as localizações",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/LocalizacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Localização'],
+      summary: 'Lista todas as localizações',
+      description: `
         + Caso de uso: Listagem de localizações para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -67,56 +67,58 @@ const localizacoesRoutes = {
                 • **data**: array de localizações.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(localizacoesSchemas.LocalizacaoFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de localizações retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/LocalizacaoListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(
+        localizacoesSchemas.LocalizacaoFiltro,
+      ).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de localizações retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/LocalizacaoListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/localizacoes/{id}": {
-        get: {
-            tags: ["Localização"],
-            summary: "Obtém detalhes de uma localização",
-            description: `
+  },
+  '/localizacoes/{id}': {
+    get: {
+      tags: ['Localização'],
+      summary: 'Obtém detalhes de uma localização',
+      description: `
             + Caso de uso: Consulta de detalhes de localização específica.
             
             + Função de Negócio:
@@ -132,32 +134,32 @@ const localizacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **LocalizacaoDetalhes**, contendo dados completos da localização.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da localização"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/LocalizacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da localização',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/LocalizacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Localização"],
-            summary: "Atualiza uma localização",
-            description: `
+    patch: {
+      tags: ['Localização'],
+      summary: 'Atualiza uma localização',
+      description: `
             + Caso de uso: Atualização parcial de dados da localização.
             
             + Função de Negócio:
@@ -175,42 +177,42 @@ const localizacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **LocalizacaoDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da localização"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/LocalizacaoPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/LocalizacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da localização',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/LocalizacaoPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/LocalizacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Localização"],
-            summary: "Deleta uma localização",
-            description: `
+    delete: {
+      tags: ['Localização'],
+      summary: 'Deleta uma localização',
+      description: `
             + Caso de uso: Exclusão de localização.
             
             + Função de Negócio:
@@ -227,28 +229,28 @@ const localizacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK - localização excluída com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da localização"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da localização',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default localizacoesRoutes;

@@ -3,6 +3,7 @@
 Back-end para gerenciamento de estoque inteligente.
 
 ## Índice
+
 - [Funcionalidades](#-funcionalidades)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Instalação](#-instalação)
@@ -30,6 +31,7 @@ Back-end para gerenciamento de estoque inteligente.
 ## Tecnologias Utilizadas
 
 ### Backend
+
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
 - **MongoDB** - Banco de dados NoSQL
@@ -40,6 +42,7 @@ Back-end para gerenciamento de estoque inteligente.
 - **Docker** - Containerização
 
 ### Desenvolvimento
+
 - **Jest** - Framework de testes
 - **ESLint** - Linter para JavaScript
 - **Nodemon** - Hot reload em desenvolvimento
@@ -47,6 +50,7 @@ Back-end para gerenciamento de estoque inteligente.
 ## Instalação
 
 ### Pré-requisitos
+
 - Node.js (versão 18 ou superior)
 - MongoDB (local ou Atlas)
 - Git
@@ -54,6 +58,7 @@ Back-end para gerenciamento de estoque inteligente.
 ## Configuração
 
 ### Variáveis de Ambiente
+
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
 ```env
@@ -92,29 +97,34 @@ MAIL_API_URL=http://localhost:3001
 ```
 
 ### Configuração do Banco de Dados
+
 O sistema se conecta automaticamente ao MongoDB usando a URI fornecida no arquivo `.env`.
 
 ## Executando o Projeto
 
 ### Desenvolvimento
+
 ```bash
 # Iniciar em modo desenvolvimento (com hot reload)
 npm run dev
 ```
 
 ### Produção
+
 ```bash
 # Iniciar em modo produção
 npm start
 ```
 
 ### Populando o Banco com Dados de Teste
+
 ```bash
 # Executar seeds para popular o banco
 npm run seed
 ```
 
 ### Executando Testes
+
 ```bash
 # Executar todos os testes com coverage
 npm test
@@ -123,6 +133,7 @@ npm test
 ## Docker
 
 ### Executando com Docker Compose
+
 ```bash
 # Subir a API com MongoDB e MinIO
 docker compose up --build
@@ -171,9 +182,11 @@ estoque-inteligente-api/
 ## API Endpoints
 
 ### Autenticação
+
 - `POST /auth/login` - Login de usuário
 
 ### Usuários
+
 - `GET /usuarios` - Listar usuários
 - `GET /usuarios/:id` - Buscar usuário por ID
 - `POST /usuarios` - Criar usuário
@@ -181,6 +194,7 @@ estoque-inteligente-api/
 - `DELETE /usuarios/:id` - Excluir usuário
 
 ### Itens
+
 - `GET /itens` - Listar itens
 - `GET /itens/:id` - Buscar item por ID
 - `POST /itens` - Criar item
@@ -188,6 +202,7 @@ estoque-inteligente-api/
 - `DELETE /itens/:id` - Excluir item
 
 ### Categorias
+
 - `GET /categorias` - Listar categorias
 - `GET /categorias/:id` - Buscar categoria por ID
 - `POST /categorias` - Criar categoria
@@ -195,6 +210,7 @@ estoque-inteligente-api/
 - `DELETE /categorias/:id` - Excluir categoria
 
 ### Fornecedores
+
 - `GET /fornecedores` - Listar fornecedores
 - `GET /fornecedores/:id` - Buscar fornecedor por ID
 - `POST /fornecedores` - Criar fornecedor
@@ -202,6 +218,7 @@ estoque-inteligente-api/
 - `DELETE /fornecedores/:id` - Excluir fornecedor
 
 ### Localizações
+
 - `GET /localizacoes` - Listar localizações
 - `GET /localizacoes/:id` - Buscar localização por ID
 - `POST /localizacoes` - Criar localização
@@ -209,11 +226,13 @@ estoque-inteligente-api/
 - `DELETE /localizacoes/:id` - Excluir localização
 
 ### Movimentações
+
 - `GET /movimentacoes` - Listar movimentações
 - `GET /movimentacoes/:id` - Buscar movimentação por ID
 - `POST /movimentacoes` - Criar movimentação
 
 ### Orçamentos
+
 - `GET /orcamentos` - Listar orçamentos
 - `GET /orcamentos/:id` - Buscar orçamento por ID
 - `POST /orcamentos` - Criar orçamento
@@ -221,6 +240,7 @@ estoque-inteligente-api/
 - `DELETE /orcamentos/:id` - Excluir orçamento
 
 ### Notificações
+
 - `GET /notificacoes` - Listar notificações
 - `GET /notificacoes/:id` - Buscar notificação por ID
 - `POST /notificacoes` - Criar notificação
@@ -234,12 +254,14 @@ estoque-inteligente-api/
 O projeto utiliza Jest para testes unitários e de integração.
 
 ### Executar Testes
+
 ```bash
 # Executar todos os testes
 npm run test
 ```
 
 ### Estrutura de Testes
+
 ```
 src/tests/
 ├── unit/          # Testes unitários

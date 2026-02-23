@@ -1,13 +1,13 @@
-import itensSchemas from "../schemas/itemSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import itensSchemas from '../schemas/itemSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const itensRoutes = {
-    "/itens": {
-        post: {
-            tags: ["Itens"],
-            summary: "Cria um novo item",
-            description: `
+  '/itens': {
+    post: {
+      tags: ['Itens'],
+      summary: 'Cria um novo item',
+      description: `
             + Caso de uso: Criação de novo item do estoque no sistema.
             
             + Função de Negócio:
@@ -30,30 +30,30 @@ const itensRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **ItemDetalhes**, contendo todos os dados do item criado.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/ItemPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/ItemPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/ItemDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Itens"],
-            summary: "Lista todos os itens",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/ItemDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Itens'],
+      summary: 'Lista todos os itens',
+      description: `
         + Caso de uso: Listagem de itens para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -74,56 +74,56 @@ const itensRoutes = {
                 • **data**: array de itens.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(itensSchemas.ItemFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de itens retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/ItemListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(itensSchemas.ItemFiltro).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de itens retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ItemListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/itens/{id}": {
-        get: {
-            tags: ["Itens"],
-            summary: "Obtém detalhes de um item",
-            description: `
+  },
+  '/itens/{id}': {
+    get: {
+      tags: ['Itens'],
+      summary: 'Obtém detalhes de um item',
+      description: `
             + Caso de uso: Consulta de detalhes de item específico.
             
             + Função de Negócio:
@@ -140,32 +140,32 @@ const itensRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **ItemDetalhes**, contendo dados completos do item.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do item"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do item',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/ItemDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Itens"],
-            summary: "Atualiza um item",
-            description: `
+    patch: {
+      tags: ['Itens'],
+      summary: 'Atualiza um item',
+      description: `
             + Caso de uso: Atualização parcial de dados do item.
             
             + Função de Negócio:
@@ -184,43 +184,43 @@ const itensRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **ItemDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do item"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/ItemPutPatch"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do item',
+        },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/ItemPutPatch',
             },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/ItemDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/itens/{id}/inativar": {
-        patch: {
-            tags: ["Itens"],
-            summary: "Inativa um item",
-            description: `
+  },
+  '/itens/{id}/inativar': {
+    patch: {
+      tags: ['Itens'],
+      summary: 'Inativa um item',
+      description: `
             + Caso de uso: Inativação de item preservando integridade referencial.
             
             + Função de Negócio:
@@ -238,33 +238,33 @@ const itensRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **ItemDetalhes**, com ativo = false.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do item"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/ItemDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do item',
+        },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/ItemDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/itens/{id}/foto": {
-        post: {
-            tags: ["Itens"],
-            summary: "Faz upload da foto do item",
-            description: `
+  },
+  '/itens/{id}/foto': {
+    post: {
+      tags: ['Itens'],
+      summary: 'Faz upload da foto do item',
+      description: `
             + Caso de uso: Upload de foto do item do estoque.
             
             + Função de Negócio:
@@ -285,58 +285,58 @@ const itensRoutes = {
                 - Em caso de item inexistente, retorna erro 404.
                 - Em caso de arquivo inválido, retorna erro 400.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do item"
-                }
-            ],
-            requestBody: {
-                required: true,
-                content: {
-                    "multipart/form-data": {
-                        schema: {
-                            type: "object",
-                            required: ["file"],
-                            properties: {
-                                file: {
-                                    type: "string",
-                                    format: "binary",
-                                    description: "Arquivo de imagem do item"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            responses: {
-                201: {
-                    description: "Foto enviada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/ItemUploadFotoResposta"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do item',
         },
-        delete: {
-            tags: ["Itens"],
-            summary: "Deleta a foto do item",
-            description: `
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['file'],
+              properties: {
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Arquivo de imagem do item',
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Foto enviada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ItemUploadFotoResposta',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+    delete: {
+      tags: ['Itens'],
+      summary: 'Deleta a foto do item',
+      description: `
             + Caso de uso: Remoção da foto do item do estoque.
             
             + Função de Negócio:
@@ -355,27 +355,27 @@ const itensRoutes = {
                 - Em caso de item inexistente, retorna erro 404.
                 - Em caso de erro no serviço de armazenamento, retorna erro 500.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID do item"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID do item',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default itensRoutes;

@@ -9,7 +9,7 @@ class TokenInvalidError extends CustomError {
       errorType: 'invalidToken',
       field: 'Token',
       details: [],
-      customMessage: messages.error.resourceNotFound('Token')
+      customMessage: messages.error.resourceNotFound('Token'),
     });
   }
 }

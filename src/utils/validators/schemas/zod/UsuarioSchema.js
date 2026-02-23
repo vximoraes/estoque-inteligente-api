@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-const senhaRegex = /^(?=.*[?@!#$%^&*()/\\])(?=.*[0-9])(?=.*[a-zA-Z])[?@!#$%^&*()/\\a-zA-Z0-9]+$/
-const nomeRegex = /^([A-ZÀ-Ö][a-zà-öø-ÿ]{1,})( ((de|da|do|das|dos)|[A-ZÀ-Ö][a-zà-öø-ÿ]{1,}))*$/
+const senhaRegex =
+  /^(?=.*[?@!#$%^&*()/\\])(?=.*[0-9])(?=.*[a-zA-Z])[?@!#$%^&*()/\\a-zA-Z0-9]+$/;
+const nomeRegex =
+  /^([A-ZÀ-Ö][a-zà-öø-ÿ]{1,})( ((de|da|do|das|dos)|[A-ZÀ-Ö][a-zà-öø-ÿ]{1,}))*$/;
 
 const UsuarioSchema = z.object({
   nome: z
@@ -22,15 +24,11 @@ const UsuarioSchema = z.object({
       {
         message:
           'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial.',
-      }
+      },
     ),
-  ativo: z
-    .boolean()
-    .default(true),
+  ativo: z.boolean().default(true),
 });
 
-const UsuarioUpdateSchema = UsuarioSchema
-  .omit({ email: true })
-  .partial();
+const UsuarioUpdateSchema = UsuarioSchema.omit({ email: true }).partial();
 
 export { UsuarioSchema, UsuarioUpdateSchema };

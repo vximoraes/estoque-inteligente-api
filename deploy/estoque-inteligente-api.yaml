@@ -15,23 +15,23 @@ spec:
         io.kompose.service: estoque-inteligente-api
     spec:
       restartPolicy: Always
-      
+
       securityContext:
         fsGroup: 1000
-      
+
       containers:
         - name: estoque-inteligente-api
           image: vximoraes/estoque-inteligente-api:latest
           imagePullPolicy: Always
-          
+
           ports:
             - containerPort: 3010
               protocol: TCP
-          
+
           envFrom:
             - configMapRef:
                 name: estoque-inteligente-env
-          
+
           resources: {}
 
           livenessProbe:
@@ -55,7 +55,7 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
             successThreshold: 1
-          
+
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -63,7 +63,6 @@ spec:
               drop:
                 - ALL
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -73,9 +72,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: http
-    port: 80
-    targetPort: 3010
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 3010
+      protocol: TCP
   selector:
     io.kompose.service: estoque-inteligente-api

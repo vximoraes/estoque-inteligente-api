@@ -11,7 +11,6 @@ spec:
     requests:
       storage: 1000Mi
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,7 +56,6 @@ spec:
           persistentVolumeClaim:
             claimName: vol-estoque-inteligente-mongodb
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -67,7 +65,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: "27017"
+    - name: '27017'
       port: 27017
       targetPort: 27017
   selector:

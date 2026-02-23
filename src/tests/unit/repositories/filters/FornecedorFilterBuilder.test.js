@@ -6,93 +6,95 @@ jest.mock('../../../../repositories/FornecedorRepository.js');
 jest.mock('../../../../models/Fornecedor.js');
 
 describe('FornecedorFilterBuilder', () => {
-    let fornecedorFilterBuilder;
+  let fornecedorFilterBuilder;
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+  beforeEach(() => {
+    jest.clearAllMocks();
 
-        fornecedorFilterBuilder = new FornecedorFilterBuilder();
+    fornecedorFilterBuilder = new FornecedorFilterBuilder();
+  });
+
+  describe('constructor', () => {
+    test('deve inicializar com filtros vazios', () => {
+      expect(fornecedorFilterBuilder.filtros).toEqual({});
     });
 
-    describe('constructor', () => {
-        test('deve inicializar com filtros vazios', () => {
-            expect(fornecedorFilterBuilder.filtros).toEqual({});
-        });
-
-        test('deve inicializar com instância de FornecedorRepository', () => {
-            expect(fornecedorFilterBuilder.fornecedorRepository).toBeInstanceOf(FornecedorRepository);
-        });
-
-        test('deve inicializar com referência ao FornecedorModel', () => {
-            expect(fornecedorFilterBuilder.fornecedorModel).toBe(FornecedorModel);
-        });
+    test('deve inicializar com instância de FornecedorRepository', () => {
+      expect(fornecedorFilterBuilder.fornecedorRepository).toBeInstanceOf(
+        FornecedorRepository,
+      );
     });
 
-    describe('comNome', () => {
-        test('deve adicionar filtro de nome quando nome é fornecido', () => {
-            const nome = 'Teste';
-            const resultado = fornecedorFilterBuilder.comNome(nome);
+    test('deve inicializar com referência ao FornecedorModel', () => {
+      expect(fornecedorFilterBuilder.fornecedorModel).toBe(FornecedorModel);
+    });
+  });
 
-            expect(fornecedorFilterBuilder.filtros.nome).toEqual({ $regex: nome, $options: 'i' });
+  describe('comNome', () => {
+    test('deve adicionar filtro de nome quando nome é fornecido', () => {
+      const nome = 'Teste';
+      const resultado = fornecedorFilterBuilder.comNome(nome);
 
-            expect(resultado).toBe(fornecedorFilterBuilder);
-        });
+      expect(fornecedorFilterBuilder.filtros.nome).toEqual({
+        $regex: nome,
+        $options: 'i',
+      });
 
-
-        test('não deve adicionar filtro para valores inválidos (undefined, null)', () => {
-            [undefined, null].forEach(valor => {
-                fornecedorFilterBuilder.filtros = {}; // Reset
-                const resultado = fornecedorFilterBuilder.comNome(valor);
-                expect(fornecedorFilterBuilder.filtros.nome).toBeUndefined();
-                expect(resultado).toBe(fornecedorFilterBuilder);
-            });
-        });
-
-        test('deve ignorar string vazia', () => {
-            const resultado = fornecedorFilterBuilder.comNome('');
-            expect(fornecedorFilterBuilder.filtros.nome).toBeUndefined();
-            expect(resultado).toBe(fornecedorFilterBuilder);
-        });
+      expect(resultado).toBe(fornecedorFilterBuilder);
     });
 
-    describe('build', () => {
-        test('deve retornar filtros vazios quando nenhum filtro foi adicionado', () => {
-            const filtros = fornecedorFilterBuilder.build();
-            expect(filtros).toEqual({});
-        });
-
-        test('deve retornar filtro de nome quando foi adicionado', () => {
-            fornecedorFilterBuilder.comNome('Teste');
-            const filtros = fornecedorFilterBuilder.build();
-
-            expect(filtros).toEqual({
-                nome: { $regex: 'Teste', $options: 'i' }
-            });
-        });
-
-        test('deve retornar todos os filtros adicionados corretamente', () => {
-            fornecedorFilterBuilder.comNome('Fornecedor');
-
-            fornecedorFilterBuilder.filtros.ativo = true;
-
-            const filtros = fornecedorFilterBuilder.build();
-
-            expect(filtros).toEqual({
-                nome: { $regex: 'Fornecedor', $options: 'i' },
-                ativo: true
-            });
-        });
+    test('não deve adicionar filtro para valores inválidos (undefined, null)', () => {
+      [undefined, null].forEach((valor) => {
+        fornecedorFilterBuilder.filtros = {}; // Reset
+        const resultado = fornecedorFilterBuilder.comNome(valor);
+        expect(fornecedorFilterBuilder.filtros.nome).toBeUndefined();
+        expect(resultado).toBe(fornecedorFilterBuilder);
+      });
     });
 
-    describe('Encadeamento de métodos (fluent interface)', () => {
-        test('deve permitir encadear múltiplos métodos e construir filtros corretamente', () => {
-            const filtros = fornecedorFilterBuilder
-                .comNome('Teste')
-                .build();
-
-            expect(filtros).toEqual({
-                nome: { $regex: 'Teste', $options: 'i' }
-            });
-        });
+    test('deve ignorar string vazia', () => {
+      const resultado = fornecedorFilterBuilder.comNome('');
+      expect(fornecedorFilterBuilder.filtros.nome).toBeUndefined();
+      expect(resultado).toBe(fornecedorFilterBuilder);
     });
+  });
+
+  describe('build', () => {
+    test('deve retornar filtros vazios quando nenhum filtro foi adicionado', () => {
+      const filtros = fornecedorFilterBuilder.build();
+      expect(filtros).toEqual({});
+    });
+
+    test('deve retornar filtro de nome quando foi adicionado', () => {
+      fornecedorFilterBuilder.comNome('Teste');
+      const filtros = fornecedorFilterBuilder.build();
+
+      expect(filtros).toEqual({
+        nome: { $regex: 'Teste', $options: 'i' },
+      });
+    });
+
+    test('deve retornar todos os filtros adicionados corretamente', () => {
+      fornecedorFilterBuilder.comNome('Fornecedor');
+
+      fornecedorFilterBuilder.filtros.ativo = true;
+
+      const filtros = fornecedorFilterBuilder.build();
+
+      expect(filtros).toEqual({
+        nome: { $regex: 'Fornecedor', $options: 'i' },
+        ativo: true,
+      });
+    });
+  });
+
+  describe('Encadeamento de métodos (fluent interface)', () => {
+    test('deve permitir encadear múltiplos métodos e construir filtros corretamente', () => {
+      const filtros = fornecedorFilterBuilder.comNome('Teste').build();
+
+      expect(filtros).toEqual({
+        nome: { $regex: 'Teste', $options: 'i' },
+      });
+    });
+  });
 });

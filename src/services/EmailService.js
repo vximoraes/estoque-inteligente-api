@@ -2,73 +2,75 @@ import nodemailer from 'nodemailer';
 import { CustomError, HttpStatusCodes } from '../utils/helpers/index.js';
 
 class EmailService {
-    constructor() {
-        this.transporter = null;
-        this.initializeTransporter();
+  constructor() {
+    this.transporter = null;
+    this.initializeTransporter();
+  }
+
+  initializeTransporter() {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+      console.warn(
+        'Variáveis de ambiente EMAIL_USER e EMAIL_APP_PASSWORD não configuradas. Serviço de e-mail não estará disponível.',
+      );
+      return;
     }
 
-    initializeTransporter() {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-            console.warn('Variáveis de ambiente EMAIL_USER e EMAIL_APP_PASSWORD não configuradas. Serviço de e-mail não estará disponível.');
-            return;
-        }
+    try {
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_APP_PASSWORD,
+        },
+      });
+      console.log('✓ Serviço de e-mail inicializado com sucesso');
+    } catch (error) {
+      console.error('Erro ao inicializar serviço de e-mail:', error);
+    }
+  }
 
-        try {
-            this.transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_APP_PASSWORD
-                }
-            });
-            console.log('✓ Serviço de e-mail inicializado com sucesso');
-        } catch (error) {
-            console.error('Erro ao inicializar serviço de e-mail:', error);
-        }
+  async enviarEmail(to, subject, text, html = null) {
+    if (!this.transporter) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+        errorType: 'emailServiceUnavailable',
+        field: 'Email',
+        details: [],
+        customMessage: 'Serviço de e-mail não está configurado.',
+      });
     }
 
-    async enviarEmail(to, subject, text, html = null) {
-        if (!this.transporter) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-                errorType: 'emailServiceUnavailable',
-                field: 'Email',
-                details: [],
-                customMessage: 'Serviço de e-mail não está configurado.'
-            });
-        }
+    const mailOptions = {
+      from: `"${process.env.COMPANY_NAME || 'Estoque Inteligente'}" <${process.env.EMAIL_USER}>`,
+      to: to,
+      subject: subject,
+      text: text,
+      html: html || text,
+    };
 
-        const mailOptions = {
-            from: `"${process.env.COMPANY_NAME || 'Estoque Inteligente'}" <${process.env.EMAIL_USER}>`,
-            to: to,
-            subject: subject,
-            text: text,
-            html: html || text
-        };
-
-        try {
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('E-mail enviado com sucesso:', info.response);
-            return { success: true, messageId: info.messageId };
-        } catch (error) {
-            console.error('Erro ao enviar e-mail:', error);
-            throw new CustomError({
-                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-                errorType: 'emailSendError',
-                field: 'Email',
-                details: [],
-                customMessage: 'Erro ao enviar e-mail. Tente novamente mais tarde.'
-            });
-        }
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('E-mail enviado com sucesso:', info.response);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      throw new CustomError({
+        statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+        errorType: 'emailSendError',
+        field: 'Email',
+        details: [],
+        customMessage: 'Erro ao enviar e-mail. Tente novamente mais tarde.',
+      });
     }
+  }
 
-    async enviarEmailConvite(nome, email, token) {
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const activationUrl = `${frontendUrl}/ativar-conta?token=${token}`;
-        
-        const subject = 'Ative sua conta';
-        
-        const text = `
+  async enviarEmailConvite(nome, email, token) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const activationUrl = `${frontendUrl}/ativar-conta?token=${token}`;
+
+    const subject = 'Ative sua conta';
+
+    const text = `
 Olá, ${nome}!
 
 Sua conta foi criada. Clique no link para definir sua senha:
@@ -79,7 +81,7 @@ Link válido por 5 minutos.
 Equipe Estoque Inteligente
         `.trim();
 
-        const html = `
+    const html = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
@@ -104,16 +106,16 @@ Equipe Estoque Inteligente
 </html>
         `.trim();
 
-        return await this.enviarEmail(email, subject, text, html);
-    }
+    return await this.enviarEmail(email, subject, text, html);
+  }
 
-    async enviarEmailRecuperacaoSenha(nome, email, token) {
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const resetUrl = `${frontendUrl}/redefinir-senha?token=${token}`;
-        
-        const subject = 'Recuperação de senha';
-        
-        const text = `
+  async enviarEmailRecuperacaoSenha(nome, email, token) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/redefinir-senha?token=${token}`;
+
+    const subject = 'Recuperação de senha';
+
+    const text = `
 Olá, ${nome}!
 
 Você solicitou a recuperação de senha da sua conta no Estoque Inteligente.
@@ -128,7 +130,7 @@ Se você não solicitou esta recuperação, ignore este e-mail.
 Equipe Estoque Inteligente
         `.trim();
 
-        const html = `
+    const html = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
@@ -153,8 +155,8 @@ Equipe Estoque Inteligente
 </html>
         `.trim();
 
-        return await this.enviarEmail(email, subject, text, html);
-    }
+    return await this.enviarEmail(email, subject, text, html);
+  }
 }
 
 export default new EmailService();

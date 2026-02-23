@@ -1,29 +1,29 @@
-import { fakeMappings } from "./globalFakeMapping.js";
-import Item from "../models/Item.js";
-import Categoria from "../models/Categoria.js";
-import Usuario from "../models/Usuario.js";
+import { fakeMappings } from './globalFakeMapping.js';
+import Item from '../models/Item.js';
+import Categoria from '../models/Categoria.js';
 
 export default async function itemSeed(adminId) {
-    const categoriaList = await Categoria.find({});
+  const categoriaList = await Categoria.find({});
 
-    await Item.deleteMany({});
+  await Item.deleteMany({});
 
-    const nomesFixos = fakeMappings.Item.nomesFixos;
-    for (let nome of nomesFixos) {
-        const categoriaRandom = categoriaList[Math.floor(Math.random() * categoriaList.length)];
+  const nomesFixos = fakeMappings.Item.nomesFixos;
+  for (const nome of nomesFixos) {
+    const categoriaRandom =
+      categoriaList[Math.floor(Math.random() * categoriaList.length)];
 
-        const item = {
-            nome,
-            quantidade: 0,
-            estoque_minimo: fakeMappings.Item.estoque_minimo.apply(),
-            descricao: fakeMappings.Item.descricao.apply(),
-            // imagem: fakeMappings.Item.imagem.apply(),
-            categoria: categoriaRandom._id,
-            usuario: adminId,
-            ativo: fakeMappings.Item.ativo.apply(),
-            status: fakeMappings.Item.status.apply()
-        };
-
-        await Item.create(item);
+    const item = {
+      nome,
+      quantidade: 0,
+      estoque_minimo: fakeMappings.Item.estoque_minimo.apply(),
+      descricao: fakeMappings.Item.descricao.apply(),
+      // imagem: fakeMappings.Item.imagem.apply(),
+      categoria: categoriaRandom._id,
+      usuario: adminId,
+      ativo: fakeMappings.Item.ativo.apply(),
+      status: fakeMappings.Item.status.apply(),
     };
-};
+
+    await Item.create(item);
+  }
+}
