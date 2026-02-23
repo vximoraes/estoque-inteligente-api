@@ -138,9 +138,9 @@ describe('Utilitário de Logger', () => {
       fs.readdirSync.mockReturnValue(['file1.log', 'file2.log']);
       fs.statSync.mockImplementation((filePath) => {
         if (filePath.endsWith('file1.log'))
-          return { size: 100, mtime: new Date(2021, 1, 1) };
+          {return { size: 100, mtime: new Date(2021, 1, 1) };}
         if (filePath.endsWith('file2.log'))
-          return { size: 200, mtime: new Date(2021, 1, 2) };
+          {return { size: 200, mtime: new Date(2021, 1, 2) };}
         return { size: 0, mtime: new Date() };
       });
       fs.unlinkSync.mockImplementation(() => {
@@ -165,11 +165,11 @@ describe('Utilitário de Logger', () => {
       fs.readdirSync.mockReturnValue(['file1.log', 'file2.log', 'file3.log']);
       fs.statSync.mockImplementation((filePath) => {
         if (filePath.endsWith('file1.log'))
-          return { size: 50, mtime: new Date(2021, 1, 1) };
+          {return { size: 50, mtime: new Date(2021, 1, 1) };}
         if (filePath.endsWith('file2.log'))
-          return { size: 50, mtime: new Date(2021, 1, 2) };
+          {return { size: 50, mtime: new Date(2021, 1, 2) };}
         if (filePath.endsWith('file3.log'))
-          return { size: 100, mtime: new Date(2021, 1, 3) };
+          {return { size: 100, mtime: new Date(2021, 1, 3) };}
         return { size: 0, mtime: new Date() };
       });
       fs.unlinkSync.mockImplementation(() => {
@@ -191,9 +191,9 @@ describe('Utilitário de Logger', () => {
       fs.readdirSync.mockReturnValue(['file1.log', 'file2.log']);
       fs.statSync.mockImplementation((filePath) => {
         if (filePath.endsWith('file1.log'))
-          return { size: 100, mtime: new Date() };
+          {return { size: 100, mtime: new Date() };}
         if (filePath.endsWith('file2.log'))
-          return { size: 100, mtime: new Date() };
+          {return { size: 100, mtime: new Date() };}
         return { size: 0, mtime: new Date() };
       });
       fs.unlinkSync.mockImplementation(() => {

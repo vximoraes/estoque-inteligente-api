@@ -42,9 +42,9 @@ describe('OrcamentoController', () => {
 
     Item.findById.mockImplementation((id) => {
       if (id === '507f1f77bcf86cd799439012')
-        return Promise.resolve({ _id: id, nome: 'Resistor' });
+        {return Promise.resolve({ _id: id, nome: 'Resistor' });}
       if (id === '507f1f77bcf86cd799439014')
-        return Promise.resolve({ _id: id, nome: 'Capacitor' });
+        {return Promise.resolve({ _id: id, nome: 'Capacitor' });}
       return Promise.resolve(null);
     });
 

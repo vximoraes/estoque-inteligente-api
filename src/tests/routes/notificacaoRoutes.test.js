@@ -117,9 +117,9 @@ describe('Rotas de Notificação', () => {
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
         else if (Array.isArray(res.body.data?.itens))
-          lista = res.body.data.itens;
+          {lista = res.body.data.itens;}
         else if (Array.isArray(res.body.data?.results))
-          lista = res.body.data.results;
+          {lista = res.body.data.results;}
       }
       expect(Array.isArray(lista)).toBe(true);
     });
@@ -136,9 +136,9 @@ describe('Rotas de Notificação', () => {
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
         else if (Array.isArray(res.body.data?.itens))
-          lista = res.body.data.itens;
+          {lista = res.body.data.itens;}
         else if (Array.isArray(res.body.data?.results))
-          lista = res.body.data.results;
+          {lista = res.body.data.results;}
       }
       const apenasDoUsuario = lista.filter((n) => {
         if (!usuarioId) return false;
@@ -168,9 +168,9 @@ describe('Rotas de Notificação', () => {
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
         else if (Array.isArray(res.body.data?.itens))
-          lista = res.body.data.itens;
+          {lista = res.body.data.itens;}
         else if (Array.isArray(res.body.data?.results))
-          lista = res.body.data.results;
+          {lista = res.body.data.results;}
       }
       const naoVisualizadas = lista.filter(
         (n) => n.visualizada === false || n.visualizada === 'false',
@@ -194,9 +194,9 @@ describe('Rotas de Notificação', () => {
       if (!Array.isArray(lista)) {
         if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
         else if (Array.isArray(res.body.data?.itens))
-          lista = res.body.data.itens;
+          {lista = res.body.data.itens;}
         else if (Array.isArray(res.body.data?.results))
-          lista = res.body.data.results;
+          {lista = res.body.data.results;}
       }
       expect([200, 400, 422]).toContain(res.status);
       if (res.status === 200) {
