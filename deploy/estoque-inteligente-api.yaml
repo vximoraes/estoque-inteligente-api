@@ -2,36 +2,36 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: componentes-eletronicos-api
-  name: componentes-eletronicos-api
+    io.kompose.service: estoque-inteligente-api
+  name: estoque-inteligente-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: componentes-eletronicos-api
+      io.kompose.service: estoque-inteligente-api
   template:
     metadata:
       labels:
-        io.kompose.service: componentes-eletronicos-api
+        io.kompose.service: estoque-inteligente-api
     spec:
       restartPolicy: Always
-      
+
       securityContext:
         fsGroup: 1000
-      
+
       containers:
-        - name: componentes-eletronicos-api
-          image: vximoraes/componentes-eletronicos-api:latest
+        - name: estoque-inteligente-api
+          image: vximoraes/estoque-inteligente-api:latest
           imagePullPolicy: Always
-          
+
           ports:
             - containerPort: 3010
               protocol: TCP
-          
+
           envFrom:
             - configMapRef:
-                name: componentes-eletronicos-env
-          
+                name: estoque-inteligente-env
+
           resources: {}
 
           livenessProbe:
@@ -55,7 +55,7 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
             successThreshold: 1
-          
+
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -63,19 +63,18 @@ spec:
               drop:
                 - ALL
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: componentes-eletronicos-api
-  name: componentes-eletronicos-api
+    io.kompose.service: estoque-inteligente-api
+  name: estoque-inteligente-api
 spec:
   type: ClusterIP
   ports:
-  - name: http
-    port: 80
-    targetPort: 3010
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 3010
+      protocol: TCP
   selector:
-    io.kompose.service: componentes-eletronicos-api
+    io.kompose.service: estoque-inteligente-api

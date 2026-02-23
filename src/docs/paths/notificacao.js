@@ -1,13 +1,13 @@
-import notificacoesSchemas from "../schemas/notificacaoSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import notificacoesSchemas from '../schemas/notificacaoSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const notificacoesRoutes = {
-    "/notificacoes": {
-        post: {
-            tags: ["Notificações"],
-            summary: "Cria uma nova notificação",
-            description: `
+  '/notificacoes': {
+    post: {
+      tags: ['Notificações'],
+      summary: 'Cria uma nova notificação',
+      description: `
             + Caso de uso: Criar uma nova notificação para um usuário.
             
             + Função de Negócio:
@@ -25,30 +25,30 @@ const notificacoesRoutes = {
                 - HTTP 201 Created com corpo conforme **NotificacaoDetalhes**, contendo todos os dados da notificação criada.
                 - Retorna _id, mensagem, visualizada como false, usuario (do contexto autenticado) e data_hora.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/NotificacaoPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/NotificacaoPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/NotificacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Notificações"],
-            summary: "Lista todas as notificações",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/NotificacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Notificações'],
+      summary: 'Lista todas as notificações',
+      description: `
         + Caso de uso: Listar notificações para controle e consulta.
         
         + Função de Negócio:
@@ -69,56 +69,58 @@ const notificacoesRoutes = {
                 • **data**: array de notificações.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(notificacoesSchemas.NotificacaoFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de notificações retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/NotificacaoListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(
+        notificacoesSchemas.NotificacaoFiltro,
+      ).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de notificações retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/NotificacaoListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/notificacoes/{id}": {
-        get: {
-            tags: ["Notificações"],
-            summary: "Obtém detalhes de uma notificação",
-            description: `
+  },
+  '/notificacoes/{id}': {
+    get: {
+      tags: ['Notificações'],
+      summary: 'Obtém detalhes de uma notificação',
+      description: `
             + Caso de uso: Consulta de detalhes de notificação específica.
             
             + Função de Negócio:
@@ -135,33 +137,33 @@ const notificacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **NotificacaoDetalhes**, contendo dados completos da notificação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da notificação"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/NotificacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da notificação',
+        },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/NotificacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/notificacoes/{id}/visualizar": {
-        patch: {
-            tags: ["Notificações"],
-            summary: "Marca uma notificação como visualizada",
-            description: `
+  },
+  '/notificacoes/{id}/visualizar': {
+    patch: {
+      tags: ['Notificações'],
+      summary: 'Marca uma notificação como visualizada',
+      description: `
             + Caso de uso: Marcar notificação como visualizada pelo usuário.
             
             + Função de Negócio:
@@ -178,28 +180,28 @@ const notificacoesRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **NotificacaoDetalhes**, contendo dados atualizados da notificação.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da notificação"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/NotificacaoDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da notificação',
+        },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/NotificacaoDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default notificacoesRoutes;

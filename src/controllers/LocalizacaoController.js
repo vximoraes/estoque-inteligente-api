@@ -1,56 +1,72 @@
 import LocalizacaoService from '../services/LocalizacaoService.js';
-import { LocalizacaoQuerySchema, LocalizacaoIdSchema } from '../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js';
-import { LocalizacaoSchema, LocalizacaoUpdateSchema } from '../utils/validators/schemas/zod/LocalizacaoSchema.js';
-import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import {
+  LocalizacaoQuerySchema,
+  LocalizacaoIdSchema,
+} from '../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js';
+import {
+  LocalizacaoSchema,
+  LocalizacaoUpdateSchema,
+} from '../utils/validators/schemas/zod/LocalizacaoSchema.js';
+import { CommonResponse } from '../utils/helpers/index.js';
 
 class LocalizacaoController {
-    constructor() {
-        this.service = new LocalizacaoService();
-    };
+  constructor() {
+    this.service = new LocalizacaoService();
+  }
 
-    async criar(req, res) {
-        const parsedData = LocalizacaoSchema.parse(req.body);
-        let data = await this.service.criar(parsedData, req);
+  async criar(req, res) {
+    const parsedData = LocalizacaoSchema.parse(req.body);
+    const data = await this.service.criar(parsedData, req);
 
-        let localizacaoLimpa = data.toObject();
+    const localizacaoLimpa = data.toObject();
 
-        return CommonResponse.created(res, localizacaoLimpa);
-    };
+    return CommonResponse.created(res, localizacaoLimpa);
+  }
 
-    async listar(req, res) {
-        const { id } = req.params || {};
-        if (id) {
-            LocalizacaoIdSchema.parse(id);
-        };
+  async listar(req, res) {
+    const { id } = req.params || {};
+    if (id) {
+      LocalizacaoIdSchema.parse(id);
+    }
 
-        const query = req.query || {};
-        if (Object.keys(query).length !== 0) {
-            await LocalizacaoQuerySchema.parseAsync(query);
-        };
+    const query = req.query || {};
+    if (Object.keys(query).length !== 0) {
+      await LocalizacaoQuerySchema.parseAsync(query);
+    }
 
-        const data = await this.service.listar(req);
+    const data = await this.service.listar(req);
 
-        return CommonResponse.success(res, data);
-    };
+    return CommonResponse.success(res, data);
+  }
 
-    async atualizar(req, res) {
-        const { id } = req.params;
-        LocalizacaoIdSchema.parse(id);
+  async atualizar(req, res) {
+    const { id } = req.params;
+    LocalizacaoIdSchema.parse(id);
 
-        const parsedData = LocalizacaoUpdateSchema.parse(req.body);
-        const data = await this.service.atualizar(id, parsedData, req);
+    const parsedData = LocalizacaoUpdateSchema.parse(req.body);
+    const data = await this.service.atualizar(id, parsedData, req);
 
-        return CommonResponse.success(res, data, 200, 'Localização atualizada com sucesso.');
-    };
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Localização atualizada com sucesso.',
+    );
+  }
 
-    async inativar(req, res) {
-        const { id } = req.params || {};
-        LocalizacaoIdSchema.parse(id);
+  async inativar(req, res) {
+    const { id } = req.params || {};
+    LocalizacaoIdSchema.parse(id);
 
-        const data = await this.service.inativar(id, req);
+    const data = await this.service.inativar(id, req);
 
-        return CommonResponse.success(res, data, 200, 'Localização inativada com sucesso.');
-    };
-};
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Localização inativada com sucesso.',
+    );
+  }
+}
 
 export default LocalizacaoController;

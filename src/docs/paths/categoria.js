@@ -1,17 +1,17 @@
-import categoriasSchemas from "../schemas/categoriaSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
-import { generateParameters } from "./utils/generateParameters.js";
+import categoriasSchemas from '../schemas/categoriaSchema.js';
+import commonResponses from '../schemas/swaggerCommonResponses.js';
+import { generateParameters } from './utils/generateParameters.js';
 
 const categoriasRoutes = {
-    "/categorias": {
-        post: {
-            tags: ["Categorias"],
-            summary: "Cria uma nova categoria",
-            description: `
-            + Caso de uso: Criação de nova categoria de componentes no sistema.
+  '/categorias': {
+    post: {
+      tags: ['Categorias'],
+      summary: 'Cria uma nova categoria',
+      description: `
+            + Caso de uso: Criação de nova categoria de itens no sistema.
             
             + Função de Negócio:
-                - Permitir ao usuário autenticado criar uma nova categoria para organizar componentes eletrônicos.
+                - Permitir ao usuário autenticado criar uma nova categoria para organizar itens do estoque.
                 + Recebe no corpo da requisição:
                     - Objeto conforme schema **CategoriaPost**, contendo o nome da categoria.
 
@@ -23,30 +23,30 @@ const categoriasRoutes = {
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **CategoriaDetalhes**, contendo todos os dados da categoria criada.
             `,
-            security: [{ bearerAuth: [] }],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/CategoriaPost"
-                        }
-                    }
-                }
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/CategoriaPost',
             },
-            responses: {
-                201: commonResponses[201]("#/components/schemas/CategoriaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+          },
         },
-        
-        get: {
-            tags: ["Categorias"],
-            summary: "Lista todas as categorias",
-            description: `
+      },
+      responses: {
+        201: commonResponses[201]('#/components/schemas/CategoriaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+
+    get: {
+      tags: ['Categorias'],
+      summary: 'Lista todas as categorias',
+      description: `
         + Caso de uso: Listagem de categorias para gerenciamento e consulta.
         
         + Função de Negócio:
@@ -66,56 +66,56 @@ const categoriasRoutes = {
                 • **data**: array de categorias.  
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: generateParameters(categoriasSchemas.CategoriaFiltro).concat([
-                {
-                    name: "page",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        default: 1
-                    },
-                    description: "Número da página"
-                },
-                {
-                    name: "limite",
-                    in: "query",
-                    required: false,
-                    schema: {
-                        type: "integer",
-                        minimum: 1,
-                        maximum: 100,
-                        default: 10
-                    },
-                    description: "Quantidade de itens por página (máximo 100)"
-                }
-            ]),
-            responses: {
-                200: {
-                    description: "Lista de categorias retornada com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                $ref: "#/components/schemas/CategoriaListagem"
-                            }
-                        }
-                    }
-                },
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: generateParameters(categoriasSchemas.CategoriaFiltro).concat([
+        {
+          name: 'page',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            default: 1,
+          },
+          description: 'Número da página',
         },
+        {
+          name: 'limite',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+          },
+          description: 'Quantidade de itens por página (máximo 100)',
+        },
+      ]),
+      responses: {
+        200: {
+          description: 'Lista de categorias retornada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/CategoriaListagem',
+              },
+            },
+          },
+        },
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
     },
-    "/categorias/{id}": {
-        get: {
-            tags: ["Categorias"],
-            summary: "Obtém detalhes de uma categoria",
-            description: `
+  },
+  '/categorias/{id}': {
+    get: {
+      tags: ['Categorias'],
+      summary: 'Obtém detalhes de uma categoria',
+      description: `
             + Caso de uso: Consulta de detalhes de categoria específica.
             
             + Função de Negócio:
@@ -131,32 +131,32 @@ const categoriasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **CategoriaDetalhes**, contendo dados completos da categoria.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da categoria"
-                }
-            ],
-            responses: {
-                200: commonResponses[200]("#/components/schemas/CategoriaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da categoria',
         },
+      ],
+      responses: {
+        200: commonResponses[200]('#/components/schemas/CategoriaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        patch: {
-            tags: ["Categorias"],
-            summary: "Atualiza uma categoria",
-            description: `
+    patch: {
+      tags: ['Categorias'],
+      summary: 'Atualiza uma categoria',
+      description: `
             + Caso de uso: Atualização parcial de dados da categoria.
             
             + Função de Negócio:
@@ -173,42 +173,42 @@ const categoriasRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **CategoriaDetalhes**, refletindo as alterações.
         `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da categoria"
-                }
-            ],
-            requestBody: {
-                content: {
-                    "application/json": {
-                        schema: {
-                            $ref: "#/components/schemas/CategoriaPutPatch"
-                        }
-                    }
-                }
-            },
-            responses: {
-                200: commonResponses[200]("#/components/schemas/CategoriaDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                409: commonResponses[409](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da categoria',
         },
+      ],
+      requestBody: {
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/CategoriaPutPatch',
+            },
+          },
+        },
+      },
+      responses: {
+        200: commonResponses[200]('#/components/schemas/CategoriaDetalhes'),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        409: commonResponses[409](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
 
-        delete: {
-            tags: ["Categorias"],
-            summary: "Deleta uma categoria",
-            description: `
+    delete: {
+      tags: ['Categorias'],
+      summary: 'Deleta uma categoria',
+      description: `
             + Caso de uso: Exclusão de categoria.
             
             + Função de Negócio:
@@ -218,35 +218,35 @@ const categoriasRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a categoria existe antes de excluir.
-                - Não permitir exclusão se há componentes vinculados à categoria.  
+                - Não permitir exclusão se há itens vinculados à categoria.  
                 - Registrar log de auditoria sobre a operação.  
                 - Garantir que não haja vínculos críticos pendentes.
 
             + Resultado Esperado:
                 - HTTP 200 OK - categoria excluída com sucesso.
             `,
-            security: [{ bearerAuth: [] }],
-            parameters: [
-                {
-                    name: "id",
-                    in: "path",
-                    required: true,
-                    schema: {
-                        type: "string",
-                    },
-                    description: "ID da categoria"
-                }
-            ],
-            responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
-            }
-        }
-    }
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'id',
+          in: 'path',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'ID da categoria',
+        },
+      ],
+      responses: {
+        200: commonResponses[200](),
+        400: commonResponses[400](),
+        401: commonResponses[401](),
+        404: commonResponses[404](),
+        498: commonResponses[498](),
+        500: commonResponses[500](),
+      },
+    },
+  },
 };
 
 export default categoriasRoutes;

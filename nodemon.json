@@ -1,6 +1,6 @@
 {
-    "execMap": {
-        "js": "node"
-    },
-    "watch": ["server.js", "src/"]
+  "execMap": {
+    "js": "node"
+  },
+  "watch": ["server.js", "src/"]
 }
