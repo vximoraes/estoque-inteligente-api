@@ -133,7 +133,7 @@ class ItemService {
         objectName,
         newFile,
         {
-          'Content-Type': file.mimetype,
+          'Content-Type': 'image/jpeg',
         },
       );
 

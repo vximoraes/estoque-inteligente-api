@@ -18,7 +18,7 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio-estoque-inteligente
-    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    command: server /data --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}"
     ports:
       - '${MINIO_PORT}:${MINIO_PORT}'
       - '${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}'
@@ -27,7 +27,7 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
       - MINIO_BROWSER_REDIRECT_URL=http://localhost:${MINIO_CONSOLE_PORT}
     volumes:
-      - ./minio-data:/data
+      - vol-minio:/data
     restart: always
     healthcheck:
       test:

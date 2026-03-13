@@ -12,9 +12,10 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     try {
       const extensao = path.extname(file.originalname).toLowerCase();
-      const permitidas = ['.jpg', '.jpeg', '.png'];
+      const extensoesPermitidas = ['.jpg', '.jpeg', '.png'];
+      const mimeTypesPermitidos = ['image/jpeg', 'image/png'];
 
-      if (!permitidas.includes(extensao)) {
+      if (!extensoesPermitidas.includes(extensao)) {
         return cb(
           new CustomError({
             statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -26,7 +27,7 @@ const upload = multer({
           false,
         );
       }
-      if (!file.mimetype.startsWith('image/')) {
+      if (!mimeTypesPermitidos.includes(file.mimetype)) {
         return cb(
           new CustomError({
             statusCode: HttpStatusCodes.BAD_REQUEST.code,

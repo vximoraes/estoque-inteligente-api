@@ -145,7 +145,7 @@ class UsuarioService {
         objectName,
         newFile,
         {
-          'Content-Type': file.mimetype,
+          'Content-Type': 'image/jpeg',
         },
       );
       return { fotoPerfil: data.fotoPerfil };
