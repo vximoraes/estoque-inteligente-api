@@ -8,6 +8,7 @@ import estoquesSchemas from '../schemas/estoqueSchema.js';
 import movimentacoesSchemas from '../schemas/movimentacaoSchema.js';
 import notificacoesSchemas from '../schemas/notificacaoSchema.js';
 import orcamentosSchemas from '../schemas/orcamentoSchema.js';
+import emprestimosSchemas from '../schemas/emprestimoSchema.js';
 import gruposSchemas from '../schemas/grupoSchema.js';
 import rotasSchemas from '../schemas/rotaSchema.js';
 import usuariosPaths from '../paths/usuarios.js';
@@ -20,6 +21,7 @@ import estoquesPaths from '../paths/estoque.js';
 import movimentacoesPaths from '../paths/movimentacao.js';
 import notificacoesPaths from '../paths/notificacao.js';
 import orcamentosPaths from '../paths/orcamento.js';
+import emprestimosPaths from '../paths/emprestimo.js';
 import gruposPaths from '../paths/grupo.js';
 import rotasPaths from '../paths/rota.js';
 
@@ -92,6 +94,10 @@ const getSwaggerOptions = () => {
           description: 'Rotas para gestão de notificações',
         },
         {
+          name: 'Emprestimos',
+          description: 'Rotas para gestão de emprestimos de itens',
+        },
+        {
           name: 'Grupos',
           description: 'Rotas para gestão de grupos e permissões',
         },
@@ -111,6 +117,7 @@ const getSwaggerOptions = () => {
         ...movimentacoesPaths,
         ...notificacoesPaths,
         ...orcamentosPaths,
+        ...emprestimosPaths,
         ...gruposPaths,
         ...rotasPaths,
       },
@@ -133,6 +140,7 @@ const getSwaggerOptions = () => {
           ...movimentacoesSchemas,
           ...notificacoesSchemas,
           ...orcamentosSchemas,
+          ...emprestimosSchemas,
           ...gruposSchemas,
           ...rotasSchemas,
         },

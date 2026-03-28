@@ -13,6 +13,7 @@ import fornecedores from './fornecedorRoutes.js';
 import movimentacoes from './movimentacaoRoutes.js';
 import notificacoes from './notificacaoRoutes.js';
 import orcamentos from './orcamentoRoutes.js';
+import emprestimos from './emprestimoRoutes.js';
 import grupos from './grupoRoutes.js';
 import rotas from './rotaRoutes.js';
 
@@ -47,6 +48,7 @@ const routes = (app) => {
     movimentacoes,
     notificacoes,
     orcamentos,
+    emprestimos,
     grupos,
     rotas,
   );

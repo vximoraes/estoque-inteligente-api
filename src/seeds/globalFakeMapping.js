@@ -158,6 +158,25 @@ export const fakeMappings = {
     itens: () => [], // Será preenchido no seed
     usuario: () => new mongoose.Types.ObjectId().toString(),
   },
+
+  Emprestimo: {
+    item: () => new mongoose.Types.ObjectId().toString(),
+    quantidade_emprestada: () => fakebr.random.number({ min: 1, max: 20 }),
+    quantidade_devolvida: () => fakebr.random.number({ min: 0, max: 10 }),
+    quantidade_aberta: () => fakebr.random.number({ min: 0, max: 20 }),
+    solicitante_nome: () =>
+      `${fakebr.name.firstName()} ${fakebr.name.lastName()}`,
+    data_saida: () => new Date().toISOString(),
+    data_prevista_devolucao: () =>
+      new Date(
+        Date.now() + fakebr.random.number({ min: 1, max: 15 }) * 86400000,
+      ).toISOString(),
+    data_devolucao_total: () =>
+      fakebr.random.boolean() ? new Date().toISOString() : null,
+    observacoes_emprestimo: () => fakebr.lorem.sentence(),
+    observacoes_devolucao: () => fakebr.lorem.sentence(),
+    usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
+  },
 };
 
 // Retorna o mapping global, consolidando os mappings comuns e específicos.
