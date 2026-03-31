@@ -138,6 +138,13 @@ class EmprestimoService {
 
     return this.repository.atualizarDevolucao(id, payload);
   }
+  async atualizar(id, parsedData, req) {
+    return this.repository.atualizar(id, parsedData);
+  }
+
+  async excluir(id) {
+    return this.repository.excluir(id);
+  }
 }
 
 export default EmprestimoService;

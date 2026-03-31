@@ -2,6 +2,7 @@ import EmprestimoService from '../services/EmprestimoService.js';
 import {
   EmprestimoSchema,
   DevolucaoEmprestimoSchema,
+  AtualizarEmprestimoSchema,
 } from '../utils/validators/schemas/zod/EmprestimoSchema.js';
 import {
   EmprestimoIdSchema,
@@ -49,6 +50,24 @@ class EmprestimoController {
       200,
       'Devolucao de emprestimo registrada com sucesso.',
     );
+  }
+
+  async atualizar(req, res) {
+    const { id } = req.params || {};
+    EmprestimoIdSchema.parse(id);
+
+    const parsedData = AtualizarEmprestimoSchema.parse(req.body);
+    const data = await this.service.atualizar(id, parsedData, req);
+
+    return CommonResponse.success(res, data, 200, 'Emprestimo atualizado com sucesso.');
+  }
+
+  async excluir(req, res) {
+    const { id } = req.params || {};
+    EmprestimoIdSchema.parse(id);
+
+    const data = await this.service.excluir(id);
+    return CommonResponse.success(res, data, 200, 'Emprestimo excluido com sucesso.');
   }
 }
 

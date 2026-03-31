@@ -163,6 +163,55 @@ class EmprestimoRepository {
       status: this.calcularStatus(objeto),
     };
   }
+  async atualizar(id, payload) {
+    const emprestimo = await this.model.findOne({ _id: id, ativo: true });
+
+    if (!emprestimo) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Emprestimo',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Emprestimo'),
+      });
+    }
+
+    if (emprestimo.quantidade_aberta <= 0) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'validationError',
+        field: 'emprestimo',
+        details: [{ path: 'emprestimo', message: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.' }],
+        customMessage: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.',
+      });
+    }
+
+    const atualizado = await this.model
+      .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
+      .populate('item')
+      .populate('localizacao')
+      .populate('usuario_responsavel', 'nome email');
+
+    const objeto = atualizado.toObject();
+    return { ...objeto, status: this.calcularStatus(objeto) };
+  }
+
+  async excluir(id) {
+    const emprestimo = await this.model.findOne({ _id: id, ativo: true });
+
+    if (!emprestimo) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Emprestimo',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Emprestimo'),
+      });
+    }
+
+    await this.model.findOneAndUpdate({ _id: id }, { ativo: false });
+    return { message: 'Emprestimo excluido com sucesso.' };
+  }
 }
 
 export default EmprestimoRepository;

@@ -32,6 +32,18 @@ router
     AuthMiddleware,
     AuthPermission,
     asyncWrapper(emprestimoController.devolver.bind(emprestimoController)),
+  )
+  .put(
+    '/emprestimos/:id',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(emprestimoController.atualizar.bind(emprestimoController)),
+  )
+  .delete(
+    '/emprestimos/:id',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(emprestimoController.excluir.bind(emprestimoController)),
   );
 
 export default router;

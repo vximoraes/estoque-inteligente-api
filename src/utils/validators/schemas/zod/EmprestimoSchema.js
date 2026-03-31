@@ -54,4 +54,19 @@ const DevolucaoEmprestimoSchema = z.object({
     .optional(),
 });
 
-export { EmprestimoSchema, DevolucaoEmprestimoSchema };
+const AtualizarEmprestimoSchema = z.object({
+  solicitante_nome: z
+    .string()
+    .trim()
+    .min(3, 'Solicitante deve ter no minimo 3 caracteres')
+    .max(120, 'Solicitante deve ter no maximo 120 caracteres')
+    .optional(),
+  data_prevista_devolucao: dataFuturaSchema.optional(),
+  observacoes_emprestimo: z
+    .string()
+    .trim()
+    .max(500, 'Observacoes devem ter no maximo 500 caracteres')
+    .optional(),
+});
+
+export { EmprestimoSchema, DevolucaoEmprestimoSchema, AtualizarEmprestimoSchema };
