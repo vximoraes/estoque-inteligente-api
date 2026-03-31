@@ -75,7 +75,14 @@ export const fakeMappings = {
   },
 
   Categoria: {
-    categorias: ['Sensores', 'Cabos', 'Microcontroladores'],
+    categorias: [
+      'Computadores',
+      'Periféricos',
+      'Monitores',
+      'Acessórios',
+      'Rede',
+      'Armazenamento',
+    ],
     nome(index) {
       return this.categorias[index];
     },
@@ -90,26 +97,26 @@ export const fakeMappings = {
 
   Item: {
     nomesFixos: [
-      'Placa Arduino Uno',
-      'Placa Arduino Mega',
-      'Sensor de Movimento',
-      'Sensor de Temperatura DHT11',
-      'Sensor de Umidade DHT22',
-      'Display LCD 16x2',
-      'Display OLED 0.96',
-      'Módulo Relé 4 Canais',
-      'Módulo Relé 1 Canal',
-      'Módulo Wifi ESP8266',
-      'Módulo Bluetooth HC-05',
-      'Módulo Ethernet ENC28J60',
-      'Microcontrolador ESP32',
-      'Microcontrolador ATmega328P',
-      'Kit Jumpers 120 peças',
-      'Protoboard 400 pontos',
-      'Resistor Pack 1k-10M',
-      'Capacitor Pack',
-      'Sensor Ultrassônico HC-SR04',
-      'Módulo Sensor de Luz LDR',
+      'Notebook Dell Inspiron 15',
+      'Notebook Lenovo ThinkPad E14',
+      'MacBook Air M2',
+      'Desktop HP ProDesk',
+      'Monitor LG 24 polegadas',
+      'Monitor Samsung 27 polegadas',
+      'Teclado Mecânico Redragon',
+      'Mouse Logitech MX Master',
+      'Headset HyperX Cloud',
+      'Webcam Logitech C920',
+      'Dock USB-C Anker',
+      'Hub USB 3.0 4 portas',
+      'Roteador TP-Link Archer C6',
+      'Switch Gigabit 8 portas',
+      'Access Point Ubiquiti U6 Lite',
+      'SSD NVMe 1TB Kingston',
+      'HD Externo Seagate 2TB',
+      'Pendrive SanDisk 128GB',
+      'Nobreak SMS 1200VA',
+      'Projetor Epson PowerLite',
     ],
     nome: () => fakebr.helpers.randomize(fakeMappings.Item.nomesFixos),
     quantidade: () => fakebr.random.number({ min: 0, max: 100 }),
@@ -157,6 +164,25 @@ export const fakeMappings = {
     total: () => 0, // Será calculado automaticamente pelo middleware
     itens: () => [], // Será preenchido no seed
     usuario: () => new mongoose.Types.ObjectId().toString(),
+  },
+
+  Emprestimo: {
+    item: () => new mongoose.Types.ObjectId().toString(),
+    quantidade_emprestada: () => fakebr.random.number({ min: 1, max: 20 }),
+    quantidade_devolvida: () => fakebr.random.number({ min: 0, max: 10 }),
+    quantidade_aberta: () => fakebr.random.number({ min: 0, max: 20 }),
+    solicitante_nome: () =>
+      `${fakebr.name.firstName()} ${fakebr.name.lastName()}`,
+    data_saida: () => new Date().toISOString(),
+    data_prevista_devolucao: () =>
+      new Date(
+        Date.now() + fakebr.random.number({ min: 1, max: 15 }) * 86400000,
+      ).toISOString(),
+    data_devolucao_total: () =>
+      fakebr.random.boolean() ? new Date().toISOString() : null,
+    observacoes_emprestimo: () => fakebr.lorem.sentence(),
+    observacoes_devolucao: () => fakebr.lorem.sentence(),
+    usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
   },
 };
 
