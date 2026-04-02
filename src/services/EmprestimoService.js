@@ -4,6 +4,8 @@ import Item from '../models/Item.js';
 import Localizacao from '../models/Localizacao.js';
 import Estoque from '../models/Estoque.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
+import EmailService from './EmailService.js';
+import EmprestimoModel from '../models/Emprestimo.js';
 
 class EmprestimoService {
   constructor() {
@@ -73,6 +75,22 @@ class EmprestimoService {
       data_saida: new Date(),
     });
 
+    if (data.solicitante_email) {
+      EmailService.enviarEmailNovoEmprestimo(data.solicitante_nome, data.solicitante_email, data).catch(
+        (err) => console.error('Erro ao enviar e-mail de novo empréstimo:', err),
+      );
+    }
+
+    if (
+      data.solicitante_email &&
+      data.data_prevista_devolucao &&
+      new Date(data.data_prevista_devolucao) < new Date()
+    ) {
+      EmailService.enviarEmailEmprestimoAtrasado(data.solicitante_nome, data.solicitante_email, data)
+        .then(() => EmprestimoModel.updateOne({ _id: data._id }, { email_atraso_enviado: true }))
+        .catch((err) => console.error('Erro ao enviar e-mail de atraso na criação:', err));
+    }
+
     return data;
   }
 
@@ -136,7 +154,18 @@ class EmprestimoService {
         novaQuantidadeAberta <= 0 ? new Date() : emprestimo.data_devolucao_total,
     };
 
-    return this.repository.atualizarDevolucao(id, payload);
+    const emprestimoAtualizado = await this.repository.atualizarDevolucao(id, payload);
+
+    if (emprestimoAtualizado.solicitante_email) {
+      EmailService.enviarEmailDevolucaoEmprestimo(
+        emprestimoAtualizado.solicitante_nome,
+        emprestimoAtualizado.solicitante_email,
+        emprestimoAtualizado,
+        parsedData.quantidade_devolvida,
+      ).catch((err) => console.error('Erro ao enviar e-mail de devolução:', err));
+    }
+
+    return emprestimoAtualizado;
   }
   async atualizar(id, parsedData, req) {
     return this.repository.atualizar(id, parsedData);

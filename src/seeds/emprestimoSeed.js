@@ -2,10 +2,12 @@ import { fakeMappings } from './globalFakeMapping.js';
 import Emprestimo from '../models/Emprestimo.js';
 import Item from '../models/Item.js';
 import Localizacao from '../models/Localizacao.js';
+import Usuario from '../models/Usuario.js';
 
 export default async function emprestimoSeed(adminId) {
   const itemList = await Item.find({});
   const localizacaoList = await Localizacao.find({});
+  const usuarioList = await Usuario.find({});
 
   await Emprestimo.deleteMany({});
 
@@ -13,6 +15,7 @@ export default async function emprestimoSeed(adminId) {
     const itemRandom = itemList[Math.floor(Math.random() * itemList.length)];
     const localizacaoRandom =
       localizacaoList[Math.floor(Math.random() * localizacaoList.length)];
+    const usuarioRandom = usuarioList[Math.floor(Math.random() * usuarioList.length)];
 
     const quantidade_emprestada = fakeMappings.Emprestimo.quantidade_emprestada.apply();
     const quantidade_devolvida = Math.floor(
@@ -27,12 +30,13 @@ export default async function emprestimoSeed(adminId) {
       quantidade_devolvida,
       quantidade_aberta,
       solicitante_nome: fakeMappings.Emprestimo.solicitante_nome.apply(),
+      solicitante_email: fakeMappings.Emprestimo.solicitante_email.apply(),
       data_saida: fakeMappings.Emprestimo.data_saida.apply(),
       data_prevista_devolucao: fakeMappings.Emprestimo.data_prevista_devolucao.apply(),
       data_devolucao_total: quantidade_aberta === 0 ? new Date().toISOString() : null,
       observacoes_emprestimo: fakeMappings.Emprestimo.observacoes_emprestimo.apply(),
       observacoes_devolucao: fakeMappings.Emprestimo.observacoes_devolucao.apply(),
-      usuario_responsavel: adminId,
+      usuario_responsavel: usuarioRandom._id,
       ativo: true,
     };
 

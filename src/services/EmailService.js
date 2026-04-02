@@ -109,6 +109,239 @@ Equipe Estoque Inteligente
     return await this.enviarEmail(email, subject, text, html);
   }
 
+  async enviarEmailNovoEmprestimo(nomeResponsavel, emailResponsavel, emprestimo) {
+    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
+    const solicitante = emprestimo.solicitante_nome;
+    const quantidade = emprestimo.quantidade_emprestada;
+    const dataPrevista = emprestimo.data_prevista_devolucao
+      ? new Date(emprestimo.data_prevista_devolucao).toLocaleString('pt-BR')
+      : 'Sem previsão';
+    const dataSaida = new Date(emprestimo.data_saida).toLocaleString('pt-BR');
+
+    const observacoes = emprestimo.observacoes_emprestimo || '';
+    const subject = `Novo empréstimo registrado — ${itemNome}`;
+
+    const text = `
+Olá, ${nomeResponsavel}!
+
+Um novo empréstimo foi registrado no sistema.
+
+Detalhes:
+- Item: ${itemNome}
+- Solicitante: ${solicitante}
+- Localização: ${localizacaoNome}
+- Quantidade emprestada: ${quantidade}
+- Data de saída: ${dataSaida}
+- Previsão de devolução: ${dataPrevista}${observacoes ? `\n- Observações: ${observacoes}` : ''}
+
+Acesse o sistema para mais detalhes.
+
+Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+    `.trim();
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Novo Empréstimo Registrado</h1>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 20px 0; font-size: 16px;">Um novo empréstimo foi registrado no sistema com os seguintes detalhes:</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade emprestada</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${quantidade}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Data de saída</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataSaida}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Previsão de devolução</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataPrevista}</td>
+                </tr>
+                ${observacoes ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoes}</td></tr>` : ''}
+            </table>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+
+    return await this.enviarEmail(emailResponsavel, subject, text, html);
+  }
+
+  async enviarEmailDevolucaoEmprestimo(nomeResponsavel, emailResponsavel, emprestimo, quantidadeDevolvida) {
+    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
+    const solicitante = emprestimo.solicitante_nome;
+    const quantidadeAberta = emprestimo.quantidade_aberta;
+    const totalmenteDevolvido = quantidadeAberta <= 0;
+    const observacoesDevolucao = emprestimo.observacoes_devolucao || '';
+    const dataDevolucao = new Date().toLocaleString('pt-BR');
+
+    const subject = totalmenteDevolvido
+      ? `Empréstimo devolvido — ${itemNome}`
+      : `Devolução parcial registrada — ${itemNome}`;
+
+    const text = `
+Olá, ${nomeResponsavel}!
+
+${totalmenteDevolvido ? 'O empréstimo abaixo foi totalmente devolvido.' : 'Uma devolução parcial foi registrada para o empréstimo abaixo.'}
+
+Detalhes:
+- Item: ${itemNome}
+- Solicitante: ${solicitante}
+- Localização: ${localizacaoNome}
+- Quantidade devolvida: ${quantidadeDevolvida}
+- Quantidade ainda em aberto: ${quantidadeAberta}
+- Data da devolução: ${dataDevolucao}${observacoesDevolucao ? `\n- Observações: ${observacoesDevolucao}` : ''}
+
+Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+    `.trim();
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">${totalmenteDevolvido ? 'Empréstimo Devolvido' : 'Devolução Parcial Registrada'}</h1>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 20px 0; font-size: 16px;">${totalmenteDevolvido ? 'O empréstimo abaixo foi <strong>totalmente devolvido</strong>.' : 'Uma <strong>devolução parcial</strong> foi registrada para o empréstimo abaixo.'}</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade devolvida</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6; color: #16a34a; font-weight: bold;">${quantidadeDevolvida}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade em aberto</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${quantidadeAberta}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Data da devolução</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataDevolucao}</td>
+                </tr>
+                ${observacoesDevolucao ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoesDevolucao}</td></tr>` : ''}
+            </table>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+
+    return await this.enviarEmail(emailResponsavel, subject, text, html);
+  }
+
+  async enviarEmailEmprestimoAtrasado(nomeResponsavel, emailResponsavel, emprestimo) {
+    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
+    const solicitante = emprestimo.solicitante_nome;
+    const quantidadeAberta = emprestimo.quantidade_aberta;
+    const dataPrevista = new Date(emprestimo.data_prevista_devolucao);
+    const hoje = new Date();
+    const diasAtraso = Math.floor((hoje - dataPrevista) / (1000 * 60 * 60 * 24));
+    const dataPrevistaFormatada = dataPrevista.toLocaleString('pt-BR');
+
+    const subject = `Empréstimo em atraso — ${itemNome}`;
+
+    const text = `
+Olá, ${nomeResponsavel}!
+
+O empréstimo abaixo está em atraso há ${diasAtraso} dia(s).
+
+Detalhes:
+- Item: ${itemNome}
+- Solicitante: ${solicitante}
+- Localização: ${localizacaoNome}
+- Quantidade em aberto: ${quantidadeAberta}
+- Previsão de devolução: ${dataPrevistaFormatada}
+- Dias em atraso: ${diasAtraso}
+
+Por favor, tome as providências necessárias.
+
+Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+    `.trim();
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h1 style="color: #dc2626; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Empréstimo em Atraso</h1>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 20px 0; font-size: 16px;">O empréstimo abaixo está em atraso há <strong style="color: #dc2626;">${diasAtraso} dia(s)</strong>. Por favor, tome as providências necessárias.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade em aberto</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${quantidadeAberta}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Previsão de devolução</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataPrevistaFormatada}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; color: #dc2626;">Dias em atraso</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6; color: #dc2626; font-weight: bold;">${diasAtraso} dia(s)</td>
+                </tr>
+            </table>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+
+    return await this.enviarEmail(emailResponsavel, subject, text, html);
+  }
+
   async enviarEmailRecuperacaoSenha(nome, email, token) {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const resetUrl = `${frontendUrl}/redefinir-senha?token=${token}`;
