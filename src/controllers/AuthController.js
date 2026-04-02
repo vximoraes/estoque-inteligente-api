@@ -89,9 +89,6 @@ class AuthController {
     const codigo_recupera_senha = req.body.codigo_recupera_senha || null; // código de recuperação passado no body
     const senha = req.body.senha || null; // nova senha passada no body
 
-    console.log('codigo_recupera_senha:', codigo_recupera_senha);
-    console.log('senha:', senha);
-
     // 1) Verifica se veio o código de recuperação
     if (!codigo_recupera_senha) {
       throw new CustomError({
@@ -141,7 +138,6 @@ class AuthController {
 
     // Verifica se o token está presente e não é uma string inválida
     if (!token || token === 'null' || token === 'undefined') {
-      console.log('Refresh token ausente ou inválido:', token);
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'invalidRefresh',
@@ -195,7 +191,6 @@ class AuthController {
 
     // Verifica se o token está presente e não é uma string inválida
     if (!token || token === 'null' || token === 'undefined') {
-      console.log('Token recebido:', token);
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'invalidLogout',
@@ -213,7 +208,6 @@ class AuthController {
 
     // Verifica se o token decodificado contém o ID do usuário
     if (!decoded || !decoded.id) {
-      console.log('Token decodificado inválido:', decoded);
       throw new CustomError({
         statusCode: HttpStatusCodes.INVALID_TOKEN.code,
         errorType: 'notAuthorized',

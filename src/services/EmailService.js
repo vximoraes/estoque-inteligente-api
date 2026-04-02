@@ -23,9 +23,7 @@ class EmailService {
           pass: process.env.EMAIL_APP_PASSWORD,
         },
       });
-      console.log('✓ Serviço de e-mail inicializado com sucesso');
     } catch (error) {
-      console.error('Erro ao inicializar serviço de e-mail:', error);
     }
   }
 
@@ -50,10 +48,8 @@ class EmailService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('E-mail enviado com sucesso:', info.response);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Erro ao enviar e-mail:', error);
       throw new CustomError({
         statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
         errorType: 'emailSendError',

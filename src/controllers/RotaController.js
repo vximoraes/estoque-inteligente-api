@@ -26,10 +26,6 @@ class RotaController {
    * Caso contrário, retorna todos os objetos com suporte a filtros e paginação.
    */
   async listar(req, res) {
-    console.log(
-      'Estou no listar em RotaController, enviando req para RotaService',
-    );
-
     //1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {
@@ -44,8 +40,6 @@ class RotaController {
 
     // Chama o serviço para listar as rotas
     const data = await this.service.listar(req);
-
-    console.log('Estou retornando os dados em RotaController');
     return CommonResponse.success(res, data);
   }
 
@@ -53,8 +47,6 @@ class RotaController {
    * Cria uma nova rota.
    */
   async criar(req, res) {
-    console.log('Estou no criar em RotaController');
-
     // Validação dos dados de entrada usando Zod (estrutural)
     const parsedData = RotaSchema.parse(req.body);
     const data = await this.service.criar(parsedData);
@@ -66,8 +58,6 @@ class RotaController {
    *  Atualiza uma rota existente.
    */
   async atualizar(req, res) {
-    console.log('Estou no atualizar em RotaController');
-
     // 1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {
@@ -88,8 +78,6 @@ class RotaController {
    * Método para deletar uma rota existente.
    */
   async deletar(req, res) {
-    console.log('Estou no deletar em RotaController');
-
     // 1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {

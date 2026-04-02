@@ -30,14 +30,8 @@ class GrupoController {
    */
 
   async listar(req, res) {
-    console.log(
-      'Estou no listar em GrupoController, enviando  req para GrupoService',
-    );
-
     //1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
-
-    console.log('ID recebido:', id);
     if (id) {
       GrupoIdSchema.parse(id); // Lança erro automaticamente se inválido
     }
@@ -50,8 +44,6 @@ class GrupoController {
 
     // Chama o serviço para listar os grupos
     const data = await this.service.listar(req);
-
-    console.log('Estou retornando os dados em GrupoController');
     return CommonResponse.success(res, data);
   }
 
@@ -59,8 +51,6 @@ class GrupoController {
    * Criar um novo grupo.
    */
   async criar(req, res) {
-    console.log('Estou no criar em GrupoController');
-
     // Validação dos dados de entrada usando Zod (estrutural)
     const parsedData = GrupoSchema.parse(req.body);
 
@@ -74,8 +64,6 @@ class GrupoController {
    * Atualiza um grupo existente.
    */
   async atualizar(req, res) {
-    console.log('Estou no atualizar em GrupoController');
-
     //1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {
@@ -96,8 +84,6 @@ class GrupoController {
    * Deleta um grupo existente.
    */
   async deletar(req, res) {
-    console.log('Estou no deletar em GrupoController');
-
     // Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     GrupoIdSchema.parse(id);
@@ -121,8 +107,6 @@ class GrupoController {
   }
 
   async adicionarRota(req, res) {
-    console.log('Estou no adicionarRota em GrupoController');
-
     const { id } = req.params;
     const { idRota } = req.body;
     GrupoIdSchema.parse(id);

@@ -19,8 +19,6 @@ class Logger {
     }
 
     if (isNaN(this.logMaxSizeGB) || this.logMaxSizeGB <= 0) {
-      // Linha 20
-      console.log('Linha 20: logMaxSizeGB inválido');
       throw new Error('LOG_MAX_SIZE_GB deve ser um número positivo');
     }
 
