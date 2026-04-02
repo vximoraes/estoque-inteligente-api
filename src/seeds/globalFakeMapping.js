@@ -173,6 +173,7 @@ export const fakeMappings = {
     quantidade_aberta: () => fakebr.random.number({ min: 0, max: 20 }),
     solicitante_nome: () =>
       `${fakebr.name.firstName()} ${fakebr.name.lastName()}`,
+    solicitante_email: () => fakebr.internet.email(),
     data_saida: () => new Date().toISOString(),
     data_prevista_devolucao: () =>
       new Date(
@@ -183,6 +184,7 @@ export const fakeMappings = {
     observacoes_emprestimo: () => fakebr.lorem.sentence(),
     observacoes_devolucao: () => fakebr.lorem.sentence(),
     usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
+    email_atraso_enviado: () => false,
   },
 };
 

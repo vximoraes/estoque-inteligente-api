@@ -28,7 +28,7 @@ class SendMail {
       const hashId = () => crypto.randomBytes(6).toString('hex');
 
       // Envia o email
-      const info = await transporter.sendMail({
+      await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: infoemail.to,
         subject: `${infoemail.subject} Email: #${hashId()}`,
@@ -36,9 +36,7 @@ class SendMail {
         html: infoemail.html,
       });
 
-      console.log('Email enviado: %s', info.messageId);
     } catch (err) {
-      console.error('Erro ao enviar email:', err);
       return { error: true, code: 500, message: 'Erro interno do Servidor' };
     }
   }

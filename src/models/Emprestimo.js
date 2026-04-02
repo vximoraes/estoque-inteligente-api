@@ -41,6 +41,11 @@ class Emprestimo {
           trim: true,
           index: true,
         },
+        solicitante_email: {
+          type: String,
+          default: '',
+          trim: true,
+        },
         data_saida: {
           type: Date,
           default: Date.now,
@@ -74,6 +79,10 @@ class Emprestimo {
           type: Boolean,
           default: true,
           index: true,
+        },
+        email_atraso_enviado: {
+          type: Boolean,
+          default: false,
         },
       },
       {

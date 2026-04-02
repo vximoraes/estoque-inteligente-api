@@ -79,15 +79,6 @@ class Estoque {
         const quantidadeAnterior = item.quantidade || 0;
         const estoqueMinimo = item.estoque_minimo || 0;
 
-        console.log(
-          '[DEBUG Notificação] quantidadeAnterior:',
-          quantidadeAnterior,
-          'quantidadeTotal:',
-          quantidadeTotal,
-          'estoqueMinimo:',
-          estoqueMinimo,
-        );
-
         // Atualiza a quantidade total no item
         await Item.findByIdAndUpdate(itemId, { quantidade: quantidadeTotal });
 
@@ -119,8 +110,6 @@ class Estoque {
           mensagem = `${item.nome} está com estoque baixo (${quantidadeTotal} unidades)`;
         }
 
-        console.log('[DEBUG Notificação] mensagem a criar:', mensagem);
-
         // Criar notificação se houver mensagem
         if (mensagem && item.usuario) {
           const novaNotificacao = await Notificacao.create({
@@ -130,11 +119,6 @@ class Estoque {
             ativo: true,
             usuario: item.usuario,
           });
-
-          console.log(
-            '[DEBUG SSE] Enviando notificação para usuário:',
-            item.usuario.toString(),
-          );
 
           // Envia notificação via SSE para o usuário
           SSEService.sendNotification(item.usuario, {

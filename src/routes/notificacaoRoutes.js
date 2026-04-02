@@ -10,8 +10,6 @@ const router = express.Router();
 const notificacaoController = new NotificacaoController();
 
 router.get('/notificacoes/stream', AuthMiddleware, (req, res) => {
-  console.log('[SSE Route] Nova conexão SSE. UserId:', req.user_id);
-
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
@@ -32,7 +30,6 @@ router.get('/notificacoes/stream', AuthMiddleware, (req, res) => {
   }, 30000);
 
   req.on('close', () => {
-    console.log('[SSE Route] Conexão SSE fechada. UserId:', req.user_id);
     clearInterval(heartbeat);
   });
 });

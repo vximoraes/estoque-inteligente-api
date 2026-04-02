@@ -37,6 +37,7 @@ const EmprestimoSchema = z.object({
     .trim()
     .min(3, 'Solicitante deve ter no minimo 3 caracteres')
     .max(120, 'Solicitante deve ter no maximo 120 caracteres'),
+  solicitante_email: z.string().trim().email('E-mail do solicitante invalido').optional(),
   data_prevista_devolucao: dataFuturaSchema,
   observacoes_emprestimo: z
     .string()
@@ -61,6 +62,7 @@ const AtualizarEmprestimoSchema = z.object({
     .min(3, 'Solicitante deve ter no minimo 3 caracteres')
     .max(120, 'Solicitante deve ter no maximo 120 caracteres')
     .optional(),
+  solicitante_email: z.string().trim().email('E-mail do solicitante invalido').optional(),
   data_prevista_devolucao: dataFuturaSchema.optional(),
   observacoes_emprestimo: z
     .string()

@@ -158,15 +158,10 @@ class AuthService {
 
   // RecuperaSenhaService.js
   async recuperaSenha(body) {
-    console.log('Dados recebidos para recuperação de senha:', body);
     // ───────────────────────────────────────────────
     // Passo 1 – Buscar usuário pelo e-mail informado
     // ───────────────────────────────────────────────
-    console.log('E-mail recebido no body:', body.email);
-
     const userEncontrado = await this.repository.buscarPorEmail(body.email);
-
-    console.log('Usuário encontrado:', userEncontrado);
 
     // Se não encontrar, lança erro 404
     if (!userEncontrado) {
@@ -200,9 +195,6 @@ class AuthService {
 
     while (codigoExistente && tentativas < MAX_TENTATIVAS) {
       tentativas++;
-      console.log(
-        `Código já existe, gerando um novo código (tentativa ${tentativas}/${MAX_TENTATIVAS})`,
-      );
       codigoRecuperaSenha = generateCode();
       codigoExistente =
         await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
@@ -210,18 +202,12 @@ class AuthService {
 
     // Se após 10 tentativas ainda não conseguiu, usa timestamp + random
     if (codigoExistente) {
-      console.warn(
-        'Não foi possível gerar código único após 10 tentativas, usando timestamp',
-      );
       codigoRecuperaSenha = Date.now().toString(36).slice(-6).toUpperCase();
     }
-
-    console.log('Código gerado:', codigoRecuperaSenha);
 
     // ───────────────────────────────────────────────
     // Passo 4 – Gerar token único (JWT) p/ recuperação
     // ───────────────────────────────────────────────
-    console.log('Gerando token único para recuperação de senha');
     const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(
       userEncontrado._id,
     );
@@ -255,12 +241,7 @@ class AuthService {
         userEncontrado.email,
         tokenUnico,
       );
-      console.log(
-        'E-mail de recuperação enviado com sucesso para:',
-        userEncontrado.email,
-      );
     } catch (error) {
-      console.error('Erro ao enviar e-mail de recuperação:', error);
       // Se falhar ao enviar o e-mail, reverte a atualização do usuário
       await this.repository.atualizar(userEncontrado._id, {
         tokenUnico: null,
@@ -306,7 +287,6 @@ class AuthService {
 
     // 2) Gera o hash da senha pura
     const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
-    console.log('Senha hasheada:', senhaHasheada);
 
     // Buscar usuário pelo token unico
     const usuario = await this.repository.buscarPorTokenUnico(tokenRecuperacao);
@@ -397,7 +377,6 @@ class AuthService {
     }
 
     if (userEncontrado.refreshtoken !== token) {
-      console.log('Token inválido');
       throw new CustomError({
         statusCode: HttpStatusCodes.UNAUTHORIZED.code,
         errorType: 'invalidToken',
