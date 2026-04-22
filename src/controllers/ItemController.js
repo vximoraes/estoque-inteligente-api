@@ -40,6 +40,12 @@ class ItemController {
     return CommonResponse.success(res, data);
   }
 
+  async stats(req, res) {
+    const data = await this.service.stats(req);
+
+    return CommonResponse.success(res, data);
+  }
+
   async atualizar(req, res) {
     const { id } = req.params;
     ItemIdSchema.parse(id);

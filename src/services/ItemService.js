@@ -31,6 +31,12 @@ class ItemService {
     return data;
   }
 
+  async stats(req) {
+    const data = await this.repository.stats(req);
+
+    return data;
+  }
+
   async atualizar(id, parsedData, req) {
     await this.ensureItemExists(id, req);
     await this.validateNome(parsedData.nome, id, req);

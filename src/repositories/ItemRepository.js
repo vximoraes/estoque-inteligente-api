@@ -91,6 +91,48 @@ class ItemRepository {
     return resultado;
   }
 
+  async stats(req) {
+    const { categoria, ativo = 'true' } = req.query;
+
+    const filterBuilder = new ItemFilterBuilder()
+      .comAtivo(ativo || 'true')
+      .comNome('')
+      .comQuantidade('')
+      .comEstoqueMinimo('')
+      .comStatus('');
+
+    await filterBuilder.comCategoria(categoria || '');
+
+    const filtros = { ...filterBuilder.build() };
+
+    const resultado = await this.model.aggregate([
+      { $match: filtros },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const totalItens = await this.model.countDocuments(filtros);
+
+    const stats = {
+      totalItens,
+      emEstoque: 0,
+      baixoEstoque: 0,
+      indisponiveis: 0,
+    };
+
+    for (const row of resultado) {
+      if (row._id === 'Em Estoque') stats.emEstoque = row.count;
+      else if (row._id === 'Baixo Estoque') stats.baixoEstoque = row.count;
+      else if (row._id === 'Indisponível') stats.indisponiveis = row.count;
+    }
+
+    return stats;
+  }
+
   async atualizar(id, parsedData, req) {
     const item = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })

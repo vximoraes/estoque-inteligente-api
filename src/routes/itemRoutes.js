@@ -11,6 +11,12 @@ const itemController = new ItemController();
 
 router
   .get(
+    '/itens/stats',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(itemController.stats.bind(itemController)),
+  )
+  .get(
     '/itens',
     AuthMiddleware,
     AuthPermission,
