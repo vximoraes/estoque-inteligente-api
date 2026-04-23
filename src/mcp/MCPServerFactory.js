@@ -55,7 +55,7 @@ export function criarMCPServer(usuarioId) {
       tipo: z
         .enum(['entrada', 'saida'])
         .optional()
-        .describe("Tipo de movimentação: 'entrada' ou 'saida'"),
+        .describe("Tipo de movimentação — use exatamente 'entrada' ou 'saida' (minúsculas)"),
       dataInicio: z.string().optional().describe('Data de início no formato ISO 8601 (ex: 2026-01-01)'),
       dataFim: z.string().optional().describe('Data de fim no formato ISO 8601 (ex: 2026-12-31)'),
       itemNome: z.string().optional().describe('Filtrar por nome do item (busca parcial)'),

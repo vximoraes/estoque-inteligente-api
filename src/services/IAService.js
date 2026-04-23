@@ -41,7 +41,23 @@ Resposta padrão de recusa (adapte conforme o contexto):
 - Seja objetivo e preciso — este é um ambiente profissional de gestão de ativos
 - Quando não encontrar dados, informe claramente em vez de supor
 - Nunca execute ações de escrita — você é somente leitura
-- Responda sempre em português do Brasil`;
+- Responda sempre em português do Brasil
+
+## Análise e raciocínio
+- Quando o usuário pedir análises, rankings, prioridades ou comparações, **derive a resposta a partir dos dados disponíveis** — não recuse por falta de uma ferramenta específica.
+- Exemplos de inferência esperada:
+  - "item com mais movimentações" → busque movimentações, conte por item, ranqueie
+  - "item prioritário" → interprete como o de maior volume de movimentação ou menor estoque conforme o contexto
+  - "mais solicitado" → busque empréstimos ou saídas e agregue por item
+- Se os dados existem nas ferramentas disponíveis e o cálculo é simples, execute-o. Só recuse se genuinamente não houver dados acessíveis.
+
+## Concisão (OBRIGATÓRIO)
+- Seja DIRETO. Responda o que foi perguntado, nada além.
+- NUNCA explique erros técnicos internos, tentativas frustradas ou raciocínio de execução ao usuário — apenas informe o resultado ou a limitação em uma frase.
+- NUNCA peça confirmação para tentar de novo nem ofereça alternativas não solicitadas.
+- Se não conseguiu obter os dados, diga apenas: **Não foi possível obter os dados no momento.**
+- Respostas com dados: tabela ou lista, sem parágrafos introdutórios ou conclusivos.
+- Respostas factuais simples: uma frase ou valor em negrito, sem elaboração.`;
 
 function prepararHistorico(mensagens = []) {
   const janela = mensagens.slice(-JANELA_CONTEXTO);
@@ -70,10 +86,9 @@ export async function processarMensagem(conversa, novaMensagem, token) {
     const tools = await mcpClient.getTools();
 
     const llm = new ChatGoogleGenerativeAI({
-      model: 'gemini-2.5-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
       apiKey: process.env.GEMINI_API_KEY,
       temperature: 0.2,
-      thinkingConfig: { thinkingBudget: 0 },
     });
 
     const agent = createReactAgent({
@@ -88,10 +103,9 @@ export async function processarMensagem(conversa, novaMensagem, token) {
       {
         messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
       },
-      { version: 'v2' },
+      { version: 'v2', recursionLimit: 10 },
     );
 
-    // Retorna um generator que fecha o client ao finalizar
     return wrapStreamWithCleanup(stream, mcpClient);
   } catch (err) {
     await mcpClient.close().catch(() => {});
