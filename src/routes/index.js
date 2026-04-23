@@ -16,6 +16,8 @@ import orcamentos from './orcamentoRoutes.js';
 import emprestimos from './emprestimoRoutes.js';
 import grupos from './grupoRoutes.js';
 import rotas from './rotaRoutes.js';
+import mcpRoutes from './mcpRoutes.js';
+import iaRoutes from './iaRoutes.js';
 
 import dotenv from 'dotenv';
 
@@ -36,6 +38,8 @@ const routes = (app) => {
     swaggerUI.setup(swaggerDocs)(req, res, next);
   });
 
+  app.use(mcpRoutes);
+
   app.use(
     express.json(),
     auth,
@@ -51,6 +55,7 @@ const routes = (app) => {
     emprestimos,
     grupos,
     rotas,
+    iaRoutes,
   );
 
   app.use((req, res) => {

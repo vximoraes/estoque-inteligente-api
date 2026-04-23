@@ -66,3 +66,11 @@ data:
   ADMIN_NAME: 'Administrador'
   ADMIN_EMAIL: 'admin@admin.com'
   ADMIN_PASSWORD: '<REPLACE_WITH_ADMIN_PASSWORD>'
+
+  # =============================================================================
+  # CONFIGURAÇÕES DA IA
+  # =============================================================================
+  GEMINI_API_KEY: '<REPLACE_WITH_GEMINI_API_KEY>'
+  # URL interna que o IAService usa para conectar ao MCP server (loopback)
+  # Em produção com Docker, usar o nome do serviço: http://estoque-inteligente-api:3010
+  API_INTERNAL_URL: 'http://localhost:3010'

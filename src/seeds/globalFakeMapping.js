@@ -186,6 +186,14 @@ export const fakeMappings = {
     usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
     email_atraso_enviado: () => false,
   },
+
+  Conversa: {
+    usuario: () => new mongoose.Types.ObjectId().toString(),
+    titulo: () => fakebr.lorem.words(5).slice(0, 60),
+    mensagens: () => [],
+    criada_em: () => new Date().toISOString(),
+    atualizada_em: () => new Date().toISOString(),
+  },
 };
 
 // Retorna o mapping global, consolidando os mappings comuns e específicos.
