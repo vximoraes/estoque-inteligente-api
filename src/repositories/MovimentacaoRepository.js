@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import MovimentacaoFilterBuilder from './filters/MovimentacaoFilterBuilder.js';
 import MovimentacaoModel from '../models/Movimentacao.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
@@ -20,7 +21,6 @@ class MovimentacaoRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna a movimentação enriquecida com estatísticas.
     if (id) {
       const data = await this.model
         .findOne({ _id: id })
@@ -45,7 +45,7 @@ class MovimentacaoRepository {
     }
 
     const { tipo, data, quantidade, item, localizacao, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new MovimentacaoFilterBuilder()
       .comTipo(tipo || '')
@@ -76,7 +76,6 @@ class MovimentacaoRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada movimentação com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const movimentacaoObj =
         typeof doc.toObject === 'function' ? doc.toObject() : doc;

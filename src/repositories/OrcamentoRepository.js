@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import OrcamentoFilterBuilder from './filters/OrcamentoFilterBuilder.js';
 import OrcamentoModel from '../models/Orcamento.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
@@ -16,7 +17,6 @@ class OrcamentoRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna o orçamento enriquecido com estatísticas.
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
 
@@ -38,7 +38,7 @@ class OrcamentoRepository {
     }
 
     const { nome, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new OrcamentoFilterBuilder().comNome(nome || '');
 
@@ -62,7 +62,6 @@ class OrcamentoRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada orçamento com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const orcamentoObj =
         typeof doc.toObject === 'function' ? doc.toObject() : doc;
@@ -107,8 +106,6 @@ class OrcamentoRepository {
     await this.model.findOneAndDelete({ _id: id });
     return orcamento;
   }
-
-  // Manipular itens.
 
   async adicionarItem(orcamentoId, novoItem, req) {
     const orcamento = await this.model.findOne({

@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import NotificacaoFilterBuilder from './filters/NotificacaoFilterBuilder.js';
 import NotificacaoModel from '../models/Notificacao.js';
 import UsuarioModel from '../models/Usuario.js';
@@ -65,7 +66,6 @@ class NotificacaoRepository {
 
     const filtros = { ...filterBuilder.build(), ativo: true };
 
-    // Adicionar filtro para excluir notificações visualizadas há mais de 1 dia
     const umDiaAtras = new Date();
     umDiaAtras.setDate(umDiaAtras.getDate() - 1);
 
@@ -77,7 +77,7 @@ class NotificacaoRepository {
 
     const options = {
       page: parseInt(page, 10),
-      limit: Math.min(parseInt(limite, 10), 100),
+      limit: Math.min(parseInt(limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT),
       sort: { data_hora: -1 },
     };
 

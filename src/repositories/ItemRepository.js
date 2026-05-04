@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import ItemFilterBuilder from './filters/ItemFilterBuilder.js';
 import ItemModel from '../models/Item.js';
 import MovimentacaoModel from '../models/Movimentacao.js';
@@ -19,7 +20,7 @@ class ItemRepository {
 
     // Se um ID for fornecido, retorna o item enriquecido com estatísticas.
     if (id) {
-      const data = await this.model.findOne({ _id: id }).populate('categoria');
+      const data = await this.model.findOne({ _id: id, ativo: true }).populate('categoria');
 
       if (!data) {
         throw new CustomError({
@@ -47,7 +48,7 @@ class ItemRepository {
       status,
       page = 1,
     } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new ItemFilterBuilder()
       .comNome(nome || '')

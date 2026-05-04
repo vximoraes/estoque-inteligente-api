@@ -1,6 +1,6 @@
 import ConversaModel, { MAX_MENSAGENS } from '../models/Conversa.js';
 import { processarMensagem } from '../services/IAService.js';
-import { CustomError } from '../utils/helpers/index.js';
+import { CustomError, CommonResponse } from '../utils/helpers/index.js';
 import logger from '../utils/logger.js';
 
 class IAController {
@@ -17,7 +17,7 @@ class IAController {
       titulo,
     });
 
-    return res.status(201).json({ data: conversa });
+    return CommonResponse.created(res, conversa.toObject ? conversa.toObject() : conversa);
   }
 
   async listarConversas(req, res) {
@@ -35,7 +35,7 @@ class IAController {
       },
     );
 
-    return res.status(200).json({ data: resultado });
+    return CommonResponse.success(res, resultado);
   }
 
   async obterConversa(req, res) {
@@ -54,7 +54,7 @@ class IAController {
       });
     }
 
-    return res.status(200).json({ data: conversa });
+    return CommonResponse.success(res, conversa.toObject ? conversa.toObject() : conversa);
   }
 
   async deletarConversa(req, res) {

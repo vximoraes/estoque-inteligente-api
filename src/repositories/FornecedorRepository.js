@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import FornecedorFilterBuilder from './filters/FornecedorFilterBuilder.js';
 import FornecedorModel from '../models/Fornecedor.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
@@ -15,7 +16,6 @@ class FornecedorRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna o fornecedor enriquecido com estatísticas.
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
 
@@ -37,7 +37,7 @@ class FornecedorRepository {
     }
 
     const { nome, contato, descricao, url, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new FornecedorFilterBuilder()
       .comNome(nome || '')
@@ -65,7 +65,6 @@ class FornecedorRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada fornecedor com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const fornecedorObj =
         typeof doc.toObject === 'function' ? doc.toObject() : doc;

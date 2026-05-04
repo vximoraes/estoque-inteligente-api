@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import EmprestimoFilterBuilder from './filters/EmprestimoFilterBuilder.js';
 import EmprestimoModel from '../models/Emprestimo.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
@@ -78,7 +79,7 @@ class EmprestimoRepository {
       data_saida_fim,
       page = 1,
     } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
     const dataSaidaInicio = data_saida_inicio
       ? new Date(data_saida_inicio)
       : null;

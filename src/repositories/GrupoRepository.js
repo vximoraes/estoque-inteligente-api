@@ -1,4 +1,4 @@
-// src/repositories/GrupoRepository.js
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 
 import GrupoModel from '../models/Grupo.js';
 import UsuarioModel from '../models/Usuario.js';
@@ -150,7 +150,7 @@ class GrupoRepository {
       const { nome, descricao, ativo = 'true', page = 1 } = req.query;
 
       // Garantir que o limite não ultrapasse 100
-      const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+      const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
       // Usar o GrupoFilterBuilder injetado para construir os filtros
       const filterBuilder = new GrupoFilterBuilder()

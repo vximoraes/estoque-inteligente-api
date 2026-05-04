@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import EstoqueModel from '../models/Estoque.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
 
@@ -17,7 +18,7 @@ class EstoqueRepository {
 
   async listar(req) {
     const { item, localizacao, quantidade, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filtros = {};
 
@@ -51,7 +52,7 @@ class EstoqueRepository {
   async listarPorItem(req) {
     const { itemId } = req.params;
     const { localizacao, quantidade, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filtros = {
       item: itemId,

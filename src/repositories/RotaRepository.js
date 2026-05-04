@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 // src/repositories/RotaRepository.js
 
 import RotaModel from '../models/Rota.js';
@@ -63,7 +64,7 @@ class RotaRepository {
     } = req.query;
 
     // Garantir que o limite não ultrapasse 100
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     // Construir os filtros
     const filterBuilder = new RotaFilterBuilder()

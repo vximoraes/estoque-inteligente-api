@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import CategoriaFilterBuilder from './filters/CategoriaFilterBuilder.js';
 import CategoriaModel from '../models/Categoria.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
@@ -15,7 +16,6 @@ class CategoriaRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna a categoria enriquecida com estatísticas.
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
 
@@ -37,7 +37,7 @@ class CategoriaRepository {
     }
 
     const { nome, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new CategoriaFilterBuilder().comNome(nome || '');
 
@@ -61,7 +61,6 @@ class CategoriaRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada categoria com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const categoriaObj =
         typeof doc.toObject === 'function' ? doc.toObject() : doc;

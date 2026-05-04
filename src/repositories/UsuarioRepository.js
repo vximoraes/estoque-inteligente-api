@@ -1,3 +1,4 @@
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
 import UsuarioFilterBuilder from './filters/UsuarioFilterBuilder.js';
 import UsuarioModel from '../models/Usuario.js';
 import NotificacaoModel from '../models/Notificacao.js';
@@ -16,7 +17,6 @@ class UsuarioRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna o usuário enriquecido com estatísticas.
     if (id) {
       const data = await this.model.findById(id);
 
@@ -38,7 +38,7 @@ class UsuarioRepository {
     }
 
     const { nome, email, ativo, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || 10, 100);
+    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
     const filterBuilder = new UsuarioFilterBuilder()
       .comNome(nome || '')
@@ -65,7 +65,6 @@ class UsuarioRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada usuário com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const usuarioObj =
         typeof doc.toObject === 'function' ? doc.toObject() : doc;
