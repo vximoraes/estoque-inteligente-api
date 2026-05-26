@@ -63,37 +63,31 @@ class Orcamento {
         },
       },
       {
-        timestamps: true, // Adiciona createdAt e updatedAt automaticamente
+        timestamps: true,
       },
     );
 
-    // Middleware para calcular subtotal e total antes de salvar
     orcamentoSchema.pre('save', function () {
-      // Calcular subtotal para cada item
       this.itens.forEach((comp) => {
         comp.subtotal = parseFloat(
           (comp.quantidade * comp.valor_unitario).toFixed(2),
         );
       });
 
-      // Calcular total do orçamento
       this.total = parseFloat(
         this.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
       );
     });
 
-    // Middleware para recalcular após update
     orcamentoSchema.pre(['updateOne', 'findOneAndUpdate'], function () {
       const update = this.getUpdate();
       if (update.itens) {
-        // Calcular subtotal para cada item
         update.itens.forEach((comp) => {
           comp.subtotal = parseFloat(
             (comp.quantidade * comp.valor_unitario).toFixed(2),
           );
         });
 
-        // Calcular total do orçamento
         update.total = parseFloat(
           update.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
         );

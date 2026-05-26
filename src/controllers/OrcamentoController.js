@@ -136,8 +136,6 @@ class OrcamentoController {
     );
   }
 
-  // Manipular itens.
-
   async adicionarItem(req, res) {
     const { orcamentoId } = req.params;
     const itemData = req.body;
@@ -206,7 +204,6 @@ class OrcamentoController {
     }
     const parsedItem = ItemOrcamentoUpdateSchema.parse(itemData);
 
-    // Buscar valores antigos para garantir atualização correta
     const oldItem = await this.service.getItemById(orcamentoId, id, req);
     if (!oldItem) {
       return CommonResponse.error(res, 404, 'resourceNotFound', 'item', [
@@ -235,7 +232,6 @@ class OrcamentoController {
       }
     }
 
-    // Atualiza apenas os campos enviados
     const itemAtualizado = {
       ...oldItem,
       ...parsedItem,

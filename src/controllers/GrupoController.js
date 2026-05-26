@@ -19,72 +19,39 @@ class GrupoController {
     this.service = new GrupoService();
   }
 
-  /**
-   * Validação nesta aplicação segue o segue este artigo:
-   * https://docs.google.com/document/d/1m2Ns1rIxpUzG5kRsgkbaQFdm7od0e7HSHfaSrrwegmM/edit?usp=sharing
-   */
-
-  /**
-   * Lista grupos. Se um ID é fornecido, retorna um único objeto.
-   * Caso contrário, retorna todos os objetos com suporte a filtros e paginação.
-   */
-
   async listar(req, res) {
-    //1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {
-      GrupoIdSchema.parse(id); // Lança erro automaticamente se inválido
+      GrupoIdSchema.parse(id);
     }
 
-    // 2º Validação estrutural - validar os demais campos passados por query
     const query = req.query || {};
     if (Object.keys(query).length !== 0) {
       const validatedQuery = GrupoQuerySchema.parse(req.query);
     }
 
-    // Chama o serviço para listar os grupos
     const data = await this.service.listar(req);
     return CommonResponse.success(res, data);
   }
 
-  /**
-   * Criar um novo grupo.
-   */
   async criar(req, res) {
-    // Validação dos dados de entrada usando Zod (estrutural)
     const parsedData = GrupoSchema.parse(req.body);
-
     const data = await this.service.criar(parsedData);
-
-    // Se chegou até aqui, é porque deu tudo certo, retornar 201 Created
     return CommonResponse.created(res, data);
   }
 
-  /**
-   * Atualiza um grupo existente.
-   */
   async atualizar(req, res) {
-    //1ª Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     if (id) {
-      GrupoIdSchema.parse(id); // Lança erro automaticamente se inválido
+      GrupoIdSchema.parse(id);
     }
 
-    // Validação dos dados de entrada usando Zod (estrutural)
     const parsedData = GrupoUpdateSchema.parse(req.body);
-
-    // Chama o serviço para atualizar o grupo
     const data = await this.service.atualizar(parsedData, id, req.user);
-
-    // Se chegou até aqui, é porque deu tudo certo, retornar 200 OK
     return CommonResponse.success(res, data);
   }
 
-  /**
-   * Deleta um grupo existente.
-   */
   async deletar(req, res) {
-    // Validação estrutural - validação do ID passado por parâmetro
     const { id } = req.params || null;
     GrupoIdSchema.parse(id);
     if (!id) {
@@ -94,16 +61,8 @@ class GrupoController {
       );
     }
 
-    // Chama o serviço para deletar o grupo
     const data = await this.service.deletar(id, req.user);
-
-    // Se chegou até aqui, é porque deu tudo certo, retornar 200 OK
-    return CommonResponse.success(
-      res,
-      data,
-      200,
-      'Grupo excluído com sucesso.',
-    );
+    return CommonResponse.success(res, data, 200, 'Grupo excluído com sucesso.');
   }
 
   async adicionarRota(req, res) {
@@ -113,12 +72,7 @@ class GrupoController {
     ObjectIdSchema.parse(idRota);
 
     const data = await this.service.adicionarRota(id, idRota);
-    return CommonResponse.success(
-      res,
-      data,
-      200,
-      'Rota Adicionada com sucesso.',
-    );
+    return CommonResponse.success(res, data, 200, 'Rota Adicionada com sucesso.');
   }
 }
 

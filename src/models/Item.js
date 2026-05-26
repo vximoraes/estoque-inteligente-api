@@ -51,7 +51,6 @@ class Item {
       },
     });
 
-    // Middleware para calcular o status automaticamente
     itemSchema.pre('save', function () {
       if (this.quantidade === 0) {
         this.status = 'Indisponível';
@@ -62,7 +61,6 @@ class Item {
       }
     });
 
-    // Middleware para calcular o status em operações de update
     itemSchema.pre(['updateOne', 'findOneAndUpdate'], async function () {
       const update = this.getUpdate();
       if (

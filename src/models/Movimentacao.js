@@ -38,7 +38,6 @@ class Movimentacao {
       },
     });
 
-    // Middleware para atualizar estoque após salvar movimentação
     movimentacaoSchema.post('save', async function () {
       await this.constructor.atualizarEstoque(
         this.item,
@@ -47,7 +46,6 @@ class Movimentacao {
       );
     });
 
-    // Middleware para atualizar estoque após deletar movimentação
     movimentacaoSchema.post('deleteOne', async function () {
       const doc = await this.model.findOne(this.getQuery());
       if (doc) {
@@ -59,7 +57,6 @@ class Movimentacao {
       }
     });
 
-    // Middleware para atualizar estoque após update
     movimentacaoSchema.post(
       ['updateOne', 'findOneAndUpdate'],
       async function () {
@@ -74,7 +71,6 @@ class Movimentacao {
       },
     );
 
-    // Método estático para atualizar estoque
     movimentacaoSchema.statics.atualizarEstoque = async function (
       itemId,
       localizacaoId,
@@ -82,7 +78,6 @@ class Movimentacao {
     ) {
       const EstoqueModel = mongoose.model('estoques');
 
-      // Calcular quantidade total baseada nas movimentações
       const resultado = await this.aggregate([
         {
           $match: {
@@ -109,7 +104,6 @@ class Movimentacao {
       const quantidadeTotal =
         resultado.length > 0 ? Math.max(0, resultado[0].quantidadeTotal) : 0;
 
-      // Atualizar ou criar registro de estoque
       await EstoqueModel.findOneAndUpdate(
         {
           item: itemId,
@@ -125,7 +119,6 @@ class Movimentacao {
         },
       );
 
-      // Atualizar quantidade total do item
       await EstoqueModel.atualizarQuantidadeItem(itemId);
     };
 
