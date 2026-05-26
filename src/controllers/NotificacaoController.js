@@ -49,6 +49,11 @@ class NotificacaoController {
     return CommonResponse.success(res, atualizada);
   }
 
+  async marcarTodasComoVisualizadas(req, res) {
+    await this.service.marcarTodasComoVisualizadas(req);
+    return CommonResponse.success(res, null);
+  }
+
   async inativar(req, res) {
     const { id } = req.params;
     const notificacao = await this.service.buscarPorId(id, req);

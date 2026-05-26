@@ -54,6 +54,14 @@ router
     asyncWrapper(notificacaoController.criar.bind(notificacaoController)),
   )
   .patch(
+    '/notificacoes/visualizar-todas',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(
+      notificacaoController.marcarTodasComoVisualizadas.bind(notificacaoController),
+    ),
+  )
+  .patch(
     '/notificacoes/:id/visualizar',
     AuthMiddleware,
     AuthPermission,

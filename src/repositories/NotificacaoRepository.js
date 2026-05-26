@@ -10,7 +10,7 @@ class NotificacaoRepository {
   }
 
   async buscarPorId(id, userId) {
-    const notificacao = await this.model.findOne({ _id: id });
+    const notificacao = await this.model.findOne({ _id: id, usuario: userId });
 
     if (!notificacao) {
       throw new CustomError({
@@ -56,9 +56,7 @@ class NotificacaoRepository {
     const { usuario, visualizada, page = 1, limite = 10 } = query;
 
     const filterBuilder = new NotificacaoFilterBuilder();
-    if (usuario) {
-      filterBuilder.comUsuario(usuario);
-    }
+    filterBuilder.comUsuario(user_id);
 
     if (visualizada !== undefined) {
       filterBuilder.comVisualizada(visualizada);
@@ -105,9 +103,17 @@ class NotificacaoRepository {
     );
   }
 
+  async marcarTodasComoVisualizadas(userId) {
+    const agora = new Date();
+    await this.model.updateMany(
+      { usuario: userId, visualizada: false, ativo: true },
+      { visualizada: true, dataLeitura: agora },
+    );
+  }
+
   async _atualizar(id, parsedData, userId) {
     const notificacao = await this.model.findOneAndUpdate(
-      { _id: id },
+      { _id: id, usuario: userId },
       parsedData,
       { new: true },
     );

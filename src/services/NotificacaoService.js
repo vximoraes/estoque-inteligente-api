@@ -34,6 +34,11 @@ class NotificacaoService {
     return data;
   }
 
+  async marcarTodasComoVisualizadas(req) {
+    const userId = req.user_id || req.user?.id;
+    await this.repository.marcarTodasComoVisualizadas(userId);
+  }
+
   async inativar(id, req) {
     const userId = req.user_id || req.user?.id;
     const data = await this.repository.inativar(id, userId);
