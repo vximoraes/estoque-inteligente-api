@@ -3,6 +3,15 @@ import { processarMensagem } from '../services/IAService.js';
 import { CustomError, CommonResponse } from '../utils/helpers/index.js';
 import logger from '../utils/logger.js';
 
+const MAX_CONTENT_LENGTH = 2000;
+
+function sanitizarEntrada(raw) {
+  return String(raw)
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
+    .trim()
+    .slice(0, MAX_CONTENT_LENGTH);
+}
+
 class IAController {
   async criarConversa(req, res) {
     const usuarioId = req.user_id;
@@ -91,6 +100,18 @@ class IAController {
       });
     }
 
+    if (String(content).trim().length > MAX_CONTENT_LENGTH) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'validationError',
+        field: 'content',
+        details: [],
+        customMessage: `A mensagem não pode ultrapassar ${MAX_CONTENT_LENGTH} caracteres.`,
+      });
+    }
+
+    const mensagemSanitizada = sanitizarEntrada(content);
+
     const conversa = await ConversaModel.findOne({ _id: id, usuario: usuarioId });
 
     if (!conversa) {
@@ -116,7 +137,7 @@ class IAController {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1] ?? authHeader;
 
-    conversa.mensagens.push({ role: 'user', content: String(content).trim() });
+    conversa.mensagens.push({ role: 'user', content: mensagemSanitizada });
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -127,7 +148,7 @@ class IAController {
     let respostaCompleta = '';
 
     try {
-      const stream = await processarMensagem(conversa, String(content).trim(), token);
+      const stream = await processarMensagem(conversa, mensagemSanitizada, token);
 
       for await (const event of stream) {
         if (event.event === 'on_chat_model_stream') {
