@@ -10,7 +10,7 @@ import notificacoesSchemas from '../schemas/notificacaoSchema.js';
 import orcamentosSchemas from '../schemas/orcamentoSchema.js';
 import emprestimosSchemas from '../schemas/emprestimoSchema.js';
 import gruposSchemas from '../schemas/grupoSchema.js';
-import rotasSchemas from '../schemas/rotaSchema.js';
+import rotasSchemas from '../../modules/rota/rotaDocsSchema.js';
 import usuariosPaths from '../paths/usuarios.js';
 import authPaths from '../paths/auth.js';
 import categoriasPaths from '../paths/categoria.js';
@@ -23,7 +23,7 @@ import notificacoesPaths from '../paths/notificacao.js';
 import orcamentosPaths from '../paths/orcamento.js';
 import emprestimosPaths from '../paths/emprestimo.js';
 import gruposPaths from '../paths/grupo.js';
-import rotasPaths from '../paths/rota.js';
+import rotasPaths from '../../modules/rota/rotaDocs.js';
 
 // Função para definir as URLs do servidor dependendo do ambiente
 const getServersInCorrectOrder = () => {

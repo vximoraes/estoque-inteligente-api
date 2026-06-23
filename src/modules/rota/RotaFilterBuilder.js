@@ -1,5 +1,3 @@
-// src/repositories/utils/RotaFilterBuilder.js
-
 class RotaFilterBuilder {
   constructor() {
     this.filtros = {};
@@ -7,14 +5,14 @@ class RotaFilterBuilder {
 
   comRota(rota) {
     if (rota) {
-      this.filtros.rota = { $regex: rota, $options: 'i' }; // Filtro para rota usando regex (case-insensitive)
+      this.filtros.rota = { $regex: rota, $options: 'i' };
     }
     return this;
   }
 
   comDominio(dominio) {
     if (dominio) {
-      this.filtros.dominio = { $regex: dominio, $options: 'i' }; // Filtro para domínio usando regex (case-insensitive)
+      this.filtros.dominio = { $regex: dominio, $options: 'i' };
     }
     return this;
   }
@@ -65,7 +63,6 @@ class RotaFilterBuilder {
   }
 
   comDelete(excluir) {
-    // 'delete' é uma palavra reservada, então usamos 'del'
     if (excluir === 'true') {
       this.filtros.excluir = true;
     } else if (excluir === 'false') {

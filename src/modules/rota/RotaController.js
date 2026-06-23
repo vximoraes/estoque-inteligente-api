@@ -1,13 +1,13 @@
-import RotaService from '../services/RotaService.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+import RotaService from './RotaService.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 import {
   RotaQuerySchema,
   RotaIdSchema,
-} from '../utils/validators/schemas/zod/querys/RotaQuerySchema.js';
+} from './RotaQuerySchema.js';
 import {
   RotaSchema,
   RotaUpdateSchema,
-} from '../utils/validators/schemas/zod/RotaSchema.js';
+} from './RotaSchema.js';
 
 class RotaController {
   constructor() {

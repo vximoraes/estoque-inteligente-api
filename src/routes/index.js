@@ -15,7 +15,7 @@ import notificacoes from './notificacaoRoutes.js';
 import orcamentos from './orcamentoRoutes.js';
 import emprestimos from './emprestimoRoutes.js';
 import grupos from './grupoRoutes.js';
-import rotas from './rotaRoutes.js';
+import rotas from '../modules/rota/rotaRoutes.js';
 import mcpRoutes from './mcpRoutes.js';
 import iaRoutes from './iaRoutes.js';
 

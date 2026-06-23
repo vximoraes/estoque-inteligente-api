@@ -1,9 +1,9 @@
-import RotaRepository from '../repositories/RotaRepository.js';
+import RotaRepository from './RotaRepository.js';
 import {
   CustomError,
   HttpStatusCodes,
   messages,
-} from '../utils/helpers/index.js';
+} from '../../utils/helpers/index.js';
 
 class RotaService {
   constructor() {
