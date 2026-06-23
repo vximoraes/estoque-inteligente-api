@@ -30,27 +30,44 @@ async function autenticarRequisicao(req) {
   }
 }
 
+function resolverSessao(sessionId, usuarioId) {
+  const session = MCPSessionStore.get(sessionId);
+  if (!session) {
+    const err = new Error('Sessão MCP não encontrada ou expirada');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (session.usuarioId !== usuarioId) {
+    const err = new Error('Sessão não pertence a este usuário');
+    err.statusCode = 403;
+    throw err;
+  }
+  return session;
+}
+
 router.post('/mcp', express.json(), async (req, res) => {
   try {
+    const usuarioId = await autenticarRequisicao(req);
     const existingSessionId = req.headers['mcp-session-id'];
 
     if (existingSessionId) {
-      const session = MCPSessionStore.get(existingSessionId);
-      if (!session) {
-        return res.status(404).json({ error: 'Sessão MCP não encontrada ou expirada' });
-      }
+      const session = resolverSessao(existingSessionId, usuarioId);
       return await session.transport.handleRequest(req, res, req.body);
     }
 
-    const usuarioId = await autenticarRequisicao(req);
-
     const server = criarMCPServer(usuarioId);
+
+    const port = process.env.PORT || 5000;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sessionId) => {
         MCPSessionStore.set(sessionId, { transport, server, usuarioId });
       },
+      enableDnsRebindingProtection: true,
+      allowedHosts: [`localhost:${port}`, `127.0.0.1:${port}`],
+      allowedOrigins: [frontendUrl],
     });
 
     transport.onclose = () => {
@@ -69,41 +86,35 @@ router.post('/mcp', express.json(), async (req, res) => {
 
 router.get('/mcp', async (req, res) => {
   try {
+    const usuarioId = await autenticarRequisicao(req);
     const sessionId = req.headers['mcp-session-id'];
     if (!sessionId) {
       return res.status(400).json({ error: 'Mcp-Session-Id obrigatório' });
     }
 
-    const session = MCPSessionStore.get(sessionId);
-    if (!session) {
-      return res.status(404).json({ error: 'Sessão MCP não encontrada ou expirada' });
-    }
-
+    const session = resolverSessao(sessionId, usuarioId);
     await session.transport.handleRequest(req, res);
   } catch (err) {
     if (!res.headersSent) {
-      res.status(500).json({ error: err.message });
+      res.status(err.statusCode ?? 500).json({ error: err.message });
     }
   }
 });
 
 router.delete('/mcp', async (req, res) => {
   try {
+    const usuarioId = await autenticarRequisicao(req);
     const sessionId = req.headers['mcp-session-id'];
     if (!sessionId) {
       return res.status(400).json({ error: 'Mcp-Session-Id obrigatório' });
     }
 
-    const session = MCPSessionStore.get(sessionId);
-    if (!session) {
-      return res.status(404).json({ error: 'Sessão não encontrada' });
-    }
-
+    const session = resolverSessao(sessionId, usuarioId);
     await session.transport.handleRequest(req, res);
     MCPSessionStore.delete(sessionId);
   } catch (err) {
     if (!res.headersSent) {
-      res.status(500).json({ error: err.message });
+      res.status(err.statusCode ?? 500).json({ error: err.message });
     }
   }
 });
