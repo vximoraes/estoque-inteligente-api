@@ -1,6 +1,6 @@
-import NotificacaoService from '../services/NotificacaoService.js';
-import { NotificacaoSchema } from '../utils/validators/schemas/zod/NotificacaoSchema.js';
-import { CommonResponse, HttpStatusCodes } from '../utils/helpers/index.js';
+import NotificacaoService from './NotificacaoService.js';
+import { NotificacaoSchema } from './NotificacaoSchema.js';
+import { CommonResponse, HttpStatusCodes } from '../../utils/helpers/index.js';
 
 class NotificacaoController {
   constructor() {

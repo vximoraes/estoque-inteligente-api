@@ -1,8 +1,8 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import NotificacaoFilterBuilder from './filters/NotificacaoFilterBuilder.js';
-import NotificacaoModel from '../models/Notificacao.js';
-import UsuarioModel from '../models/Usuario.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import NotificacaoFilterBuilder from './NotificacaoFilterBuilder.js';
+import NotificacaoModel from './NotificacaoModel.js';
+import UsuarioModel from '../../models/Usuario.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class NotificacaoRepository {
   constructor({ notificacaoModel = NotificacaoModel } = {}) {
@@ -53,7 +53,7 @@ class NotificacaoRepository {
       return await this.buscarPorId(id, user_id);
     }
 
-    const { usuario, visualizada, page = 1, limite = 10 } = query;
+    const { visualizada, page = 1, limite = 10 } = query;
 
     const filterBuilder = new NotificacaoFilterBuilder();
     filterBuilder.comUsuario(user_id);

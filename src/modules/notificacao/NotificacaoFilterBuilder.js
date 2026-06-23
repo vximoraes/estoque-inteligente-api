@@ -1,5 +1,5 @@
-import NotificacaoModel from '../../models/Notificacao.js';
-import NotificacaoRepository from '../NotificacaoRepository.js';
+import NotificacaoModel from './NotificacaoModel.js';
+import NotificacaoRepository from './NotificacaoRepository.js';
 
 class NotificacaoFilterBuilder {
   constructor() {

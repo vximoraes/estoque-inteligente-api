@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 import mongoose from 'mongoose';
-import NotificacaoController from '../../../controllers/NotificacaoController.js';
-import NotificacaoService from '../../../services/NotificacaoService.js';
+import NotificacaoController from '../../../modules/notificacao/NotificacaoController.js';
+import NotificacaoService from '../../../modules/notificacao/NotificacaoService.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
-import { NotificacaoSchema } from '../../../utils/validators/schemas/zod/NotificacaoSchema.js';
+import { NotificacaoSchema } from '../../../modules/notificacao/NotificacaoSchema.js';
 
 // Mockando CommonResponse e HttpStatusCodes
 jest.mock('../../../utils/helpers/index.js', () => ({

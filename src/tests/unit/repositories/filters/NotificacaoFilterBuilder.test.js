@@ -1,4 +1,4 @@
-import NotificacaoFilterBuilder from '../../../../repositories/filters/NotificacaoFilterBuilder.js';
+import NotificacaoFilterBuilder from '../../../../modules/notificacao/NotificacaoFilterBuilder.js';
 
 describe('NotificacaoFilterBuilder', () => {
   beforeEach(() => {

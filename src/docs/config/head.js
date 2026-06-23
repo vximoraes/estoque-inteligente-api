@@ -6,7 +6,7 @@ import fornecedoresSchemas from '../../modules/fornecedor/fornecedorDocsSchema.j
 import localizacoesSchemas from '../schemas/localizacaoSchema.js';
 import estoquesSchemas from '../schemas/estoqueSchema.js';
 import movimentacoesSchemas from '../schemas/movimentacaoSchema.js';
-import notificacoesSchemas from '../schemas/notificacaoSchema.js';
+import notificacoesSchemas from '../../modules/notificacao/notificacaoDocsSchema.js';
 import orcamentosSchemas from '../schemas/orcamentoSchema.js';
 import emprestimosSchemas from '../schemas/emprestimoSchema.js';
 import gruposSchemas from '../schemas/grupoSchema.js';
@@ -19,7 +19,7 @@ import fornecedoresPaths from '../../modules/fornecedor/fornecedorDocs.js';
 import localizacoesPaths from '../paths/localizacao.js';
 import estoquesPaths from '../paths/estoque.js';
 import movimentacoesPaths from '../paths/movimentacao.js';
-import notificacoesPaths from '../paths/notificacao.js';
+import notificacoesPaths from '../../modules/notificacao/notificacaoDocs.js';
 import orcamentosPaths from '../paths/orcamento.js';
 import emprestimosPaths from '../paths/emprestimo.js';
 import gruposPaths from '../paths/grupo.js';

@@ -1,5 +1,5 @@
-import NotificacaoService from '../../../services/NotificacaoService.js';
-import NotificacaoRepository from '../../../repositories/NotificacaoRepository.js';
+import NotificacaoService from '../../../modules/notificacao/NotificacaoService.js';
+import NotificacaoRepository from '../../../modules/notificacao/NotificacaoRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
 describe('NotificacaoService', () => {

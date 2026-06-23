@@ -1,17 +1,13 @@
 import { z } from 'zod';
-import mongoose from 'mongoose';
+import { objectIdSchema } from '../../shared/utils/commonFields.js';
 
-export const NotificacaoIdSchema = z
-  .string()
-  .refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: 'ID inválido',
-  });
+export const NotificacaoIdSchema = objectIdSchema;
 
 export const NotificacaoQuerySchema = z.object({
   usuario: z
     .string()
     .optional()
-    .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
+    .refine((val) => !val || objectIdSchema.safeParse(val).success, {
       message: 'ID de usuário inválido',
     }),
   visualizada: z

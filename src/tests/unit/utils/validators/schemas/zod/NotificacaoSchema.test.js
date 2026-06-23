@@ -1,4 +1,4 @@
-import { NotificacaoSchema } from '../../../../../../utils/validators/schemas/zod/NotificacaoSchema.js';
+import { NotificacaoSchema } from '../../../../../../modules/notificacao/NotificacaoSchema.js';
 import mongoose from 'mongoose';
 
 describe('NotificacaoSchema', () => {

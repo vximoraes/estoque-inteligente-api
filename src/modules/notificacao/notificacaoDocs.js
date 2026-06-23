@@ -1,6 +1,6 @@
-import notificacoesSchemas from '../schemas/notificacaoSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import notificacoesSchemas from './notificacaoDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const notificacoesRoutes = {
   '/notificacoes': {
@@ -9,7 +9,7 @@ const notificacoesRoutes = {
       summary: 'Cria uma nova notificação',
       description: `
             + Caso de uso: Criar uma nova notificação para um usuário.
-            
+
             + Função de Negócio:
                 - Permitir ao sistema criar notificações direcionadas a usuários específicos.
                 + Recebe no corpo da requisição:
@@ -50,23 +50,23 @@ const notificacoesRoutes = {
       summary: 'Lista todas as notificações',
       description: `
         + Caso de uso: Listar notificações para controle e consulta.
-        
+
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de notificações.
             + Recebe como query parameters (opcionais):
-                • filtros: usuario, visualizada, mensagem.  
+                • filtros: usuario, visualizada, mensagem.
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.  
-            - Respeitar as permissões do usuário autenticado.  
+            - Validar formatos e valores dos filtros fornecidos.
+            - Respeitar as permissões do usuário autenticado.
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
             - Retorna notificações populadas com dados do usuário.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **NotificacaoListagem**, contendo:
-                • **data**: array de notificações.  
+                • **data**: array de notificações.
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
       security: [{ bearerAuth: [] }],
@@ -122,7 +122,7 @@ const notificacoesRoutes = {
       summary: 'Obtém detalhes de uma notificação',
       description: `
             + Caso de uso: Consulta de detalhes de notificação específica.
-            
+
             + Função de Negócio:
                 - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma notificação.
                 + Recebe como path parameter:
@@ -130,7 +130,7 @@ const notificacoesRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência da notificação.  
+                - Verificar existência da notificação.
                 - Retorna notificação populada com dados do usuário.
                 - Checar permissões do solicitante para visualizar dados.
 
@@ -165,7 +165,7 @@ const notificacoesRoutes = {
       summary: 'Marca uma notificação como visualizada',
       description: `
             + Caso de uso: Marcar notificação como visualizada pelo usuário.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário marcar uma notificação como lida/visualizada.
                 + Recebe como path parameter:
@@ -173,7 +173,7 @@ const notificacoesRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência da notificação.  
+                - Verificar existência da notificação.
                 - Atualizar campo visualizada para true.
                 - Registrar data/hora da visualização.
 

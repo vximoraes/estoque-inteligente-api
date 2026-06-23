@@ -1,4 +1,4 @@
-import NotificacaoRepository from '../repositories/NotificacaoRepository.js';
+import NotificacaoRepository from './NotificacaoRepository.js';
 
 class NotificacaoService {
   constructor() {
@@ -7,16 +7,13 @@ class NotificacaoService {
 
   async listarTodas(req) {
     const userId = req.user_id || req.user?.id;
-
     const data = await this.repository.listar(userId, req);
-
     return data;
   }
 
   async buscarPorId(id, req) {
     const userId = req.user_id || req.user?.id;
     const data = await this.repository.buscarPorId(id, userId);
-
     return data;
   }
 
@@ -24,7 +21,6 @@ class NotificacaoService {
     const userId = req.user_id || req.user?.id;
     parsedData.usuario = userId;
     const data2 = await this.repository.criar(parsedData);
-
     return data2;
   }
 

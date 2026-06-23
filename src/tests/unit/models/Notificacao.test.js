@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Notificacao from '../../../../src/models/Notificacao.js';
+import Notificacao from '../../../modules/notificacao/NotificacaoModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;

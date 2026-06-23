@@ -11,7 +11,7 @@ import itens from './itemRoutes.js';
 import estoques from './estoqueRoutes.js';
 import fornecedores from '../modules/fornecedor/fornecedorRoutes.js';
 import movimentacoes from './movimentacaoRoutes.js';
-import notificacoes from './notificacaoRoutes.js';
+import notificacoes from '../modules/notificacao/notificacaoRoutes.js';
 import orcamentos from './orcamentoRoutes.js';
 import emprestimos from './emprestimoRoutes.js';
 import grupos from './grupoRoutes.js';

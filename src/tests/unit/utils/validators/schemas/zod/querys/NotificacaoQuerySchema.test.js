@@ -1,7 +1,7 @@
 import {
   NotificacaoQuerySchema,
   NotificacaoIdSchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/NotificacaoQuerySchema.js';
+} from '../../../../../../../modules/notificacao/NotificacaoQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('NotificacaoQuerySchema', () => {
