@@ -1,7 +1,7 @@
 import {
   FornecedorSchema,
   FornecedorUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/FornecedorSchema.js';
+} from '../../../../../../modules/fornecedor/FornecedorSchema.js';
 
 describe('FornecedorSchema', () => {
   it('valida um fornecedor válido', () => {

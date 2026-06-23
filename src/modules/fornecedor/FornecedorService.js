@@ -1,9 +1,5 @@
-import FornecedorRepository from '../repositories/FornecedorRepository.js';
-import {
-  CustomError,
-  HttpStatusCodes,
-  messages,
-} from '../utils/helpers/index.js';
+import FornecedorRepository from './FornecedorRepository.js';
+import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
 
 class FornecedorService {
   constructor() {
@@ -41,8 +37,6 @@ class FornecedorService {
 
     return data;
   }
-
-  // Métodos auxiliares.
 
   async validateNome(nome, id = null, req) {
     const fornecedorExistente = await this.repository.buscarPorNome(

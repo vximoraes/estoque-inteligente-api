@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Fornecedor from '../../../../src/models/Fornecedor.js';
+import Fornecedor from '../../../../src/modules/fornecedor/FornecedorModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;

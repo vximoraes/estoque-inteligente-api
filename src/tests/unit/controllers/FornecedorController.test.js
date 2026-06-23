@@ -1,20 +1,18 @@
-import FornecedorController from '../../../controllers/FornecedorController.js';
-import FornecedorService from '../../../services/FornecedorService.js';
+import FornecedorController from '../../../modules/fornecedor/FornecedorController.js';
+import FornecedorService from '../../../modules/fornecedor/FornecedorService.js';
 import {
   FornecedorSchema,
   FornecedorUpdateSchema,
-} from '../../../utils/validators/schemas/zod/FornecedorSchema.js';
+} from '../../../modules/fornecedor/FornecedorSchema.js';
 import {
   FornecedorQuerySchema,
   FornecedorIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/FornecedorQuerySchema.js';
+} from '../../../modules/fornecedor/FornecedorQuerySchema.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../services/FornecedorService.js');
-jest.mock('../../../utils/validators/schemas/zod/FornecedorSchema.js');
-jest.mock(
-  '../../../utils/validators/schemas/zod/querys/FornecedorQuerySchema.js',
-);
+jest.mock('../../../modules/fornecedor/FornecedorService.js');
+jest.mock('../../../modules/fornecedor/FornecedorSchema.js');
+jest.mock('../../../modules/fornecedor/FornecedorQuerySchema.js');
 jest.mock('../../../utils/helpers/index.js', () => ({
   CommonResponse: {
     created: jest.fn(),

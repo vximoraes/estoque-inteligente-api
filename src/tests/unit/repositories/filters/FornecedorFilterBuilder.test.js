@@ -1,9 +1,9 @@
-import FornecedorFilterBuilder from '../../../../repositories/filters/FornecedorFilterBuilder.js';
-import FornecedorRepository from '../../../../repositories/FornecedorRepository.js';
-import FornecedorModel from '../../../../models/Fornecedor.js';
+import FornecedorFilterBuilder from '../../../../modules/fornecedor/FornecedorFilterBuilder.js';
+import FornecedorRepository from '../../../../modules/fornecedor/FornecedorRepository.js';
+import FornecedorModel from '../../../../modules/fornecedor/FornecedorModel.js';
 
-jest.mock('../../../../repositories/FornecedorRepository.js');
-jest.mock('../../../../models/Fornecedor.js');
+jest.mock('../../../../modules/fornecedor/FornecedorRepository.js');
+jest.mock('../../../../modules/fornecedor/FornecedorModel.js');
 
 describe('FornecedorFilterBuilder', () => {
   let fornecedorFilterBuilder;

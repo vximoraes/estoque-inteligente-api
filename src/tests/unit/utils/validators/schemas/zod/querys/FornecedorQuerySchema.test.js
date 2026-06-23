@@ -1,7 +1,7 @@
 import {
   FornecedorIdSchema,
   FornecedorQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/FornecedorQuerySchema.js';
+} from '../../../../../../../modules/fornecedor/FornecedorQuerySchema.js';
 
 describe('FornecedorIdSchema', () => {
   it('valida um ObjectId válido', () => {

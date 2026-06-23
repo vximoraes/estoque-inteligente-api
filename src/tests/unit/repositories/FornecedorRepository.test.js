@@ -1,9 +1,9 @@
-import FornecedorRepository from '../../../repositories/FornecedorRepository.js';
-import FornecedorModel from '../../../models/Fornecedor.js';
+import FornecedorRepository from '../../../modules/fornecedor/FornecedorRepository.js';
+import FornecedorModel from '../../../modules/fornecedor/FornecedorModel.js';
 import MovimentacaoModel from '../../../models/Movimentacao.js';
 import { messages, CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Fornecedor.js');
+jest.mock('../../../modules/fornecedor/FornecedorModel.js');
 jest.mock('../../../models/Movimentacao.js');
 
 const mockFornecedor = {
@@ -75,7 +75,7 @@ describe('FornecedorRepository', () => {
     it('deve lançar erro se o filterBuilder não tiver método build', async () => {
       jest.resetModules();
       jest.doMock(
-        '../../../repositories/filters/FornecedorFilterBuilder.js',
+        '../../../modules/fornecedor/FornecedorFilterBuilder.js',
         () => {
           return jest.fn().mockImplementation(() => ({
             comNome: jest.fn().mockReturnThis(),
@@ -83,7 +83,7 @@ describe('FornecedorRepository', () => {
         },
       );
       const FornecedorRepositoryWithBrokenBuilder = (
-        await import('../../../repositories/FornecedorRepository.js')
+        await import('../../../modules/fornecedor/FornecedorRepository.js')
       ).default;
       const repositoryWithBrokenBuilder =
         new FornecedorRepositoryWithBrokenBuilder({
@@ -107,7 +107,7 @@ describe('FornecedorRepository', () => {
         }
       }
 
-      jest.dontMock('../../../repositories/filters/FornecedorFilterBuilder.js');
+      jest.dontMock('../../../modules/fornecedor/FornecedorFilterBuilder.js');
     });
   });
 

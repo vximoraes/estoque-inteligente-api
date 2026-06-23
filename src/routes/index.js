@@ -9,7 +9,7 @@ import categorias from './categoriaRoutes.js';
 import localizacoes from './localizacaoRoutes.js';
 import itens from './itemRoutes.js';
 import estoques from './estoqueRoutes.js';
-import fornecedores from './fornecedorRoutes.js';
+import fornecedores from '../modules/fornecedor/fornecedorRoutes.js';
 import movimentacoes from './movimentacaoRoutes.js';
 import notificacoes from './notificacaoRoutes.js';
 import orcamentos from './orcamentoRoutes.js';

@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import FornecedorFilterBuilder from './filters/FornecedorFilterBuilder.js';
-import FornecedorModel from '../models/Fornecedor.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import FornecedorFilterBuilder from './FornecedorFilterBuilder.js';
+import FornecedorModel from './FornecedorModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class FornecedorRepository {
   constructor({ fornecedorModel = FornecedorModel } = {}) {
@@ -93,8 +93,6 @@ class FornecedorRepository {
 
     return fornecedor;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorNome(nome, idIgnorado, req) {
     const filtro = { nome, ativo: true };

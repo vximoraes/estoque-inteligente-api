@@ -1,13 +1,7 @@
-import FornecedorService from '../services/FornecedorService.js';
-import {
-  FornecedorQuerySchema,
-  FornecedorIdSchema,
-} from '../utils/validators/schemas/zod/querys/FornecedorQuerySchema.js';
-import {
-  FornecedorSchema,
-  FornecedorUpdateSchema,
-} from '../utils/validators/schemas/zod/FornecedorSchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+import FornecedorService from './FornecedorService.js';
+import { FornecedorQuerySchema, FornecedorIdSchema } from './FornecedorQuerySchema.js';
+import { FornecedorSchema, FornecedorUpdateSchema } from './FornecedorSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class FornecedorController {
   constructor() {

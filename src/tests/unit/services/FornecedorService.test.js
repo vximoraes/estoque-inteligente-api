@@ -1,8 +1,8 @@
-import FornecedorService from '../../../services/FornecedorService.js';
-import FornecedorRepository from '../../../repositories/FornecedorRepository.js';
+import FornecedorService from '../../../modules/fornecedor/FornecedorService.js';
+import FornecedorRepository from '../../../modules/fornecedor/FornecedorRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../repositories/FornecedorRepository.js');
+jest.mock('../../../modules/fornecedor/FornecedorRepository.js');
 
 const makeFornecedor = (props = {}) => ({
   _id: 'forn1',

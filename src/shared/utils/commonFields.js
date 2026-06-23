@@ -1,22 +1,11 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
-export const FornecedorIdSchema = z
+export const objectIdSchema = z
   .string()
-  .refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: 'ID inválido',
-  });
+  .refine((id) => mongoose.Types.ObjectId.isValid(id), { message: 'ID inválido' });
 
-export const FornecedorQuerySchema = z.object({
-  nome: z
-    .string()
-    .optional()
-    .transform((val) => {
-      return val === undefined ? undefined : val.trim() || null;
-    })
-    .refine((val) => val === undefined || val !== null, {
-      message: 'Nome não pode ser vazio',
-    }),
+export const paginationSchema = z.object({
   page: z
     .string()
     .optional()

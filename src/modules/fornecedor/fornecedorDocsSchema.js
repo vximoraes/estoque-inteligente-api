@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
-import Fornecedor from '../../models/Fornecedor.js';
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import Fornecedor from './FornecedorModel.js';
+import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
@@ -25,9 +25,7 @@ const fornecedoresSchemas = {
     properties: {
       data: {
         type: 'array',
-        items: {
-          $ref: '#/components/schemas/FornecedorItem',
-        },
+        items: { $ref: '#/components/schemas/FornecedorItem' },
       },
       totalDocs: { type: 'number', example: 100 },
       limit: { type: 'number', example: 10 },

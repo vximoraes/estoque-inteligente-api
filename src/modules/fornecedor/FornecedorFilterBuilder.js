@@ -1,5 +1,5 @@
-import FornecedorModel from '../../models/Fornecedor.js';
-import FornecedorRepository from '../FornecedorRepository.js';
+import FornecedorModel from './FornecedorModel.js';
+import FornecedorRepository from './FornecedorRepository.js';
 
 class FornecedorFilterBuilder {
   constructor() {
