@@ -21,7 +21,7 @@ import estoquesPaths from '../../modules/estoque/estoqueDocs.js';
 import movimentacoesPaths from '../../modules/movimentacao/movimentacaoDocs.js';
 import notificacoesPaths from '../../modules/notificacao/notificacaoDocs.js';
 import orcamentosPaths from '../../modules/orcamento/orcamentoDocs.js';
-import emprestimosPaths from '../../modules/emprestimo/emprestimosDocs.js';
+import emprestimosPaths from '../../modules/emprestimo/emprestimoDocs.js';
 import gruposPaths from '../../modules/grupo/grupoDocs.js';
 import rotasPaths from '../../modules/rota/rotaDocs.js';
 
