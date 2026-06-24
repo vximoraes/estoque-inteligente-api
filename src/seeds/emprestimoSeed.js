@@ -2,7 +2,7 @@ import { fakeMappings } from './globalFakeMapping.js';
 import Emprestimo from '../modules/emprestimo/EmprestimoModel.js';
 import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
-import Usuario from '../models/Usuario.js';
+import Usuario from '../modules/usuario/UsuarioModel.js';
 
 export default async function emprestimoSeed(adminId) {
   const itemList = await Item.find({});
