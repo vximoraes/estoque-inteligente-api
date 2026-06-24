@@ -6,11 +6,11 @@ import {
   HttpStatusCodes,
   messages,
 } from '../../utils/helpers/index.js';
-import { LoginSchema } from '../../utils/validators/schemas/zod/LoginSchema.js';
+import { LoginSchema } from './LoginSchema.js';
 import { UsuarioUpdateSchema } from '../usuario/UsuarioSchema.js';
 import { UsuarioIdSchema } from '../usuario/UsuarioQuerySchema.js';
-import { RequestAuthorizationSchema } from '../../utils/validators/schemas/zod/querys/RequestAuthorizationSchema.js';
-import { EmailSchema } from '../../utils/validators/schemas/zod/EmailSchema.js';
+import { RequestAuthorizationSchema } from './RequestAuthorizationSchema.js';
+import { EmailSchema } from './EmailSchema.js';
 
 import AuthService from './AuthService.js';
 

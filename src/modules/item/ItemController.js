@@ -8,7 +8,7 @@ import {
   ItemUpdateSchema,
 } from './ItemSchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
-import { UsuarioIdSchema } from '../../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+import { UsuarioIdSchema } from '../usuario/UsuarioQuerySchema.js';
 
 class ItemController {
   constructor() {

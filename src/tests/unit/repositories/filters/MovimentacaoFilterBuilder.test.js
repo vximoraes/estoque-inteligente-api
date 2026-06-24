@@ -5,13 +5,13 @@ jest.mock('../../../../modules/item/ItemModel.js', () => ({
   findById: jest.fn(),
   findOne: jest.fn(),
 }));
-jest.mock('../../../../models/Fornecedor.js', () => ({
+jest.mock('../../../../modules/fornecedor/FornecedorModel.js', () => ({
   findById: jest.fn(),
   findOne: jest.fn(),
 }));
 
 const Item = require('../../../../modules/item/ItemModel.js');
-const Fornecedor = require('../../../../models/Fornecedor.js');
+const Fornecedor = require('../../../../modules/fornecedor/FornecedorModel.js');
 
 describe('MovimentacaoFilterBuilder', () => {
   beforeEach(() => {

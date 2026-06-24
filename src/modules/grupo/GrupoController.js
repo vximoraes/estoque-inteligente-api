@@ -12,7 +12,7 @@ import {
   GrupoSchema,
   GrupoUpdateSchema,
 } from './GrupoSchema.js';
-import ObjectIdSchema from '../../utils/validators/schemas/zod/ObjectIdSchema.js';
+import ObjectIdSchema from '../../shared/utils/ObjectIdSchema.js';
 
 class GrupoController {
   constructor() {
