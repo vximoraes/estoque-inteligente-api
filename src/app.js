@@ -8,7 +8,7 @@ import errorHandler from './utils/helpers/errorHandler.js';
 import logger from './utils/logger.js';
 import CommonResponse from './utils/helpers/CommonResponse.js';
 import DbConnect from './config/DbConnect.js';
-import { iniciarJobEmprestimosAtrasados } from './jobs/EmprestimoAtrasadoJob.js';
+import { iniciarJobEmprestimosAtrasados } from './modules/emprestimo/EmprestimoAtrasadoJob.js';
 
 const app = express();
 

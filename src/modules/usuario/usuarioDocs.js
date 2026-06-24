@@ -1,6 +1,6 @@
-import usuariosSchemas from '../schemas/usuariosSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import usuariosSchemas from './usuarioDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const usuariosRoutes = {
   '/usuarios': {

@@ -1,5 +1,5 @@
 import authSchemas from '../schemas/authSchema.js';
-import usuariosSchemas from '../schemas/usuariosSchema.js';
+import usuariosSchemas from '../../modules/usuario/usuarioDocsSchema.js';
 import categoriasSchemas from '../../modules/categoria/categoriaDocsSchema.js';
 import itensSchemas from '../../modules/item/itemDocsSchema.js';
 import fornecedoresSchemas from '../../modules/fornecedor/fornecedorDocsSchema.js';
@@ -8,10 +8,10 @@ import estoquesSchemas from '../../modules/estoque/estoqueDocsSchema.js';
 import movimentacoesSchemas from '../../modules/movimentacao/movimentacaoDocsSchema.js';
 import notificacoesSchemas from '../../modules/notificacao/notificacaoDocsSchema.js';
 import orcamentosSchemas from '../../modules/orcamento/orcamentoDocsSchema.js';
-import emprestimosSchemas from '../schemas/emprestimoSchema.js';
-import gruposSchemas from '../schemas/grupoSchema.js';
+import emprestimosSchemas from '../../modules/emprestimo/emprestimoDocsSchema.js';
+import gruposSchemas from '../../modules/grupo/grupoDocsSchema.js';
 import rotasSchemas from '../../modules/rota/rotaDocsSchema.js';
-import usuariosPaths from '../paths/usuarios.js';
+import usuariosPaths from '../../modules/usuario/usuarioDocs.js';
 import authPaths from '../paths/auth.js';
 import categoriasPaths from '../../modules/categoria/categoriaDocs.js';
 import itensPaths from '../../modules/item/itemDocs.js';
@@ -21,8 +21,8 @@ import estoquesPaths from '../../modules/estoque/estoqueDocs.js';
 import movimentacoesPaths from '../../modules/movimentacao/movimentacaoDocs.js';
 import notificacoesPaths from '../../modules/notificacao/notificacaoDocs.js';
 import orcamentosPaths from '../../modules/orcamento/orcamentoDocs.js';
-import emprestimosPaths from '../paths/emprestimo.js';
-import gruposPaths from '../paths/grupo.js';
+import emprestimosPaths from '../../modules/emprestimo/emprestimosDocs.js';
+import gruposPaths from '../../modules/grupo/grupoDocs.js';
 import rotasPaths from '../../modules/rota/rotaDocs.js';
 
 // Função para definir as URLs do servidor dependendo do ambiente

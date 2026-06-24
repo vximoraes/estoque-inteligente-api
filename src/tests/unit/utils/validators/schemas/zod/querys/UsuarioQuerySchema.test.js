@@ -1,7 +1,7 @@
 import {
   UsuarioIdSchema,
   UsuarioQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+} from '../../../../../../../modules/usuario/UsuarioQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('UsuarioIdSchema', () => {

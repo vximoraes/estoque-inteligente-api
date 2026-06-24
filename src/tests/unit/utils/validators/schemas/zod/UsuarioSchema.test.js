@@ -1,7 +1,7 @@
 import {
   UsuarioSchema,
   UsuarioUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/UsuarioSchema.js';
+} from '../../../../../../modules/usuario/UsuarioSchema.js';
 
 describe('UsuarioSchema', () => {
   it('deve validar dados válidos corretamente', () => {

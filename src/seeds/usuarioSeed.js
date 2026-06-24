@@ -1,4 +1,4 @@
-import Usuario from '../models/Usuario.js';
+import Usuario from '../modules/usuario/UsuarioModel.js';
 import { fakeMappings } from './globalFakeMapping.js';
 import bcrypt from 'bcrypt';
 import seedRotas from './rotasSeed.js';

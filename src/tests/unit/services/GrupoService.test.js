@@ -1,9 +1,9 @@
-import GrupoService from '../../../services/GrupoService.js';
-import GrupoRepository from '../../../repositories/GrupoRepository.js';
+import GrupoService from '../../../modules/grupo/GrupoService.js';
+import GrupoRepository from '../../../modules/grupo/GrupoRepository.js';
 import UsuarioRepository from '../../../repositories/UsuarioRepository.js';
 import { CustomError, HttpStatusCodes } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../repositories/GrupoRepository.js');
+jest.mock('../../../modules/grupo/GrupoRepository.js');
 jest.mock('../../../repositories/UsuarioRepository.js');
 
 const makeGrupo = (props = {}) => ({

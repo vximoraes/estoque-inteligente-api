@@ -1,10 +1,10 @@
 import NotificacaoRepository from '../../../modules/notificacao/NotificacaoRepository.js';
 import NotificacaoModel from '../../../modules/notificacao/NotificacaoModel.js';
-import UsuarioModel from '../../../models/Usuario.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../modules/notificacao/NotificacaoModel.js');
-jest.mock('../../../models/Usuario.js');
+jest.mock('../../../modules/usuario/UsuarioModel.js');
 
 const usuarioId = '507f1f77bcf86cd799439011';
 

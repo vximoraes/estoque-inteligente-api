@@ -1,7 +1,7 @@
 import {
   GrupoIdSchema,
   GrupoQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/GrupoQuerySchema.js';
+} from '../../../../../../../modules/grupo/GrupoQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('GrupoIdSchema', () => {

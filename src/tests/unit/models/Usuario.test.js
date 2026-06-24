@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Usuario from '../../../../src/models/Usuario.js';
+import Usuario from '../../../../src/modules/usuario/UsuarioModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;

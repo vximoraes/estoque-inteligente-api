@@ -1,5 +1,5 @@
 import GrupoRepository from './GrupoRepository.js';
-import UsuarioRepository from '../../repositories/UsuarioRepository.js';
+import UsuarioRepository from '../usuario/UsuarioRepository.js';
 import RotaRepository from '../rota/RotaRepository.js';
 import {
   CustomError,

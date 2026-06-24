@@ -36,7 +36,7 @@ jest.mock('../../../utils/helpers/index.js', () => {
   };
 });
 
-jest.mock('../../../utils/validators/schemas/zod/UsuarioSchema.js', () => {
+jest.mock('../../../modules/usuario/UsuarioSchema.js', () => {
   return {
     UsuarioSchema: { parse: jest.fn() },
     UsuarioUpdateSchema: { parse: jest.fn() },
@@ -44,7 +44,7 @@ jest.mock('../../../utils/validators/schemas/zod/UsuarioSchema.js', () => {
 });
 
 jest.mock(
-  '../../../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js',
+  '../../../modules/usuario/UsuarioQuerySchema.js',
   () => {
     return {
       UsuarioQuerySchema: { parse: jest.fn(), parseAsync: jest.fn() },
@@ -53,7 +53,7 @@ jest.mock(
   },
 );
 
-import UsuarioController from '../../../controllers/UsuarioController.js';
+import UsuarioController from '../../../modules/usuario/UsuarioController.js';
 import {
   CommonResponse,
   CustomError,
@@ -62,11 +62,11 @@ import {
 import {
   UsuarioSchema,
   UsuarioUpdateSchema,
-} from '../../../utils/validators/schemas/zod/UsuarioSchema.js';
+} from '../../../modules/usuario/UsuarioSchema.js';
 import {
   UsuarioQuerySchema,
   UsuarioIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+} from '../../../modules/usuario/UsuarioQuerySchema.js';
 
 describe('UsuarioController - regras de negócio (simples)', () => {
   let controller, req, res, next;

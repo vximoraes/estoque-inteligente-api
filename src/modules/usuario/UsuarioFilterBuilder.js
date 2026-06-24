@@ -1,5 +1,5 @@
-import UsuarioModel from '../../models/Usuario.js';
-import UsuarioRepository from '../UsuarioRepository.js';
+import UsuarioModel from './UsuarioModel.js';
+import UsuarioRepository from './UsuarioRepository.js';
 
 class UsuarioFilterBuilder {
   constructor() {

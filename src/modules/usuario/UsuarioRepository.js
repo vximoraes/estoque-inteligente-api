@@ -1,8 +1,8 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import UsuarioFilterBuilder from './filters/UsuarioFilterBuilder.js';
-import UsuarioModel from '../models/Usuario.js';
-import NotificacaoModel from '../modules/notificacao/NotificacaoModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
+import UsuarioModel from './UsuarioModel.js';
+import NotificacaoModel from '../notificacao/NotificacaoModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class UsuarioRepository {
   constructor({ usuarioModel = UsuarioModel } = {}) {
@@ -110,8 +110,6 @@ class UsuarioRepository {
     const usuario = await this.model.findByIdAndDelete(id);
     return usuario;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorEmail(email, idIgnorado = null) {
     const filtro = { email };

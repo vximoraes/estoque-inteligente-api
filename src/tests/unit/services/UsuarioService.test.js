@@ -1,10 +1,10 @@
-import UsuarioService from '../../../services/UsuarioService.js';
-import UsuarioRepository from '../../../repositories/UsuarioRepository.js';
-import GrupoRepository from '../../../repositories/GrupoRepository.js';
+import UsuarioService from '../../../modules/usuario/UsuarioService.js';
+import UsuarioRepository from '../../../modules/usuario/UsuarioRepository.js';
+import GrupoRepository from '../../../modules/grupo/GrupoRepository.js';
 import bcrypt from 'bcrypt';
 
-jest.mock('../../../repositories/UsuarioRepository.js');
-jest.mock('../../../repositories/GrupoRepository.js');
+jest.mock('../../../modules/usuario/UsuarioRepository.js');
+jest.mock('../../../modules/grupo/GrupoRepository.js');
 jest.mock('bcrypt');
 
 describe('UsuarioService', () => {

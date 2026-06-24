@@ -1,7 +1,7 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 
 import GrupoModel from './GrupoModel.js';
-import UsuarioModel from '../../models/Usuario.js';
+import UsuarioModel from '../usuario/UsuarioModel.js';
 import RotaModel from '../rota/RotaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import GrupoFilterBuilder from './GrupoFilterBuilder.js';

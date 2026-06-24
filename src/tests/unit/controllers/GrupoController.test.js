@@ -1,22 +1,22 @@
-import GrupoController from '../../../controllers/GrupoController.js';
-import GrupoService from '../../../services/GrupoService.js';
+import GrupoController from '../../../modules/grupo/GrupoController.js';
+import GrupoService from '../../../modules/grupo/GrupoService.js';
 import {
   GrupoSchema,
   GrupoUpdateSchema,
-} from '../../../utils/validators/schemas/zod/GrupoSchema.js';
+} from '../../../modules/grupo/GrupoSchema.js';
 import {
   GrupoQuerySchema,
   GrupoIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/GrupoQuerySchema.js';
+} from '../../../modules/grupo/GrupoQuerySchema.js';
 import {
   CommonResponse,
   CustomError,
   HttpStatusCodes,
 } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../services/GrupoService.js');
-jest.mock('../../../utils/validators/schemas/zod/GrupoSchema.js');
-jest.mock('../../../utils/validators/schemas/zod/querys/GrupoQuerySchema.js');
+jest.mock('../../../modules/grupo/GrupoService.js');
+jest.mock('../../../modules/grupo/GrupoSchema.js');
+jest.mock('../../../modules/grupo/GrupoQuerySchema.js');
 jest.mock('../../../utils/helpers/index.js', () => ({
   CommonResponse: {
     created: jest.fn(),

@@ -1,17 +1,17 @@
-import UsuarioService from '../services/UsuarioService.js';
+import UsuarioService from './UsuarioService.js';
 import {
   UsuarioQuerySchema,
   UsuarioIdSchema,
-} from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+} from './UsuarioQuerySchema.js';
 import {
   UsuarioSchema,
   UsuarioUpdateSchema,
-} from '../utils/validators/schemas/zod/UsuarioSchema.js';
+} from './UsuarioSchema.js';
 import {
   CommonResponse,
   CustomError,
   HttpStatusCodes,
-} from '../utils/helpers/index.js';
+} from '../../utils/helpers/index.js';
 
 class UsuarioController {
   constructor() {
@@ -83,6 +83,7 @@ class UsuarioController {
       'Usuário excluído com sucesso.',
     );
   }
+
   async uploadFoto(req, res) {
     const { id } = req.params || {};
     UsuarioIdSchema.parse(id);

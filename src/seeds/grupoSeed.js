@@ -1,4 +1,4 @@
-import Grupo from '../models/Grupo.js';
+import Grupo from '../modules/grupo/GrupoModel.js';
 
 export default async function seedGrupos(rotas) {
   await Grupo.deleteMany();

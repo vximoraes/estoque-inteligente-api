@@ -1,4 +1,4 @@
-import UsuarioModel from '../models/Usuario.js';
+import UsuarioModel from '../modules/usuario/UsuarioModel.js';
 import RotaModel from '../modules/rota/RotaModel.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
 

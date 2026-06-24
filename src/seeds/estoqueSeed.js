@@ -2,7 +2,7 @@ import { fakeMappings } from './globalFakeMapping.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
-import Usuario from '../models/Usuario.js';
+import Usuario from '../modules/usuario/UsuarioModel.js';
 
 export default async function estoqueSeed() {
   const itemList = await Item.find({});

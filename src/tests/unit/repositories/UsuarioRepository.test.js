@@ -1,9 +1,9 @@
-import UsuarioRepository from '../../../repositories/UsuarioRepository.js';
-import UsuarioModel from '../../../models/Usuario.js';
+import UsuarioRepository from '../../../modules/usuario/UsuarioRepository.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 import NotificacaoModel from '../../../modules/notificacao/NotificacaoModel.js';
 import { messages, CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Usuario.js');
+jest.mock('../../../modules/usuario/UsuarioModel.js');
 jest.mock('../../../modules/notificacao/NotificacaoModel.js');
 
 const makeFakeUser = (overrides = {}) => ({
@@ -65,7 +65,7 @@ describe('UsuarioRepository', () => {
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
       jest.doMock(
-        '../../../repositories/filters/UsuarioFilterBuilder.js',
+        '../../../modules/usuario/UsuarioFilterBuilder.js',
         () => {
           return jest.fn().mockImplementation(() => ({
             comNome: jest.fn().mockReturnThis(),
@@ -75,7 +75,7 @@ describe('UsuarioRepository', () => {
         },
       );
       const { default: UsuarioRepositoryMocked } =
-        await import('../../../repositories/UsuarioRepository.js');
+        await import('../../../modules/usuario/UsuarioRepository.js');
       const repoMocked = new UsuarioRepositoryMocked({
         usuarioModel: UsuarioModel,
       });
@@ -86,7 +86,7 @@ describe('UsuarioRepository', () => {
       await expect(repoMocked.listar(req)).rejects.toThrow(
         'Erro interno no servidor ao processar Usuário.',
       );
-      jest.dontMock('../../../repositories/filters/UsuarioFilterBuilder.js');
+      jest.dontMock('../../../modules/usuario/UsuarioFilterBuilder.js');
     });
   });
 

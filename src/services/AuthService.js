@@ -8,7 +8,7 @@ import {
 import tokenUtil from '../utils/TokenUtil.js';
 import AuthHelper from '../utils/AuthHelper.js';
 
-import UsuarioRepository from '../repositories/UsuarioRepository.js';
+import UsuarioRepository from '../modules/usuario/UsuarioRepository.js';
 import EmailService from './EmailService.js';
 
 class AuthService {

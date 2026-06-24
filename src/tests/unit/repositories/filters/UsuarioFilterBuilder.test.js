@@ -1,4 +1,4 @@
-import UsuarioFilterBuilder from '../../../../repositories/filters/UsuarioFilterBuilder.js';
+import UsuarioFilterBuilder from '../../../../modules/usuario/UsuarioFilterBuilder.js';
 
 describe('UsuarioFilterBuilder', () => {
   it('deve criar e combinar filtros corretamente', () => {

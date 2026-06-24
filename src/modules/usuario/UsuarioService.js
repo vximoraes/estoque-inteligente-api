@@ -1,15 +1,15 @@
 import bcrypt from 'bcrypt';
-import UsuarioRepository from '../repositories/UsuarioRepository.js';
-import GrupoRepository from '../repositories/GrupoRepository.js';
+import UsuarioRepository from './UsuarioRepository.js';
+import GrupoRepository from '../grupo/GrupoRepository.js';
 import {
   CustomError,
   HttpStatusCodes,
   messages,
-} from '../utils/helpers/index.js';
-import minioClient from '../config/MinIO.js';
-import compress from '../config/SharpConfig.js';
-import EmailService from './EmailService.js';
-import tokenUtil from '../utils/TokenUtil.js';
+} from '../../utils/helpers/index.js';
+import minioClient from '../../config/MinIO.js';
+import compress from '../../config/SharpConfig.js';
+import EmailService from '../../services/EmailService.js';
+import tokenUtil from '../../utils/TokenUtil.js';
 
 class UsuarioService {
   constructor() {
@@ -74,8 +74,6 @@ class UsuarioService {
 
     return data;
   }
-
-  // Métodos auxiliares.
 
   async validateEmail(email, id = null, usuarioId) {
     const usuarioExistente = await this.repository.buscarPorEmail(
