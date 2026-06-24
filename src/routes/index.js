@@ -6,7 +6,7 @@ import logRoutes from '../middlewares/LogRoutesMiddleware.js';
 import auth from './authRoutes.js';
 import usuarios from './usuarioRoutes.js';
 import categorias from './categoriaRoutes.js';
-import localizacoes from './localizacaoRoutes.js';
+import localizacoes from '../modules/localizacao/localizacaoRoutes.js';
 import itens from './itemRoutes.js';
 import estoques from '../modules/estoque/estoqueRoutes.js';
 import fornecedores from '../modules/fornecedor/fornecedorRoutes.js';

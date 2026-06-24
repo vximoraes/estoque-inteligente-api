@@ -1,4 +1,4 @@
-import LocalizacaoFilterBuilder from '../../../../repositories/filters/LocalizacaoFilterBuilder.js';
+import LocalizacaoFilterBuilder from '../../../../modules/localizacao/LocalizacaoFilterBuilder.js';
 
 describe('LocalizacaoFilterBuilder', () => {
   beforeEach(() => {

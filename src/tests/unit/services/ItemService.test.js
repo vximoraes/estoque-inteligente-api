@@ -1,11 +1,11 @@
 import ItemService from '../../../services/ItemService.js';
 import ItemRepository from '../../../repositories/ItemRepository.js';
-import LocalizacaoModel from '../../../models/Localizacao.js';
+import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../../models/Categoria.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../repositories/ItemRepository.js');
-jest.mock('../../../models/Localizacao.js');
+jest.mock('../../../modules/localizacao/LocalizacaoModel.js');
 jest.mock('../../../models/Categoria.js');
 
 const makeItem = (props = {}) => ({

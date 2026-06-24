@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import LocalizacaoFilterBuilder from './filters/LocalizacaoFilterBuilder.js';
-import LocalizacaoModel from '../models/Localizacao.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import LocalizacaoFilterBuilder from './LocalizacaoFilterBuilder.js';
+import LocalizacaoModel from './LocalizacaoModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class LocalizacaoRepository {
   constructor({ localizacaoModel = LocalizacaoModel } = {}) {
@@ -89,8 +89,6 @@ class LocalizacaoRepository {
 
     return localizacao;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorNome(nome, idIgnorado, req) {
     const filtro = { nome, ativo: true };

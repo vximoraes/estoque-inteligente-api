@@ -1,13 +1,13 @@
-import LocalizacaoService from '../services/LocalizacaoService.js';
+import LocalizacaoService from './LocalizacaoService.js';
 import {
   LocalizacaoQuerySchema,
   LocalizacaoIdSchema,
-} from '../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js';
+} from './LocalizacaoQuerySchema.js';
 import {
   LocalizacaoSchema,
   LocalizacaoUpdateSchema,
-} from '../utils/validators/schemas/zod/LocalizacaoSchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+} from './LocalizacaoSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class LocalizacaoController {
   constructor() {

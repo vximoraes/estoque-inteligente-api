@@ -1,20 +1,18 @@
-import LocalizacaoController from '../../../controllers/LocalizacaoController.js';
-import LocalizacaoService from '../../../services/LocalizacaoService.js';
+import LocalizacaoController from '../../../modules/localizacao/LocalizacaoController.js';
+import LocalizacaoService from '../../../modules/localizacao/LocalizacaoService.js';
 import {
   LocalizacaoSchema,
   LocalizacaoUpdateSchema,
-} from '../../../utils/validators/schemas/zod/LocalizacaoSchema.js';
+} from '../../../modules/localizacao/LocalizacaoSchema.js';
 import {
   LocalizacaoQuerySchema,
   LocalizacaoIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js';
+} from '../../../modules/localizacao/LocalizacaoQuerySchema.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../services/LocalizacaoService.js');
-jest.mock('../../../utils/validators/schemas/zod/LocalizacaoSchema.js');
-jest.mock(
-  '../../../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js',
-);
+jest.mock('../../../modules/localizacao/LocalizacaoService.js');
+jest.mock('../../../modules/localizacao/LocalizacaoSchema.js');
+jest.mock('../../../modules/localizacao/LocalizacaoQuerySchema.js');
 jest.mock('../../../utils/helpers/index.js', () => ({
   CommonResponse: {
     created: jest.fn(),

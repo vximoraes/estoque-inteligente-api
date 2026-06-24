@@ -1,7 +1,7 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import Item from '../models/Item.js';
-import Localizacao from '../models/Localizacao.js';
+import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 import Usuario from '../models/Usuario.js';
 
 export default async function estoqueSeed() {

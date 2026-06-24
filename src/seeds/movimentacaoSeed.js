@@ -1,7 +1,7 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Movimentacao from '../models/Movimentacao.js';
 import Item from '../models/Item.js';
-import Localizacao from '../models/Localizacao.js';
+import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 
 export default async function movimentacaoSeed(adminId) {
   const itemList = await Item.find({});

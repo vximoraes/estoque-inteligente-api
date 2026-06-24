@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Item from '../../models/Item.js';
-import Localizacao from '../../models/Localizacao.js';
+import Localizacao from '../../modules/localizacao/LocalizacaoModel.js';
 
 const { Types } = mongoose;
 

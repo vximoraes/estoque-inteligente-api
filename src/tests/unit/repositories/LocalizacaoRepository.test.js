@@ -1,10 +1,10 @@
-import LocalizacaoRepository from '../../../repositories/LocalizacaoRepository.js';
+import LocalizacaoRepository from '../../../modules/localizacao/LocalizacaoRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Localizacao.js');
+jest.mock('../../../modules/localizacao/LocalizacaoModel.js');
 jest.mock('../../../models/Item.js');
 
-import LocalizacaoModel from '../../../models/Localizacao.js';
+import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import ItemModel from '../../../models/Item.js';
 
 describe('LocalizacaoRepository', () => {
@@ -79,7 +79,7 @@ describe('LocalizacaoRepository', () => {
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
       jest.doMock(
-        '../../../repositories/filters/LocalizacaoFilterBuilder.js',
+        '../../../modules/localizacao/LocalizacaoFilterBuilder.js',
         () => {
           return {
             __esModule: true,
@@ -91,7 +91,7 @@ describe('LocalizacaoRepository', () => {
         },
       );
       const { default: LocalizacaoRepositoryWithMocks } =
-        await import('../../../repositories/LocalizacaoRepository.js');
+        await import('../../../modules/localizacao/LocalizacaoRepository.js');
       const repo = new LocalizacaoRepositoryWithMocks({
         localizacaoModel: LocalizacaoModel,
       });

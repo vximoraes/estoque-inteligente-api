@@ -4,7 +4,7 @@ jest.mock('../../../../models/Item.js', () => {
   return 'mock-item-model';
 });
 
-jest.mock('../../../../models/Localizacao.js', () => {
+jest.mock('../../../../modules/localizacao/LocalizacaoModel.js', () => {
   return {
     findById: jest.fn(),
     findOne: jest.fn(),
@@ -40,7 +40,7 @@ jest.mock('mongoose', () => {
 });
 
 import mongoose from 'mongoose';
-import Localizacao from '../../../../models/Localizacao.js';
+import Localizacao from '../../../../modules/localizacao/LocalizacaoModel.js';
 import Categoria from '../../../../models/Categoria.js';
 import ItemRepository from '../../../../repositories/ItemRepository.js';
 

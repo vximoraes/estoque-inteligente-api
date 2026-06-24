@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
-import Localizacao from '../../models/Localizacao.js';
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import Localizacao from './LocalizacaoModel.js';
+import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 

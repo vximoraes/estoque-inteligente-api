@@ -1,7 +1,7 @@
 import {
   LocalizacaoIdSchema,
   LocalizacaoQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/LocalizacaoQuerySchema.js';
+} from '../../../../../../../modules/localizacao/LocalizacaoQuerySchema.js';
 
 describe('LocalizacaoIdSchema', () => {
   it('valida um ObjectId válido', () => {

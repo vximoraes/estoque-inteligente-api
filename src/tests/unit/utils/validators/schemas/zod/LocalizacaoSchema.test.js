@@ -1,7 +1,7 @@
 import {
   LocalizacaoSchema,
   LocalizacaoUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/LocalizacaoSchema.js';
+} from '../../../../../../modules/localizacao/LocalizacaoSchema.js';
 
 describe('LocalizacaoSchema', () => {
   it('valida uma localização válida', () => {

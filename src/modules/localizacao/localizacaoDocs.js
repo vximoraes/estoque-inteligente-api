@@ -1,6 +1,6 @@
-import localizacoesSchemas from '../schemas/localizacaoSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import localizacoesSchemas from './localizacaoDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const localizacoesRoutes = {
   '/localizacoes': {
@@ -9,7 +9,7 @@ const localizacoesRoutes = {
       summary: 'Cria uma nova localização',
       description: `
             + Caso de uso: Criação de nova localização no sistema.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado criar uma nova localização para organizar itens do estoque.
                 + Recebe no corpo da requisição:
@@ -49,22 +49,22 @@ const localizacoesRoutes = {
       summary: 'Lista todas as localizações',
       description: `
         + Caso de uso: Listagem de localizações para gerenciamento e consulta.
-        
+
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de localizações cadastradas.
             + Recebe como query parameters (opcionais):
-                • filtros: nome, ativo.  
+                • filtros: nome, ativo.
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.  
-            - Respeitar as permissões do usuário autenticado.  
+            - Validar formatos e valores dos filtros fornecidos.
+            - Respeitar as permissões do usuário autenticado.
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **LocalizacaoListagem**, contendo:
-                • **data**: array de localizações.  
+                • **data**: array de localizações.
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
       security: [{ bearerAuth: [] }],
@@ -120,7 +120,7 @@ const localizacoesRoutes = {
       summary: 'Obtém detalhes de uma localização',
       description: `
             + Caso de uso: Consulta de detalhes de localização específica.
-            
+
             + Função de Negócio:
                 - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma localização cadastrada.
                 + Recebe como path parameter:
@@ -128,7 +128,7 @@ const localizacoesRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência da localização.  
+                - Verificar existência da localização.
                 - Checar permissões do solicitante para visualizar dados.
 
             + Resultado Esperado:
@@ -161,16 +161,16 @@ const localizacoesRoutes = {
       summary: 'Atualiza uma localização',
       description: `
             + Caso de uso: Atualização parcial de dados da localização.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado modificar informações da localização.
                 + Recebe:
-                    - **id** no path.  
+                    - **id** no path.
                     - No corpo, objeto conforme **LocalizacaoPutPatch** com os campos a alterar.
 
             + Regras de Negócio:
                 - Permite atualização parcial de campos.
-                - Garantir unicidade do nome da localização.  
+                - Garantir unicidade do nome da localização.
                 - Verificar se a localização existe antes de atualizar.
                 - Impedir alterações que violem regras de negócio.
 
@@ -214,7 +214,7 @@ const localizacoesRoutes = {
       summary: 'Deleta uma localização',
       description: `
             + Caso de uso: Exclusão de localização.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado remover uma localização que não está sendo utilizada.
                 + Recebe como path parameter:
@@ -222,8 +222,8 @@ const localizacoesRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a localização existe antes de excluir.
-                - Não permitir exclusão se há itens vinculados à localização.  
-                - Registrar log de auditoria sobre a operação.  
+                - Não permitir exclusão se há itens vinculados à localização.
+                - Registrar log de auditoria sobre a operação.
                 - Garantir que não haja vínculos críticos pendentes.
 
             + Resultado Esperado:

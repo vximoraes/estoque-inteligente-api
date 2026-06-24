@@ -1,7 +1,7 @@
 import EmprestimoRepository from '../repositories/EmprestimoRepository.js';
 import MovimentacaoService from './MovimentacaoService.js';
 import Item from '../models/Item.js';
-import Localizacao from '../models/Localizacao.js';
+import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
 import EmailService from './EmailService.js';

@@ -1,10 +1,10 @@
-import LocalizacaoRepository from '../repositories/LocalizacaoRepository.js';
-import EstoqueModel from '../modules/estoque/EstoqueModel.js';
+import LocalizacaoRepository from './LocalizacaoRepository.js';
+import EstoqueModel from '../estoque/EstoqueModel.js';
 import {
   CustomError,
   HttpStatusCodes,
   messages,
-} from '../utils/helpers/index.js';
+} from '../../utils/helpers/index.js';
 
 class LocalizacaoService {
   constructor() {
@@ -38,7 +38,6 @@ class LocalizacaoService {
   async inativar(id, req) {
     await this.ensureLocationExists(id, req);
 
-    // Verificar se existem estoques nesta localização vinculados a itens ativos
     const estoques = await EstoqueModel.find({
       localizacao: id,
     }).populate('item');
@@ -61,8 +60,6 @@ class LocalizacaoService {
 
     return data;
   }
-
-  // Métodos auxiliares.
 
   async validateNome(nome, id = null, req) {
     const localizacaoExistente = await this.repository.buscarPorNome(

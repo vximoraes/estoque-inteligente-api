@@ -1,5 +1,5 @@
-import LocalizacaoModel from '../../models/Localizacao.js';
-import LocalizacaoRepository from '../LocalizacaoRepository.js';
+import LocalizacaoModel from './LocalizacaoModel.js';
+import LocalizacaoRepository from './LocalizacaoRepository.js';
 
 class LocalizacaoFilterBuilder {
   constructor() {

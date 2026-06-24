@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Localizacao from '../../../../src/models/Localizacao.js';
+import Localizacao from '../../../modules/localizacao/LocalizacaoModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;
