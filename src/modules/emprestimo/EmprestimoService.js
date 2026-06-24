@@ -1,11 +1,11 @@
-import EmprestimoRepository from '../repositories/EmprestimoRepository.js';
-import MovimentacaoService from './MovimentacaoService.js';
-import Item from '../modules/item/ItemModel.js';
-import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
-import Estoque from '../modules/estoque/EstoqueModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
-import EmailService from './EmailService.js';
-import EmprestimoModel from '../models/Emprestimo.js';
+import EmprestimoRepository from './EmprestimoRepository.js';
+import MovimentacaoService from '../movimentacao/MovimentacaoService.js';
+import Item from '../item/ItemModel.js';
+import Localizacao from '../localizacao/LocalizacaoModel.js';
+import Estoque from '../estoque/EstoqueModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
+import EmailService from '../../services/EmailService.js';
+import EmprestimoModel from './EmprestimoModel.js';
 
 class EmprestimoService {
   constructor() {
@@ -167,6 +167,7 @@ class EmprestimoService {
 
     return emprestimoAtualizado;
   }
+
   async atualizar(id, parsedData, req) {
     return this.repository.atualizar(id, parsedData);
   }

@@ -1,14 +1,14 @@
-import EmprestimoService from '../services/EmprestimoService.js';
+import EmprestimoService from './EmprestimoService.js';
 import {
   EmprestimoSchema,
   DevolucaoEmprestimoSchema,
   AtualizarEmprestimoSchema,
-} from '../utils/validators/schemas/zod/EmprestimoSchema.js';
+} from './EmprestimoSchema.js';
 import {
   EmprestimoIdSchema,
   EmprestimoQuerySchema,
-} from '../utils/validators/schemas/zod/querys/EmprestimoQuerySchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+} from './EmprestimoQuerySchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class EmprestimoController {
   constructor() {

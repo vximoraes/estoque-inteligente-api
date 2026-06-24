@@ -1,6 +1,6 @@
-import emprestimosSchemas from '../schemas/emprestimoSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import emprestimosSchemas from './emprestimoDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const emprestimosRoutes = {
   '/emprestimos': {

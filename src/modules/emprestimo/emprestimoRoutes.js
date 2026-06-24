@@ -1,8 +1,8 @@
 import express from 'express';
-import AuthMiddleware from '../middlewares/AuthMiddleware.js';
-import AuthPermission from '../middlewares/AuthPermission.js';
-import EmprestimoController from '../controllers/EmprestimoController.js';
-import { asyncWrapper } from '../utils/helpers/index.js';
+import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthPermission from '../../middlewares/AuthPermission.js';
+import EmprestimoController from './EmprestimoController.js';
+import { asyncWrapper } from '../../utils/helpers/index.js';
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import EmprestimoFilterBuilder from './filters/EmprestimoFilterBuilder.js';
-import EmprestimoModel from '../models/Emprestimo.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
+import EmprestimoModel from './EmprestimoModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class EmprestimoRepository {
   constructor({ emprestimoModel = EmprestimoModel } = {}) {
@@ -164,6 +164,7 @@ class EmprestimoRepository {
       status: this.calcularStatus(objeto),
     };
   }
+
   async atualizar(id, payload) {
     const emprestimo = await this.model.findOne({ _id: id, ativo: true });
 

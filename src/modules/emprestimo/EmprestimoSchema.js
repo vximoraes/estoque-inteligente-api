@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import objectIdSchema from './ObjectIdSchema.js';
+import { objectIdSchema } from '../../shared/utils/commonFields.js';
 
 const quantidadeSchema = z
   .union([z.string(), z.number()])
