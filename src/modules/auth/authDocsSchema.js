@@ -1,4 +1,4 @@
-import { generateExample } from '../utils/schemaGenerate.js';
+import { generateExample } from '../../docs/utils/schemaGenerate.js';
 
 const authSchemas = {
   // Schema para login de usuário

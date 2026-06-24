@@ -3,7 +3,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import getSwaggerOptions from '../docs/config/head.js';
 import logRoutes from '../middlewares/LogRoutesMiddleware.js';
-import auth from './authRoutes.js';
+import auth from '../modules/auth/authRoutes.js';
 import usuarios from '../modules/usuario/usuarioRoutes.js';
 import categorias from '../modules/categoria/categoriaRoutes.js';
 import localizacoes from '../modules/localizacao/localizacaoRoutes.js';

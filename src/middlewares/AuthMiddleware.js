@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import AuthenticationError from '../utils/errors/AuthenticationError.js';
 import TokenExpiredError from '../utils/errors/TokenExpiredError.js';
 import { CustomError } from '../utils/helpers/index.js';
-import AuthService from '../services/AuthService.js';
+import AuthService from '../modules/auth/AuthService.js';
 
 class AuthMiddleware {
   constructor() {

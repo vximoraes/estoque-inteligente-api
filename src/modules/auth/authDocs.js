@@ -1,4 +1,4 @@
-import commonResponses from '../schemas/swaggerCommonResponses.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
 
 const authPaths = {
   '/login': {

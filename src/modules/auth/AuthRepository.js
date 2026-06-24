@@ -1,6 +1,6 @@
-import UsuarioModel from '../modules/usuario/UsuarioModel.js';
-import RotaModel from '../modules/rota/RotaModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import UsuarioModel from '../usuario/UsuarioModel.js';
+import RotaModel from '../rota/RotaModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class AuthRepository {
   constructor({ usuarioModel = UsuarioModel, rotaModel = RotaModel } = {}) {

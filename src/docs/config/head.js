@@ -1,4 +1,4 @@
-import authSchemas from '../schemas/authSchema.js';
+import authSchemas from '../../modules/auth/authDocsSchema.js';
 import usuariosSchemas from '../../modules/usuario/usuarioDocsSchema.js';
 import categoriasSchemas from '../../modules/categoria/categoriaDocsSchema.js';
 import itensSchemas from '../../modules/item/itemDocsSchema.js';
@@ -12,7 +12,7 @@ import emprestimosSchemas from '../../modules/emprestimo/emprestimoDocsSchema.js
 import gruposSchemas from '../../modules/grupo/grupoDocsSchema.js';
 import rotasSchemas from '../../modules/rota/rotaDocsSchema.js';
 import usuariosPaths from '../../modules/usuario/usuarioDocs.js';
-import authPaths from '../paths/auth.js';
+import authPaths from '../../modules/auth/authDocs.js';
 import categoriasPaths from '../../modules/categoria/categoriaDocs.js';
 import itensPaths from '../../modules/item/itemDocs.js';
 import fornecedoresPaths from '../../modules/fornecedor/fornecedorDocs.js';
