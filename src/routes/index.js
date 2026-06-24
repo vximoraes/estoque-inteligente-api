@@ -17,7 +17,7 @@ import emprestimos from '../modules/emprestimo/emprestimoRoutes.js';
 import grupos from '../modules/grupo/grupoRoutes.js';
 import rotas from '../modules/rota/rotaRoutes.js';
 import mcpRoutes from './mcpRoutes.js';
-import iaRoutes from './iaRoutes.js';
+import iaRoutes from '../modules/ia/iaRoutes.js';
 
 import dotenv from 'dotenv';
 

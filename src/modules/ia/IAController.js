@@ -1,7 +1,7 @@
-import ConversaModel, { MAX_MENSAGENS } from '../models/Conversa.js';
-import { processarMensagem } from '../services/IAService.js';
-import { CustomError, CommonResponse } from '../utils/helpers/index.js';
-import logger from '../utils/logger.js';
+import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
+import { processarMensagem } from './IAService.js';
+import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
+import logger from '../../utils/logger.js';
 
 const MAX_CONTENT_LENGTH = 2000;
 

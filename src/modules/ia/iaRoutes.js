@@ -1,8 +1,8 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import AuthMiddleware from '../middlewares/AuthMiddleware.js';
-import { asyncWrapper } from '../utils/helpers/index.js';
-import IAController from '../controllers/IAController.js';
+import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import { asyncWrapper } from '../../utils/helpers/index.js';
+import IAController from './IAController.js';
 
 const router = express.Router();
 
