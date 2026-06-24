@@ -15,8 +15,8 @@
 | 4 | `orcamento` | ✅ Concluído | `af545ed` |
 | 5 | `estoque` | ✅ Concluído | `c30a364` |
 | 6 | `localizacao` | ✅ Concluído | `3841cb7` |
-| 7+8 | `categoria` + `item` | ⏳ Próximo (juntos) | — |
-| 9 | `movimentacao` | ⬜ Pendente | — |
+| 7+8 | `categoria` + `item` | ✅ Concluído | `5de35c3` |
+| 9 | `movimentacao` | ⏳ Próximo | — |
 | 10 | `emprestimo` | ⬜ Pendente | — |
 | 11 | `grupo` | ⬜ Pendente | — |
 | 12 | `usuario` | ⬜ Pendente | — |
@@ -95,6 +95,6 @@
 ## Como retomar
 
 1. Branch: `git checkout 6-migrar-arquitetura-da-api-para-modulos`
-2. Próximos módulos: **`categoria` + `item`** (juntos, referência mútua — Item.categoria → CategoriaModel)
+2. Próximo módulo: **`movimentacao`** (depende de ItemModel + EstoqueModel — ambos já migrados; MovimentacaoModel ainda em `src/models/`)
 3. Seguir checklist de 11 passos em `docs/migracao-modulos.md`
 4. Atualizar a tabela de progresso acima após cada módulo
