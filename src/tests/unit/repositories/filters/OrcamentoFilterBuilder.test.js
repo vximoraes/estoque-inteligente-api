@@ -1,4 +1,4 @@
-import OrcamentoFilterBuilder from '../../../../repositories/filters/OrcamentoFilterBuilder.js';
+import OrcamentoFilterBuilder from '../../../../modules/orcamento/OrcamentoFilterBuilder.js';
 
 describe('OrcamentoFilterBuilder', () => {
   it('build deve retornar objeto vazio por padrão', () => {

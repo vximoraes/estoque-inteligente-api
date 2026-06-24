@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import Orcamento from '../../../models/Orcamento.js';
+import Orcamento from '../../../modules/orcamento/OrcamentoModel.js';
 
 let mongoServer;
 

@@ -1,4 +1,4 @@
-import OrcamentoRepository from '../../../repositories/OrcamentoRepository.js';
+import OrcamentoRepository from '../../../modules/orcamento/OrcamentoRepository.js';
 
 function MockModel(data) {
   Object.assign(this, data);

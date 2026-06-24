@@ -3,7 +3,7 @@ import {
   ItemOrcamentoSchema,
   OrcamentoUpdateSchema,
   ItemOrcamentoUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/OrcamentoSchema.js';
+} from '../../../../../../modules/orcamento/OrcamentoSchema.js';
 
 describe('OrcamentoSchema', () => {
   it('valida orçamento válido', () => {

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
 import removeFieldsRecursively from '../../utils/swagger_utils/removeFields.js';
-import Orcamento from '../../models/Orcamento.js';
-import { deepCopy, generateExample } from '../utils/schemaGenerate.js';
+import Orcamento from './OrcamentoModel.js';
+import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 

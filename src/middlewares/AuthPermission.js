@@ -2,7 +2,7 @@
 
 import jwt from 'jsonwebtoken';
 import PermissionService from '../services/PermissionService.js';
-import Rota from '../models/Rota.js';
+import Rota from '../modules/rota/RotaModel.js';
 import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
 
 // Certifique-se de que as variáveis de ambiente estejam carregadas

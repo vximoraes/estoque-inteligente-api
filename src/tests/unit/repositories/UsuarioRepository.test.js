@@ -1,10 +1,10 @@
 import UsuarioRepository from '../../../repositories/UsuarioRepository.js';
 import UsuarioModel from '../../../models/Usuario.js';
-import NotificacaoModel from '../../../models/Notificacao.js';
+import NotificacaoModel from '../../../modules/notificacao/NotificacaoModel.js';
 import { messages, CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../models/Usuario.js');
-jest.mock('../../../models/Notificacao.js');
+jest.mock('../../../modules/notificacao/NotificacaoModel.js');
 
 const makeFakeUser = (overrides = {}) => ({
   _id: 'user123',

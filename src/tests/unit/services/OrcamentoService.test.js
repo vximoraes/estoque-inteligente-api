@@ -1,8 +1,8 @@
-import OrcamentoService from '../../../services/OrcamentoService.js';
-import OrcamentoRepository from '../../../repositories/OrcamentoRepository.js';
+import OrcamentoService from '../../../modules/orcamento/OrcamentoService.js';
+import OrcamentoRepository from '../../../modules/orcamento/OrcamentoRepository.js';
 import { CustomError } from '../../../utils/helpers/CustomError.js';
 
-jest.mock('../../../repositories/OrcamentoRepository.js');
+jest.mock('../../../modules/orcamento/OrcamentoRepository.js');
 
 describe('OrcamentoService', () => {
   let service, repository;

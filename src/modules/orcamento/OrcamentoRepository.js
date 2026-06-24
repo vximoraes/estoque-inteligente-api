@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import OrcamentoFilterBuilder from './filters/OrcamentoFilterBuilder.js';
-import OrcamentoModel from '../models/Orcamento.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import OrcamentoFilterBuilder from './OrcamentoFilterBuilder.js';
+import OrcamentoModel from './OrcamentoModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class OrcamentoRepository {
   constructor({ orcamentoModel = OrcamentoModel } = {}) {
@@ -201,11 +201,8 @@ class OrcamentoRepository {
     return orcamento;
   }
 
-  // Métodos auxiliares.
-
   async buscarPorId(id, includeTokens = false, req) {
     const query = this.model.findOne({ _id: id, ativo: true });
-
     const orcamento = await query;
     if (!orcamento) {
       throw new CustomError({

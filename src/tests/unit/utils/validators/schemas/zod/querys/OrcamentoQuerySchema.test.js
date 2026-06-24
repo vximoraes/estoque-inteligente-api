@@ -1,4 +1,4 @@
-import { OrcamentoQuerySchema } from '../../../../../../../utils/validators/schemas/zod/querys/OrcamentoQuerySchema.js';
+import { OrcamentoQuerySchema } from '../../../../../../../modules/orcamento/OrcamentoQuerySchema.js';
 
 describe('OrcamentoQuerySchema', () => {
   it('valida query vazia (default)', () => {

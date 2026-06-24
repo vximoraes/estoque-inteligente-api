@@ -1,17 +1,17 @@
-import OrcamentoService from '../services/OrcamentoService.js';
+import OrcamentoService from './OrcamentoService.js';
 import {
   OrcamentoQuerySchema,
   OrcamentoIdSchema,
-} from '../utils/validators/schemas/zod/querys/OrcamentoQuerySchema.js';
+} from './OrcamentoQuerySchema.js';
 import {
   OrcamentoSchema,
   OrcamentoUpdateSchema,
   ItemOrcamentoSchema,
   ItemOrcamentoUpdateSchema,
-} from '../utils/validators/schemas/zod/OrcamentoSchema.js';
-import { CommonResponse, CustomError } from '../utils/helpers/index.js';
-import Item from '../models/Item.js';
-import Fornecedor from '../models/Fornecedor.js';
+} from './OrcamentoSchema.js';
+import { CommonResponse, CustomError } from '../../utils/helpers/index.js';
+import Item from '../../models/Item.js';
+import Fornecedor from '../fornecedor/FornecedorModel.js';
 
 class OrcamentoController {
   constructor() {

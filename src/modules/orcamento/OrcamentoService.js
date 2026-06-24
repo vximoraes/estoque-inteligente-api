@@ -1,5 +1,5 @@
-import OrcamentoRepository from '../repositories/OrcamentoRepository.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import OrcamentoRepository from './OrcamentoRepository.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class OrcamentoService {
   constructor() {
@@ -9,41 +9,31 @@ class OrcamentoService {
   async criar(parsedData, req) {
     parsedData.usuario = req.user_id;
     const data = await this.repository.criar(parsedData);
-
     return data;
   }
 
   async listar(req) {
     const data = await this.repository.listar(req);
-
     return data;
   }
 
   async atualizar(id, parsedData, req) {
     await this.ensureBudgetExists(id, req);
-
     const data = await this.repository.atualizar(id, parsedData, req);
-
     return data;
   }
 
   async deletar(id, req) {
     await this.ensureBudgetExists(id, req);
-
     const data = await this.repository.deletar(id, req);
-
     return data;
   }
 
   async inativar(id, req) {
     await this.ensureBudgetExists(id, req);
-
     const data = await this.repository.atualizar(id, { ativo: false }, req);
-
     return data;
   }
-
-  // Manipular itens.
 
   async adicionarItem(orcamentoId, novoItem, req) {
     return await this.repository.adicionarItem(orcamentoId, novoItem, req);
@@ -75,8 +65,6 @@ class OrcamentoService {
 
     return comp || null;
   }
-
-  // Métodos auxiliares.
 
   async ensureBudgetExists(id, req) {
     const orcamentoExistente = await this.repository.buscarPorId(
