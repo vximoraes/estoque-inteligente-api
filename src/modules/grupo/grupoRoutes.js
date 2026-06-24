@@ -1,12 +1,12 @@
 import express from 'express';
-import AuthMiddleware from '../middlewares/AuthMiddleware.js';
-import AuthPermission from '../middlewares/AuthPermission.js';
-import GrupoController from '../controllers/GrupoController.js';
-import { asyncWrapper } from '../utils/helpers/index.js';
+import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthPermission from '../../middlewares/AuthPermission.js';
+import GrupoController from './GrupoController.js';
+import { asyncWrapper } from '../../utils/helpers/index.js';
 
 const router = express.Router();
 
-const grupoController = new GrupoController(); // Instância da classe
+const grupoController = new GrupoController();
 
 router
   .get(
@@ -51,4 +51,5 @@ router
     AuthPermission,
     asyncWrapper(grupoController.deletar.bind(grupoController)),
   );
+
 export default router;

@@ -1,7 +1,5 @@
-//src/utils/validators/schemas/zod/grupoSchema.js
-
 import { z } from 'zod';
-import { RotaSchema } from './RotaSchema.js';
+import { RotaSchema } from '../rota/RotaSchema.js';
 
 const GrupoSchema = z.object({
   nome: z.string().min(1, 'O campo nome é obrigatório.'),

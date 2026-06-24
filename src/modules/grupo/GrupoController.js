@@ -1,18 +1,18 @@
-import GrupoService from '../services/GrupoService.js';
+import GrupoService from './GrupoService.js';
 import {
   CommonResponse,
   CustomError,
   HttpStatusCodes,
-} from '../utils/helpers/index.js';
+} from '../../utils/helpers/index.js';
 import {
   GrupoQuerySchema,
   GrupoIdSchema,
-} from '../utils/validators/schemas/zod/querys/GrupoQuerySchema.js';
+} from './GrupoQuerySchema.js';
 import {
   GrupoSchema,
   GrupoUpdateSchema,
-} from '../utils/validators/schemas/zod/GrupoSchema.js';
-import ObjectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
+} from './GrupoSchema.js';
+import ObjectIdSchema from '../../utils/validators/schemas/zod/ObjectIdSchema.js';
 
 class GrupoController {
   constructor() {

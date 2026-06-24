@@ -1,11 +1,11 @@
-import GrupoRepository from '../repositories/GrupoRepository.js';
-import UsuarioRepository from '../repositories/UsuarioRepository.js';
-import RotaRepository from '../repositories/RotaRepository.js';
+import GrupoRepository from './GrupoRepository.js';
+import UsuarioRepository from '../../repositories/UsuarioRepository.js';
+import RotaRepository from '../rota/RotaRepository.js';
 import {
   CustomError,
   HttpStatusCodes,
   messages,
-} from '../utils/helpers/index.js';
+} from '../../utils/helpers/index.js';
 
 class GrupoService {
   constructor() {
@@ -58,6 +58,7 @@ class GrupoService {
     const data = await this.repository.atualizar(id, parsedData);
     return data;
   }
+
   async deletar(id, user) {
     await this.repository.buscarPorId(id);
     await this.verificarGrupo(user, id);
@@ -80,6 +81,7 @@ class GrupoService {
       }
     }
   }
+
   async adicionarRota(idGrupo, idRota) {
     const grupo = await this.repository.buscarPorId(idGrupo);
     if (!grupo) {

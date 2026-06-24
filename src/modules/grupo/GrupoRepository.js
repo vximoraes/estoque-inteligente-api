@@ -1,10 +1,10 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 
-import GrupoModel from '../models/Grupo.js';
-import UsuarioModel from '../models/Usuario.js';
-import RotaModel from '../modules/rota/RotaModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
-import GrupoFilterBuilder from './filters/GrupoFilterBuilder.js';
+import GrupoModel from './GrupoModel.js';
+import UsuarioModel from '../../models/Usuario.js';
+import RotaModel from '../rota/RotaModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
+import GrupoFilterBuilder from './GrupoFilterBuilder.js';
 
 class GrupoRepository {
   constructor({
@@ -19,9 +19,6 @@ class GrupoRepository {
     this.customError = customError;
   }
 
-  /**
-   * Verificar se há permissões duplicadas na requisição.
-   */
   async obterParesRotaDominioUnicos(permissoes) {
     const combinacoes = permissoes.map(
       (p) => `${p.rota}_${p.dominio || 'undefined'}`,
@@ -33,9 +30,6 @@ class GrupoRepository {
     });
   }
 
-  /**
-   * Obter permissões duplicadas na requisição.
-   */
   obterPermissoesDuplicadas(permissoes, combinacoesRecebidas) {
     const combinacoes = permissoes.map(
       (permissao) => `${permissao.rota}_${permissao.dominio}`,
@@ -59,30 +53,18 @@ class GrupoRepository {
     return uniqueDuplicates;
   }
 
-  /**
-   * Buscar grupo por nome e, opcionalmente, por um ID diferente.
-   */
   async buscarPorNome(nome, idIgnorado = null) {
-    // Criar o filtro base
     const filtro = { nome };
 
-    // Adicionar a condição para excluir o ID, se fornecido
     if (idIgnorado) {
-      filtro._id = { $ne: idIgnorado }; // Adiciona a condição _id != idIgnorado
+      filtro._id = { $ne: idIgnorado };
     }
 
-    // Consultar o documento no banco de dados
     const documento = await this.model.findOne(filtro);
 
-    // Retornar o documento encontrado
     return documento;
   }
 
-  /**
-   * Método buscar por ID - Deve ser chamado por controllers ou services.
-   * para retornar um usuário e ser utilizado em outras funções de validação
-   * cujo listar não atende por exigir req.
-   */
   async buscarPorId(id) {
     const group = await this.model.findById(id);
     if (!group) {
@@ -97,13 +79,7 @@ class GrupoRepository {
     return group;
   }
 
-  /** Método buscar por permissão
-   * para saber se a permissão existe no cadastrado de rotas e domínios
-   * O método deve buscar combinando rota e domínio
-   */
   async buscarPorPermissao(permissoes) {
-    // find recursivo lendo um array de objetos de permissão,
-    // Mapear as permissões para combinar rota e domínio
     const query = permissoes.map((p) => ({
       rota: p.rota,
       dominio: p.dominio || null,
@@ -113,9 +89,6 @@ class GrupoRepository {
     return rotasEncontradas;
   }
 
-  /**
-   * Método listar grupo tanto com filtro quanto sem filtro ou por ID, caso seja passado
-   */
   async listar(req) {
     try {
       const id = req.params.id || null;
@@ -133,7 +106,6 @@ class GrupoRepository {
           });
         }
 
-        // Utilizando o length dos arrays
         const totalPermissoes = data.permissoes ? data.permissoes.length : 0;
 
         const dataWithStats = {
@@ -146,23 +118,18 @@ class GrupoRepository {
         return data;
       }
 
-      // Extrair os filtros da query
       const { nome, descricao, ativo = 'true', page = 1 } = req.query;
 
-      // Garantir que o limite não ultrapasse 100
       const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
 
-      // Usar o GrupoFilterBuilder injetado para construir os filtros
       const filterBuilder = new GrupoFilterBuilder()
         .comNome(nome || '')
         .comDescricao(descricao || '')
         .comAtivo(ativo || '');
 
-      // Agora sim construir os filtros
       const filtros = filterBuilder.build();
       console.log('Filtros construídos:', filtros);
 
-      // Configurar a paginação
       const options = {
         page: parseInt(page),
         limit: parseInt(limite),
@@ -173,7 +140,6 @@ class GrupoRepository {
       const resultado = await this.model.paginate(filtros, options);
       console.log('Resultado da paginação:', resultado);
 
-      // Enriquecer cada usuário com estatísticas utilizando o length dos arrays
       resultado.docs = resultado.docs.map((doc) => {
         const grupoObj =
           typeof doc.toObject === 'function' ? doc.toObject() : doc;
@@ -193,11 +159,9 @@ class GrupoRepository {
       return resultado;
     } catch (error) {
       console.error('Erro ao listar grupos:', error);
-      // Verificar se o erro já possui uma propriedade 'statusCode'
       if (error.statusCode) {
         throw error;
       }
-      // Caso contrário, lançar um erro interno do servidor
       throw new this.customError({
         statusCode: 500,
         errorType: 'internalServerError',
@@ -208,17 +172,12 @@ class GrupoRepository {
     }
   }
 
-  /**
-   * Verificar se há usuários associados ao grupo.
-   * @param {String} id - ID do grupo.
-   * @returns {Boolean} - true se houver usuários associados, false caso contrário.
-   */
   async verificarUsuariosAssociados(id) {
     try {
       const usuariosAssociados = await this.usuarioModel.findOne({
         grupos: id,
       });
-      return usuariosAssociados; // Retorna true se houver usuários, false caso contrário
+      return usuariosAssociados;
     } catch (error) {
       console.error('Erro ao verificar usuários associados:', error);
       throw new this.customError({
@@ -231,13 +190,11 @@ class GrupoRepository {
     }
   }
 
-  // Método criar grupo
   async criar(parsedData) {
     const grupo = new this.model(parsedData);
     return await grupo.save();
   }
 
-  // Método atualizar grupo
   async atualizar(id, parsedData) {
     try {
       const grupo = await this.model.findByIdAndUpdate(id, parsedData, {
@@ -256,11 +213,9 @@ class GrupoRepository {
       return grupo;
     } catch (error) {
       console.error('Erro ao atualizar grupo:', error);
-      // Verificar se o erro já possui uma propriedade 'statusCode'
       if (error.statusCode) {
         throw error;
       }
-      // Caso contrário, lançar um erro interno do servidor
       throw new this.customError({
         statusCode: 500,
         errorType: 'internalServerError',
@@ -271,9 +226,6 @@ class GrupoRepository {
     }
   }
 
-  /**
-   * Método deletar grupo.
-   */
   async deletar(id) {
     try {
       const grupoDeletado = await this.model.findByIdAndDelete(id);
@@ -290,11 +242,9 @@ class GrupoRepository {
       return grupoDeletado;
     } catch (error) {
       console.error('Erro ao deletar grupo:', error);
-      // Verificar se o erro já possui uma propriedade 'statusCode'
       if (error.statusCode) {
         throw error;
       }
-      // Caso contrário, lançar um erro interno do servidor
       throw new this.customError({
         statusCode: 500,
         errorType: 'internalServerError',
@@ -304,6 +254,7 @@ class GrupoRepository {
       });
     }
   }
+
   async adiciotarRota(id, rota) {
     try {
       const grupo = await this.model.findById(id);
@@ -313,11 +264,9 @@ class GrupoRepository {
       return data;
     } catch (error) {
       console.error('Erro ao adicionar rota:', error);
-      // Verificar se o erro já possui uma propriedade 'statusCode'
       if (error.statusCode) {
         throw error;
       }
-      // Caso contrário, lançar um erro interno do servidor
       throw new this.customError({
         statusCode: 500,
         errorType: 'internalServerError',

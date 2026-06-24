@@ -27,7 +27,6 @@ class Grupo {
       },
     );
 
-    // rota + dominio devem ser únicos dentro do mesmo grupo
     grupoSchema.pre('save', function (next) {
       const permissoes = this.permissoes;
       const combinacoes = permissoes.map((p) => `${p.rota}_${p.dominio}`);

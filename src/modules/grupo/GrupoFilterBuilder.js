@@ -25,8 +25,7 @@ class GrupoFilterBuilder {
     } else if (ativo === 'false') {
       this.filtros.ativo = false;
     } else {
-      // Ação executável mínima para cobertura
-      this.filtros.ativo = this.filtros.ativo; // No-op
+      this.filtros.ativo = this.filtros.ativo;
     }
     return this;
   }
