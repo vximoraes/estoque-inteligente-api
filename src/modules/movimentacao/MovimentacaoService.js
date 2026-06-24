@@ -1,7 +1,7 @@
-import MovimentacaoRepository from '../repositories/MovimentacaoRepository.js';
-import Item from '../modules/item/ItemModel.js';
-import Estoque from '../modules/estoque/EstoqueModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import MovimentacaoRepository from './MovimentacaoRepository.js';
+import Item from '../item/ItemModel.js';
+import Estoque from '../estoque/EstoqueModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class MovimentacaoService {
   constructor() {

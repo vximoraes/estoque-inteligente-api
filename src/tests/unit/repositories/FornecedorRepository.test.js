@@ -1,10 +1,10 @@
 import FornecedorRepository from '../../../modules/fornecedor/FornecedorRepository.js';
 import FornecedorModel from '../../../modules/fornecedor/FornecedorModel.js';
-import MovimentacaoModel from '../../../models/Movimentacao.js';
+import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.js';
 import { messages, CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../../../modules/fornecedor/FornecedorModel.js');
-jest.mock('../../../models/Movimentacao.js');
+jest.mock('../../../modules/movimentacao/MovimentacaoModel.js');
 
 const mockFornecedor = {
   save: jest.fn(),

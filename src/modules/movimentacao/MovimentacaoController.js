@@ -1,10 +1,10 @@
-import MovimentacaoService from '../services/MovimentacaoService.js';
+import MovimentacaoService from './MovimentacaoService.js';
 import {
   MovimentacaoQuerySchema,
   MovimentacaoIdSchema,
-} from '../utils/validators/schemas/zod/querys/MovimentacaoQuerySchema.js';
-import { MovimentacaoSchema } from '../utils/validators/schemas/zod/MovimentacaoSchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+} from './MovimentacaoQuerySchema.js';
+import { MovimentacaoSchema } from './MovimentacaoSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class MovimentacaoController {
   constructor() {

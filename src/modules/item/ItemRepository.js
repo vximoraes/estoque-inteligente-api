@@ -1,7 +1,7 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import ItemFilterBuilder from './ItemFilterBuilder.js';
 import ItemModel from './ItemModel.js';
-import MovimentacaoModel from '../../models/Movimentacao.js';
+import MovimentacaoModel from '../movimentacao/MovimentacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class ItemRepository {

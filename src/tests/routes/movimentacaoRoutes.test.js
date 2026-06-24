@@ -1,7 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import '../../../src/routes/movimentacaoRoutes.js';
+import '../../modules/movimentacao/movimentacaoRoutes.js';
 
 dotenv.config();
 

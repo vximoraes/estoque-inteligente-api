@@ -1,13 +1,13 @@
-import MovimentacaoController from '../../../controllers/MovimentacaoController.js';
-import MovimentacaoService from '../../../services/MovimentacaoService.js';
+import MovimentacaoController from '../../../modules/movimentacao/MovimentacaoController.js';
+import MovimentacaoService from '../../../modules/movimentacao/MovimentacaoService.js';
 import {
   MovimentacaoQuerySchema,
   MovimentacaoIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/MovimentacaoQuerySchema.js';
+} from '../../../modules/movimentacao/MovimentacaoQuerySchema.js';
 import {
   MovimentacaoSchema,
   MovimentacaoUpdateSchema,
-} from '../../../utils/validators/schemas/zod/MovimentacaoSchema.js';
+} from '../../../modules/movimentacao/MovimentacaoSchema.js';
 import {
   CommonResponse,
   CustomError,
@@ -15,11 +15,11 @@ import {
 } from '../../../utils/helpers/index.js';
 
 jest.mock(
-  '../../../utils/validators/schemas/zod/querys/MovimentacaoQuerySchema.js',
+  '../../../modules/movimentacao/MovimentacaoQuerySchema.js',
 );
-jest.mock('../../../utils/validators/schemas/zod/MovimentacaoSchema.js');
+jest.mock('../../../modules/movimentacao/MovimentacaoSchema.js');
 
-jest.mock('../../../services/MovimentacaoService.js');
+jest.mock('../../../modules/movimentacao/MovimentacaoService.js');
 
 describe('MovimentacaoController', () => {
   let controller;

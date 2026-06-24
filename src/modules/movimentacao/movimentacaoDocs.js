@@ -1,6 +1,6 @@
-import movimentacoesSchemas from '../schemas/movimentacaoSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import movimentacoesSchemas from './movimentacaoDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const movimentacoesRoutes = {
   '/movimentacoes': {
@@ -9,7 +9,7 @@ const movimentacoesRoutes = {
       summary: 'Registra uma nova movimentação',
       description: `
             + Caso de uso: Registrar movimentação de um item (entrada ou saída).
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado registrar entrada ou saída de itens do estoque.
                 + Recebe no corpo da requisição:
@@ -51,23 +51,23 @@ const movimentacoesRoutes = {
       summary: 'Lista todas as movimentações',
       description: `
         + Caso de uso: Listagem de movimentações para controle de estoque e auditoria.
-        
+
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de movimentações registradas.
             + Recebe como query parameters (opcionais):
-                • filtros: tipo, data, item, fornecedor, quantidade.  
+                • filtros: tipo, data, item, fornecedor, quantidade.
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.  
-            - Respeitar as permissões do usuário autenticado.  
+            - Validar formatos e valores dos filtros fornecidos.
+            - Respeitar as permissões do usuário autenticado.
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
             - Retorna movimentações populadas com dados de item e fornecedor.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **MovimentacaoListagem**, contendo:
-                • **data**: array de movimentações.  
+                • **data**: array de movimentações.
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
       security: [{ bearerAuth: [] }],
@@ -123,7 +123,7 @@ const movimentacoesRoutes = {
       summary: 'Obtém detalhes de uma movimentação',
       description: `
             + Caso de uso: Consulta de detalhes de movimentação específica.
-            
+
             + Função de Negócio:
                 - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma movimentação registrada.
                 + Recebe como path parameter:
@@ -131,7 +131,7 @@ const movimentacoesRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência da movimentação.  
+                - Verificar existência da movimentação.
                 - Retorna movimentação populada com dados de item e fornecedor.
                 - Checar permissões do solicitante para visualizar dados.
 

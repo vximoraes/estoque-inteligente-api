@@ -1,6 +1,6 @@
-import MovimentacaoModel from '../../models/Movimentacao.js';
-import Item from '../../modules/item/ItemModel.js';
-import Localizacao from '../../modules/localizacao/LocalizacaoModel.js';
+import MovimentacaoModel from './MovimentacaoModel.js';
+import Item from '../item/ItemModel.js';
+import Localizacao from '../localizacao/LocalizacaoModel.js';
 import mongoose from 'mongoose';
 const { Types } = mongoose;
 
@@ -39,22 +39,18 @@ class MovimentacaoFilterBuilder {
   async comItem(item) {
     if (item) {
       if (Types.ObjectId.isValid(item)) {
-        // Se já for um ObjectId, faz o populate direto.
         this.filtros.item = item;
         const itemEncontrado = await Item.findById(item);
         if (!itemEncontrado) {
-          // Caso não exista, força a busca "vazia".
           this.filtros.item = { $in: [] };
         }
       } else {
-        // Se for string.
         const itemEncontrado = await Item.findOne({
           nome: { $regex: item, $options: 'i' },
         });
         if (itemEncontrado) {
           this.filtros.item = itemEncontrado._id;
         } else {
-          // Força a busca "vazia".
           this.filtros.item = { $in: [] };
         }
       }
@@ -65,22 +61,18 @@ class MovimentacaoFilterBuilder {
   async comLocalizacao(localizacao) {
     if (localizacao) {
       if (Types.ObjectId.isValid(localizacao)) {
-        // Se já for um ObjectId, faz o populate direto.
         this.filtros.localizacao = localizacao;
         const localizacaoEncontrada = await Localizacao.findById(localizacao);
         if (!localizacaoEncontrada) {
-          // Caso não exista, força a busca "vazia".
           this.filtros.localizacao = { $in: [] };
         }
       } else {
-        // Se for string.
         const localizacaoEncontrada = await Localizacao.findOne({
           nome: { $regex: localizacao, $options: 'i' },
         });
         if (localizacaoEncontrada) {
           this.filtros.localizacao = localizacaoEncontrada._id;
         } else {
-          // Força a busca "vazia".
           this.filtros.localizacao = { $in: [] };
         }
       }

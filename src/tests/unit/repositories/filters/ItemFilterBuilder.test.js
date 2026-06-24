@@ -18,7 +18,7 @@ jest.mock('../../../../modules/categoria/CategoriaModel.js', () => {
   };
 });
 
-jest.mock('../../../../models/Movimentacao.js', () => {
+jest.mock('../../../../modules/movimentacao/MovimentacaoModel.js', () => {
   return {
     exists: jest.fn(),
   };

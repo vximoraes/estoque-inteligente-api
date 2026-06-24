@@ -1,5 +1,5 @@
 import { fakeMappings } from './globalFakeMapping.js';
-import Movimentacao from '../models/Movimentacao.js';
+import Movimentacao from '../modules/movimentacao/MovimentacaoModel.js';
 import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 

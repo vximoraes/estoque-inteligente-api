@@ -1,4 +1,4 @@
-import MovimentacaoFilterBuilder from '../../../../repositories/filters/MovimentacaoFilterBuilder.js';
+import MovimentacaoFilterBuilder from '../../../../modules/movimentacao/MovimentacaoFilterBuilder.js';
 import mongoose from 'mongoose';
 
 jest.mock('../../../../modules/item/ItemModel.js', () => ({

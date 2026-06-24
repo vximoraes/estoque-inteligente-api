@@ -1,12 +1,12 @@
-import MovimentacaoService from '../../../services/MovimentacaoService.js';
-import MovimentacaoRepository from '../../../repositories/MovimentacaoRepository.js';
+import MovimentacaoService from '../../../modules/movimentacao/MovimentacaoService.js';
+import MovimentacaoRepository from '../../../modules/movimentacao/MovimentacaoRepository.js';
 import Item from '../../../modules/item/ItemModel.js';
 import Fornecedor from '../../../modules/fornecedor/FornecedorModel.js';
 import Estoque from '../../../modules/estoque/EstoqueModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 import mongoose from 'mongoose';
 
-jest.mock('../../../repositories/MovimentacaoRepository.js');
+jest.mock('../../../modules/movimentacao/MovimentacaoRepository.js');
 jest.mock('../../../modules/item/ItemModel.js');
 jest.mock('../../../modules/fornecedor/FornecedorModel.js');
 jest.mock('../../../modules/estoque/EstoqueModel.js');

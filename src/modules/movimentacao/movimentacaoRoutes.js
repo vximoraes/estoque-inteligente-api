@@ -1,8 +1,8 @@
 import express from 'express';
-import AuthMiddleware from '../middlewares/AuthMiddleware.js';
-import AuthPermission from '../middlewares/AuthPermission.js';
-import MovimentacaoController from '../controllers/MovimentacaoController.js';
-import { asyncWrapper } from '../utils/helpers/index.js';
+import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthPermission from '../../middlewares/AuthPermission.js';
+import MovimentacaoController from './MovimentacaoController.js';
+import { asyncWrapper } from '../../utils/helpers/index.js';
 
 const router = express.Router();
 

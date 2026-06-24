@@ -1,7 +1,7 @@
 import {
   MovimentacaoSchema,
   MovimentacaoUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/MovimentacaoSchema.js';
+} from '../../../../../../modules/movimentacao/MovimentacaoSchema.js';
 import { ZodError } from 'zod';
 
 describe('MovimentacaoSchema', () => {

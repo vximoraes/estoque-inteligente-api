@@ -10,7 +10,7 @@ import localizacoes from '../modules/localizacao/localizacaoRoutes.js';
 import itens from '../modules/item/itemRoutes.js';
 import estoques from '../modules/estoque/estoqueRoutes.js';
 import fornecedores from '../modules/fornecedor/fornecedorRoutes.js';
-import movimentacoes from './movimentacaoRoutes.js';
+import movimentacoes from '../modules/movimentacao/movimentacaoRoutes.js';
 import notificacoes from '../modules/notificacao/notificacaoRoutes.js';
 import orcamentos from '../modules/orcamento/orcamentoRoutes.js';
 import emprestimos from './emprestimoRoutes.js';

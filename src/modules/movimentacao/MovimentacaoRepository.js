@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import MovimentacaoFilterBuilder from './filters/MovimentacaoFilterBuilder.js';
-import MovimentacaoModel from '../models/Movimentacao.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import MovimentacaoFilterBuilder from './MovimentacaoFilterBuilder.js';
+import MovimentacaoModel from './MovimentacaoModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class MovimentacaoRepository {
   constructor({ movimentacaoModel = MovimentacaoModel } = {}) {
@@ -87,8 +87,6 @@ class MovimentacaoRepository {
 
     return resultado;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorId(id, includeTokens = false, req) {
     const query = this.model.findOne({ _id: id });

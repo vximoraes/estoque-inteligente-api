@@ -1,8 +1,8 @@
-jest.mock('../../../models/Movimentacao.js');
+jest.mock('../../../modules/movimentacao/MovimentacaoModel.js');
 
-import MovimentacaoRepository from '../../../repositories/MovimentacaoRepository.js';
+import MovimentacaoRepository from '../../../modules/movimentacao/MovimentacaoRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
-import MovimentacaoModel from '../../../models/Movimentacao.js';
+import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.js';
 
 class FakeFilterBuilder {
   constructor() {
@@ -92,7 +92,7 @@ describe('MovimentacaoRepository', () => {
     it('deve aplicar filtros de busca e retornar resultado paginado', async () => {
       jest.resetModules();
       jest.doMock(
-        '../../../repositories/filters/MovimentacaoFilterBuilder.js',
+        '../../../modules/movimentacao/MovimentacaoFilterBuilder.js',
         () => {
           return {
             __esModule: true,
@@ -101,7 +101,7 @@ describe('MovimentacaoRepository', () => {
         },
       );
       const { default: MovimentacaoRepositoryWithMocks } =
-        await import('../../../repositories/MovimentacaoRepository.js');
+        await import('../../../modules/movimentacao/MovimentacaoRepository.js');
       const paginateResult = {
         docs: [
           {
@@ -125,7 +125,7 @@ describe('MovimentacaoRepository', () => {
         pages: 1,
       };
       const MovimentacaoModelMocked = (
-        await import('../../../models/Movimentacao.js')
+        await import('../../../modules/movimentacao/MovimentacaoModel.js')
       ).default;
       MovimentacaoModelMocked.paginate = jest
         .fn()
@@ -144,7 +144,7 @@ describe('MovimentacaoRepository', () => {
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
       jest.doMock(
-        '../../../repositories/filters/MovimentacaoFilterBuilder.js',
+        '../../../modules/movimentacao/MovimentacaoFilterBuilder.js',
         () => {
           return {
             __esModule: true,
@@ -161,7 +161,7 @@ describe('MovimentacaoRepository', () => {
         },
       );
       const { default: MovimentacaoRepositoryWithMocks } =
-        await import('../../../repositories/MovimentacaoRepository.js');
+        await import('../../../modules/movimentacao/MovimentacaoRepository.js');
       const repo = new MovimentacaoRepositoryWithMocks({
         movimentacaoModel: MovimentacaoModel,
       });

@@ -1,7 +1,7 @@
 import {
   MovimentacaoQuerySchema,
   MovimentacaoIdSchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/MovimentacaoQuerySchema.js';
+} from '../../../../../../../modules/movimentacao/MovimentacaoQuerySchema.js';
 import { ZodError } from 'zod';
 import mongoose from 'mongoose';
 
