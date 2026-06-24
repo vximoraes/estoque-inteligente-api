@@ -1,7 +1,7 @@
 import { fakeMappings } from './globalFakeMapping.js';
-import Orcamento from '../models/Orcamento.js';
+import Orcamento from '../modules/orcamento/OrcamentoModel.js';
 import Item from '../models/Item.js';
-import Fornecedor from '../models/Fornecedor.js';
+import Fornecedor from '../modules/fornecedor/FornecedorModel.js';
 
 export default async function orcamentoSeed(adminId) {
   const itemList = await Item.find({});

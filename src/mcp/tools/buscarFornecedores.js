@@ -1,4 +1,4 @@
-import FornecedorModel from '../../models/Fornecedor.js';
+import FornecedorModel from '../../modules/fornecedor/FornecedorModel.js';
 
 export async function buscarFornecedores({ nome } = {}, _usuarioId) {
   const filtros = { ativo: true };

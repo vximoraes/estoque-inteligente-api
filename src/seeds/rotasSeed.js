@@ -1,4 +1,4 @@
-import Rota from '../models/Rota.js';
+import Rota from '../modules/rota/RotaModel.js';
 
 export default async function seedRotas() {
   await Rota.deleteMany();

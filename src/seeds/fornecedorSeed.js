@@ -1,5 +1,5 @@
 import { fakeMappings } from './globalFakeMapping.js';
-import Fornecedor from '../models/Fornecedor.js';
+import Fornecedor from '../modules/fornecedor/FornecedorModel.js';
 
 export default async function fornecedorSeed(adminId) {
   await Fornecedor.deleteMany({});
