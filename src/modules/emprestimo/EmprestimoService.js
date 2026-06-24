@@ -4,7 +4,7 @@ import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
 import Estoque from '../estoque/EstoqueModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
-import EmailService from '../../services/EmailService.js';
+import EmailService from '../../shared/services/EmailService.js';
 import EmprestimoModel from './EmprestimoModel.js';
 
 class EmprestimoService {

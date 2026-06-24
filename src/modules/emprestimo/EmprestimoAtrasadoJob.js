@@ -1,5 +1,5 @@
 import EmprestimoModel from './EmprestimoModel.js';
-import EmailService from '../../services/EmailService.js';
+import EmailService from '../../shared/services/EmailService.js';
 import logger from '../../utils/logger.js';
 
 const INTERVALO_MS = 60 * 60 * 1000;

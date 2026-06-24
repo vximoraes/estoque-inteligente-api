@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { CustomError, HttpStatusCodes } from '../utils/helpers/index.js';
+import { CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 
 class EmailService {
   constructor() {

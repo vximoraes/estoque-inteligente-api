@@ -1,7 +1,7 @@
 // middlewares/AuthPermission.js
 
 import jwt from 'jsonwebtoken';
-import PermissionService from '../services/PermissionService.js';
+import PermissionService from '../shared/services/PermissionService.js';
 import Rota from '../modules/rota/RotaModel.js';
 import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
 

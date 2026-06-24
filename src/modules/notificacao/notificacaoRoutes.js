@@ -3,7 +3,7 @@ import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
 import AuthPermission from '../../middlewares/AuthPermission.js';
 import NotificacaoController from './NotificacaoController.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
-import SSEService from '../../services/SSEService.js';
+import SSEService from '../../shared/services/SSEService.js';
 
 const router = express.Router();
 

@@ -1,8 +1,8 @@
-import Usuario from '../modules/usuario/UsuarioModel.js';
-import Grupo from '../modules/grupo/GrupoModel.js';
-import Rota from '../modules/rota/RotaModel.js';
-import UsuarioRepository from '../modules/usuario/UsuarioRepository.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import Usuario from '../../modules/usuario/UsuarioModel.js';
+import Grupo from '../../modules/grupo/GrupoModel.js';
+import Rota from '../../modules/rota/RotaModel.js';
+import UsuarioRepository from '../../modules/usuario/UsuarioRepository.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class PermissionService {
   constructor() {

@@ -9,7 +9,7 @@ import tokenUtil from '../../utils/TokenUtil.js';
 import AuthHelper from '../../utils/AuthHelper.js';
 
 import UsuarioRepository from '../usuario/UsuarioRepository.js';
-import EmailService from '../../services/EmailService.js';
+import EmailService from '../../shared/services/EmailService.js';
 
 class AuthService {
   constructor({ tokenUtil: injectedTokenUtil } = {}) {

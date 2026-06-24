@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
-import SSEService from '../../services/SSEService.js';
+import SSEService from '../../shared/services/SSEService.js';
 
 class Estoque {
   constructor() {
