@@ -10,11 +10,11 @@
 | # | Módulo | Status | Commit |
 |---|---|---|---|
 | 1 | `fornecedor` | ✅ Concluído | `6b2af69` |
-| 2 | `rota` | ⏳ Próximo | — |
-| 3 | `notificacao` | ⬜ Pendente | — |
-| 4 | `orcamento` | ⬜ Pendente | — |
-| 5 | `estoque` | ⬜ Pendente | — |
-| 6 | `localizacao` | ⬜ Pendente | — |
+| 2 | `rota` | ✅ Concluído | `a08c0b1` |
+| 3 | `notificacao` | ✅ Concluído | `aebf031` |
+| 4 | `orcamento` | ✅ Concluído | `af545ed` |
+| 5 | `estoque` | ✅ Concluído | `c30a364` |
+| 6 | `localizacao` | ⏳ Próximo | — |
 | 7+8 | `categoria` + `item` | ⬜ Pendente (juntos) | — |
 | 9 | `movimentacao` | ⬜ Pendente | — |
 | 10 | `emprestimo` | ⬜ Pendente | — |
@@ -84,9 +84,17 @@
 
 ---
 
+## Lições aprendidas (sessões anteriores)
+
+- **Efeito cascata ao deletar modelos**: ao remover `src/models/<X>.js`, atualizar imediatamente todos os arquivos que o importam — seeds, middlewares, services/repos não migrados, mcp tools, test files.
+- **Padrão cross-module**: usar `../../models/<Name>.js` para modelos NÃO migrados; `../<modulo>/<Name>Model.js` para modelos JÁ migrados.
+- **jest.mock() paths**: devem resolver para o mesmo caminho absoluto que o módulo sob teste usa. Calcular relativo ao arquivo de teste, não ao módulo.
+- **Testes em `src/tests/routes/`**: 2 níveis acima (`../../modules/`) para chegar em `src/modules/`. Não 3 níveis.
+- **Estoque sem FilterBuilder**: EstoqueRepository faz o filtro internamente (sem classe FilterBuilder separada).
+
 ## Como retomar
 
-1. Abrir esta branch: `git checkout 6-migrar-arquitetura-da-api-para-modulos`
-2. Próximo módulo: **`rota`** (sem cross-deps)
+1. Branch: `git checkout 6-migrar-arquitetura-da-api-para-modulos`
+2. Próximo módulo: **`localizacao`** (depende de EstoqueModel — já migrado ✅)
 3. Seguir checklist de 11 passos em `docs/migracao-modulos.md`
 4. Atualizar a tabela de progresso acima após cada módulo
