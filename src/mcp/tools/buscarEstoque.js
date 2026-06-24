@@ -1,4 +1,4 @@
-import EstoqueModel from '../../models/Estoque.js';
+import EstoqueModel from '../../modules/estoque/EstoqueModel.js';
 
 export async function buscarEstoque({ itemId, localizacaoId, limite = 20 }, _usuarioId) {
   const filtros = {};

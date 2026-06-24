@@ -1,5 +1,5 @@
 import LocalizacaoRepository from '../repositories/LocalizacaoRepository.js';
-import EstoqueModel from '../models/Estoque.js';
+import EstoqueModel from '../modules/estoque/EstoqueModel.js';
 import {
   CustomError,
   HttpStatusCodes,

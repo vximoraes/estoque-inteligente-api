@@ -1,5 +1,5 @@
+import { objectIdSchema } from '../../shared/utils/commonFields.js';
 import { z } from 'zod';
-import objectIdSchema from '../ObjectIdSchema.js';
 
 const EstoqueQuerySchema = z.object({
   item: objectIdSchema.optional(),

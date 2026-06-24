@@ -1,9 +1,9 @@
-import EstoqueService from '../services/EstoqueService.js';
+import EstoqueService from './EstoqueService.js';
 import {
   EstoqueQuerySchema,
   EstoqueIdSchema,
-} from '../utils/validators/schemas/zod/querys/EstoqueQuerySchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+} from './EstoqueQuerySchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class EstoqueController {
   constructor() {

@@ -1,6 +1,6 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import EstoqueModel from '../modules/estoque/EstoqueModel.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import EstoqueModel from './EstoqueModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class EstoqueRepository {
   constructor({ estoqueModel = EstoqueModel } = {}) {
@@ -120,8 +120,6 @@ class EstoqueRepository {
     await this.model.findOneAndDelete({ _id: id });
     return estoque;
   }
-
-  // Métodos auxiliares
 
   async buscarPorId(id, req) {
     const estoque = await this.model

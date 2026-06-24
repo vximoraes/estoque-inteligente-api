@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import mongooseSchemaJsonSchema from 'mongoose-schema-jsonschema';
-import Estoque from '../../models/Estoque.js';
+import Estoque from './EstoqueModel.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
@@ -72,7 +72,6 @@ const EstoqueUpdateRequest = {
   },
 };
 
-// Exemplos para documentação
 const EstoqueExemplo = {
   _id: '507f1f77bcf86cd799439011',
   quantidade: 150,

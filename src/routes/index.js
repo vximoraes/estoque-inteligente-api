@@ -8,7 +8,7 @@ import usuarios from './usuarioRoutes.js';
 import categorias from './categoriaRoutes.js';
 import localizacoes from './localizacaoRoutes.js';
 import itens from './itemRoutes.js';
-import estoques from './estoqueRoutes.js';
+import estoques from '../modules/estoque/estoqueRoutes.js';
 import fornecedores from '../modules/fornecedor/fornecedorRoutes.js';
 import movimentacoes from './movimentacaoRoutes.js';
 import notificacoes from '../modules/notificacao/notificacaoRoutes.js';

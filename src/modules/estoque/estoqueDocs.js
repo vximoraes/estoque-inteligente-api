@@ -5,20 +5,20 @@ export default {
       description: `
             **Funcionalidade:**
             - Permitir ao usuário autenticado listar todos os seus estoques com paginação e filtros.
-            
+
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado são retornados.
             - Suporte a filtros por item, localização e quantidade.
             - Resultados paginados com limite máximo de 100 itens por página.
             - Ordenação padrão por data de criação (mais recentes primeiro).
-            
+
             **Filtros disponíveis:**
             - item: ObjectId do item
-            - localizacao: ObjectId da localização  
+            - localizacao: ObjectId da localização
             - quantidade: Quantidade específica em estoque
             - page: Página atual (padrão: 1)
             - limite: Limite de itens por página (máximo: 100, padrão: 10)
-            
+
             **Casos de uso:** Visualização geral do estoque, busca por filtros específicos.
             `,
       tags: ['Estoque'],
@@ -99,20 +99,20 @@ export default {
       description: `
             **Funcionalidade:**
             - Permitir ao usuário autenticado listar todos os estoques que contêm um item específico.
-            
+
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado são retornados.
             - Filtrados automaticamente pelo itemId fornecido na URL.
             - Suporte a filtros adicionais por localização e quantidade.
             - Resultados paginados com limite máximo de 100 itens por página.
             - Ordenação padrão por data de criação (mais recentes primeiro).
-            
+
             **Filtros adicionais disponíveis:**
             - localizacao: ObjectId da localização
             - quantidade: Quantidade específica em estoque
             - page: Página atual (padrão: 1)
             - limite: Limite de itens por página (máximo: 100, padrão: 10)
-            
+
             **Casos de uso:** Verificar em quais localizações um item específico está armazenado e suas quantidades.
             `,
       tags: ['Estoque'],
@@ -195,12 +195,12 @@ export default {
       description: `
             **Funcionalidade:**
             - Permitir ao usuário autenticado buscar um estoque específico pelo seu ID.
-            
+
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado podem ser acessados.
             - Retorna erro 404 se o estoque não for encontrado ou não pertencer ao usuário.
             - Inclui dados completos do item e localização (populate).
-            
+
             **Casos de uso:** Visualizar detalhes específicos de um estoque, verificar dados para edição.
             `,
       tags: ['Estoque'],

@@ -1,6 +1,6 @@
 import MovimentacaoRepository from '../repositories/MovimentacaoRepository.js';
 import Item from '../models/Item.js';
-import Estoque from '../models/Estoque.js';
+import Estoque from '../modules/estoque/EstoqueModel.js';
 import { CustomError, messages } from '../utils/helpers/index.js';
 
 class MovimentacaoService {

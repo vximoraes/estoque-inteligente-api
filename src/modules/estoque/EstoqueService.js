@@ -1,4 +1,4 @@
-import EstoqueRepository from '../repositories/EstoqueRepository.js';
+import EstoqueRepository from './EstoqueRepository.js';
 
 class EstoqueService {
   constructor() {
@@ -7,19 +7,16 @@ class EstoqueService {
 
   async listar(req) {
     const data = await this.repository.listar(req);
-
     return data;
   }
 
   async buscarPorId(req) {
     const data = await this.repository.buscarPorId(req.params.id, req);
-
     return data;
   }
 
   async listarPorItem(req) {
     const data = await this.repository.listarPorItem(req);
-
     return data;
   }
 }

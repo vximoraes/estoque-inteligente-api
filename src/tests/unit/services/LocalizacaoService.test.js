@@ -1,11 +1,11 @@
 import LocalizacaoService from '../../../services/LocalizacaoService.js';
 import LocalizacaoRepository from '../../../repositories/LocalizacaoRepository.js';
-import EstoqueModel from '../../../models/Estoque.js';
+import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 import mongoose from 'mongoose';
 
 jest.mock('../../../repositories/LocalizacaoRepository.js');
-jest.mock('../../../models/Estoque.js');
+jest.mock('../../../modules/estoque/EstoqueModel.js');
 
 const makeLocalizacao = (props = {}) => ({
   _id: new mongoose.Types.ObjectId(),

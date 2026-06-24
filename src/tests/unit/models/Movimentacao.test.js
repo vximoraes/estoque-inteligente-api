@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Movimentacao from '../../../../src/models/Movimentacao.js';
 import Item from '../../../../src/models/Item.js';
 import Fornecedor from '../../../modules/fornecedor/FornecedorModel.js';
-import Estoque from '../../../../src/models/Estoque.js'; // Importar para registrar o modelo
+import Estoque from '../../../modules/estoque/EstoqueModel.js'; // Importar para registrar o modelo
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;
