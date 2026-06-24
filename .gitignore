@@ -141,3 +141,6 @@ minio-data/
 
 # Configmap
 *secret*
+
+# Docs
+docs/

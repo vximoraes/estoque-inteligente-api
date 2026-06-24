@@ -1,7 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import '../../../src/routes/categoriaRoutes.js';
+import '../../modules/categoria/categoriaRoutes.js';
 
 dotenv.config();
 

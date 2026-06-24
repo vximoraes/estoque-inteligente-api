@@ -1,6 +1,6 @@
-import itensSchemas from '../schemas/itemSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import itensSchemas from './itemDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const itensRoutes = {
   '/itens': {
@@ -9,7 +9,7 @@ const itensRoutes = {
       summary: 'Cria um novo item',
       description: `
             + Caso de uso: Criação de novo item do estoque no sistema.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado criar um novo item do estoque com todas as informações necessárias.
                 + Recebe no corpo da requisição:
@@ -55,23 +55,23 @@ const itensRoutes = {
       summary: 'Lista todos os itens',
       description: `
         + Caso de uso: Listagem de itens para gerenciamento e consulta.
-        
+
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de itens cadastrados.
             + Recebe como query parameters (opcionais):
-                • filtros: nome, categoria, ativo, status, estoque_minimo, quantidade.  
+                • filtros: nome, categoria, ativo, status, estoque_minimo, quantidade.
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.  
-            - Respeitar as permissões do usuário autenticado.  
+            - Validar formatos e valores dos filtros fornecidos.
+            - Respeitar as permissões do usuário autenticado.
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
             - Retorna itens populados com dados de categoria e localização.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **ItemListagem**, contendo:
-                • **data**: array de itens.  
+                • **data**: array de itens.
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
       security: [{ bearerAuth: [] }],
@@ -125,7 +125,7 @@ const itensRoutes = {
       summary: 'Obtém detalhes de um item',
       description: `
             + Caso de uso: Consulta de detalhes de item específico.
-            
+
             + Função de Negócio:
                 - Permitir à front-end, App Mobile ou serviços obter todas as informações de um item cadastrado.
                 + Recebe como path parameter:
@@ -133,7 +133,7 @@ const itensRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência do item.  
+                - Verificar existência do item.
                 - Retorna item populado com dados de categoria e localização.
                 - Checar permissões do solicitante para visualizar dados.
 
@@ -167,17 +167,17 @@ const itensRoutes = {
       summary: 'Atualiza um item',
       description: `
             + Caso de uso: Atualização parcial de dados do item.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado modificar informações do item.
                 + Recebe:
-                    - **id** no path.  
+                    - **id** no path.
                     - No corpo, objeto conforme **ItemPutPatch** com os campos a alterar.
 
             + Regras de Negócio:
                 - Permite atualização parcial de campos.
                 - Não permite alterar quantidade diretamente (apenas via movimentação).
-                - Garantir unicidade do nome do item.  
+                - Garantir unicidade do nome do item.
                 - Verificar se o item existe antes de atualizar.
                 - Validar se categoria e localização existem (se informados).
 
@@ -222,7 +222,7 @@ const itensRoutes = {
       summary: 'Inativa um item',
       description: `
             + Caso de uso: Inativação de item preservando integridade referencial.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado inativar um item sem removê-lo fisicamente.
                 - Substitui a remoção física para manter histórico e integridade referencial.
@@ -266,7 +266,7 @@ const itensRoutes = {
       summary: 'Faz upload da foto do item',
       description: `
             + Caso de uso: Upload de foto do item do estoque.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado fazer upload de uma foto do item para facilitar identificação visual.
                 + Recebe como path parameter:
@@ -338,7 +338,7 @@ const itensRoutes = {
       summary: 'Deleta a foto do item',
       description: `
             + Caso de uso: Remoção da foto do item do estoque.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado remover a foto de um item do sistema de armazenamento.
                 + Recebe como path parameter:

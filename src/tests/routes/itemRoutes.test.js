@@ -1,7 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import '../../../src/routes/itemRoutes';
+import '../../modules/item/itemRoutes.js';
 
 dotenv.config();
 

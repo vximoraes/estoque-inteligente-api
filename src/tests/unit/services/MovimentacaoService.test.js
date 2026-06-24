@@ -1,13 +1,13 @@
 import MovimentacaoService from '../../../services/MovimentacaoService.js';
 import MovimentacaoRepository from '../../../repositories/MovimentacaoRepository.js';
-import Item from '../../../models/Item.js';
+import Item from '../../../modules/item/ItemModel.js';
 import Fornecedor from '../../../modules/fornecedor/FornecedorModel.js';
 import Estoque from '../../../modules/estoque/EstoqueModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 import mongoose from 'mongoose';
 
 jest.mock('../../../repositories/MovimentacaoRepository.js');
-jest.mock('../../../models/Item.js');
+jest.mock('../../../modules/item/ItemModel.js');
 jest.mock('../../../modules/fornecedor/FornecedorModel.js');
 jest.mock('../../../modules/estoque/EstoqueModel.js');
 

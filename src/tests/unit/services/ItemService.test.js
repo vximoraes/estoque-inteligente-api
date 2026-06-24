@@ -1,12 +1,12 @@
-import ItemService from '../../../services/ItemService.js';
-import ItemRepository from '../../../repositories/ItemRepository.js';
+import ItemService from '../../../modules/item/ItemService.js';
+import ItemRepository from '../../../modules/item/ItemRepository.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
-import CategoriaModel from '../../../models/Categoria.js';
+import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../repositories/ItemRepository.js');
+jest.mock('../../../modules/item/ItemRepository.js');
 jest.mock('../../../modules/localizacao/LocalizacaoModel.js');
-jest.mock('../../../models/Categoria.js');
+jest.mock('../../../modules/categoria/CategoriaModel.js');
 
 const makeItem = (props = {}) => ({
   _id: 'comp1',

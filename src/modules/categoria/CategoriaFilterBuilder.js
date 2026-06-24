@@ -1,5 +1,5 @@
-import CategoriaModel from '../../models/Categoria.js';
-import CategoriaRepository from '../CategoriaRepository.js';
+import CategoriaModel from './CategoriaModel.js';
+import CategoriaRepository from './CategoriaRepository.js';
 
 class CategoriaFilterBuilder {
   constructor() {

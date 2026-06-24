@@ -1,7 +1,7 @@
 import {
   ItemIdSchema,
   ItemQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/ItemQuerySchema.js';
+} from '../../../../../../../modules/item/ItemQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('ItemIdSchema', () => {

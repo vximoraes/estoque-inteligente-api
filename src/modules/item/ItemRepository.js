@@ -1,8 +1,8 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import ItemFilterBuilder from './filters/ItemFilterBuilder.js';
-import ItemModel from '../models/Item.js';
-import MovimentacaoModel from '../models/Movimentacao.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import ItemFilterBuilder from './ItemFilterBuilder.js';
+import ItemModel from './ItemModel.js';
+import MovimentacaoModel from '../../models/Movimentacao.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class ItemRepository {
   constructor({ itemModel = ItemModel } = {}) {
@@ -18,7 +18,6 @@ class ItemRepository {
   async listar(req) {
     const id = req.params.id || null;
 
-    // Se um ID for fornecido, retorna o item enriquecido com estatísticas.
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true }).populate('categoria');
 
@@ -80,7 +79,6 @@ class ItemRepository {
 
     const resultado = await this.model.paginate(filtros, options);
 
-    // Enriquecer cada item com estatísticas utilizando o length dos arrays.
     resultado.docs = resultado.docs.map((doc) => {
       const itemObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
 
@@ -180,8 +178,6 @@ class ItemRepository {
     await this.model.findOneAndDelete({ _id: id });
     return item;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorId(id, includeTokens = false, req) {
     const query = this.model.findOne({ _id: id }).populate('categoria');

@@ -1,6 +1,6 @@
-import ItemModel from '../../models/Item.js';
-import ItemRepository from '../ItemRepository.js';
-import Categoria from '../../models/Categoria.js';
+import ItemModel from './ItemModel.js';
+import ItemRepository from './ItemRepository.js';
+import Categoria from '../categoria/CategoriaModel.js';
 import mongoose from 'mongoose';
 const { Types } = mongoose;
 
@@ -38,22 +38,18 @@ class ItemFilterBuilder {
   async comCategoria(categoria) {
     if (categoria) {
       if (Types.ObjectId.isValid(categoria)) {
-        // Se já for um ObjectId, faz o populate direto.
         this.filtros.categoria = categoria;
         const categoriaEncontrada = await Categoria.findById(categoria);
         if (!categoriaEncontrada) {
-          // Caso não exista, força a busca "vazia".
           this.filtros.categoria = { $in: [] };
         }
       } else {
-        // Se for string.
         const categoriaEncontrada = await Categoria.findOne({
           nome: { $regex: categoria, $options: 'i' },
         });
         if (categoriaEncontrada) {
           this.filtros.categoria = categoriaEncontrada._id;
         } else {
-          // Força a busca "vazia".
           this.filtros.categoria = { $in: [] };
         }
       }

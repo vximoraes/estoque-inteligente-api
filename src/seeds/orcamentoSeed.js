@@ -1,6 +1,6 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Orcamento from '../modules/orcamento/OrcamentoModel.js';
-import Item from '../models/Item.js';
+import Item from '../modules/item/ItemModel.js';
 import Fornecedor from '../modules/fornecedor/FornecedorModel.js';
 
 export default async function orcamentoSeed(adminId) {

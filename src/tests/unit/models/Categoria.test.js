@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import Categoria from '../../../../src/models/Categoria.js';
+import Categoria from '../../../../src/modules/categoria/CategoriaModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;

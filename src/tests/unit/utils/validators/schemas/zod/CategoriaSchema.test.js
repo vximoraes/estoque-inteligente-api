@@ -1,7 +1,7 @@
 import {
   CategoriaSchema,
   CategoriaUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/CategoriaSchema.js';
+} from '../../../../../../modules/categoria/CategoriaSchema.js';
 
 describe('CategoriaSchema', () => {
   it('deve validar dados válidos corretamente', () => {

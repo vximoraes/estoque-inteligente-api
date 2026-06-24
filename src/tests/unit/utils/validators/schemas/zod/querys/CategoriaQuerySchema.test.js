@@ -1,7 +1,7 @@
 import {
   CategoriaIdSchema,
   CategoriaQuerySchema,
-} from '../../../../../../../utils/validators/schemas/zod/querys/CategoriaQuerySchema.js';
+} from '../../../../../../../modules/categoria/CategoriaQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('CategoriaIdSchema', () => {

@@ -1,5 +1,5 @@
 import MovimentacaoModel from '../../models/Movimentacao.js';
-import Item from '../../models/Item.js';
+import Item from '../../modules/item/ItemModel.js';
 import Localizacao from '../../modules/localizacao/LocalizacaoModel.js';
 import mongoose from 'mongoose';
 const { Types } = mongoose;

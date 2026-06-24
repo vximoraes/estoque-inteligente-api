@@ -1,14 +1,14 @@
-import ItemService from '../services/ItemService.js';
+import ItemService from './ItemService.js';
 import {
   ItemQuerySchema,
   ItemIdSchema,
-} from '../utils/validators/schemas/zod/querys/ItemQuerySchema.js';
+} from './ItemQuerySchema.js';
 import {
   ItemSchema,
   ItemUpdateSchema,
-} from '../utils/validators/schemas/zod/ItemSchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
-import { UsuarioIdSchema } from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
+} from './ItemSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
+import { UsuarioIdSchema } from '../../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
 
 class ItemController {
   constructor() {

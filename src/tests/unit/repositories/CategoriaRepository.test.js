@@ -1,12 +1,12 @@
-import CategoriaRepository from '../../../repositories/CategoriaRepository.js';
-import CategoriaModel from '../../../models/Categoria.js';
-import ItemModel from '../../../models/Item.js';
-import CategoriaFilterBuilder from '../../../repositories/filters/CategoriaFilterBuilder.js';
+import CategoriaRepository from '../../../modules/categoria/CategoriaRepository.js';
+import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
+import ItemModel from '../../../modules/item/ItemModel.js';
+import CategoriaFilterBuilder from '../../../modules/categoria/CategoriaFilterBuilder.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Categoria.js');
-jest.mock('../../../models/Item.js');
-jest.mock('../../../repositories/filters/CategoriaFilterBuilder.js');
+jest.mock('../../../modules/categoria/CategoriaModel.js');
+jest.mock('../../../modules/item/ItemModel.js');
+jest.mock('../../../modules/categoria/CategoriaFilterBuilder.js');
 
 const mockFindById = jest.fn();
 const mockFindByIdAndUpdate = jest.fn();

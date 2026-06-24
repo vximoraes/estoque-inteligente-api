@@ -1,6 +1,6 @@
 import OrcamentoController from '../../../modules/orcamento/OrcamentoController.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
-import Item from '../../../models/Item.js';
+import Item from '../../../modules/item/ItemModel.js';
 import Fornecedor from '../../../modules/fornecedor/FornecedorModel.js';
 
 jest.mock('../../../modules/orcamento/OrcamentoService.js', () => {
@@ -16,7 +16,7 @@ jest.mock('../../../modules/orcamento/OrcamentoService.js', () => {
   }));
 });
 
-jest.mock('../../../models/Item.js', () => ({
+jest.mock('../../../modules/item/ItemModel.js', () => ({
   findById: jest.fn(),
 }));
 

@@ -1,6 +1,6 @@
 import { fakeMappings } from './globalFakeMapping.js';
-import Item from '../models/Item.js';
-import Categoria from '../models/Categoria.js';
+import Item from '../modules/item/ItemModel.js';
+import Categoria from '../modules/categoria/CategoriaModel.js';
 
 export default async function itemSeed(adminId) {
   const categoriaList = await Categoria.find({});

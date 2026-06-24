@@ -1,6 +1,6 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Emprestimo from '../models/Emprestimo.js';
-import Item from '../models/Item.js';
+import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 import Usuario from '../models/Usuario.js';
 

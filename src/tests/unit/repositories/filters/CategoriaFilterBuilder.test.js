@@ -1,9 +1,9 @@
-import CategoriaFilterBuilder from '../../../../repositories/filters/CategoriaFilterBuilder.js';
-import CategoriaRepository from '../../../../repositories/CategoriaRepository.js';
-import CategoriaModel from '../../../../models/Categoria.js';
+import CategoriaFilterBuilder from '../../../../modules/categoria/CategoriaFilterBuilder.js';
+import CategoriaRepository from '../../../../modules/categoria/CategoriaRepository.js';
+import CategoriaModel from '../../../../modules/categoria/CategoriaModel.js';
 
-jest.mock('../../../../repositories/CategoriaRepository.js');
-jest.mock('../../../../models/Categoria.js');
+jest.mock('../../../../modules/categoria/CategoriaRepository.js');
+jest.mock('../../../../modules/categoria/CategoriaModel.js');
 
 describe('CategoriaFilterBuilder', () => {
   let categoriaFilterBuilder;

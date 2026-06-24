@@ -1,6 +1,6 @@
-import categoriasSchemas from '../schemas/categoriaSchema.js';
-import commonResponses from '../schemas/swaggerCommonResponses.js';
-import { generateParameters } from './utils/generateParameters.js';
+import categoriasSchemas from './categoriaDocsSchema.js';
+import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
+import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
 
 const categoriasRoutes = {
   '/categorias': {
@@ -9,7 +9,7 @@ const categoriasRoutes = {
       summary: 'Cria uma nova categoria',
       description: `
             + Caso de uso: Criação de nova categoria de itens no sistema.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado criar uma nova categoria para organizar itens do estoque.
                 + Recebe no corpo da requisição:
@@ -48,22 +48,22 @@ const categoriasRoutes = {
       summary: 'Lista todas as categorias',
       description: `
         + Caso de uso: Listagem de categorias para gerenciamento e consulta.
-        
+
         + Função de Negócio:
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de categorias cadastradas.
             + Recebe como query parameters (opcionais):
-                • filtros: nome.  
+                • filtros: nome.
                 • paginação: page (número da página), limite (quantidade de itens por página).
 
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.  
-            - Respeitar as permissões do usuário autenticado.  
+            - Validar formatos e valores dos filtros fornecidos.
+            - Respeitar as permissões do usuário autenticado.
             - Aplicar paginação e retornar metadados: total de registros e total de páginas.
             - Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **CategoriaListagem**, contendo:
-                • **data**: array de categorias.  
+                • **data**: array de categorias.
                 • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
             `,
       security: [{ bearerAuth: [] }],
@@ -117,7 +117,7 @@ const categoriasRoutes = {
       summary: 'Obtém detalhes de uma categoria',
       description: `
             + Caso de uso: Consulta de detalhes de categoria específica.
-            
+
             + Função de Negócio:
                 - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma categoria cadastrada.
                 + Recebe como path parameter:
@@ -125,7 +125,7 @@ const categoriasRoutes = {
 
             + Regras de Negócio:
                 - Validação do formato do ID.
-                - Verificar existência da categoria.  
+                - Verificar existência da categoria.
                 - Checar permissões do solicitante para visualizar dados.
 
             + Resultado Esperado:
@@ -158,15 +158,15 @@ const categoriasRoutes = {
       summary: 'Atualiza uma categoria',
       description: `
             + Caso de uso: Atualização parcial de dados da categoria.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado modificar o nome da categoria.
                 + Recebe:
-                    - **id** no path.  
+                    - **id** no path.
                     - No corpo, objeto conforme **CategoriaPutPatch** com os campos a alterar.
 
             + Regras de Negócio:
-                - Garantir unicidade do nome da categoria.  
+                - Garantir unicidade do nome da categoria.
                 - Verificar se a categoria existe antes de atualizar.
                 - Impedir alterações que violem regras de negócio.
 
@@ -210,7 +210,7 @@ const categoriasRoutes = {
       summary: 'Deleta uma categoria',
       description: `
             + Caso de uso: Exclusão de categoria.
-            
+
             + Função de Negócio:
                 - Permitir ao usuário autenticado remover uma categoria que não está sendo utilizada.
                 + Recebe como path parameter:
@@ -218,8 +218,8 @@ const categoriasRoutes = {
 
             + Regras de Negócio:
                 - Verificar se a categoria existe antes de excluir.
-                - Não permitir exclusão se há itens vinculados à categoria.  
-                - Registrar log de auditoria sobre a operação.  
+                - Não permitir exclusão se há itens vinculados à categoria.
+                - Registrar log de auditoria sobre a operação.
                 - Garantir que não haja vínculos críticos pendentes.
 
             + Resultado Esperado:

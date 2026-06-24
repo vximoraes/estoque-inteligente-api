@@ -1,13 +1,13 @@
-import CategoriaService from '../services/CategoriaService.js';
+import CategoriaService from './CategoriaService.js';
 import {
   CategoriaQuerySchema,
   CategoriaIdSchema,
-} from '../utils/validators/schemas/zod/querys/CategoriaQuerySchema.js';
+} from './CategoriaQuerySchema.js';
 import {
   CategoriaSchema,
   CategoriaUpdateSchema,
-} from '../utils/validators/schemas/zod/CategoriaSchema.js';
-import { CommonResponse } from '../utils/helpers/index.js';
+} from './CategoriaSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
 
 class CategoriaController {
   constructor() {

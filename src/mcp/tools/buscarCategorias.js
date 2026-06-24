@@ -1,4 +1,4 @@
-import CategoriaModel from '../../models/Categoria.js';
+import CategoriaModel from '../../modules/categoria/CategoriaModel.js';
 
 export async function buscarCategorias(_args, _usuarioId) {
   const categorias = await CategoriaModel.find({ ativo: true }).sort({ nome: 1 }).lean();

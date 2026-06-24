@@ -1,19 +1,19 @@
-import CategoriaController from '../../../controllers/CategoriaController.js';
-import CategoriaService from '../../../services/CategoriaService.js';
+import CategoriaController from '../../../modules/categoria/CategoriaController.js';
+import CategoriaService from '../../../modules/categoria/CategoriaService.js';
 import {
   CategoriaSchema,
   CategoriaUpdateSchema,
-} from '../../../utils/validators/schemas/zod/CategoriaSchema.js';
+} from '../../../modules/categoria/CategoriaSchema.js';
 import {
   CategoriaQuerySchema,
   CategoriaIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/CategoriaQuerySchema.js';
+} from '../../../modules/categoria/CategoriaQuerySchema.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../services/CategoriaService.js');
-jest.mock('../../../utils/validators/schemas/zod/CategoriaSchema.js');
+jest.mock('../../../modules/categoria/CategoriaService.js');
+jest.mock('../../../modules/categoria/CategoriaSchema.js');
 jest.mock(
-  '../../../utils/validators/schemas/zod/querys/CategoriaQuerySchema.js',
+  '../../../modules/categoria/CategoriaQuerySchema.js',
 );
 jest.mock('../../../utils/helpers/index.js', () => ({
   CommonResponse: {

@@ -1,18 +1,18 @@
-import ItemController from '../../../controllers/ItemController.js';
-import ItemService from '../../../services/ItemService.js';
+import ItemController from '../../../modules/item/ItemController.js';
+import ItemService from '../../../modules/item/ItemService.js';
 import {
   ItemSchema,
   ItemUpdateSchema,
-} from '../../../utils/validators/schemas/zod/ItemSchema.js';
+} from '../../../modules/item/ItemSchema.js';
 import {
   ItemQuerySchema,
   ItemIdSchema,
-} from '../../../utils/validators/schemas/zod/querys/ItemQuerySchema.js';
+} from '../../../modules/item/ItemQuerySchema.js';
 import { CommonResponse } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../services/ItemService.js');
-jest.mock('../../../utils/validators/schemas/zod/ItemSchema.js');
-jest.mock('../../../utils/validators/schemas/zod/querys/ItemQuerySchema.js');
+jest.mock('../../../modules/item/ItemService.js');
+jest.mock('../../../modules/item/ItemSchema.js');
+jest.mock('../../../modules/item/ItemQuerySchema.js');
 jest.mock('../../../utils/helpers/index.js', () => ({
   CommonResponse: {
     created: jest.fn(),

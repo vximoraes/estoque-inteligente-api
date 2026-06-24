@@ -1,4 +1,4 @@
-import ItemModel from '../../models/Item.js';
+import ItemModel from '../../modules/item/ItemModel.js';
 import EmprestimoModel from '../../models/Emprestimo.js';
 
 export async function resumoEstoque(_args, _usuarioId) {

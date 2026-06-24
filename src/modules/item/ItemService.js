@@ -1,12 +1,12 @@
-import ItemRepository from '../repositories/ItemRepository.js';
+import ItemRepository from './ItemRepository.js';
 import {
   CustomError,
   HttpStatusCodes,
   messages,
-} from '../utils/helpers/index.js';
-import CategoriaModel from '../models/Categoria.js';
-import minioClient from '../config/MinIO.js';
-import compress from '../config/SharpConfig.js';
+} from '../../utils/helpers/index.js';
+import CategoriaModel from '../categoria/CategoriaModel.js';
+import minioClient from '../../config/MinIO.js';
+import compress from '../../config/SharpConfig.js';
 
 class ItemService {
   constructor() {
@@ -55,8 +55,6 @@ class ItemService {
 
     return data;
   }
-
-  // Métodos auxiliares.
 
   async validateNome(nome, id = null, req) {
     const itemExistente = await this.repository.buscarPorNome(nome, id, req);
@@ -148,6 +146,7 @@ class ItemService {
       throw new Error(err);
     }
   }
+
   async deletarFoto(req, id) {
     const objectName = `${id}.jpeg`;
     await minioClient.removeObject(

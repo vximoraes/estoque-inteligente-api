@@ -1,4 +1,4 @@
-import ItemModel from '../../models/Item.js';
+import ItemModel from '../../modules/item/ItemModel.js';
 
 export async function buscarItens({ nome, status, limite = 20 }, _usuarioId) {
   const filtros = { ativo: true };

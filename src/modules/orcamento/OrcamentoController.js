@@ -10,7 +10,7 @@ import {
   ItemOrcamentoUpdateSchema,
 } from './OrcamentoSchema.js';
 import { CommonResponse, CustomError } from '../../utils/helpers/index.js';
-import Item from '../../models/Item.js';
+import Item from '../item/ItemModel.js';
 import Fornecedor from '../fornecedor/FornecedorModel.js';
 
 class OrcamentoController {

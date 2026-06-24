@@ -1,12 +1,12 @@
-import ItemRepository from '../../../repositories/ItemRepository.js';
-import ItemModel from '../../../models/Item.js';
+import ItemRepository from '../../../modules/item/ItemRepository.js';
+import ItemModel from '../../../modules/item/ItemModel.js';
 import MovimentacaoModel from '../../../models/Movimentacao.js';
-import ItemFilterBuilder from '../../../repositories/filters/ItemFilterBuilder.js';
+import ItemFilterBuilder from '../../../modules/item/ItemFilterBuilder.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../models/Item.js');
+jest.mock('../../../modules/item/ItemModel.js');
 jest.mock('../../../models/Movimentacao.js');
-jest.mock('../../../repositories/filters/ItemFilterBuilder.js');
+jest.mock('../../../modules/item/ItemFilterBuilder.js');
 
 const mockPopulate = jest.fn().mockReturnThis();
 const mockLean = jest.fn().mockReturnThis();

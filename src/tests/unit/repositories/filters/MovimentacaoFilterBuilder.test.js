@@ -1,7 +1,7 @@
 import MovimentacaoFilterBuilder from '../../../../repositories/filters/MovimentacaoFilterBuilder.js';
 import mongoose from 'mongoose';
 
-jest.mock('../../../../models/Item.js', () => ({
+jest.mock('../../../../modules/item/ItemModel.js', () => ({
   findById: jest.fn(),
   findOne: jest.fn(),
 }));
@@ -10,7 +10,7 @@ jest.mock('../../../../models/Fornecedor.js', () => ({
   findOne: jest.fn(),
 }));
 
-const Item = require('../../../../models/Item.js');
+const Item = require('../../../../modules/item/ItemModel.js');
 const Fornecedor = require('../../../../models/Fornecedor.js');
 
 describe('MovimentacaoFilterBuilder', () => {

@@ -1,7 +1,7 @@
 import {
   ItemSchema,
   ItemUpdateSchema,
-} from '../../../../../../utils/validators/schemas/zod/ItemSchema.js';
+} from '../../../../../../modules/item/ItemSchema.js';
 import mongoose from 'mongoose';
 
 describe('ItemSchema', () => {

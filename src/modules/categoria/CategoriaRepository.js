@@ -1,7 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../config/PaginationConfig.js';
-import CategoriaFilterBuilder from './filters/CategoriaFilterBuilder.js';
-import CategoriaModel from '../models/Categoria.js';
-import { CustomError, messages } from '../utils/helpers/index.js';
+import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import CategoriaFilterBuilder from './CategoriaFilterBuilder.js';
+import CategoriaModel from './CategoriaModel.js';
+import { CustomError, messages } from '../../utils/helpers/index.js';
 
 class CategoriaRepository {
   constructor({ categoriaModel = CategoriaModel } = {}) {
@@ -89,8 +89,6 @@ class CategoriaRepository {
 
     return categoria;
   }
-
-  // Métodos auxiliares.
 
   async buscarPorNome(nome, idIgnorado, req) {
     const filtro = { nome, ativo: true };

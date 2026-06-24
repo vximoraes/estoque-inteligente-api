@@ -1,6 +1,6 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Movimentacao from '../models/Movimentacao.js';
-import Item from '../models/Item.js';
+import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 
 export default async function movimentacaoSeed(adminId) {

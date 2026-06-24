@@ -1,8 +1,8 @@
-import CategoriaService from '../../../services/CategoriaService.js';
-import CategoriaRepository from '../../../repositories/CategoriaRepository.js';
+import CategoriaService from '../../../modules/categoria/CategoriaService.js';
+import CategoriaRepository from '../../../modules/categoria/CategoriaRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
-jest.mock('../../../repositories/CategoriaRepository.js');
+jest.mock('../../../modules/categoria/CategoriaRepository.js');
 
 const makeCategoria = (props = {}) => ({
   _id: 'cat1',
@@ -99,7 +99,7 @@ describe('CategoriaService', () => {
 
   describe('inativar', () => {
     it('deve inativar categoria existente sem itens ativos', async () => {
-      const ItemModel = require('../../../models/Item.js').default;
+      const ItemModel = require('../../../modules/item/ItemModel.js').default;
       ItemModel.exists = jest.fn().mockResolvedValue(false);
 
       repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
@@ -114,7 +114,7 @@ describe('CategoriaService', () => {
       await expect(service.inativar('catX', {})).rejects.toThrow(CustomError);
     });
     it('deve lançar erro se categoria estiver vinculada a itens ativos', async () => {
-      const ItemModel = require('../../../models/Item.js').default;
+      const ItemModel = require('../../../modules/item/ItemModel.js').default;
       ItemModel.exists = jest.fn().mockResolvedValue(true);
 
       repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());
@@ -123,7 +123,7 @@ describe('CategoriaService', () => {
       );
     });
     it('deve lançar erro inesperado do repository', async () => {
-      const ItemModel = require('../../../models/Item.js').default;
+      const ItemModel = require('../../../modules/item/ItemModel.js').default;
       ItemModel.exists = jest.fn().mockResolvedValue(false);
 
       repositoryMock.buscarPorId.mockResolvedValue(makeCategoria());

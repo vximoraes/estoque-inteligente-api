@@ -1,6 +1,6 @@
-import ItemFilterBuilder from '../../../../repositories/filters/ItemFilterBuilder.js';
+import ItemFilterBuilder from '../../../../modules/item/ItemFilterBuilder.js';
 
-jest.mock('../../../../models/Item.js', () => {
+jest.mock('../../../../modules/item/ItemModel.js', () => {
   return 'mock-item-model';
 });
 
@@ -11,7 +11,7 @@ jest.mock('../../../../modules/localizacao/LocalizacaoModel.js', () => {
   };
 });
 
-jest.mock('../../../../models/Categoria.js', () => {
+jest.mock('../../../../modules/categoria/CategoriaModel.js', () => {
   return {
     findById: jest.fn(),
     findOne: jest.fn(),
@@ -41,10 +41,10 @@ jest.mock('mongoose', () => {
 
 import mongoose from 'mongoose';
 import Localizacao from '../../../../modules/localizacao/LocalizacaoModel.js';
-import Categoria from '../../../../models/Categoria.js';
-import ItemRepository from '../../../../repositories/ItemRepository.js';
+import Categoria from '../../../../modules/categoria/CategoriaModel.js';
+import ItemRepository from '../../../../modules/item/ItemRepository.js';
 
-jest.mock('../../../../repositories/ItemRepository.js', () => {
+jest.mock('../../../../modules/item/ItemRepository.js', () => {
   return jest.fn().mockImplementation(() => ({}));
 });
 
