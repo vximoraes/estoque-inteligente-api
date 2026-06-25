@@ -10,4 +10,7 @@ const GrupoSchema = z.object({
 
 const GrupoUpdateSchema = GrupoSchema.partial();
 
+export type Grupo = z.infer<typeof GrupoSchema>;
+export type GrupoUpdate = z.infer<typeof GrupoUpdateSchema>;
+
 export { GrupoSchema, GrupoUpdateSchema };

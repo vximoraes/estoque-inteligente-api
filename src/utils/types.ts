@@ -3,6 +3,7 @@ import type { Request } from 'express';
 export interface AuthenticatedRequest extends Request {
   user_id?: string;
   requestId?: string;
+  user?: Record<string, unknown>;
 }
 
 export interface PaginatedResult<T> {

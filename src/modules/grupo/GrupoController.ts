@@ -1,73 +1,64 @@
+import type { Response } from 'express';
 import GrupoService from './GrupoService.js';
-import {
-  CommonResponse,
-  CustomError,
-  HttpStatusCodes,
-} from '../../utils/helpers/index.js';
-import {
-  GrupoQuerySchema,
-  GrupoIdSchema,
-} from './GrupoQuerySchema.js';
-import {
-  GrupoSchema,
-  GrupoUpdateSchema,
-} from './GrupoSchema.js';
+import { CommonResponse } from '../../utils/helpers/index.js';
+import { GrupoQuerySchema, GrupoIdSchema } from './GrupoQuerySchema.js';
+import { GrupoSchema, GrupoUpdateSchema } from './GrupoSchema.js';
 import ObjectIdSchema from '../../utils/objectIdSchema.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class GrupoController {
+  private service: GrupoService;
+
   constructor() {
     this.service = new GrupoService();
   }
 
-  async listar(req, res) {
-    const { id } = req.params || null;
+  async listar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined;
     if (id) {
       GrupoIdSchema.parse(id);
     }
 
-    const query = req.query || {};
+    const query = req.query ?? {};
     if (Object.keys(query).length !== 0) {
-      const validatedQuery = GrupoQuerySchema.parse(req.query);
+      GrupoQuerySchema.parse(req.query);
     }
 
     const data = await this.service.listar(req);
     return CommonResponse.success(res, data);
   }
 
-  async criar(req, res) {
+  async criar(req: AuthenticatedRequest, res: Response) {
     const parsedData = GrupoSchema.parse(req.body);
     const data = await this.service.criar(parsedData);
     return CommonResponse.created(res, data);
   }
 
-  async atualizar(req, res) {
-    const { id } = req.params || null;
+  async atualizar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined;
     if (id) {
       GrupoIdSchema.parse(id);
     }
 
     const parsedData = GrupoUpdateSchema.parse(req.body);
-    const data = await this.service.atualizar(parsedData, id, req.user);
+    const data = await this.service.atualizar(parsedData, id as string, req.user);
     return CommonResponse.success(res, data);
   }
 
-  async deletar(req, res) {
-    const { id } = req.params || null;
+  async deletar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined;
     GrupoIdSchema.parse(id);
     if (!id) {
-      throw new CustomError(
-        'ID do grupo é obrigatório para deletar.',
-        HttpStatusCodes.BAD_REQUEST,
-      );
+      throw new Error('ID do grupo é obrigatório para deletar.');
     }
 
     const data = await this.service.deletar(id, req.user);
     return CommonResponse.success(res, data, 200, 'Grupo excluído com sucesso.');
   }
 
-  async adicionarRota(req, res) {
-    const { id } = req.params;
-    const { idRota } = req.body;
+  async adicionarRota(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    const { idRota } = req.body as { idRota: string };
     GrupoIdSchema.parse(id);
     ObjectIdSchema.parse(idRota);
 
