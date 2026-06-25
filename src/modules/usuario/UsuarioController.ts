@@ -1,34 +1,28 @@
+import type { Response } from 'express';
 import UsuarioService from './UsuarioService.js';
-import {
-  UsuarioQuerySchema,
-  UsuarioIdSchema,
-} from './UsuarioQuerySchema.js';
-import {
-  UsuarioSchema,
-  UsuarioUpdateSchema,
-} from './UsuarioSchema.js';
-import {
-  CommonResponse,
-  CustomError,
-  HttpStatusCodes,
-} from '../../utils/helpers/index.js';
+import { UsuarioQuerySchema, UsuarioIdSchema } from './UsuarioQuerySchema.js';
+import { UsuarioSchema, UsuarioUpdateSchema } from './UsuarioSchema.js';
+import { CommonResponse, CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class UsuarioController {
+  private service: UsuarioService;
+
   constructor() {
     this.service = new UsuarioService();
   }
 
-  async criar(req, res) {
+  async criar(req: AuthenticatedRequest, res: Response) {
     const parsedData = UsuarioSchema.parse(req.body);
     const data = await this.service.criar(parsedData);
 
-    const usuarioLimpo = data.toObject();
-    delete usuarioLimpo.senha;
+    const usuarioLimpo = data.toObject() as unknown as Record<string, unknown>;
+    delete usuarioLimpo['senha'];
 
     return CommonResponse.created(res, usuarioLimpo);
   }
 
-  async criarComSenha(req, res) {
+  async criarComSenha(req: AuthenticatedRequest, res: Response) {
     const parsedData = UsuarioSchema.parse(req.body);
     const data = await this.service.criar(parsedData, req);
 
@@ -37,30 +31,30 @@ class UsuarioController {
     return CommonResponse.created(res, usuarioLimpo);
   }
 
-  async listar(req, res) {
-    const { id } = req.params || {};
+  async listar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined;
     if (id) {
       UsuarioIdSchema.parse(id);
     }
 
-    const query = req.query || {};
+    const query = req.query ?? {};
     if (Object.keys(query).length !== 0) {
       await UsuarioQuerySchema.parseAsync(query);
     }
 
     const data = await this.service.listar(req);
-
     return CommonResponse.success(res, data);
   }
 
-  async atualizar(req, res) {
-    const { id } = req.params;
+  async atualizar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
     UsuarioIdSchema.parse(id);
 
     const parsedData = UsuarioUpdateSchema.parse(req.body);
     const data = await this.service.atualizar(id, parsedData, req);
 
-    delete data.senha;
+    const dataObj = data as Record<string, unknown>;
+    delete dataObj['senha'];
 
     return CommonResponse.success(
       res,
@@ -70,43 +64,32 @@ class UsuarioController {
     );
   }
 
-  async deletar(req, res) {
-    const { id } = req.params || {};
+  async deletar(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.deletar(id, req);
-
-    return CommonResponse.success(
-      res,
-      data,
-      200,
-      'Usuário excluído com sucesso.',
-    );
+    return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
   }
 
-  async uploadFoto(req, res) {
-    const { id } = req.params || {};
+  async uploadFoto(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.uploadFoto(req, id);
-    return CommonResponse.success(
-      res,
-      data,
-      201,
-      'Foto atualizada com sucesso.',
-    );
+    return CommonResponse.success(res, data, 201, 'Foto atualizada com sucesso.');
   }
 
-  async deletarFoto(req, res) {
-    const { id } = req.params || {};
+  async deletarFoto(req: AuthenticatedRequest, res: Response) {
+    const id = req.params?.['id'] as string | undefined ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.deletarFoto(req, id);
     return CommonResponse.success(res, data, 200, 'Foto deletada com sucesso.');
   }
 
-  async convidarUsuario(req, res) {
-    const { nome, email } = req.body;
+  async convidarUsuario(req: AuthenticatedRequest, res: Response) {
+    const { nome, email } = req.body as { nome?: string; email?: string };
 
     if (!nome || !email) {
       throw new CustomError({
@@ -125,9 +108,9 @@ class UsuarioController {
     return CommonResponse.created(res, data);
   }
 
-  async ativarConta(req, res) {
-    const { token } = req.query;
-    const { senha } = req.body;
+  async ativarConta(req: AuthenticatedRequest, res: Response) {
+    const token = req.query['token'] as string | undefined;
+    const { senha } = req.body as { senha?: string };
 
     if (!token) {
       throw new CustomError({
@@ -150,13 +133,12 @@ class UsuarioController {
     }
 
     const senhaValidada = UsuarioUpdateSchema.parse({ senha });
-
     const data = await this.service.ativarConta(token, senhaValidada.senha);
     return CommonResponse.success(res, data, 200, data.message);
   }
 
-  async reenviarConvite(req, res) {
-    const { id } = req.params;
+  async reenviarConvite(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.reenviarConvite(id);

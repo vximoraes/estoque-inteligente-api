@@ -31,4 +31,7 @@ const UsuarioSchema = z.object({
 
 const UsuarioUpdateSchema = UsuarioSchema.omit({ email: true }).partial();
 
+export type Usuario = z.infer<typeof UsuarioSchema>;
+export type UsuarioUpdate = z.infer<typeof UsuarioUpdateSchema>;
+
 export { UsuarioSchema, UsuarioUpdateSchema };

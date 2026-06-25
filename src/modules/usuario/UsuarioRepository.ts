@@ -1,21 +1,27 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
-import UsuarioModel from './UsuarioModel.js';
+import UsuarioModel, { type UsuarioDocument } from './UsuarioModel.js';
 import NotificacaoModel from '../notificacao/NotificacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class UsuarioRepository {
-  constructor({ usuarioModel = UsuarioModel } = {}) {
+  private model: mongoose.PaginateModel<UsuarioDocument>;
+
+  constructor({
+    usuarioModel = UsuarioModel,
+  }: { usuarioModel?: mongoose.PaginateModel<UsuarioDocument> } = {}) {
     this.model = usuarioModel;
   }
 
-  async criar(dadosUsuario) {
+  async criar(dadosUsuario: Record<string, unknown>) {
     const usuario = new this.model(dadosUsuario);
     return await usuario.save();
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model.findById(id);
@@ -30,20 +36,21 @@ class UsuarioRepository {
         });
       }
 
-      const dataWithStats = {
-        ...data.toObject(),
-      };
-
-      return dataWithStats;
+      return { ...data.toObject() };
     }
 
-    const { nome, email, ativo, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
+    const query = req.query as Record<string, string | undefined>;
+    const { nome, email, ativo } = query;
+    const page = query['page'] ?? '1';
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
 
     const filterBuilder = new UsuarioFilterBuilder()
-      .comNome(nome || '')
-      .comEmail(email || '')
-      .comAtivo(ativo || '');
+      .comNome(nome ?? '')
+      .comEmail(email ?? '')
+      .comAtivo(ativo ?? '');
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({
@@ -59,28 +66,26 @@ class UsuarioRepository {
 
     const options = {
       page: parseInt(page, 10),
-      limit: parseInt(limite, 10),
+      limit: limite,
       sort: { nome: 1 },
     };
 
-    const resultado = await this.model.paginate(filtros, options);
+    const resultado = await this.model.paginate(
+      filtros as mongoose.FilterQuery<UsuarioDocument>,
+      options,
+    );
 
     resultado.docs = resultado.docs.map((doc) => {
-      const usuarioObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...usuarioObj,
-      };
-    });
+      return (typeof doc.toObject === 'function'
+        ? (doc.toObject() as unknown as UsuarioDocument)
+        : doc) as (typeof resultado.docs)[number];
+    }) as unknown as typeof resultado.docs;
 
     return resultado;
   }
 
-  async atualizar(id, parsedData) {
-    const usuario = await this.model
-      .findByIdAndUpdate(id, parsedData, { new: true })
-      .lean();
+  async atualizar(id: string, parsedData: Record<string, unknown>, _usuarioId?: string) {
+    const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true }).lean();
     if (!usuario) {
       throw new CustomError({
         statusCode: 404,
@@ -90,11 +95,10 @@ class UsuarioRepository {
         customMessage: messages.error.resourceNotFound('Usuário'),
       });
     }
-
     return usuario;
   }
 
-  async deletar(id) {
+  async deletar(id: string, _usuarioId?: string) {
     const existeNotificacao = await NotificacaoModel.exists({ usuario: id });
     if (existeNotificacao) {
       throw new CustomError({
@@ -102,28 +106,24 @@ class UsuarioRepository {
         errorType: 'resourceInUse',
         field: 'Usuário',
         details: [],
-        customMessage:
-          'Não é possível deletar: usuário está vinculado a notificações.',
+        customMessage: 'Não é possível deletar: usuário está vinculado a notificações.',
       });
     }
 
-    const usuario = await this.model.findByIdAndDelete(id);
-    return usuario;
+    return await this.model.findByIdAndDelete(id);
   }
 
-  async buscarPorEmail(email, idIgnorado = null) {
-    const filtro = { email };
+  async buscarPorEmail(email: string, idIgnorado: string | null = null) {
+    const filtro: mongoose.FilterQuery<UsuarioDocument> = { email };
 
     if (idIgnorado) {
-      filtro._id = { $ne: idIgnorado };
+      filtro['_id'] = { $ne: idIgnorado };
     }
 
-    const documento = await this.model.findOne(filtro, '+senha');
-
-    return documento;
+    return await this.model.findOne(filtro, '+senha');
   }
 
-  async buscarPorId(id, includeTokens = false) {
+  async buscarPorId(id: string, includeTokens = false) {
     let query = this.model.findById(id);
 
     if (includeTokens) {
@@ -145,7 +145,7 @@ class UsuarioRepository {
     return user;
   }
 
-  async armazenarTokens(id, accesstoken, refreshtoken) {
+  async armazenarTokens(id: string, accesstoken: string, refreshtoken: string) {
     const documento = await this.model.findById(id);
     if (!documento) {
       throw new CustomError({
@@ -160,21 +160,20 @@ class UsuarioRepository {
     documento.accesstoken = accesstoken;
     documento.refreshtoken = refreshtoken;
 
-    const data = await documento.save();
-    return data;
+    return await documento.save();
   }
 
-  async buscarPorCodigoRecuperacao(codigo) {
-    return await this.model.findOne({ codigo_recupera_senha: codigo });
+  async buscarPorCodigoRecuperacao(codigo: string) {
+    return await this.model.findOne({ codigo_recupera_senha: codigo } as mongoose.FilterQuery<UsuarioDocument>);
   }
 
-  async buscarPorTokenConvite(token) {
+  async buscarPorTokenConvite(token: string) {
     return await this.model
       .findOne({ tokenConvite: token })
       .select('+tokenConvite +convidadoEm');
   }
 
-  async atualizarSenha(id, senhaHash) {
+  async atualizarSenha(id: string, senhaHash: string) {
     const usuario = await this.model.findByIdAndUpdate(
       id,
       {
@@ -182,7 +181,7 @@ class UsuarioRepository {
         tokenUnico: null,
         codigo_recupera_senha: null,
         exp_codigo_recupera_senha: null,
-      },
+      } as mongoose.UpdateQuery<UsuarioDocument>,
       { new: true },
     );
 
@@ -199,13 +198,11 @@ class UsuarioRepository {
     return usuario;
   }
 
-  async buscarPorTokenUnico(token) {
-    return await this.model
-      .findOne({ tokenUnico: token })
-      .select('+tokenUnico');
+  async buscarPorTokenUnico(token: string) {
+    return await this.model.findOne({ tokenUnico: token }).select('+tokenUnico');
   }
 
-  async removeToken(id) {
+  async removeToken(id: string) {
     const usuarioExistente = await this.model.findById(id);
     if (!usuarioExistente) {
       throw new CustomError({

@@ -1,86 +1,72 @@
 import bcrypt from 'bcrypt';
 import UsuarioRepository from './UsuarioRepository.js';
 import GrupoRepository from '../grupo/GrupoRepository.js';
-import {
-  CustomError,
-  HttpStatusCodes,
-  messages,
-} from '../../utils/helpers/index.js';
+import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
 import EmailService from '../../utils/services/EmailService.js';
 import tokenUtil from '../../utils/TokenUtil.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+import type { Usuario, UsuarioUpdate } from './UsuarioSchema.js';
+import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 class UsuarioService {
+  private repository: UsuarioRepository;
+  private grupoRepository: GrupoRepository;
+
   constructor() {
     this.repository = new UsuarioRepository();
     this.grupoRepository = new GrupoRepository();
   }
 
-  async criar(parsedData, req) {
-    const userId = req?.user_id || null;
-    await this.validateEmail(parsedData.email, null, userId);
+  async criar(parsedData: Partial<Usuario> & Record<string, unknown>, req?: AuthenticatedRequest) {
+    const userId = req?.user_id ?? null;
+    await this.validateEmail(parsedData['email'] as string, null, userId);
 
-    if (parsedData.senha) {
+    if (parsedData['senha']) {
       const saltRounds = 10;
-      parsedData.senha = await bcrypt.hash(parsedData.senha, saltRounds);
+      parsedData['senha'] = await bcrypt.hash(parsedData['senha'] as string, saltRounds);
     }
 
-    if (!parsedData.permissoes || parsedData.permissoes.length === 0) {
+    if (!parsedData['permissoes'] || (parsedData['permissoes'] as unknown[]).length === 0) {
       try {
-        const grupoUsuario = await this.grupoRepository.buscarPorNome(
-          'Usuario',
-          null,
-          userId,
-        );
+        const grupoUsuario = await this.grupoRepository.buscarPorNome('Usuario');
         if (grupoUsuario) {
-          parsedData.permissoes = grupoUsuario.permissoes || [];
+          parsedData['permissoes'] = grupoUsuario.permissoes as unknown as IGrupoPermissao[];
         }
       } catch (error) {
         console.warn(
-          'Não foi possível buscar o grupo "Usuario" padrão:',
-          error.message,
+          'Nao foi possivel buscar o grupo "Usuario" padrao:',
+          (error as Error).message,
         );
       }
     }
 
-    parsedData.usuarioId = userId;
-    const data = await this.repository.criar(parsedData);
-
-    return data;
+    parsedData['usuarioId'] = userId;
+    return await this.repository.criar(parsedData);
   }
 
-  async listar(req) {
-    const data = await this.repository.listar(req);
-
-    return data;
+  async listar(req: AuthenticatedRequest) {
+    return this.repository.listar(req);
   }
 
-  async atualizar(id, parsedData, req) {
-    delete parsedData.senha;
-    delete parsedData.email;
+  async atualizar(id: string, parsedData: UsuarioUpdate, req: AuthenticatedRequest) {
+    const data = parsedData as Record<string, unknown>;
+    delete data['senha'];
+    delete data['email'];
 
-    await this.ensureUserExists(id, req.user_id);
+    await this.ensureUserExists(id);
 
-    const data = await this.repository.atualizar(id, parsedData, req.user_id);
-
-    return data;
+    return this.repository.atualizar(id, data, req.user_id);
   }
 
-  async deletar(id, req) {
-    await this.ensureUserExists(id, req.user_id);
-
-    const data = await this.repository.deletar(id, req.user_id);
-
-    return data;
+  async deletar(id: string, req: AuthenticatedRequest) {
+    await this.ensureUserExists(id);
+    return this.repository.deletar(id, req.user_id);
   }
 
-  async validateEmail(email, id = null, usuarioId) {
-    const usuarioExistente = await this.repository.buscarPorEmail(
-      email,
-      id,
-      usuarioId,
-    );
+  async validateEmail(email: string, id: string | null = null, _usuarioId?: string | null) {
+    const usuarioExistente = await this.repository.buscarPorEmail(email, id);
     if (usuarioExistente) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -92,8 +78,8 @@ class UsuarioService {
     }
   }
 
-  async ensureUserExists(id, usuarioId) {
-    const usuarioExistente = await this.repository.buscarPorId(id, usuarioId);
+  async ensureUserExists(id: string) {
+    const usuarioExistente = await this.repository.buscarPorId(id);
     if (!usuarioExistente) {
       throw new CustomError({
         statusCode: 404,
@@ -103,11 +89,10 @@ class UsuarioService {
         customMessage: messages.error.resourceNotFound('Usuário'),
       });
     }
-
     return usuarioExistente;
   }
 
-  async uploadFoto(req, id) {
+  async uploadFoto(req: AuthenticatedRequest, id: string) {
     const file = req.file;
     if (!file) {
       throw new CustomError({
@@ -134,49 +119,33 @@ class UsuarioService {
     }
     try {
       const data = await this.repository.atualizar(id, {
-        fotoPerfil: `${process.env.MINIO_PUBLIC_URL}/${process.env.MINIO_BUCKET}/${id}.jpeg`,
+        fotoPerfil: `${process.env['MINIO_PUBLIC_URL']}/${process.env['MINIO_BUCKET']}/${id}.jpeg`,
       });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(
-        process.env.MINIO_BUCKET,
-        objectName,
-        newFile,
-        {
-          'Content-Type': 'image/jpeg',
-        },
-      );
-      return { fotoPerfil: data.fotoPerfil };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (minioClient as any).putObject(process.env['MINIO_BUCKET'], objectName, newFile, {
+        'Content-Type': 'image/jpeg',
+      });
+      return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
-      throw new Error(err);
+      throw new Error(String(err));
     }
   }
 
-  async deletarFoto(req, id) {
+  async deletarFoto(_req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    await minioClient.removeObject(
-      process.env.MINIO_BUCKET,
-      objectName,
-      (err) => {
-        if (err) {
-          throw new CustomError({
-            statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-            errorType: 'internalServerError',
-            field: 'Foto',
-            details: [],
-            customMessage: 'Erro ao deletar a foto do usuário.',
-          });
-        }
-      },
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (minioClient as any).removeObject(process.env['MINIO_BUCKET'], objectName);
     const data = await this.repository.atualizar(id, { fotoPerfil: '' });
-    return { fotoPerfil: data.fotoPerfil };
+    return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
   }
 
-  async convidarUsuario(nome, email) {
+  async convidarUsuario(nome: string, email: string) {
     await this.validateEmail(email, null, null);
 
-    const tokenConvite = await tokenUtil.generateInviteToken(email);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokenConvite = await (tokenUtil as any).generateInviteToken(email);
     const convidadoEm = new Date();
 
     const novoUsuario = await this.repository.criar({
@@ -188,9 +157,10 @@ class UsuarioService {
     });
 
     try {
-      await EmailService.enviarEmailConvite(nome, email, tokenConvite);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (EmailService as any).enviarEmailConvite(nome, email, tokenConvite);
     } catch (error) {
-      await this.repository.deletar(novoUsuario._id);
+      await this.repository.deletar(String(novoUsuario._id));
       throw error;
     }
 
@@ -205,12 +175,13 @@ class UsuarioService {
     };
   }
 
-  async ativarConta(token, senha) {
-    let emailDoToken;
+  async ativarConta(token: string, senha: string | undefined) {
+    let emailDoToken: string;
     try {
-      const decoded = await tokenUtil.decodeInviteToken(token);
-      emailDoToken = decoded.email;
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const decoded = await (tokenUtil as any).decodeInviteToken(token);
+      emailDoToken = (decoded as { email: string }).email;
+    } catch {
       throw new CustomError({
         statusCode: HttpStatusCodes.UNAUTHORIZED.code,
         errorType: 'invalidToken',
@@ -219,6 +190,8 @@ class UsuarioService {
         customMessage: 'Token de convite inválido ou expirado.',
       });
     }
+
+    void emailDoToken;
 
     const usuario = await this.repository.buscarPorTokenConvite(token);
 
@@ -238,8 +211,7 @@ class UsuarioService {
         errorType: 'accountAlreadyActivated',
         field: 'Token',
         details: [],
-        customMessage:
-          'Esta conta já foi ativada. Faça login para acessar o sistema.',
+        customMessage: 'Esta conta já foi ativada. Faça login para acessar o sistema.',
       });
     }
 
@@ -249,75 +221,61 @@ class UsuarioService {
         errorType: 'invalidInvitation',
         field: 'Token',
         details: [],
-        customMessage:
-          'Convite inválido. Solicite um novo convite ao administrador.',
+        customMessage: 'Convite inválido. Solicite um novo convite ao administrador.',
       });
     }
 
     const minutosDesdeConvite =
-      (new Date() - new Date(usuario.convidadoEm)) / (1000 * 60);
+      (new Date().getTime() - new Date(usuario.convidadoEm).getTime()) / (1000 * 60);
     if (minutosDesdeConvite > 5) {
       throw new CustomError({
         statusCode: HttpStatusCodes.UNAUTHORIZED.code,
         errorType: 'tokenExpired',
         field: 'Token',
         details: [],
-        customMessage:
-          'Token de convite expirado. Solicite um novo convite ao administrador.',
+        customMessage: 'Token de convite expirado. Solicite um novo convite ao administrador.',
       });
     }
 
     const saltRounds = 10;
-    const senhaHash = await bcrypt.hash(senha, saltRounds);
+    const senhaHash = await bcrypt.hash(senha ?? '', saltRounds);
 
-    let permissoes = [];
+    let permissoes: IGrupoPermissao[] = [];
     try {
-      const grupoUsuario = await this.grupoRepository.buscarPorNome(
-        'Usuario',
-        null,
-        null,
-      );
+      const grupoUsuario = await this.grupoRepository.buscarPorNome('Usuario');
       if (grupoUsuario) {
-        permissoes = grupoUsuario.permissoes || [];
+        permissoes = grupoUsuario.permissoes;
       }
     } catch (error) {
       console.warn(
-        'Não foi possível buscar o grupo "Usuario" padrão:',
-        error.message,
+        'Nao foi possivel buscar o grupo "Usuario" padrao:',
+        (error as Error).message,
       );
     }
 
-    const usuarioAtualizado = await this.repository.atualizar(usuario._id, {
+    const usuarioAtualizado = await this.repository.atualizar(String(usuario._id), {
       senha: senhaHash,
       ativo: true,
       ativadoEm: new Date(),
       tokenConvite: null,
       convidadoEm: null,
-      permissoes,
+      permissoes: permissoes as unknown as Record<string, unknown>[],
     });
+
+    const u = usuarioAtualizado as Record<string, unknown>;
 
     return {
       message: 'Conta ativada com sucesso! Você já pode fazer login.',
       usuario: {
-        id: usuarioAtualizado._id,
-        nome: usuarioAtualizado.nome,
-        email: usuarioAtualizado.email,
+        id: u['_id'],
+        nome: u['nome'],
+        email: u['email'],
       },
     };
   }
 
-  async reenviarConvite(id) {
+  async reenviarConvite(id: string) {
     const usuario = await this.repository.buscarPorId(id);
-
-    if (!usuario) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.NOT_FOUND.code,
-        errorType: 'resourceNotFound',
-        field: 'Usuário',
-        details: [],
-        customMessage: messages.error.resourceNotFound('Usuário'),
-      });
-    }
 
     if (usuario.ativo && usuario.ativadoEm) {
       throw new CustomError({
@@ -329,23 +287,19 @@ class UsuarioService {
       });
     }
 
-    const tokenConvite = await tokenUtil.generateInviteToken(usuario.email);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tokenConvite = await (tokenUtil as any).generateInviteToken(usuario.email);
     const convidadoEm = new Date();
 
-    await this.repository.atualizar(usuario._id, {
+    await this.repository.atualizar(String(usuario._id), {
       tokenConvite,
       convidadoEm,
     });
 
-    await EmailService.enviarEmailConvite(
-      usuario.nome,
-      usuario.email,
-      tokenConvite,
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (EmailService as any).enviarEmailConvite(usuario.nome, usuario.email, tokenConvite);
 
-    return {
-      message: 'Convite reenviado com sucesso!',
-    };
+    return { message: 'Convite reenviado com sucesso!' };
   }
 }
 
