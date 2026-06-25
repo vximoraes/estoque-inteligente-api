@@ -27,4 +27,7 @@ const EstoqueSchema = z.object({
 
 const EstoqueUpdateSchema = EstoqueSchema.partial();
 
+export type Estoque = z.infer<typeof EstoqueSchema>;
+export type EstoqueUpdate = z.infer<typeof EstoqueUpdateSchema>;
+
 export { EstoqueSchema, EstoqueUpdateSchema };

@@ -11,4 +11,6 @@ const EstoqueQuerySchema = z.object({
 
 const EstoqueIdSchema = objectIdSchema;
 
+export type EstoqueQuery = z.output<typeof EstoqueQuerySchema>;
+
 export { EstoqueQuerySchema, EstoqueIdSchema };
