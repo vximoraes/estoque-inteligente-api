@@ -14,3 +14,5 @@ export const FornecedorQuerySchema = paginationSchema.extend({
       message: 'Nome não pode ser vazio',
     }),
 });
+
+export type FornecedorQuery = z.output<typeof FornecedorQuerySchema>;

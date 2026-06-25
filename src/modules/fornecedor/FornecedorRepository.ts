@@ -1,20 +1,26 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import FornecedorFilterBuilder from './FornecedorFilterBuilder.js';
-import FornecedorModel from './FornecedorModel.js';
+import FornecedorModel, { type FornecedorDocument } from './FornecedorModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+
+type FornecedorModel = mongoose.PaginateModel<FornecedorDocument>;
 
 class FornecedorRepository {
-  constructor({ fornecedorModel = FornecedorModel } = {}) {
+  private model: FornecedorModel;
+
+  constructor({ fornecedorModel = FornecedorModel as unknown as FornecedorModel } = {}) {
     this.model = fornecedorModel;
   }
 
-  async criar(parsedData) {
+  async criar(parsedData: Record<string, unknown>) {
     const fornecedor = new this.model(parsedData);
     return await fornecedor.save();
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
@@ -29,55 +35,42 @@ class FornecedorRepository {
         });
       }
 
-      const dataWithStats = {
-        ...data.toObject(),
-      };
-
-      return dataWithStats;
+      return { ...data.toObject() };
     }
 
-    const { nome, contato, descricao, url, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
+    const query = req.query as Record<string, string | undefined>;
+    const { nome, contato, descricao, url } = query;
+    const page = query['page'] ?? '1';
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
 
     const filterBuilder = new FornecedorFilterBuilder()
-      .comNome(nome || '')
-      .comContato(contato || '')
-      .comDescricao(descricao || '')
-      .comUrl(url || '');
-
-    if (typeof filterBuilder.build !== 'function') {
-      throw new CustomError({
-        statusCode: 500,
-        errorType: 'internalServerError',
-        field: 'Fornecedor',
-        details: [],
-        customMessage: messages.error.internalServerError('Fornecedor'),
-      });
-    }
+      .comNome(nome ?? '')
+      .comContato(contato ?? '')
+      .comDescricao(descricao ?? '')
+      .comUrl(url ?? '');
 
     const filtros = { ...filterBuilder.build(), ativo: true };
-
     const options = {
       page: parseInt(page, 10),
-      limit: parseInt(limite, 10),
+      limit: limite,
       sort: { nome: 1 },
     };
 
     const resultado = await this.model.paginate(filtros, options);
 
-    resultado.docs = resultado.docs.map((doc) => {
-      const fornecedorObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...fornecedorObj,
-      };
-    });
-
-    return resultado;
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => {
+        const fornecedorObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
+        return { ...fornecedorObj };
+      }),
+    };
   }
 
-  async atualizar(id, parsedData, req) {
+  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
     const fornecedor = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .lean();
@@ -90,26 +83,21 @@ class FornecedorRepository {
         customMessage: messages.error.resourceNotFound('Fornecedor'),
       });
     }
-
     return fornecedor;
   }
 
-  async buscarPorNome(nome, idIgnorado, req) {
-    const filtro = { nome, ativo: true };
+  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
+    const filtro: mongoose.FilterQuery<FornecedorDocument> = { nome, ativo: true };
 
     if (idIgnorado) {
-      filtro._id = { $ne: idIgnorado };
+      filtro['_id'] = { $ne: idIgnorado };
     }
 
-    const documento = await this.model.findOne(filtro);
-
-    return documento;
+    return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id, includeTokens = false, req) {
-    const query = this.model.findOne({ _id: id, ativo: true });
-
-    const fornecedor = await query;
+  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+    const fornecedor = await this.model.findOne({ _id: id, ativo: true });
 
     if (!fornecedor) {
       throw new CustomError({

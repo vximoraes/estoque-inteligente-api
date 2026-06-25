@@ -10,4 +10,7 @@ const FornecedorSchema = z.object({
 
 const FornecedorUpdateSchema = FornecedorSchema.partial();
 
+export type Fornecedor = z.infer<typeof FornecedorSchema>;
+export type FornecedorUpdate = z.infer<typeof FornecedorUpdateSchema>;
+
 export { FornecedorSchema, FornecedorUpdateSchema };
