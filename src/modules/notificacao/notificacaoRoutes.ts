@@ -4,12 +4,15 @@ import AuthPermission from '../../middlewares/AuthPermission.js';
 import NotificacaoController from './NotificacaoController.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
 import SSEService from '../../utils/services/SSEService.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 const router = express.Router();
 
 const notificacaoController = new NotificacaoController();
 
 router.get('/notificacoes/stream', AuthMiddleware, (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
@@ -22,8 +25,7 @@ router.get('/notificacoes/stream', AuthMiddleware, (req, res) => {
     `event: connected\ndata: ${JSON.stringify({ message: 'Conectado ao stream de notificações' })}\n\n`,
   );
 
-  const userId = req.user_id;
-  SSEService.addClient(userId, res);
+  SSEService.addClient(authReq.user_id, res);
 
   const heartbeat = setInterval(() => {
     res.write(`:heartbeat\n\n`);

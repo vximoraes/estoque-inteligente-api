@@ -22,4 +22,7 @@ const NotificacaoSchema = z.object({
 
 const NotificacaoUpdateSchema = NotificacaoSchema.partial();
 
+export type Notificacao = z.infer<typeof NotificacaoSchema>;
+export type NotificacaoUpdate = z.infer<typeof NotificacaoUpdateSchema>;
+
 export { NotificacaoSchema, NotificacaoUpdateSchema };

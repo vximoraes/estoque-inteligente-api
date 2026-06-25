@@ -13,11 +13,11 @@ jest.mock('../../../utils/helpers/index.js', () => ({
     created: jest.fn(),
   },
   HttpStatusCodes: {
-    OK: 200,
-    CREATED: 201,
-    BAD_REQUEST: 400,
-    NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500,
+    OK: { code: 200, message: 'OK' },
+    CREATED: { code: 201, message: 'Created' },
+    BAD_REQUEST: { code: 400, message: 'Bad Request' },
+    NOT_FOUND: { code: 404, message: 'Not Found' },
+    INTERNAL_SERVER_ERROR: { code: 500, message: 'Internal Server Error' },
   },
 }));
 
@@ -83,8 +83,9 @@ describe('NotificacaoController', () => {
 
       expect(CommonResponse.error).toHaveBeenCalledWith(
         mockRes,
-        { message: 'Notificação não encontrada' },
         404,
+        'resourceNotFound',
+        'Notificação',
       );
     });
   });

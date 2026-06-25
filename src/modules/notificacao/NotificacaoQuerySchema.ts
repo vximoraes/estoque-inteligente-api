@@ -19,3 +19,5 @@ export const NotificacaoQuerySchema = z.object({
   dataInicial: z.date().optional(),
   dataFinal: z.date().optional(),
 });
+
+export type NotificacaoQuery = z.output<typeof NotificacaoQuerySchema>;
