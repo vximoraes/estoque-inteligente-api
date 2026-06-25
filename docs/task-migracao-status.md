@@ -80,6 +80,22 @@
 - Rodar `npm test` antes e depois — zero regressão para avançar
 - Falhas pré-existentes (antes da migração) não bloqueiam — confirmar com `git stash` se necessário
 
+#### Migração de testes concluída (2026-06-25)
+
+Todos os 67 arquivos de teste migrados de `src/tests/` para `__tests__/` co-localizados:
+
+| Destino | Arquivos |
+|---|---|
+| `src/modules/<dom>/__tests__/` | routes (10), controllers (9), services (9), repositories (8), filterBuilders (8), models (8), schemas (8) |
+| `src/middlewares/__tests__/` | asyncWrapper (1) |
+| `src/utils/__tests__/` | logger (1) |
+| `src/utils/helpers/__tests__/` | CommonResponse, CustomError, errorHandler, messages, StatusService (5) |
+
+- `src/tests/` deletado após migração
+- Resultado: **16 suítes falhando** (10 routes + 6 models — exatamente o baseline pré-existente)
+- Zero novas regressões introduzidas
+- Regra de path: mesmo módulo → `'../<Arquivo>.js'`; cross-module → `'../../<dom>/<Arquivo>.js'`; utils → `'../../../utils/...'`
+
 ### Merges
 
 - Sempre usar `--no-ff` ao mergear branches feature em `develop`
