@@ -1,9 +1,8 @@
-// src/utils/errors/TokenInvalidError.js
 import CustomError from '../helpers/CustomError.js';
 import messages from '../helpers/messages.js';
 
 class TokenInvalidError extends CustomError {
-  constructor(message) {
+  constructor(_message?: string) {
     super({
       statusCode: 401,
       errorType: 'invalidToken',

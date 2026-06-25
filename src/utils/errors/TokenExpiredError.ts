@@ -1,6 +1,8 @@
-// src/utils/errors/TokenExpiredError.js
 class TokenExpiredError extends Error {
-  constructor(message) {
+  statusCode: number;
+  isOperational: boolean;
+
+  constructor(message: string) {
     super(message);
     this.name = 'TokenExpiredError';
     this.statusCode = 498;

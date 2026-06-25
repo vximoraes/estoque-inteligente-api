@@ -1,6 +1,8 @@
-// src/utils/errors/AuthenticationError.js
 class AuthenticationError extends Error {
-  constructor(message) {
+  statusCode: number;
+  isOperational: boolean;
+
+  constructor(message: string) {
     super(message);
     this.name = 'AuthenticationError';
     this.statusCode = 498;
