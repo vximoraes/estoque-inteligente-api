@@ -1,31 +1,31 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
-import EmprestimoModel from './EmprestimoModel.js';
+import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+
+type EmprestimoPlain = Record<string, unknown>;
 
 class EmprestimoRepository {
-  constructor({ emprestimoModel = EmprestimoModel } = {}) {
+  private model: mongoose.PaginateModel<EmprestimoDocument>;
+
+  constructor({
+    emprestimoModel = EmprestimoModel,
+  }: { emprestimoModel?: mongoose.PaginateModel<EmprestimoDocument> } = {}) {
     this.model = emprestimoModel;
   }
 
-  calcularStatus(emprestimo) {
+  calcularStatus(emprestimo: EmprestimoPlain | null): string {
     if (!emprestimo) return 'Ativo';
-
-    if (emprestimo.quantidade_aberta <= 0) {
-      return 'Devolvido';
-    }
-
-    if (!emprestimo.data_prevista_devolucao) {
-      return 'Ativo';
-    }
-
-    const hoje = new Date();
-    return new Date(emprestimo.data_prevista_devolucao) < hoje
+    if ((emprestimo['quantidade_aberta'] as number) <= 0) return 'Devolvido';
+    if (!emprestimo['data_prevista_devolucao']) return 'Ativo';
+    return new Date(emprestimo['data_prevista_devolucao'] as string | Date) < new Date()
       ? 'Atrasado'
       : 'Ativo';
   }
 
-  async criar(parsedData) {
+  async criar(parsedData: Record<string, unknown>): Promise<Record<string, unknown>> {
     const emprestimo = new this.model(parsedData);
     const emprestimoSalvo = await emprestimo.save();
 
@@ -35,15 +35,22 @@ class EmprestimoRepository {
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome email');
 
-    const objeto = documento.toObject();
-    return {
-      ...objeto,
-      status: this.calcularStatus(objeto),
-    };
+    if (!documento) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Emprestimo',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Emprestimo'),
+      });
+    }
+
+    const objeto = documento.toObject() as unknown as EmprestimoPlain;
+    return { ...objeto, status: this.calcularStatus(objeto) };
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req?.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model
@@ -62,64 +69,55 @@ class EmprestimoRepository {
         });
       }
 
-      const objeto = data.toObject();
-      return {
-        ...objeto,
-        status: this.calcularStatus(objeto),
-      };
+      const objeto = data.toObject() as unknown as EmprestimoPlain;
+      return { ...objeto, status: this.calcularStatus(objeto) };
     }
 
-    const {
-      item,
-      localizacao,
-      solicitante_nome,
-      apenas_abertos,
-      atrasados,
-      data_saida_inicio,
-      data_saida_fim,
-      page = 1,
-    } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
-    const dataSaidaInicio = data_saida_inicio
-      ? new Date(data_saida_inicio)
-      : null;
+    const query = req.query as Record<string, string | undefined>;
+    const { item, localizacao, solicitante_nome, apenas_abertos, atrasados, data_saida_inicio, data_saida_fim } =
+      query;
+    const page = query['page'] ?? '1';
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
+    const dataSaidaInicio = data_saida_inicio ? new Date(data_saida_inicio) : null;
     const dataSaidaFim = data_saida_fim ? new Date(data_saida_fim) : null;
 
     const filterBuilder = new EmprestimoFilterBuilder()
-      .comSolicitanteNome(solicitante_nome || '')
-      .comApenasAbertos(apenas_abertos === true || apenas_abertos === 'true')
-      .comAtrasados(atrasados === true || atrasados === 'true')
+      .comSolicitanteNome(solicitante_nome ?? '')
+      .comApenasAbertos(apenas_abertos === 'true')
+      .comAtrasados(atrasados === 'true')
       .comDataSaidaInicio(dataSaidaInicio)
       .comDataSaidaFim(dataSaidaFim);
 
-    await filterBuilder.comItem(item || '');
-    await filterBuilder.comLocalizacao(localizacao || '');
+    await filterBuilder.comItem(item ?? '');
+    await filterBuilder.comLocalizacao(localizacao ?? '');
 
     const filtros = { ...filterBuilder.build(), ativo: true };
 
     const options = {
       page: parseInt(page, 10),
-      limit: parseInt(limite, 10),
+      limit: limite,
       populate: ['item', 'localizacao', 'usuario_responsavel'],
       sort: { data_saida: -1 },
     };
 
-    const resultado = await this.model.paginate(filtros, options);
+    const resultado = await this.model.paginate(
+      filtros as mongoose.FilterQuery<EmprestimoDocument>,
+      options,
+    );
 
-    resultado.docs = resultado.docs.map((doc) => {
-      const emprestimoObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...emprestimoObj,
-        status: this.calcularStatus(emprestimoObj),
-      };
-    });
-
-    return resultado;
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => {
+        const obj = doc.toObject() as unknown as EmprestimoPlain;
+        return { ...obj, status: this.calcularStatus(obj) };
+      }),
+    };
   }
 
-  async buscarPorId(id) {
+  async buscarPorId(id: string) {
     const emprestimo = await this.model
       .findOne({ _id: id, ativo: true })
       .populate('item')
@@ -139,11 +137,9 @@ class EmprestimoRepository {
     return emprestimo;
   }
 
-  async atualizarDevolucao(id, payload) {
+  async atualizarDevolucao(id: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const emprestimoAtualizado = await this.model
-      .findOneAndUpdate({ _id: id, ativo: true }, payload, {
-        new: true,
-      })
+      .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome email');
@@ -158,14 +154,11 @@ class EmprestimoRepository {
       });
     }
 
-    const objeto = emprestimoAtualizado.toObject();
-    return {
-      ...objeto,
-      status: this.calcularStatus(objeto),
-    };
+    const objeto = emprestimoAtualizado.toObject() as unknown as EmprestimoPlain;
+    return { ...objeto, status: this.calcularStatus(objeto) };
   }
 
-  async atualizar(id, payload) {
+  async atualizar(id: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const emprestimo = await this.model.findOne({ _id: id, ativo: true });
 
     if (!emprestimo) {
@@ -183,7 +176,12 @@ class EmprestimoRepository {
         statusCode: 400,
         errorType: 'validationError',
         field: 'emprestimo',
-        details: [{ path: 'emprestimo', message: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.' }],
+        details: [
+          {
+            path: 'emprestimo',
+            message: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.',
+          },
+        ],
         customMessage: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.',
       });
     }
@@ -194,11 +192,21 @@ class EmprestimoRepository {
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome email');
 
-    const objeto = atualizado.toObject();
+    if (!atualizado) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Emprestimo',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Emprestimo'),
+      });
+    }
+
+    const objeto = atualizado.toObject() as unknown as EmprestimoPlain;
     return { ...objeto, status: this.calcularStatus(objeto) };
   }
 
-  async excluir(id) {
+  async excluir(id: string) {
     const emprestimo = await this.model.findOne({ _id: id, ativo: true });
 
     if (!emprestimo) {

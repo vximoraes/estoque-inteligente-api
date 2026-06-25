@@ -18,24 +18,25 @@ export async function verificarEmprestimosAtrasados() {
       .populate('item', 'nome')
       .populate('localizacao', 'nome');
   } catch (err) {
-    logger.error('Erro ao buscar empréstimos atrasados:', err);
+    logger.error('Erro ao buscar emprestimos atrasados:', err);
     return;
   }
 
   if (emprestimosAtrasados.length === 0) return;
 
-  logger.info(`Job de atraso: ${emprestimosAtrasados.length} empréstimo(s) atrasado(s) encontrado(s).`);
+  logger.info(`Job de atraso: ${emprestimosAtrasados.length} emprestimo(s) atrasado(s) encontrado(s).`);
 
   for (const emp of emprestimosAtrasados) {
     if (emp.solicitante_email) {
       try {
-        await EmailService.enviarEmailEmprestimoAtrasado(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (EmailService as any).enviarEmailEmprestimoAtrasado(
           emp.solicitante_nome,
           emp.solicitante_email,
           emp,
         );
       } catch (err) {
-        logger.error(`Erro ao enviar e-mail de atraso para empréstimo ${emp._id}:`, err);
+        logger.error(`Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`, err);
       }
     }
 
@@ -45,14 +46,14 @@ export async function verificarEmprestimosAtrasados() {
 
 export function iniciarJobEmprestimosAtrasados() {
   verificarEmprestimosAtrasados().catch((err) =>
-    logger.error('Erro inesperado no job de empréstimos atrasados:', err),
+    logger.error('Erro inesperado no job de emprestimos atrasados:', err),
   );
 
   setInterval(() => {
     verificarEmprestimosAtrasados().catch((err) =>
-      logger.error('Erro inesperado no job de empréstimos atrasados:', err),
+      logger.error('Erro inesperado no job de emprestimos atrasados:', err),
     );
   }, INTERVALO_MS);
 
-  logger.info('Job de empréstimos atrasados inicializado (intervalo: 1h)');
+  logger.info('Job de emprestimos atrasados inicializado (intervalo: 1h)');
 }

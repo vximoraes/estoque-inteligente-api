@@ -6,14 +6,19 @@ import Estoque from '../estoque/EstoqueModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import EmailService from '../../utils/services/EmailService.js';
 import EmprestimoModel from './EmprestimoModel.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+import type { Emprestimo, DevolucaoEmprestimo, AtualizarEmprestimo } from './EmprestimoSchema.js';
 
 class EmprestimoService {
+  private repository: EmprestimoRepository;
+  private movimentacaoService: MovimentacaoService;
+
   constructor() {
     this.repository = new EmprestimoRepository();
     this.movimentacaoService = new MovimentacaoService();
   }
 
-  async criar(parsedData, req) {
+  async criar(parsedData: Emprestimo, req: AuthenticatedRequest) {
     const item = await Item.findById(parsedData.item);
     if (!item) {
       throw new CustomError({
@@ -75,30 +80,33 @@ class EmprestimoService {
       data_saida: new Date(),
     });
 
-    if (data.solicitante_email) {
-      EmailService.enviarEmailNovoEmprestimo(data.solicitante_nome, data.solicitante_email, data).catch(
-        (err) => console.error('Erro ao enviar e-mail de novo empréstimo:', err),
-      );
+    if (data['solicitante_email']) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (EmailService as any)
+        .enviarEmailNovoEmprestimo(data['solicitante_nome'], data['solicitante_email'], data)
+        .catch((err: unknown) => console.error('Erro ao enviar e-mail de novo emprestimo:', err));
     }
 
     if (
-      data.solicitante_email &&
-      data.data_prevista_devolucao &&
-      new Date(data.data_prevista_devolucao) < new Date()
+      data['solicitante_email'] &&
+      data['data_prevista_devolucao'] &&
+      new Date(data['data_prevista_devolucao'] as string) < new Date()
     ) {
-      EmailService.enviarEmailEmprestimoAtrasado(data.solicitante_nome, data.solicitante_email, data)
-        .then(() => EmprestimoModel.updateOne({ _id: data._id }, { email_atraso_enviado: true }))
-        .catch((err) => console.error('Erro ao enviar e-mail de atraso na criação:', err));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (EmailService as any)
+        .enviarEmailEmprestimoAtrasado(data['solicitante_nome'], data['solicitante_email'], data)
+        .then(() => EmprestimoModel.updateOne({ _id: data['_id'] }, { email_atraso_enviado: true }))
+        .catch((err: unknown) => console.error('Erro ao enviar e-mail de atraso na criacao:', err));
     }
 
     return data;
   }
 
-  async listar(req) {
+  async listar(req: AuthenticatedRequest) {
     return this.repository.listar(req);
   }
 
-  async devolver(id, parsedData, req) {
+  async devolver(id: string, parsedData: DevolucaoEmprestimo, req: AuthenticatedRequest) {
     const emprestimo = await this.repository.buscarPorId(id);
 
     if (emprestimo.quantidade_aberta <= 0) {
@@ -131,48 +139,54 @@ class EmprestimoService {
       });
     }
 
+    const empItem = emprestimo.item as unknown as Record<string, unknown>;
+    const empLoc = emprestimo.localizacao as unknown as Record<string, unknown>;
+    const itemId = String(empItem['_id'] ?? emprestimo.item);
+    const localizacaoId = String(empLoc['_id'] ?? emprestimo.localizacao);
+
     await this.movimentacaoService.criar(
       {
         tipo: 'entrada',
         quantidade: parsedData.quantidade_devolvida,
-        item: emprestimo.item._id || emprestimo.item,
-        localizacao: emprestimo.localizacao._id || emprestimo.localizacao,
+        item: itemId,
+        localizacao: localizacaoId,
       },
       req,
     );
 
     const novaQuantidadeDevolvida =
       emprestimo.quantidade_devolvida + parsedData.quantidade_devolvida;
-    const novaQuantidadeAberta =
-      emprestimo.quantidade_emprestada - novaQuantidadeDevolvida;
+    const novaQuantidadeAberta = emprestimo.quantidade_emprestada - novaQuantidadeDevolvida;
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       quantidade_devolvida: novaQuantidadeDevolvida,
       quantidade_aberta: Math.max(0, novaQuantidadeAberta),
-      observacoes_devolucao: parsedData.observacoes_devolucao || '',
-      data_devolucao_total:
-        novaQuantidadeAberta <= 0 ? new Date() : emprestimo.data_devolucao_total,
+      observacoes_devolucao: parsedData.observacoes_devolucao ?? '',
+      data_devolucao_total: novaQuantidadeAberta <= 0 ? new Date() : emprestimo.data_devolucao_total,
     };
 
     const emprestimoAtualizado = await this.repository.atualizarDevolucao(id, payload);
 
-    if (emprestimoAtualizado.solicitante_email) {
-      EmailService.enviarEmailDevolucaoEmprestimo(
-        emprestimoAtualizado.solicitante_nome,
-        emprestimoAtualizado.solicitante_email,
-        emprestimoAtualizado,
-        parsedData.quantidade_devolvida,
-      ).catch((err) => console.error('Erro ao enviar e-mail de devolução:', err));
+    if (emprestimoAtualizado['solicitante_email']) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (EmailService as any)
+        .enviarEmailDevolucaoEmprestimo(
+          emprestimoAtualizado['solicitante_nome'],
+          emprestimoAtualizado['solicitante_email'],
+          emprestimoAtualizado,
+          parsedData.quantidade_devolvida,
+        )
+        .catch((err: unknown) => console.error('Erro ao enviar e-mail de devolucao:', err));
     }
 
     return emprestimoAtualizado;
   }
 
-  async atualizar(id, parsedData, req) {
-    return this.repository.atualizar(id, parsedData);
+  async atualizar(id: string, parsedData: AtualizarEmprestimo, _req: AuthenticatedRequest) {
+    return this.repository.atualizar(id, parsedData as Record<string, unknown>);
   }
 
-  async excluir(id) {
+  async excluir(id: string) {
     return this.repository.excluir(id);
   }
 }

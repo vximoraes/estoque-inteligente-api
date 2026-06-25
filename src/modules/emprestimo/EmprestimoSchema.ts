@@ -71,4 +71,8 @@ const AtualizarEmprestimoSchema = z.object({
     .optional(),
 });
 
+export type Emprestimo = z.infer<typeof EmprestimoSchema>;
+export type DevolucaoEmprestimo = z.infer<typeof DevolucaoEmprestimoSchema>;
+export type AtualizarEmprestimo = z.infer<typeof AtualizarEmprestimoSchema>;
+
 export { EmprestimoSchema, DevolucaoEmprestimoSchema, AtualizarEmprestimoSchema };
