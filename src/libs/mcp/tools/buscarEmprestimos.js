@@ -1,4 +1,4 @@
-import EmprestimoModel from '../../modules/emprestimo/EmprestimoModel.js';
+import EmprestimoModel from '../../../modules/emprestimo/EmprestimoModel.js';
 
 export async function buscarEmprestimos({ status, solicitanteNome, limite = 20 }, _usuarioId) {
   const filtros = { ativo: true };

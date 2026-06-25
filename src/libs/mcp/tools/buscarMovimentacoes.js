@@ -1,4 +1,4 @@
-import MovimentacaoModel from '../../modules/movimentacao/MovimentacaoModel.js';
+import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.js';
 
 export async function buscarMovimentacoes(
   { tipo, dataInicio, dataFim, itemNome, limite = 20 },

@@ -3,8 +3,8 @@ import { randomUUID } from 'crypto';
 import { promisify } from 'util';
 import jwt from 'jsonwebtoken';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { criarMCPServer } from '../mcp/MCPServerFactory.js';
-import MCPSessionStore from '../mcp/MCPSessionStore.js';
+import { criarMCPServer } from './MCPServerFactory.js';
+import MCPSessionStore from './MCPSessionStore.js';
 
 const router = express.Router();
 

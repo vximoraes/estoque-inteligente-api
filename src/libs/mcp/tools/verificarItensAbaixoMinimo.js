@@ -1,4 +1,4 @@
-import ItemModel from '../../modules/item/ItemModel.js';
+import ItemModel from '../../../modules/item/ItemModel.js';
 
 export async function verificarItensAbaixoMinimo(_args, _usuarioId) {
   const itens = await ItemModel.find({

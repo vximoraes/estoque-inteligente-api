@@ -1,4 +1,4 @@
-import OrcamentoModel from '../../modules/orcamento/OrcamentoModel.js';
+import OrcamentoModel from '../../../modules/orcamento/OrcamentoModel.js';
 
 export async function buscarOrcamentos({ nome, limite = 20 }, _usuarioId) {
   const filtros = { ativo: true };

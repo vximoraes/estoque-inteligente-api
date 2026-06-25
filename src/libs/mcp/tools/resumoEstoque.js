@@ -1,5 +1,5 @@
-import ItemModel from '../../modules/item/ItemModel.js';
-import EmprestimoModel from '../../modules/emprestimo/EmprestimoModel.js';
+import ItemModel from '../../../modules/item/ItemModel.js';
+import EmprestimoModel from '../../../modules/emprestimo/EmprestimoModel.js';
 
 export async function resumoEstoque(_args, _usuarioId) {
   const [totalItens, emEstoque, baixoEstoque, indisponivel, totalEmprestimosAtivos] =

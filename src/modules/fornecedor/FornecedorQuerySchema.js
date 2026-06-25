@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { objectIdSchema, paginationSchema } from '../../shared/utils/commonFields.js';
+import { objectIdSchema, paginationSchema } from '../../utils/commonFields.js';
 
 export const FornecedorIdSchema = objectIdSchema;
 

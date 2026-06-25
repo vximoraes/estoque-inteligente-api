@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { objectIdSchema } from '../../shared/utils/commonFields.js';
+import { objectIdSchema } from '../../utils/commonFields.js';
 
 const ItemSchema = z.object({
   nome: z

@@ -1,4 +1,4 @@
-import { objectIdSchema } from '../../shared/utils/commonFields.js';
+import { objectIdSchema } from '../../utils/commonFields.js';
 import { z } from 'zod';
 
 const EstoqueQuerySchema = z.object({

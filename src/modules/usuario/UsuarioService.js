@@ -8,7 +8,7 @@ import {
 } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
-import EmailService from '../../shared/services/EmailService.js';
+import EmailService from '../../utils/services/EmailService.js';
 import tokenUtil from '../../utils/TokenUtil.js';
 
 class UsuarioService {
