@@ -2,13 +2,17 @@ import MovimentacaoRepository from './MovimentacaoRepository.js';
 import Item from '../item/ItemModel.js';
 import Estoque from '../estoque/EstoqueModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+import type { Movimentacao } from './MovimentacaoSchema.js';
 
 class MovimentacaoService {
+  private repository: MovimentacaoRepository;
+
   constructor() {
     this.repository = new MovimentacaoRepository();
   }
 
-  async criar(parsedData, req) {
+  async criar(parsedData: Movimentacao, req: AuthenticatedRequest) {
     const item = await Item.findOne({ _id: parsedData.item });
     if (!item) {
       throw new CustomError({
@@ -26,9 +30,10 @@ class MovimentacaoService {
     });
 
     const quantidadeDisponivel = estoqueAtual ? estoqueAtual.quantidade : 0;
+    const quantidade = parsedData.quantidade ?? 0;
 
     if (parsedData.tipo === 'saida') {
-      if (quantidadeDisponivel < parsedData.quantidade) {
+      if (quantidadeDisponivel < quantidade) {
         throw new CustomError({
           statusCode: 400,
           errorType: 'validationError',
@@ -43,18 +48,13 @@ class MovimentacaoService {
         });
       }
     } else if (parsedData.tipo === 'entrada') {
-      const quantidadeResultante = quantidadeDisponivel + parsedData.quantidade;
+      const quantidadeResultante = quantidadeDisponivel + quantidade;
       if (quantidadeResultante > 999999999) {
         throw new CustomError({
           statusCode: 400,
           errorType: 'validationError',
           field: 'quantidade',
-          details: [
-            {
-              path: 'quantidade',
-              message: `Limite de estoque excedido (máx: 999.999.999)`,
-            },
-          ],
+          details: [{ path: 'quantidade', message: `Limite de estoque excedido (máx: 999.999.999)` }],
           customMessage: `Limite de estoque excedido (máx: 999.999.999)`,
         });
       }
@@ -63,17 +63,17 @@ class MovimentacaoService {
     const now = new Date();
     now.setHours(now.getHours() - 4);
     now.setDate(now.getDate() - 1);
-    parsedData.data_hora = now.toISOString().slice(0, 23).replace('T', ' ');
+    const data_hora = now.toISOString().slice(0, 23).replace('T', ' ');
 
-    parsedData.usuario = req.user_id;
-    const data = await this.repository.criar(parsedData);
-    return data;
+    return await this.repository.criar({
+      ...parsedData,
+      data_hora,
+      usuario: req.user_id,
+    });
   }
 
-  async listar(req) {
-    const data = await this.repository.listar(req);
-
-    return data;
+  async listar(req: AuthenticatedRequest) {
+    return await this.repository.listar(req);
   }
 }
 

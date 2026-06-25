@@ -1,86 +1,81 @@
-import MovimentacaoModel from './MovimentacaoModel.js';
 import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
 import mongoose from 'mongoose';
+
 const { Types } = mongoose;
 
 class MovimentacaoFilterBuilder {
-  constructor() {
-    this.filtros = {};
-    this.movimentacaoModel = MovimentacaoModel;
-  }
+  private filtros: Record<string, unknown> = {};
 
-  comTipo(tipo) {
+  comTipo(tipo: string | null | undefined): this {
     if (tipo) {
-      this.filtros.tipo = { $regex: tipo, $options: 'i' };
+      this.filtros['tipo'] = { $regex: tipo, $options: 'i' };
     }
     return this;
   }
 
-  comData(data) {
+  comData(data: string | null | undefined): this {
     if (data) {
       const inicio = new Date(data + 'T00:00:00.000Z');
       const fim = new Date(data + 'T23:59:59.999Z');
-      this.filtros.data_hora = { $gte: inicio, $lte: fim };
+      this.filtros['data_hora'] = { $gte: inicio, $lte: fim };
     }
     return this;
   }
 
-  comQuantidade(quantidade) {
+  comQuantidade(quantidade: string | number | null | undefined): this {
     if (quantidade !== undefined && quantidade !== null && quantidade !== '') {
       const num = Number(quantidade);
       if (!isNaN(num)) {
-        this.filtros.quantidade = num;
+        this.filtros['quantidade'] = num;
       }
     }
     return this;
   }
 
-  async comItem(item) {
+  async comItem(item: string | null | undefined): Promise<this> {
     if (item) {
       if (Types.ObjectId.isValid(item)) {
-        this.filtros.item = item;
+        this.filtros['item'] = item;
         const itemEncontrado = await Item.findById(item);
         if (!itemEncontrado) {
-          this.filtros.item = { $in: [] };
+          this.filtros['item'] = { $in: [] };
         }
       } else {
-        const itemEncontrado = await Item.findOne({
-          nome: { $regex: item, $options: 'i' },
-        });
+        const itemEncontrado = await Item.findOne({ nome: { $regex: item, $options: 'i' } });
         if (itemEncontrado) {
-          this.filtros.item = itemEncontrado._id;
+          this.filtros['item'] = itemEncontrado._id;
         } else {
-          this.filtros.item = { $in: [] };
+          this.filtros['item'] = { $in: [] };
         }
       }
     }
     return this;
   }
 
-  async comLocalizacao(localizacao) {
+  async comLocalizacao(localizacao: string | null | undefined): Promise<this> {
     if (localizacao) {
       if (Types.ObjectId.isValid(localizacao)) {
-        this.filtros.localizacao = localizacao;
+        this.filtros['localizacao'] = localizacao;
         const localizacaoEncontrada = await Localizacao.findById(localizacao);
         if (!localizacaoEncontrada) {
-          this.filtros.localizacao = { $in: [] };
+          this.filtros['localizacao'] = { $in: [] };
         }
       } else {
         const localizacaoEncontrada = await Localizacao.findOne({
           nome: { $regex: localizacao, $options: 'i' },
         });
         if (localizacaoEncontrada) {
-          this.filtros.localizacao = localizacaoEncontrada._id;
+          this.filtros['localizacao'] = localizacaoEncontrada._id;
         } else {
-          this.filtros.localizacao = { $in: [] };
+          this.filtros['localizacao'] = { $in: [] };
         }
       }
     }
     return this;
   }
 
-  build() {
+  build(): Record<string, unknown> {
     return this.filtros;
   }
 }

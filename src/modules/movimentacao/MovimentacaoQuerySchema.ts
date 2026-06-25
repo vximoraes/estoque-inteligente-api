@@ -22,7 +22,7 @@ export const MovimentacaoQuerySchema = z.object({
     })
     .transform((val) => (val ? new Date(val + 'T00:00:00Z') : undefined))
     .refine(
-      (val) => val === undefined || (val instanceof Date && !isNaN(val)),
+      (val) => val === undefined || (val instanceof Date && !isNaN(val.getTime())),
       {
         message: 'Data deve ser uma data válida',
       },

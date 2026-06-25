@@ -1,14 +1,20 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import MovimentacaoFilterBuilder from './MovimentacaoFilterBuilder.js';
-import MovimentacaoModel from './MovimentacaoModel.js';
+import MovimentacaoModel, { type MovimentacaoDocument, type IMovimentacaoModel } from './MovimentacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class MovimentacaoRepository {
-  constructor({ movimentacaoModel = MovimentacaoModel } = {}) {
+  private model: IMovimentacaoModel;
+
+  constructor({
+    movimentacaoModel = MovimentacaoModel,
+  }: { movimentacaoModel?: IMovimentacaoModel } = {}) {
     this.model = movimentacaoModel;
   }
 
-  async criar(parsedData) {
+  async criar(parsedData: Record<string, unknown>) {
     const movimentacao = new this.model(parsedData);
     const movimentacaoSalva = await movimentacao.save();
 
@@ -18,8 +24,8 @@ class MovimentacaoRepository {
       .populate('localizacao');
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req?.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model
@@ -37,23 +43,24 @@ class MovimentacaoRepository {
         });
       }
 
-      const dataWithStats = {
-        ...data.toObject(),
-      };
-
-      return dataWithStats;
+      return { ...data.toObject() };
     }
 
-    const { tipo, data, quantidade, item, localizacao, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
+    const query = req.query as Record<string, string | undefined>;
+    const { tipo, data, quantidade, item, localizacao } = query;
+    const page = query['page'] ?? '1';
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
 
     const filterBuilder = new MovimentacaoFilterBuilder()
-      .comTipo(tipo || '')
-      .comData(data || '')
-      .comQuantidade(quantidade || '');
+      .comTipo(tipo ?? '')
+      .comData(data ?? '')
+      .comQuantidade(quantidade ?? '');
 
-    await filterBuilder.comItem(item || '');
-    await filterBuilder.comLocalizacao(localizacao || '');
+    await filterBuilder.comItem(item ?? '');
+    await filterBuilder.comLocalizacao(localizacao ?? '');
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({
@@ -68,30 +75,22 @@ class MovimentacaoRepository {
     const filtros = { ...filterBuilder.build() };
 
     const options = {
-      page: parseInt(page),
-      limit: parseInt(limite),
+      page: parseInt(page, 10),
+      limit: limite,
       populate: ['item', 'localizacao'],
       sort: { data_hora: -1 },
     };
 
-    const resultado = await this.model.paginate(filtros, options);
+    const resultado = await this.model.paginate(
+      filtros as mongoose.FilterQuery<MovimentacaoDocument>,
+      options,
+    );
 
-    resultado.docs = resultado.docs.map((doc) => {
-      const movimentacaoObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...movimentacaoObj,
-      };
-    });
-
-    return resultado;
+    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
   }
 
-  async buscarPorId(id, includeTokens = false, req) {
-    const query = this.model.findOne({ _id: id });
-
-    const movimentacao = await query;
+  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+    const movimentacao = await this.model.findOne({ _id: id });
 
     if (!movimentacao) {
       throw new CustomError({

@@ -31,4 +31,7 @@ const MovimentacaoSchema = z.object({
 
 const MovimentacaoUpdateSchema = MovimentacaoSchema.partial();
 
+export type Movimentacao = z.infer<typeof MovimentacaoSchema>;
+export type MovimentacaoUpdate = z.infer<typeof MovimentacaoUpdateSchema>;
+
 export { MovimentacaoSchema, MovimentacaoUpdateSchema };
