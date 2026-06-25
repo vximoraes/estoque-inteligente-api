@@ -25,4 +25,7 @@ const ItemSchema = z.object({
 
 const ItemUpdateSchema = ItemSchema.partial();
 
+export type Item = z.infer<typeof ItemSchema>;
+export type ItemUpdate = z.infer<typeof ItemUpdateSchema>;
+
 export { ItemSchema, ItemUpdateSchema };

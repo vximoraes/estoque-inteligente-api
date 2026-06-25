@@ -7,4 +7,7 @@ const CategoriaSchema = z.object({
 
 const CategoriaUpdateSchema = CategoriaSchema.partial();
 
+export type Categoria = z.infer<typeof CategoriaSchema>;
+export type CategoriaUpdate = z.infer<typeof CategoriaUpdateSchema>;
+
 export { CategoriaSchema, CategoriaUpdateSchema };

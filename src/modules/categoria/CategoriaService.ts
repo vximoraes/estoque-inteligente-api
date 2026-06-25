@@ -5,43 +5,37 @@ import {
   HttpStatusCodes,
   messages,
 } from '../../utils/helpers/index.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+import type { Categoria, CategoriaUpdate } from './CategoriaSchema.js';
 
 class CategoriaService {
+  private repository: CategoriaRepository;
+
   constructor() {
     this.repository = new CategoriaRepository();
   }
 
-  async criar(parsedData, req) {
+  async criar(parsedData: Categoria, req: AuthenticatedRequest) {
     await this.validateNome(parsedData.nome, null, req);
-
-    parsedData.usuario = req.user_id;
-    const data = await this.repository.criar(parsedData);
-
-    return data;
+    return await this.repository.criar({ ...parsedData, usuario: req.user_id });
   }
 
-  async listar(req) {
-    const data = await this.repository.listar(req);
-
-    return data;
+  async listar(req: AuthenticatedRequest) {
+    return await this.repository.listar(req);
   }
 
-  async atualizar(id, parsedData, req) {
+  async atualizar(id: string, parsedData: CategoriaUpdate, req: AuthenticatedRequest) {
     await this.ensureCategoryExists(id, req);
-    await this.validateNome(parsedData.nome, id, req);
-
-    const data = await this.repository.atualizar(id, parsedData, req);
-
-    return data;
+    if (parsedData.nome) {
+      await this.validateNome(parsedData.nome, id, req);
+    }
+    return await this.repository.atualizar(id, parsedData as Record<string, unknown>, req);
   }
 
-  async inativar(id, req) {
+  async inativar(id: string, req: AuthenticatedRequest) {
     await this.ensureCategoryExists(id, req);
 
-    const existeItemAtivo = await ItemModel.exists({
-      categoria: id,
-      ativo: true,
-    });
+    const existeItemAtivo = await ItemModel.exists({ categoria: id, ativo: true });
 
     if (existeItemAtivo) {
       throw new CustomError({
@@ -53,17 +47,11 @@ class CategoriaService {
       });
     }
 
-    const data = await this.repository.atualizar(id, { ativo: false }, req);
-
-    return data;
+    return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
-  async validateNome(nome, id = null, req) {
-    const categoriaExistente = await this.repository.buscarPorNome(
-      nome,
-      id,
-      req,
-    );
+  private async validateNome(nome: string, id: string | null = null, req: AuthenticatedRequest) {
+    const categoriaExistente = await this.repository.buscarPorNome(nome, id, req);
     if (categoriaExistente) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -75,12 +63,8 @@ class CategoriaService {
     }
   }
 
-  async ensureCategoryExists(id, req) {
-    const categoriaExistente = await this.repository.buscarPorId(
-      id,
-      false,
-      req,
-    );
+  private async ensureCategoryExists(id: string, req: AuthenticatedRequest) {
+    const categoriaExistente = await this.repository.buscarPorId(id, false, req);
     if (!categoriaExistente) {
       throw new CustomError({
         statusCode: 404,
@@ -90,7 +74,6 @@ class CategoriaService {
         customMessage: messages.error.resourceNotFound('Categoria'),
       });
     }
-
     return categoriaExistente;
   }
 }

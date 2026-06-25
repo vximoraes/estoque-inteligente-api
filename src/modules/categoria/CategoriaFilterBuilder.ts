@@ -2,20 +2,24 @@ import CategoriaModel from './CategoriaModel.js';
 import CategoriaRepository from './CategoriaRepository.js';
 
 class CategoriaFilterBuilder {
+  filtros: Record<string, unknown> = {};
+  categoriaRepository: CategoriaRepository;
+  categoriaModel: typeof CategoriaModel;
+
   constructor() {
     this.filtros = {};
     this.categoriaRepository = new CategoriaRepository();
     this.categoriaModel = CategoriaModel;
   }
 
-  comNome(nome) {
+  comNome(nome: string | null | undefined): this {
     if (nome) {
-      this.filtros.nome = { $regex: nome, $options: 'i' };
+      this.filtros['nome'] = { $regex: nome, $options: 'i' };
     }
     return this;
   }
 
-  build() {
+  build(): Record<string, unknown> {
     return this.filtros;
   }
 }

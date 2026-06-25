@@ -7,56 +7,60 @@ import {
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
+import type { Item, ItemUpdate } from './ItemSchema.js';
 
 class ItemService {
+  private repository: ItemRepository;
+
   constructor() {
     this.repository = new ItemRepository();
   }
 
-  async criar(parsedData, req) {
+  async criar(parsedData: Item, req: AuthenticatedRequest) {
     await this.validateNome(parsedData.nome, null, req);
     await this.validateCategoria(parsedData.categoria, req);
 
-    parsedData.usuario = req.user_id;
-    parsedData.quantidade = 0;
-
-    const data = await this.repository.criar(parsedData);
-
-    return data;
+    return await this.repository.criar({
+      ...parsedData,
+      usuario: req.user_id,
+      quantidade: 0,
+    });
   }
 
-  async listar(req) {
-    const data = await this.repository.listar(req);
-
-    return data;
+  async listar(req: AuthenticatedRequest) {
+    return await this.repository.listar(req);
   }
 
-  async stats(req) {
-    const data = await this.repository.stats(req);
-
-    return data;
+  async stats(req: AuthenticatedRequest) {
+    return await this.repository.stats(req);
   }
 
-  async atualizar(id, parsedData, req) {
+  async atualizar(id: string, parsedData: ItemUpdate, req: AuthenticatedRequest) {
     await this.ensureItemExists(id, req);
-    await this.validateNome(parsedData.nome, id, req);
+    if (parsedData.nome) {
+      await this.validateNome(parsedData.nome, id, req);
+    }
 
-    delete parsedData.quantidade;
+    const { quantidade: _quantidade, ...dataWithoutQuantidade } = parsedData as Record<
+      string,
+      unknown
+    >;
 
-    const data = await this.repository.atualizar(id, parsedData, req);
-
-    return data;
+    return await this.repository.atualizar(id, dataWithoutQuantidade, req);
   }
 
-  async inativar(id, req) {
+  async inativar(id: string, req: AuthenticatedRequest) {
     await this.ensureItemExists(id, req);
-
-    const data = await this.repository.atualizar(id, { ativo: false }, req);
-
-    return data;
+    return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
-  async validateNome(nome, id = null, req) {
+  private async validateNome(
+    nome: string | undefined,
+    id: string | null = null,
+    req: AuthenticatedRequest,
+  ) {
+    if (!nome) return;
     const itemExistente = await this.repository.buscarPorNome(nome, id, req);
     if (itemExistente) {
       throw new CustomError({
@@ -69,7 +73,7 @@ class ItemService {
     }
   }
 
-  async ensureItemExists(id, req) {
+  private async ensureItemExists(id: string, req: AuthenticatedRequest) {
     const itemExistente = await this.repository.buscarPorId(id, false, req);
     if (!itemExistente) {
       throw new CustomError({
@@ -80,11 +84,10 @@ class ItemService {
         customMessage: messages.error.resourceNotFound('Item'),
       });
     }
-
     return itemExistente;
   }
 
-  async validateCategoria(categoriaId, req) {
+  private async validateCategoria(categoriaId: string, _req: AuthenticatedRequest) {
     const categoria = await CategoriaModel.findOne({ _id: categoriaId });
     if (!categoria) {
       throw new CustomError({
@@ -97,7 +100,7 @@ class ItemService {
     }
   }
 
-  async uploadFoto(req, id) {
+  async uploadFoto(req: AuthenticatedRequest, id: string) {
     const file = req.file;
     if (!file) {
       throw new CustomError({
@@ -105,10 +108,7 @@ class ItemService {
         errorType: 'badRequest',
         field: 'Foto',
         details: [
-          {
-            path: 'Foto',
-            message: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
-          },
+          { path: 'Foto', message: 'Nenhum arquivo foi enviado ou o arquivo está vazio.' },
         ],
         customMessage: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
       });
@@ -126,47 +126,33 @@ class ItemService {
       const data = await this.repository.atualizar(
         id,
         {
-          imagem: `${process.env.MINIO_PUBLIC_URL}/${process.env.MINIO_BUCKET_2}/${id}.jpeg`,
+          imagem: `${process.env['MINIO_PUBLIC_URL']}/${process.env['MINIO_BUCKET_2']}/${id}.jpeg`,
         },
         req,
       );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(
-        process.env.MINIO_BUCKET_2,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (minioClient as any).putObject(
+        process.env['MINIO_BUCKET_2'],
         objectName,
         newFile,
-        {
-          'Content-Type': 'image/jpeg',
-        },
+        { 'Content-Type': 'image/jpeg' },
       );
 
-      return { imagem: data.imagem };
+      return { imagem: (data as Record<string, unknown>)['imagem'] };
     } catch (err) {
-      throw new Error(err);
+      throw new Error(String(err));
     }
   }
 
-  async deletarFoto(req, id) {
+  async deletarFoto(req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    await minioClient.removeObject(
-      process.env.MINIO_BUCKET_2,
-      objectName,
-      (err) => {
-        if (err) {
-          throw new CustomError({
-            statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-            errorType: 'internalServerError',
-            field: 'Foto',
-            details: [],
-            customMessage: 'Erro ao deletar a foto do usuário.',
-          });
-        }
-      },
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (minioClient as any).removeObject(process.env['MINIO_BUCKET_2'], objectName);
     const data = await this.repository.atualizar(id, { imagem: '' }, req);
 
-    return { imagem: data.imagem };
+    return { imagem: (data as Record<string, unknown>)['imagem'] };
   }
 }
 
