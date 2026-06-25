@@ -7,4 +7,7 @@ const LocalizacaoSchema = z.object({
 
 const LocalizacaoUpdateSchema = LocalizacaoSchema.partial();
 
+export type Localizacao = z.infer<typeof LocalizacaoSchema>;
+export type LocalizacaoUpdate = z.infer<typeof LocalizacaoUpdateSchema>;
+
 export { LocalizacaoSchema, LocalizacaoUpdateSchema };

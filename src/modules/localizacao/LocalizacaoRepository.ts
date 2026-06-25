@@ -1,20 +1,26 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import LocalizacaoFilterBuilder from './LocalizacaoFilterBuilder.js';
-import LocalizacaoModel from './LocalizacaoModel.js';
+import LocalizacaoModel, { type LocalizacaoDocument } from './LocalizacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class LocalizacaoRepository {
-  constructor({ localizacaoModel = LocalizacaoModel } = {}) {
+  private model: mongoose.PaginateModel<LocalizacaoDocument>;
+
+  constructor({
+    localizacaoModel = LocalizacaoModel,
+  }: { localizacaoModel?: mongoose.PaginateModel<LocalizacaoDocument> } = {}) {
     this.model = localizacaoModel;
   }
 
-  async criar(parsedData) {
+  async criar(parsedData: Record<string, unknown>) {
     const localizacao = new this.model(parsedData);
     return await localizacao.save();
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req?.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
@@ -29,17 +35,18 @@ class LocalizacaoRepository {
         });
       }
 
-      const dataWithStats = {
-        ...data.toObject(),
-      };
-
-      return dataWithStats;
+      return { ...data.toObject() };
     }
 
-    const { nome, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
+    const query = req.query as Record<string, string | undefined>;
+    const nome = query['nome'];
+    const page = query['page'] ?? '1';
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
 
-    const filterBuilder = new LocalizacaoFilterBuilder().comNome(nome || '');
+    const filterBuilder = new LocalizacaoFilterBuilder().comNome(nome ?? '');
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({
@@ -55,28 +62,23 @@ class LocalizacaoRepository {
 
     const options = {
       page: parseInt(page, 10),
-      limit: parseInt(limite, 10),
+      limit: limite,
       sort: { nome: 1 },
     };
 
-    const resultado = await this.model.paginate(filtros, options);
+    const resultado = await this.model.paginate(
+      filtros as mongoose.FilterQuery<LocalizacaoDocument>,
+      options,
+    );
 
-    resultado.docs = resultado.docs.map((doc) => {
-      const localizacaoObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...localizacaoObj,
-      };
-    });
-
-    return resultado;
+    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
   }
 
-  async atualizar(id, parsedData, req) {
+  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
     const localizacao = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .lean();
+
     if (!localizacao) {
       throw new CustomError({
         statusCode: 404,
@@ -90,22 +92,18 @@ class LocalizacaoRepository {
     return localizacao;
   }
 
-  async buscarPorNome(nome, idIgnorado, req) {
-    const filtro = { nome, ativo: true };
+  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
+    const filtro: mongoose.FilterQuery<LocalizacaoDocument> = { nome, ativo: true };
 
     if (idIgnorado) {
-      filtro._id = { $ne: idIgnorado };
+      filtro['_id'] = { $ne: idIgnorado };
     }
 
-    const documento = await this.model.findOne(filtro);
-
-    return documento;
+    return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id, includeTokens = false, req) {
-    const query = this.model.findOne({ _id: id, ativo: true });
-
-    const localizacao = await query;
+  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+    const localizacao = await this.model.findOne({ _id: id, ativo: true });
 
     if (!localizacao) {
       throw new CustomError({
