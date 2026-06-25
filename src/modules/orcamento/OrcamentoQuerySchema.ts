@@ -8,3 +8,5 @@ export const OrcamentoQuerySchema = paginationSchema.extend({
     message: 'Nome não pode ser vazio',
   }).transform((val) => val?.trim()),
 });
+
+export type OrcamentoQuery = z.output<typeof OrcamentoQuerySchema>;

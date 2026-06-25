@@ -1,25 +1,28 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import OrcamentoFilterBuilder from './OrcamentoFilterBuilder.js';
-import OrcamentoModel from './OrcamentoModel.js';
+import OrcamentoModel, { type OrcamentoDocument, type IItemOrcamento } from './OrcamentoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class OrcamentoRepository {
-  constructor({ orcamentoModel = OrcamentoModel } = {}) {
+  private model: mongoose.PaginateModel<OrcamentoDocument>;
+
+  constructor({ orcamentoModel = OrcamentoModel }: { orcamentoModel?: mongoose.PaginateModel<OrcamentoDocument> } = {}) {
     this.model = orcamentoModel;
   }
 
-  async criar(parsedData) {
+  async criar(parsedData: Record<string, unknown>) {
     const orcamento = new this.model(parsedData);
     const orcamentoSalvo = await orcamento.save();
     return await this.model.findById(orcamentoSalvo._id);
   }
 
-  async listar(req) {
-    const id = req.params.id || null;
+  async listar(req: AuthenticatedRequest) {
+    const id = req.params?.['id'] ?? null;
 
     if (id) {
       const data = await this.model.findOne({ _id: id, ativo: true });
-
       if (!data) {
         throw new CustomError({
           statusCode: 404,
@@ -29,18 +32,17 @@ class OrcamentoRepository {
           customMessage: messages.error.resourceNotFound('Orçamento'),
         });
       }
-
-      const dataWithStats = {
-        ...data.toObject(),
-      };
-
-      return dataWithStats;
+      return { ...data.toObject() };
     }
 
-    const { nome, page = 1 } = req.query;
-    const limite = Math.min(parseInt(req.query.limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT);
+    const query = req.query as Record<string, string | undefined>;
+    const { nome, page = '1' } = query;
+    const limite = Math.min(
+      parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
+      PAGINATION_MAX_LIMIT,
+    );
 
-    const filterBuilder = new OrcamentoFilterBuilder().comNome(nome || '');
+    const filterBuilder = new OrcamentoFilterBuilder().comNome(nome ?? '');
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({
@@ -52,32 +54,20 @@ class OrcamentoRepository {
       });
     }
 
-    const filtros = { ...filterBuilder.build(), ativo: true };
-
-    const options = {
-      page: parseInt(page),
-      limit: parseInt(limite),
-      sort: { nome: 1 },
-    };
+    const filtros: mongoose.FilterQuery<OrcamentoDocument> = { ...filterBuilder.build(), ativo: true };
+    const options = { page: parseInt(page), limit: limite, sort: { nome: 1 } };
 
     const resultado = await this.model.paginate(filtros, options);
-
-    resultado.docs = resultado.docs.map((doc) => {
-      const orcamentoObj =
-        typeof doc.toObject === 'function' ? doc.toObject() : doc;
-
-      return {
-        ...orcamentoObj,
-      };
-    });
-
-    return resultado;
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => ({
+        ...(typeof doc.toObject === 'function' ? doc.toObject() : doc),
+      })),
+    };
   }
 
-  async atualizar(id, parsedData, req) {
-    const orcamento = await this.model
-      .findOneAndUpdate({ _id: id }, parsedData, { new: true })
-      .lean();
+  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+    const orcamento = await this.model.findOneAndUpdate({ _id: id }, parsedData, { new: true }).lean();
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -87,11 +77,10 @@ class OrcamentoRepository {
         customMessage: messages.error.resourceNotFound('Orçamento'),
       });
     }
-
     return orcamento;
   }
 
-  async deletar(id, req) {
+  async deletar(id: string, _req?: AuthenticatedRequest) {
     const orcamento = await this.model.findOne({ _id: id, ativo: true });
     if (!orcamento) {
       throw new CustomError({
@@ -102,16 +91,12 @@ class OrcamentoRepository {
         customMessage: messages.error.resourceNotFound('Orçamento'),
       });
     }
-
     await this.model.findOneAndDelete({ _id: id });
     return orcamento;
   }
 
-  async adicionarItem(orcamentoId, novoItem, req) {
-    const orcamento = await this.model.findOne({
-      _id: orcamentoId,
-      ativo: true,
-    });
+  async adicionarItem(orcamentoId: string, novoItem: Record<string, unknown>, _req?: AuthenticatedRequest) {
+    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -121,21 +106,16 @@ class OrcamentoRepository {
         customMessage: messages.error.resourceNotFound('Orçamento'),
       });
     }
-
-    orcamento.itens.push(novoItem);
+    orcamento.itens.push(novoItem as unknown as IItemOrcamento);
     orcamento.total = parseFloat(
       orcamento.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
     );
     await orcamento.save();
-
     return orcamento;
   }
 
-  async atualizarItem(orcamentoId, itemId, itemAtualizado, req) {
-    const orcamento = await this.model.findOne({
-      _id: orcamentoId,
-      ativo: true,
-    });
+  async atualizarItem(orcamentoId: string, itemId: string, itemAtualizado: Record<string, unknown>, _req?: AuthenticatedRequest) {
+    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -146,10 +126,8 @@ class OrcamentoRepository {
       });
     }
 
-    const itens = Array.isArray(orcamento.itens) ? orcamento.itens : [];
-    const idx = itens.findIndex(
-      (c) => c && c._id && c._id.toString() === itemId,
-    );
+    const itens = Array.isArray(orcamento.itens) ? [...orcamento.itens] : [];
+    const idx = itens.findIndex((c) => c && c._id && c._id.toString() === itemId);
     if (idx === -1) {
       throw new CustomError({
         statusCode: 404,
@@ -160,26 +138,32 @@ class OrcamentoRepository {
       });
     }
 
-    itens[idx] = {
-      ...(typeof itens[idx].toObject === 'function'
-        ? itens[idx].toObject()
-        : itens[idx]),
-      ...itemAtualizado,
-    };
-    orcamento.itens = itens;
+    const existing = itens[idx];
+    if (!existing) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Item',
+        details: [],
+        customMessage: 'Item não encontrado.',
+      });
+    }
+
+    const existingRaw = typeof (existing as unknown as { toObject?: () => Record<string, unknown> }).toObject === 'function'
+      ? (existing as unknown as { toObject: () => Record<string, unknown> }).toObject()
+      : { ...existing };
+    itens[idx] = { ...existingRaw, ...itemAtualizado } as unknown as IItemOrcamento;
+
+    orcamento.itens = itens as OrcamentoDocument['itens'];
     orcamento.total = parseFloat(
-      itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
+      itens.reduce((acc, comp) => acc + (comp.subtotal ?? 0), 0).toFixed(2),
     );
     await orcamento.save();
-
     return orcamento;
   }
 
-  async removerItem(orcamentoId, itemId, req) {
-    const orcamento = await this.model.findOne({
-      _id: orcamentoId,
-      ativo: true,
-    });
+  async removerItem(orcamentoId: string, itemId: string, _req?: AuthenticatedRequest) {
+    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -189,21 +173,18 @@ class OrcamentoRepository {
         customMessage: messages.error.resourceNotFound('Orçamento'),
       });
     }
-
     orcamento.itens = orcamento.itens.filter(
-      (c) => c._id.toString() !== itemId,
-    );
+      (c) => c._id?.toString() !== itemId,
+    ) as OrcamentoDocument['itens'];
     orcamento.total = parseFloat(
       orcamento.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
     );
     await orcamento.save();
-
     return orcamento;
   }
 
-  async buscarPorId(id, includeTokens = false, req) {
-    const query = this.model.findOne({ _id: id, ativo: true });
-    const orcamento = await query;
+  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+    const orcamento = await this.model.findOne({ _id: id, ativo: true });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -213,7 +194,6 @@ class OrcamentoRepository {
         customMessage: messages.error.resourceNotFound('Orçamento'),
       });
     }
-
     return orcamento;
   }
 }

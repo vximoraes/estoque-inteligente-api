@@ -52,6 +52,11 @@ const OrcamentoSchema = z.object({
 const OrcamentoUpdateSchema = OrcamentoSchema.omit({ itens: true }).partial();
 const ItemOrcamentoUpdateSchema = ItemOrcamentoSchema.partial();
 
+export type Orcamento = z.infer<typeof OrcamentoSchema>;
+export type OrcamentoUpdate = z.infer<typeof OrcamentoUpdateSchema>;
+export type ItemOrcamento = z.infer<typeof ItemOrcamentoSchema>;
+export type ItemOrcamentoUpdate = z.infer<typeof ItemOrcamentoUpdateSchema>;
+
 export {
   OrcamentoSchema,
   OrcamentoUpdateSchema,
