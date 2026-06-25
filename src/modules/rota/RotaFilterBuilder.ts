@@ -1,23 +1,26 @@
-class RotaFilterBuilder {
-  constructor() {
-    this.filtros = {};
-  }
+import type mongoose from 'mongoose';
+import type { IRota } from './RotaModel.js';
 
-  comRota(rota) {
+type RotaFilter = mongoose.FilterQuery<IRota>;
+
+class RotaFilterBuilder {
+  private filtros: RotaFilter = {};
+
+  comRota(rota: string | null | undefined): this {
     if (rota) {
       this.filtros.rota = { $regex: rota, $options: 'i' };
     }
     return this;
   }
 
-  comDominio(dominio) {
+  comDominio(dominio: string | null | undefined): this {
     if (dominio) {
       this.filtros.dominio = { $regex: dominio, $options: 'i' };
     }
     return this;
   }
 
-  comAtivo(ativo) {
+  comAtivo(ativo: string | null | undefined): this {
     if (ativo === 'true') {
       this.filtros.ativo = true;
     } else if (ativo === 'false') {
@@ -26,7 +29,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comGet(buscar) {
+  comGet(buscar: string | null | undefined): this {
     if (buscar === 'true') {
       this.filtros.buscar = true;
     } else if (buscar === 'false') {
@@ -35,7 +38,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comPost(enviar) {
+  comPost(enviar: string | null | undefined): this {
     if (enviar === 'true') {
       this.filtros.enviar = true;
     } else if (enviar === 'false') {
@@ -44,7 +47,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comPut(substituir) {
+  comPut(substituir: string | null | undefined): this {
     if (substituir === 'true') {
       this.filtros.substituir = true;
     } else if (substituir === 'false') {
@@ -53,7 +56,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comPatch(modificar) {
+  comPatch(modificar: string | null | undefined): this {
     if (modificar === 'true') {
       this.filtros.modificar = true;
     } else if (modificar === 'false') {
@@ -62,7 +65,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comDelete(excluir) {
+  comDelete(excluir: string | null | undefined): this {
     if (excluir === 'true') {
       this.filtros.excluir = true;
     } else if (excluir === 'false') {
@@ -71,7 +74,7 @@ class RotaFilterBuilder {
     return this;
   }
 
-  build() {
+  build(): RotaFilter {
     return this.filtros;
   }
 }

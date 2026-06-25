@@ -9,3 +9,5 @@ export const BaseRotaSchema = z.object({
   rota: z.string().min(1, 'O campo rota é obrigatório.'),
   dominio: z.string().default('localhost'),
 });
+
+export type BaseRota = z.infer<typeof BaseRotaSchema>;

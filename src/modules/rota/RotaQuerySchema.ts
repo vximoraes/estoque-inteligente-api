@@ -18,3 +18,5 @@ export const RotaQuerySchema = paginationSchema.extend({
       message: 'Domínio não pode ser vazio',
     }),
 });
+
+export type RotaQuery = z.output<typeof RotaQuerySchema>;

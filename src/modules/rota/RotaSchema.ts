@@ -12,4 +12,7 @@ const RotaSchema = BaseRotaSchema.extend({
 
 const RotaUpdateSchema = RotaSchema.partial();
 
+export type Rota = z.infer<typeof RotaSchema>;
+export type RotaUpdate = z.infer<typeof RotaUpdateSchema>;
+
 export { RotaSchema, RotaUpdateSchema };
