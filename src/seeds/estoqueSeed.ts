@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { fakeMappings } from './globalFakeMapping.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import Item from '../modules/item/ItemModel.js';
@@ -35,9 +36,9 @@ export default async function estoqueSeed() {
 
       const estoque = {
         quantidade: fakeMappings.Estoque.quantidade(),
-        item: item._id,
-        localizacao: localizacao._id,
-        usuario: usuarioRandom._id,
+        item: item._id as mongoose.Types.ObjectId,
+        localizacao: localizacao._id as mongoose.Types.ObjectId,
+        usuario: usuarioRandom._id as mongoose.Types.ObjectId,
       };
 
       await Estoque.create(estoque);
@@ -45,6 +46,6 @@ export default async function estoqueSeed() {
   }
 
   for (const item of itemList) {
-    await Estoque.atualizarQuantidadeItem(item._id);
+    await Estoque.atualizarQuantidadeItem(item._id as mongoose.Types.ObjectId);
   }
 }
