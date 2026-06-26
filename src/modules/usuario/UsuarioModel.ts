@@ -13,6 +13,8 @@ export interface IUsuario {
   ativadoEm?: Date;
   refreshtoken?: string | null;
   accesstoken?: string | null;
+  codigo_recupera_senha?: string | null;
+  exp_codigo_recupera_senha?: Date | string | null;
   grupos: mongoose.Types.ObjectId[];
   permissoes: IGrupoPermissao[];
   fotoPerfil?: string;
@@ -31,6 +33,8 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>({
   ativadoEm: { type: Date, select: false },
   refreshtoken: { type: String, select: false },
   accesstoken: { type: String, select: false },
+  codigo_recupera_senha: { type: String, default: null },
+  exp_codigo_recupera_senha: { type: Date, default: null },
   grupos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'grupos' }],
   permissoes: [
     {

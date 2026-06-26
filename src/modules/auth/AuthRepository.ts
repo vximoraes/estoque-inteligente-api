@@ -1,14 +1,24 @@
-import UsuarioModel from '../usuario/UsuarioModel.js';
-import RotaModel from '../rota/RotaModel.js';
+import UsuarioModel, { type UsuarioDocument } from '../usuario/UsuarioModel.js';
+import RotaModel, { type RotaDocument } from '../rota/RotaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import type mongoose from 'mongoose';
 
 class AuthRepository {
-  constructor({ usuarioModel = UsuarioModel, rotaModel = RotaModel } = {}) {
+  private model: mongoose.PaginateModel<UsuarioDocument>;
+  private rotaModel: mongoose.PaginateModel<RotaDocument>;
+
+  constructor({
+    usuarioModel = UsuarioModel,
+    rotaModel = RotaModel,
+  }: {
+    usuarioModel?: mongoose.PaginateModel<UsuarioDocument>;
+    rotaModel?: mongoose.PaginateModel<RotaDocument>;
+  } = {}) {
     this.model = usuarioModel;
     this.rotaModel = rotaModel;
   }
 
-  async armazenarTokens(id, accesstoken, refreshtoken) {
+  async armazenarTokens(id: string, accesstoken: string, refreshtoken: string) {
     const documento = await this.model.findById(id);
     if (!documento) {
       throw new CustomError({
@@ -23,18 +33,17 @@ class AuthRepository {
     documento.accesstoken = accesstoken;
     documento.refreshtoken = refreshtoken;
 
-    const data = await documento.save();
-    return data;
+    return await documento.save();
   }
 
-  async removeToken(id) {
+  async removeToken(id: string) {
     const parsedData = {
       accesstoken: null,
       refreshtoken: null,
     };
 
     const usuario = await this.model
-      .findByIdAndUpdate(id, parsedData, { new: true })
+      .findByIdAndUpdate(id, parsedData as mongoose.UpdateQuery<UsuarioDocument>, { new: true })
       .lean();
     if (!usuario) {
       throw new CustomError({

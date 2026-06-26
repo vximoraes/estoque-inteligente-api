@@ -1,28 +1,28 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {
-  CustomError,
-  HttpStatusCodes,
-  messages,
-} from '../../utils/helpers/index.js';
+import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
 import tokenUtil from '../../utils/TokenUtil.js';
 import AuthHelper from '../../utils/AuthHelper.js';
-
 import UsuarioRepository from '../usuario/UsuarioRepository.js';
 import EmailService from '../../utils/services/EmailService.js';
 
 class AuthService {
-  constructor({ tokenUtil: injectedTokenUtil } = {}) {
-    this.TokenUtil = injectedTokenUtil || tokenUtil;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private TokenUtil: any;
+  private repository: UsuarioRepository;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor({ tokenUtil: injectedTokenUtil }: { tokenUtil?: any } = {}) {
+    this.TokenUtil = injectedTokenUtil ?? tokenUtil;
     this.repository = new UsuarioRepository();
   }
 
-  async carregatokens(id, token) {
-    const data = await this.repository.buscarPorId(id, { includeTokens: true });
+  async carregatokens(id: string, _token: string) {
+    const data = await this.repository.buscarPorId(id, true);
     return { data };
   }
 
-  async revoke(id) {
+  async revoke(id: string) {
     if (!id) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -33,16 +33,7 @@ class AuthService {
       });
     }
 
-    const usuario = await this.repository.buscarPorId(id);
-    if (!usuario) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.NOT_FOUND.code,
-        errorType: 'notFound',
-        field: 'Usuário',
-        details: [],
-        customMessage: 'Usuário não encontrado para revogação de tokens.',
-      });
-    }
+    await this.repository.buscarPorId(id);
 
     const data = await this.repository.removeToken(id);
     if (!data) {
@@ -58,12 +49,12 @@ class AuthService {
     return { message: 'Tokens revogados com sucesso.' };
   }
 
-  async logout(id) {
+  async logout(id: string) {
     const data = await this.repository.removeToken(id);
     return { data };
   }
 
-  async login(body) {
+  async login(body: { email: string; senha: string }) {
     const userEncontrado = await this.repository.buscarPorEmail(body.email);
     if (!userEncontrado) {
       throw new CustomError({
@@ -75,7 +66,7 @@ class AuthService {
       });
     }
 
-    const senhaValida = await bcrypt.compare(body.senha, userEncontrado.senha);
+    const senhaValida = await bcrypt.compare(body.senha, userEncontrado.senha ?? '');
     if (!senhaValida) {
       throw new CustomError({
         statusCode: 401,
@@ -86,59 +77,46 @@ class AuthService {
       });
     }
 
-    const accesstoken = await this.TokenUtil.generateAccessToken(
-      userEncontrado._id,
-    );
+    const accesstoken = await this.TokenUtil.generateAccessToken(userEncontrado._id);
 
-    const userComTokens = await this.repository.buscarPorId(
-      userEncontrado._id,
-      true,
-    );
-    let refreshtoken = userComTokens.refreshtoken;
+    const userComTokens = await this.repository.buscarPorId(String(userEncontrado._id), true);
+    let refreshtoken: string = userComTokens.refreshtoken ?? '';
 
     if (refreshtoken) {
       try {
-        jwt.verify(refreshtoken, process.env.JWT_SECRET_REFRESH_TOKEN);
+        jwt.verify(refreshtoken, process.env['JWT_SECRET_REFRESH_TOKEN'] ?? '');
       } catch (error) {
-        if (
-          error.name === 'TokenExpiredError' ||
-          error.name === 'JsonWebTokenError'
-        ) {
-          refreshtoken = await this.TokenUtil.generateRefreshToken(
-            userEncontrado._id,
-          );
+        const err = error as Error;
+        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+          refreshtoken = await this.TokenUtil.generateRefreshToken(userEncontrado._id);
         } else {
           throw new CustomError({
             statusCode: 500,
             errorType: 'serverError',
             field: 'Token',
             details: [],
-            customMessage: messages.error.unauthorized(
-              'falha na geração do token',
-            ),
+            customMessage: messages.error.unauthorized('falha na geração do token'),
           });
         }
       }
     } else {
-      refreshtoken = await this.TokenUtil.generateRefreshToken(
-        userEncontrado._id,
-      );
+      refreshtoken = await this.TokenUtil.generateRefreshToken(userEncontrado._id);
     }
 
     await this.repository.armazenarTokens(
-      userEncontrado._id,
+      String(userEncontrado._id),
       accesstoken,
       refreshtoken,
     );
 
     const userLogado = await this.repository.buscarPorEmail(body.email);
-    delete userLogado.senha;
-    const userObjeto = userLogado.toObject();
+    const userObjeto = (userLogado?.toObject() as unknown as Record<string, unknown>) ?? {};
+    delete userObjeto['senha'];
 
     return { user: { accesstoken, refreshtoken, ...userObjeto } };
   }
 
-  async recuperaSenha(body) {
+  async recuperaSenha(body: { email: string }) {
     const userEncontrado = await this.repository.buscarPorEmail(body.email);
 
     if (!userEncontrado) {
@@ -158,29 +136,24 @@ class AuthService {
         .toUpperCase();
 
     let codigoRecuperaSenha = generateCode();
-
     let tentativas = 0;
     const MAX_TENTATIVAS = 10;
-    let codigoExistente =
-      await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
+    let codigoExistente = await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
 
     while (codigoExistente && tentativas < MAX_TENTATIVAS) {
       tentativas++;
       codigoRecuperaSenha = generateCode();
-      codigoExistente =
-        await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
+      codigoExistente = await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
     }
 
     if (codigoExistente) {
       codigoRecuperaSenha = Date.now().toString(36).slice(-6).toUpperCase();
     }
 
-    const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(
-      userEncontrado._id,
-    );
+    const tokenUnico = await this.TokenUtil.generatePasswordRecoveryToken(userEncontrado._id);
 
     const expMs = Date.now() + 60 * 60 * 1000;
-    const data = await this.repository.atualizar(userEncontrado._id, {
+    const data = await this.repository.atualizar(String(userEncontrado._id), {
       tokenUnico,
       codigo_recupera_senha: codigoRecuperaSenha,
       exp_codigo_recupera_senha: new Date(expMs).toISOString(),
@@ -196,13 +169,14 @@ class AuthService {
     }
 
     try {
-      await EmailService.enviarEmailRecuperacaoSenha(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (EmailService as any).enviarEmailRecuperacaoSenha(
         userEncontrado.nome,
         userEncontrado.email,
         tokenUnico,
       );
-    } catch (error) {
-      await this.repository.atualizar(userEncontrado._id, {
+    } catch {
+      await this.repository.atualizar(String(userEncontrado._id), {
         tokenUnico: null,
         codigo_recupera_senha: null,
         exp_codigo_recupera_senha: null,
@@ -217,19 +191,19 @@ class AuthService {
     }
 
     return {
-      message:
-        'E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.',
+      message: 'E-mail de recuperação enviado com sucesso! Verifique sua caixa de entrada.',
       email: userEncontrado.email,
     };
   }
 
-  async atualizarSenhaToken(tokenRecuperacao, senhaBody) {
+  async atualizarSenhaToken(tokenRecuperacao: string, senhaBody: { senha?: string }) {
     const usuarioId = await this.TokenUtil.decodePasswordRecoveryToken(
       tokenRecuperacao,
-      process.env.JWT_SECRET_PASSWORD_RECOVERY,
+      process.env['JWT_SECRET_PASSWORD_RECOVERY'],
     );
 
-    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const senhaHasheada = await (AuthHelper as any).hashPassword(senhaBody.senha);
 
     const usuario = await this.repository.buscarPorTokenUnico(tokenRecuperacao);
     if (!usuario) {
@@ -241,10 +215,7 @@ class AuthService {
       });
     }
 
-    const usuarioAtualizado = await this.repository.atualizarSenha(
-      usuarioId,
-      senhaHasheada,
-    );
+    const usuarioAtualizado = await this.repository.atualizarSenha(usuarioId, senhaHasheada);
     if (!usuarioAtualizado) {
       throw new CustomError({
         statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
@@ -257,9 +228,8 @@ class AuthService {
     return { message: 'Senha atualizada com sucesso.' };
   }
 
-  async atualizarSenhaCodigo(codigoRecuperaSenha, senhaBody) {
-    const user =
-      await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
+  async atualizarSenhaCodigo(codigoRecuperaSenha: string, senhaBody: { senha?: string }) {
+    const user = await this.repository.buscarPorCodigoRecuperacao(codigoRecuperaSenha);
     if (!user) {
       throw new CustomError({
         statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -269,7 +239,8 @@ class AuthService {
       });
     }
 
-    if (user.exp_codigo_recupera_senha < new Date()) {
+    const expField = user.exp_codigo_recupera_senha;
+    if (expField && new Date(expField as string | Date) < new Date()) {
       throw new CustomError({
         statusCode: HttpStatusCodes.UNAUTHORIZED.code,
         field: 'Código de Recuperação',
@@ -278,12 +249,10 @@ class AuthService {
       });
     }
 
-    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const senhaHasheada = await (AuthHelper as any).hashPassword(senhaBody.senha);
 
-    const atualizado = await this.repository.atualizarSenha(
-      user._id,
-      senhaHasheada,
-    );
+    const atualizado = await this.repository.atualizarSenha(String(user._id), senhaHasheada);
     if (!atualizado) {
       throw new CustomError({
         statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
@@ -296,19 +265,8 @@ class AuthService {
     return { message: 'Senha atualizada com sucesso.' };
   }
 
-  async refresh(id, token) {
-    const userEncontrado = await this.repository.buscarPorId(id, {
-      includeTokens: true,
-    });
-
-    if (!userEncontrado) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.NOT_FOUND.code,
-        field: 'Token',
-        details: [],
-        customMessage: HttpStatusCodes.NOT_FOUND.message,
-      });
-    }
+  async refresh(id: string, token: string) {
+    const userEncontrado = await this.repository.buscarPorId(id, true);
 
     if (userEncontrado.refreshtoken !== token) {
       throw new CustomError({
@@ -322,28 +280,20 @@ class AuthService {
 
     const accesstoken = await this.TokenUtil.generateAccessToken(id);
 
-    let refreshtoken = '';
-    if (process.env.SINGLE_SESSION_REFRESH_TOKEN === 'true') {
+    let refreshtoken: string;
+    if (process.env['SINGLE_SESSION_REFRESH_TOKEN'] === 'true') {
       refreshtoken = await this.TokenUtil.generateRefreshToken(id);
     } else {
-      refreshtoken = userEncontrado.refreshtoken;
+      refreshtoken = userEncontrado.refreshtoken ?? '';
     }
 
     await this.repository.armazenarTokens(id, accesstoken, refreshtoken);
 
-    const userLogado = await this.repository.buscarPorId(id, {
-      includeTokens: true,
-    });
-    delete userLogado.senha;
-    const userObjeto = userLogado.toObject();
+    const userLogado = await this.repository.buscarPorId(id, true);
+    const userObjeto = userLogado.toObject() as unknown as Record<string, unknown>;
+    delete userObjeto['senha'];
 
-    const userComTokens = {
-      accesstoken,
-      refreshtoken,
-      ...userObjeto,
-    };
-
-    return { user: userComTokens };
+    return { user: { accesstoken, refreshtoken, ...userObjeto } };
   }
 }
 
