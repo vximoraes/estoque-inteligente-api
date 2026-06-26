@@ -199,7 +199,7 @@ class AuthService {
       process.env['JWT_SECRET_PASSWORD_RECOVERY'],
     );
 
-    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
+    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha ?? '');
 
     const usuario = await this.repository.buscarPorTokenUnico(tokenRecuperacao);
     if (!usuario) {
@@ -245,7 +245,7 @@ class AuthService {
       });
     }
 
-    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
+    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha ?? '');
 
     const atualizado = await this.repository.atualizarSenha(String(user._id), senhaHasheada);
     if (!atualizado) {

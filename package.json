@@ -13,7 +13,7 @@
     "start": "clear && tsx server.js",
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
     "test": "clear && jest --coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node_modules/.bin/tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -87,7 +87,7 @@
     "prettier": "^3.8.1",
     "supertest": "^7.1.1",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3",
+    "typescript": "~5.8.0",
     "typescript-eslint": "^8.62.0"
   },
   "babel": {
