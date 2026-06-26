@@ -18,7 +18,7 @@ export async function verificarEmprestimosAtrasados() {
       .populate('item', 'nome')
       .populate('localizacao', 'nome');
   } catch (err) {
-    logger.error('Erro ao buscar emprestimos atrasados:', err);
+    logger.error(err, 'Erro ao buscar emprestimos atrasados:');
     return;
   }
 
@@ -35,7 +35,7 @@ export async function verificarEmprestimosAtrasados() {
           emp as unknown as EmprestimoEmailData,
         );
       } catch (err) {
-        logger.error(`Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`, err);
+        logger.error(err, `Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`);
       }
     }
 
@@ -45,12 +45,12 @@ export async function verificarEmprestimosAtrasados() {
 
 export function iniciarJobEmprestimosAtrasados() {
   verificarEmprestimosAtrasados().catch((err) =>
-    logger.error('Erro inesperado no job de emprestimos atrasados:', err),
+    logger.error(err, 'Erro inesperado no job de emprestimos atrasados:'),
   );
 
   setInterval(() => {
     verificarEmprestimosAtrasados().catch((err) =>
-      logger.error('Erro inesperado no job de emprestimos atrasados:', err),
+      logger.error(err, 'Erro inesperado no job de emprestimos atrasados:'),
     );
   }, INTERVALO_MS);
 

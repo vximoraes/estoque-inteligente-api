@@ -34,7 +34,7 @@ const errorHandler = (
   const requestId = req.requestId ?? 'N/A';
 
   if (err instanceof ZodError) {
-    logger.warn('Erro de validação', { errors: err.errors, path: req.path, requestId });
+    logger.warn({ errors: err.errors, path: req.path, requestId }, 'Erro de validação');
     CommonResponse.error(
       res,
       400,
@@ -50,7 +50,7 @@ const errorHandler = (
   if (mongoErr.code === 11000) {
     const field = Object.keys(mongoErr.keyValue ?? {})[0];
     const value = mongoErr.keyValue ? mongoErr.keyValue[field!] : 'duplicado';
-    logger.warn('Erro de chave duplicada', { field, value, path: req.path, requestId });
+    logger.warn({ field, value, path: req.path, requestId }, 'Erro de chave duplicada');
     CommonResponse.error(
       res,
       409,
@@ -67,13 +67,13 @@ const errorHandler = (
       path: e.path,
       message: e.message,
     }));
-    logger.warn('Erro de validação do Mongoose', { details: detalhes, path: req.path, requestId });
+    logger.warn({ details: detalhes, path: req.path, requestId }, 'Erro de validação do Mongoose');
     CommonResponse.error(res, 400, 'validationError', null, detalhes);
     return;
   }
 
   if (err instanceof AuthenticationError || err instanceof TokenExpiredError) {
-    logger.warn('Erro de autenticação', { message: err.message, path: req.path, requestId });
+    logger.warn({ message: err.message, path: req.path, requestId }, 'Erro de autenticação');
     CommonResponse.error(
       res,
       err.statusCode,
@@ -86,7 +86,7 @@ const errorHandler = (
   }
 
   if (err instanceof CustomError && err.errorType === 'tokenExpired') {
-    logger.warn('Erro de token expirado', { message: err.message, path: req.path, requestId });
+    logger.warn({ message: err.message, path: req.path, requestId }, 'Erro de token expirado');
     CommonResponse.error(
       res,
       err.statusCode || 401,
@@ -100,7 +100,7 @@ const errorHandler = (
 
   const opErr = err as OperationalError;
   if (opErr.isOperational) {
-    logger.warn('Erro operacional', { message: err.message, path: req.path, requestId });
+    logger.warn({ message: err.message, path: req.path, requestId }, 'Erro operacional');
     CommonResponse.error(
       res,
       opErr.statusCode!,
@@ -112,11 +112,7 @@ const errorHandler = (
     return;
   }
 
-  logger.error(`Erro interno [ID: ${errorId}]`, {
-    message: err.message,
-    stack: err.stack,
-    requestId,
-  });
+  logger.error({ message: err.message, stack: err.stack, requestId }, `Erro interno [ID: ${errorId}]`);
   const detalhes = isProduction
     ? [{ message: `Erro interno do servidor. Referência: ${errorId}` }]
     : [{ message: err.message, stack: err.stack }];

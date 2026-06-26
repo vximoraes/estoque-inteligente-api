@@ -298,11 +298,11 @@ describe('errorHandler', () => {
     errorHandler(fakeError, customReq, res, next);
 
     expect(loggerSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/Erro interno \[ID: /),
       expect.objectContaining({
         requestId: 'custom-req-id',
         message: 'Error with custom requestId',
       }),
+      expect.stringMatching(/Erro interno \[ID: /),
     );
 
     loggerSpy.mockRestore();
@@ -316,11 +316,11 @@ describe('errorHandler', () => {
     errorHandler(fakeError, customReq, res, next);
 
     expect(loggerSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/Erro interno \[ID: /),
       expect.objectContaining({
         requestId: 'N/A',
         message: 'Error without requestId',
       }),
+      expect.stringMatching(/Erro interno \[ID: /),
     );
 
     loggerSpy.mockRestore();

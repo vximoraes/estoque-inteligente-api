@@ -94,11 +94,11 @@ app.use((req, res) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error({ promise, reason }, 'Unhandled Rejection at:');
 });
 
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception thrown:', error);
+  logger.error(error, 'Uncaught Exception thrown:');
 });
 
 app.use(errorHandler);

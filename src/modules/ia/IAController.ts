@@ -178,7 +178,7 @@ class IAController {
       res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     } catch (err) {
       const error = err as Error;
-      logger.error('Erro no agente IA:', { message: error?.message, stack: error?.stack });
+      logger.error({ message: error?.message, stack: error?.stack }, 'Erro no agente IA:');
       res.write(
         `data: ${JSON.stringify({ type: 'error', message: 'Não foi possível processar sua mensagem. Tente novamente.' })}\n\n`,
       );
