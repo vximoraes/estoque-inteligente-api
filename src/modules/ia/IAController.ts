@@ -2,10 +2,12 @@ import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
 import logger from '../../utils/logger.js';
+import type { Response } from 'express';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 const MAX_CONTENT_LENGTH = 2000;
 
-function sanitizarEntrada(raw) {
+function sanitizarEntrada(raw: unknown): string {
   return String(raw)
     .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
     .trim()
@@ -13,26 +15,24 @@ function sanitizarEntrada(raw) {
 }
 
 class IAController {
-  async criarConversa(req, res) {
+  async criarConversa(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
-    const { mensagem_inicial } = req.body ?? {};
+    const body = req.body as Record<string, unknown> | undefined;
+    const mensagem_inicial = body?.['mensagem_inicial'];
 
     const titulo = mensagem_inicial
       ? String(mensagem_inicial).trim().slice(0, 60)
       : 'Nova conversa';
 
-    const conversa = await ConversaModel.create({
-      usuario: usuarioId,
-      titulo,
-    });
+    const conversa = await ConversaModel.create({ usuario: usuarioId, titulo });
 
-    return CommonResponse.created(res, conversa.toObject ? conversa.toObject() : conversa);
+    return CommonResponse.created(res, conversa.toObject());
   }
 
-  async listarConversas(req, res) {
+  async listarConversas(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(parseInt(req.query.limite) || 20, 50);
+    const page = Math.max(1, parseInt(String(req.query['page'] ?? '1')) || 1);
+    const limit = Math.min(parseInt(String(req.query['limite'] ?? '20')) || 20, 50);
 
     const resultado = await ConversaModel.paginate(
       { usuario: usuarioId },
@@ -47,8 +47,8 @@ class IAController {
     return CommonResponse.success(res, resultado);
   }
 
-  async obterConversa(req, res) {
-    const { id } = req.params;
+  async obterConversa(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'];
     const usuarioId = req.user_id;
 
     const conversa = await ConversaModel.findOne({ _id: id, usuario: usuarioId });
@@ -63,11 +63,11 @@ class IAController {
       });
     }
 
-    return CommonResponse.success(res, conversa.toObject ? conversa.toObject() : conversa);
+    return CommonResponse.success(res, conversa.toObject());
   }
 
-  async deletarConversa(req, res) {
-    const { id } = req.params;
+  async deletarConversa(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'];
     const usuarioId = req.user_id;
 
     const conversa = await ConversaModel.findOneAndDelete({ _id: id, usuario: usuarioId });
@@ -85,10 +85,11 @@ class IAController {
     return res.status(204).send();
   }
 
-  async enviarMensagem(req, res) {
-    const { id } = req.params;
+  async enviarMensagem(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'];
     const usuarioId = req.user_id;
-    const { content } = req.body ?? {};
+    const body = req.body as Record<string, unknown> | undefined;
+    const content = body?.['content'];
 
     if (!content || !String(content).trim()) {
       throw new CustomError({
@@ -151,15 +152,17 @@ class IAController {
       const stream = await processarMensagem(conversa, mensagemSanitizada, token);
 
       for await (const event of stream) {
-        if (event.event === 'on_chat_model_stream') {
-          const raw = event.data?.chunk?.content;
+        const evt = event as { event?: string; data?: Record<string, unknown> };
+        if (evt.event === 'on_chat_model_stream') {
+          const chunk_data = evt.data?.['chunk'] as Record<string, unknown> | undefined;
+          const raw = chunk_data?.['content'];
           let chunk = '';
           if (typeof raw === 'string') {
             chunk = raw;
           } else if (Array.isArray(raw)) {
-            chunk = raw
-              .filter((p) => p?.type === 'text')
-              .map((p) => p.text ?? '')
+            chunk = (raw as Array<Record<string, unknown>>)
+              .filter((p) => p?.['type'] === 'text')
+              .map((p) => String(p['text'] ?? ''))
               .join('');
           }
           if (chunk) {
@@ -174,8 +177,11 @@ class IAController {
 
       res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     } catch (err) {
-      logger.error('Erro no agente IA:', { message: err?.message, stack: err?.stack });
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Não foi possível processar sua mensagem. Tente novamente.' })}\n\n`);
+      const error = err as Error;
+      logger.error('Erro no agente IA:', { message: error?.message, stack: error?.stack });
+      res.write(
+        `data: ${JSON.stringify({ type: 'error', message: 'Não foi possível processar sua mensagem. Tente novamente.' })}\n\n`,
+      );
     } finally {
       res.end();
     }

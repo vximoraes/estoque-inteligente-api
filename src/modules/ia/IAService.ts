@@ -2,6 +2,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 
 const JANELA_CONTEXTO = 15;
 
@@ -79,15 +80,20 @@ OBRIGATÓRIO:
 
 </assistente_estoque_config>`;
 
-function prepararHistorico(mensagens = []) {
+function prepararHistorico(mensagens: IMensagem[]) {
   const janela = mensagens.slice(-JANELA_CONTEXTO);
   return janela.map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
   );
 }
 
-export async function processarMensagem(conversa, novaMensagem, token) {
-  const apiBaseUrl = process.env.API_INTERNAL_URL || `http://localhost:${process.env.PORT || 3010}`;
+export async function processarMensagem(
+  conversa: ConversaDocument,
+  novaMensagem: string,
+  token: string | undefined,
+): Promise<AsyncGenerator<unknown>> {
+  const apiBaseUrl =
+    process.env['API_INTERNAL_URL'] || `http://localhost:${process.env['PORT'] ?? 3010}`;
 
   const mcpClient = new MultiServerMCPClient({
     mcpServers: {
@@ -106,8 +112,8 @@ export async function processarMensagem(conversa, novaMensagem, token) {
     const tools = await mcpClient.getTools();
 
     const llm = new ChatGoogleGenerativeAI({
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-      apiKey: process.env.GEMINI_API_KEY,
+      model: process.env['GEMINI_MODEL'] ?? 'gemini-2.5-flash',
+      apiKey: process.env['GEMINI_API_KEY'],
       temperature: 0.2,
     });
 
@@ -119,12 +125,13 @@ export async function processarMensagem(conversa, novaMensagem, token) {
 
     const historicoLangChain = prepararHistorico(conversa.mensagens);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = agent.streamEvents(
       {
         messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
       },
       { version: 'v2', recursionLimit: 10 },
-    );
+    ) as AsyncIterable<unknown>;
 
     return wrapStreamWithCleanup(stream, mcpClient);
   } catch (err) {
@@ -133,7 +140,10 @@ export async function processarMensagem(conversa, novaMensagem, token) {
   }
 }
 
-async function* wrapStreamWithCleanup(stream, mcpClient) {
+async function* wrapStreamWithCleanup(
+  stream: AsyncIterable<unknown>,
+  mcpClient: MultiServerMCPClient,
+): AsyncGenerator<unknown> {
   try {
     for await (const event of stream) {
       yield event;

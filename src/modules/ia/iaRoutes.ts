@@ -3,13 +3,17 @@ import rateLimit from 'express-rate-limit';
 import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
 import IAController from './IAController.js';
+import type { AuthenticatedRequest } from '../../utils/types.js';
 
 const router = express.Router();
 
 const iaMensagemRateLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 15,
-  keyGenerator: (req) => req.user_id ?? req.ip,
+  keyGenerator: (req) => {
+    const authReq = req as AuthenticatedRequest;
+    return authReq.user_id ?? req.ip ?? 'unknown';
+  },
   standardHeaders: true,
   legacyHeaders: false,
   message: {
