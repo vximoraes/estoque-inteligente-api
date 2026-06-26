@@ -25,7 +25,7 @@ router.get('/notificacoes/stream', AuthMiddleware, (req, res) => {
     `event: connected\ndata: ${JSON.stringify({ message: 'Conectado ao stream de notificações' })}\n\n`,
   );
 
-  SSEService.addClient(authReq.user_id, res);
+  SSEService.addClient(authReq.user_id ?? '', res);
 
   const heartbeat = setInterval(() => {
     res.write(`:heartbeat\n\n`);

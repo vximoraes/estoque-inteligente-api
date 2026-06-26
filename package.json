@@ -69,6 +69,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^26.0.1",
+    "@types/nodemailer": "^8.0.1",
     "@types/supertest": "^7.2.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
@@ -107,7 +108,12 @@
     "transform": {
       "^.+\\.(js|ts)$": "babel-jest"
     },
-    "moduleFileExtensions": ["ts", "js", "json", "node"],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },

@@ -1,4 +1,4 @@
-import { createLogger, format, transports } from 'winston';
+import { createLogger, format, transports, type Logger as WinstonLogger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import fs from 'fs';
 import path from 'path';
@@ -6,44 +6,46 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+declare global {
+  // eslint-disable-next-line no-var
+  var loggerListenersSet: boolean | undefined;
+}
+
 class Logger {
+  private logDirectory: string;
+  private logMaxSizeGB: number;
+  maxLogSize: number;
+  private logEnabled: boolean;
+  logger: WinstonLogger;
+  logIntervalId: ReturnType<typeof setInterval> | undefined;
+
   constructor() {
-    // Configurações iniciais
     this.logDirectory = path.resolve(process.cwd(), 'logs');
 
-    // Refatoração da Linha 15
-    if (process.env.LOG_MAX_SIZE_GB !== undefined) {
-      this.logMaxSizeGB = parseFloat(process.env.LOG_MAX_SIZE_GB);
-    } else {
-      this.logMaxSizeGB = 50;
-    }
+    this.logMaxSizeGB =
+      process.env['LOG_MAX_SIZE_GB'] !== undefined
+        ? parseFloat(process.env['LOG_MAX_SIZE_GB'])
+        : 50;
 
     if (isNaN(this.logMaxSizeGB) || this.logMaxSizeGB <= 0) {
       throw new Error('LOG_MAX_SIZE_GB deve ser um número positivo');
     }
 
     this.maxLogSize = this.logMaxSizeGB * 1024 * 1024 * 1024;
+    this.logEnabled =
+      process.env['LOG_ENABLED'] !== undefined ? process.env['LOG_ENABLED'] === 'true' : true;
 
-    // Refatoração da Linha 22
-    if (process.env.LOG_ENABLED !== undefined) {
-      this.logEnabled = process.env.LOG_ENABLED === 'true';
-    } else {
-      // console.log('Linha 33: logEnabled padrão true');
-      this.logEnabled = true; // Linha 33
-    }
-
-    // Inicializa o logger
     this.logger = this.createLoggerInstance();
-
-    // Configura os event listeners
     this.setupExceptionHandlers();
-
-    // Inicia o intervalo de verificação de tamanho dos logs
     this.startLogSizeInterval();
   }
 
-  createLoggerInstance() {
-    const loggerTransports = [];
+  createLoggerInstance(): WinstonLogger {
+    const loggerTransports: (
+      | transports.ConsoleTransportInstance
+      | DailyRotateFile
+    )[] = [];
+
     if (this.logEnabled) {
       if (!fs.existsSync(this.logDirectory)) {
         fs.mkdirSync(this.logDirectory, { recursive: true });
@@ -68,8 +70,7 @@ class Logger {
     }
 
     return createLogger({
-      // Linha 60 permanece a mesma
-      level: process.env.LOG_LEVEL || 'info',
+      level: process.env['LOG_LEVEL'] ?? 'info',
       format: format.combine(
         format.timestamp(),
         format.errors({ stack: true }),
@@ -81,7 +82,7 @@ class Logger {
     });
   }
 
-  getTotalLogSize(directory) {
+  getTotalLogSize(directory: string): number {
     if (!fs.existsSync(directory)) return 0;
     return fs.readdirSync(directory).reduce((totalSize, file) => {
       const filePath = path.join(directory, file);
@@ -89,7 +90,7 @@ class Logger {
     }, 0);
   }
 
-  ensureLogSizeLimit(directory, maxSizeInBytes) {
+  ensureLogSizeLimit(directory: string, maxSizeInBytes: number): void {
     let totalSize = this.getTotalLogSize(directory);
 
     if (totalSize > maxSizeInBytes) {
@@ -103,7 +104,6 @@ class Logger {
 
       for (const { file } of files) {
         if (totalSize <= maxSizeInBytes) break;
-
         const filePath = path.join(directory, file);
         const stats = fs.statSync(filePath);
         fs.unlinkSync(filePath);
@@ -112,32 +112,23 @@ class Logger {
     }
   }
 
-  setupExceptionHandlers() {
-    if (
-      this.logEnabled &&
-      !global.loggerListenersSet &&
-      process.env.NODE_ENV !== 'test'
-    ) {
+  setupExceptionHandlers(): void {
+    if (this.logEnabled && !global.loggerListenersSet && process.env['NODE_ENV'] !== 'test') {
       process.on('uncaughtException', (err) => {
         this.logger.error('Uncaught Exception:', err);
         process.exit(1);
       });
 
       process.on('unhandledRejection', (reason, promise) => {
-        this.logger.error(
-          'Unhandled Rejection at:',
-          promise,
-          'reason:',
-          reason,
-        );
+        this.logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
       });
 
       global.loggerListenersSet = true;
     }
   }
 
-  startLogSizeInterval() {
-    if (this.logEnabled && process.env.NODE_ENV !== 'test') {
+  startLogSizeInterval(): void {
+    if (this.logEnabled && process.env['NODE_ENV'] !== 'test') {
       this.logIntervalId = setInterval(
         () => this.ensureLogSizeLimit(this.logDirectory, this.maxLogSize),
         60 * 1000,
@@ -149,9 +140,7 @@ class Logger {
 const loggerInstance = new Logger();
 
 export default loggerInstance.logger;
-export const getTotalLogSize =
-  loggerInstance.getTotalLogSize.bind(loggerInstance);
-export const ensureLogSizeLimit =
-  loggerInstance.ensureLogSizeLimit.bind(loggerInstance);
+export const getTotalLogSize = loggerInstance.getTotalLogSize.bind(loggerInstance);
+export const ensureLogSizeLimit = loggerInstance.ensureLogSizeLimit.bind(loggerInstance);
 export const logIntervalId = loggerInstance.logIntervalId;
 export const maxLogSize = loggerInstance.maxLogSize;

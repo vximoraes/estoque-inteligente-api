@@ -7,9 +7,9 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB
+    fileSize: 5 * 1024 * 1024,
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     try {
       const extensao = path.extname(file.originalname).toLowerCase();
       const extensoesPermitidas = ['.jpg', '.jpeg', '.png'];
@@ -24,7 +24,6 @@ const upload = multer({
             details: [{ path: 'Imagem', message: 'Extensão inválida' }],
             customMessage: 'Extensão de arquivo inválido.',
           }),
-          false,
         );
       }
       if (!mimeTypesPermitidos.includes(file.mimetype)) {
@@ -36,13 +35,13 @@ const upload = multer({
             details: [{ path: 'Imagem', message: 'Arquivo inválido' }],
             customMessage: 'O arquivo enviado não é uma imagem válida.',
           }),
-          false,
         );
       }
       cb(null, true);
     } catch (error) {
-      cb(error, false);
+      cb(error as Error);
     }
   },
 });
+
 export default upload;

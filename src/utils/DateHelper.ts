@@ -1,5 +1,5 @@
 class DateHelper {
-  static formatDate(date) {
+  static formatDate(date: Date | string | number): string {
     return new Date(date).toLocaleDateString('en-US');
   }
 }
