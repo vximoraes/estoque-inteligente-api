@@ -1,8 +1,27 @@
-import notificacoesSchemas from './notificacaoDocsSchema.js';
-import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
-import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+import { NotificacaoSchema } from './NotificacaoSchema.js';
 
-const notificacoesRoutes = {
+const NotificacaoDetalhes = registry.register(
+  'NotificacaoDetalhes',
+  z.object({
+    _id: objectIdField,
+    mensagem: z.string().openapi({ example: 'Estoque baixo do item Resistor 10k' }),
+    data_hora: z.string().datetime().openapi({ example: '2024-01-15T10:30:00.000Z' }),
+    visualizada: z.boolean().openapi({ example: false }),
+    dataLeitura: z.string().datetime().optional().openapi({ example: '2024-01-15T11:00:00.000Z' }),
+    ativo: z.boolean().openapi({ example: true }),
+    usuario: objectIdField,
+  }),
+);
+
+registry.register('NotificacaoPost', NotificacaoSchema.pick({ mensagem: true }));
+
+registry.register('NotificacaoListagem', z.object({ data: z.array(NotificacaoDetalhes), ...paginationMetaFields }));
+
+registerPaths({
   '/notificacoes': {
     post: {
       tags: ['Notificações'],
@@ -10,30 +29,17 @@ const notificacoesRoutes = {
       description: `
             + Caso de uso: Criar uma nova notificação para um usuário.
 
-            + Função de Negócio:
-                - Permitir ao sistema criar notificações direcionadas a usuários específicos.
-                + Recebe no corpo da requisição:
-                    - Objeto conforme schema **NotificacaoPost**, contendo dados da notificação.
-
             + Regras de Negócio:
                 - Campos obrigatórios: mensagem.
-                - Campo \`usuario\`: obtido automaticamente do contexto de autenticação.
-                - Campo \`visualizada\`: padrão false.
-                - Não permite campos fora do schema.
+                - Campo 'usuario': obtido automaticamente do contexto de autenticação.
+                - Campo 'visualizada': padrão false.
 
             + Resultado Esperado:
-                - HTTP 201 Created com corpo conforme **NotificacaoDetalhes**, contendo todos os dados da notificação criada.
-                - Retorna _id, mensagem, visualizada como false, usuario (do contexto autenticado) e data_hora.
+                - HTTP 201 Created com corpo conforme **NotificacaoDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/NotificacaoPost',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/NotificacaoPost' } } },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/NotificacaoDetalhes'),
@@ -51,63 +57,21 @@ const notificacoesRoutes = {
       description: `
         + Caso de uso: Listar notificações para controle e consulta.
 
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de notificações.
-            + Recebe como query parameters (opcionais):
-                • filtros: usuario, visualizada, mensagem.
-                • paginação: page (número da página), limite (quantidade de itens por página).
-
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.
-            - Respeitar as permissões do usuário autenticado.
-            - Aplicar paginação e retornar metadados: total de registros e total de páginas.
-            - Limite máximo de 100 itens por página.
-            - Retorna notificações populadas com dados do usuário.
+            - Aplicar paginação. Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **NotificacaoListagem**, contendo:
-                • **data**: array de notificações.
-                • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
+            - 200 OK com corpo conforme schema **NotificacaoListagem**.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: generateParameters(
-        notificacoesSchemas.NotificacaoFiltro,
-      ).concat([
-        {
-          name: 'page',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            default: 1,
-          },
-          description: 'Número da página',
-        },
-        {
-          name: 'limite',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            maximum: 100,
-            default: 10,
-          },
-          description: 'Quantidade de itens por página (máximo 100)',
-        },
-      ]),
+      parameters: [
+        { name: 'usuario', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID do usuário' },
+        { name: 'visualizada', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status de visualização' },
+        { name: 'mensagem', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por texto da mensagem' },
+        ...paginationQueryParams,
+      ],
       responses: {
-        200: {
-          description: 'Lista de notificações retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/NotificacaoListagem',
-              },
-            },
-          },
-        },
+        200: commonResponses[200]!('#/components/schemas/NotificacaoListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
@@ -116,39 +80,13 @@ const notificacoesRoutes = {
       },
     },
   },
+
   '/notificacoes/{id}': {
     get: {
       tags: ['Notificações'],
       summary: 'Obtém detalhes de uma notificação',
-      description: `
-            + Caso de uso: Consulta de detalhes de notificação específica.
-
-            + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma notificação.
-                + Recebe como path parameter:
-                    - **id**: identificador da notificação (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - Validação do formato do ID.
-                - Verificar existência da notificação.
-                - Retorna notificação populada com dados do usuário.
-                - Checar permissões do solicitante para visualizar dados.
-
-            + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **NotificacaoDetalhes**, contendo dados completos da notificação.
-        `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da notificação',
-        },
-      ],
+      parameters: [idPathParam('ID da notificação')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/NotificacaoDetalhes'),
         400: commonResponses[400]!(),
@@ -159,18 +97,12 @@ const notificacoesRoutes = {
       },
     },
   },
+
   '/notificacoes/{id}/visualizar': {
     patch: {
       tags: ['Notificações'],
       summary: 'Marca uma notificação como visualizada',
       description: `
-            + Caso de uso: Marcar notificação como visualizada pelo usuário.
-
-            + Função de Negócio:
-                - Permitir ao usuário marcar uma notificação como lida/visualizada.
-                + Recebe como path parameter:
-                    - **id**: identificador da notificação (MongoDB ObjectId).
-
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência da notificação.
@@ -181,17 +113,7 @@ const notificacoesRoutes = {
                 - HTTP 200 OK com corpo conforme **NotificacaoDetalhes**, contendo dados atualizados da notificação.
         `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da notificação',
-        },
-      ],
+      parameters: [idPathParam('ID da notificação')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/NotificacaoDetalhes'),
         400: commonResponses[400]!(),
@@ -202,6 +124,4 @@ const notificacoesRoutes = {
       },
     },
   },
-};
-
-export default notificacoesRoutes;
+});

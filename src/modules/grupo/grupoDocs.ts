@@ -1,8 +1,28 @@
-import gruposSchemas from './grupoDocsSchema.js';
-import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
-import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+import { GrupoSchema, GrupoUpdateSchema } from './GrupoSchema.js';
+import { RotaSchema } from '../rota/RotaSchema.js';
 
-const gruposRoutes = {
+const GrupoDetalhes = registry.register(
+  'GrupoDetalhes',
+  z.object({
+    _id: objectIdField,
+    nome: z.string().openapi({ example: 'Administradores' }),
+    descricao: z.string().openapi({ example: 'Grupo com acesso total ao sistema' }),
+    ativo: z.boolean().openapi({ example: true }),
+    permissoes: z.array(RotaSchema),
+    ...timestampFields,
+  }),
+);
+
+registry.register('GrupoListagem', z.object({ data: z.array(GrupoDetalhes), ...paginationMetaFields }));
+registry.register('GrupoPost', GrupoSchema);
+registry.register('GrupoPatch', GrupoUpdateSchema);
+registry.register('PermissaoSchema', RotaSchema);
+
+registerPaths({
   '/grupos': {
     post: {
       tags: ['Grupos'],
@@ -10,30 +30,18 @@ const gruposRoutes = {
       description: `
             + Caso de uso: Criação de novo grupo para organização de usuários e permissões.
 
-            + Função de Negócio:
-                - Permitir ao usuário autenticado criar um novo grupo para organizar permissões de acesso.
-                + Recebe no corpo da requisição:
-                    - Objeto conforme schema **GrupoPost**, contendo nome, descrição e permissões opcionais.
-
             + Regras de Negócio:
-                - Nome é obrigatório e deve ter no mínimo 3 caracteres.
+                - Nome é obrigatório e deve ter no mínimo 1 caractere.
                 - Nome deve ser único no sistema.
                 - Campo 'ativo' tem padrão true.
                 - Permissões são opcionais na criação.
-                - Em caso de duplicidade ou erro de validação, retorna erro apropriado.
 
             + Resultado Esperado:
-                - HTTP 201 Created com corpo conforme **GrupoDetalhes**, contendo todos os dados do grupo criado.
+                - HTTP 201 Created com corpo conforme **GrupoDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/GrupoPost',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPost' } } },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/GrupoDetalhes'),
@@ -51,35 +59,20 @@ const gruposRoutes = {
       description: `
         + Caso de uso: Listagem de grupos para gerenciamento e consulta.
 
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de grupos cadastrados.
-            + Recebe como query parameters (opcionais):
-                • filtros: nome, ativo.
-                • paginação: page (número da página), limite (quantidade de itens por página).
-
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.
-            - Respeitar as permissões do usuário autenticado.
-            - Aplicar paginação e retornar metadados: total de registros e total de páginas.
+            - Aplicar paginação. Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **GrupoListagem**, contendo:
-                • **docs**: array de grupos.
-                • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
+            - 200 OK com corpo conforme schema **GrupoListagem**.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: generateParameters(gruposSchemas.GrupoFiltro),
+      parameters: [
+        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
+        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        ...paginationQueryParams,
+      ],
       responses: {
-        200: {
-          description: 'Lista de grupos retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/GrupoListagem',
-              },
-            },
-          },
-        },
+        200: commonResponses[200]!('#/components/schemas/GrupoListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
@@ -88,22 +81,13 @@ const gruposRoutes = {
       },
     },
   },
+
   '/grupos/{id}': {
     get: {
       tags: ['Grupos'],
       summary: 'Obtém detalhes de um grupo',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID do grupo',
-        },
-      ],
+      parameters: [idPathParam('ID do grupo')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
         400: commonResponses[400]!(),
@@ -118,25 +102,9 @@ const gruposRoutes = {
       tags: ['Grupos'],
       summary: 'Atualiza um grupo',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID do grupo',
-        },
-      ],
+      parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/GrupoPutPatch',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPatch' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
@@ -153,25 +121,9 @@ const gruposRoutes = {
       tags: ['Grupos'],
       summary: 'Substitui um grupo',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID do grupo',
-        },
-      ],
+      parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/GrupoPutPatch',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPost' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
@@ -188,17 +140,7 @@ const gruposRoutes = {
       tags: ['Grupos'],
       summary: 'Deleta um grupo',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID do grupo',
-        },
-      ],
+      parameters: [idPathParam('ID do grupo')],
       responses: {
         200: commonResponses[200]!(),
         400: commonResponses[400]!(),
@@ -209,30 +151,15 @@ const gruposRoutes = {
       },
     },
   },
+
   '/grupos/{id}/rotas': {
     post: {
       tags: ['Grupos'],
       summary: 'Adiciona permissão (rota) ao grupo',
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID do grupo',
-        },
-      ],
+      parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/PermissaoSchema',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/PermissaoSchema' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
@@ -244,6 +171,4 @@ const gruposRoutes = {
       },
     },
   },
-};
-
-export default gruposRoutes;
+});

@@ -1,5 +1,5 @@
 import express from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
 import IAController from './IAController.js';
@@ -12,7 +12,7 @@ const iaMensagemRateLimiter = rateLimit({
   max: 15,
   keyGenerator: (req) => {
     const authReq = req as AuthenticatedRequest;
-    return authReq.user_id ?? req.ip ?? 'unknown';
+    return authReq.user_id ?? ipKeyGenerator(req.ip ?? 'unknown');
   },
   standardHeaders: true,
   legacyHeaders: false,

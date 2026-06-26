@@ -1,6 +1,26 @@
-export default {
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+
+const EstoqueDetalhes = registry.register(
+  'EstoqueDetalhes',
+  z.object({
+    _id: objectIdField,
+    quantidade: z.number().int().openapi({ example: 150 }),
+    item: objectIdField,
+    localizacao: objectIdField,
+    usuario: objectIdField,
+    ...timestampFields,
+  }),
+);
+
+registry.register('EstoqueListagem', z.object({ data: z.array(EstoqueDetalhes), ...paginationMetaFields }));
+
+registerPaths({
   '/estoques': {
     get: {
+      tags: ['Estoque'],
       summary: 'Listar todos os estoques',
       description: `
             **Funcionalidade:**
@@ -10,187 +30,54 @@ export default {
             - Apenas estoques do usuário autenticado são retornados.
             - Suporte a filtros por item, localização e quantidade.
             - Resultados paginados com limite máximo de 100 itens por página.
-            - Ordenação padrão por data de criação (mais recentes primeiro).
-
-            **Filtros disponíveis:**
-            - item: ObjectId do item
-            - localizacao: ObjectId da localização
-            - quantidade: Quantidade específica em estoque
-            - page: Página atual (padrão: 1)
-            - limite: Limite de itens por página (máximo: 100, padrão: 10)
 
             **Casos de uso:** Visualização geral do estoque, busca por filtros específicos.
             `,
-      tags: ['Estoque'],
-      security: [{ Bearer: [] }],
+      security: [{ bearerAuth: [] }],
       parameters: [
-        {
-          name: 'item',
-          in: 'query',
-          schema: { type: 'string', format: 'objectid' },
-          description: 'Filtrar por ID do item',
-        },
-        {
-          name: 'localizacao',
-          in: 'query',
-          schema: { type: 'string', format: 'objectid' },
-          description: 'Filtrar por ID da localização',
-        },
-        {
-          name: 'quantidade',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Filtrar por quantidade específica',
-        },
-        {
-          name: 'page',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Número da página (padrão: 1)',
-        },
-        {
-          name: 'limite',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Limite de itens por página (máximo: 100, padrão: 10)',
-        },
+        { name: 'item', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID do item' },
+        { name: 'localizacao', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID da localização' },
+        { name: 'quantidade', in: 'query', required: false, schema: { type: 'integer' }, description: 'Filtrar por quantidade específica' },
+        ...paginationQueryParams,
       ],
       responses: {
-        200: {
-          description: 'Lista de estoques retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  success: { type: 'boolean', example: true },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      docs: {
-                        type: 'array',
-                        items: { $ref: '#/components/schemas/EstoqueCompleto' },
-                      },
-                      totalDocs: { type: 'number' },
-                      limit: { type: 'number' },
-                      totalPages: { type: 'number' },
-                      page: { type: 'number' },
-                      pagingCounter: { type: 'number' },
-                      hasPrevPage: { type: 'boolean' },
-                      hasNextPage: { type: 'boolean' },
-                      prevPage: { type: 'number', nullable: true },
-                      nextPage: { type: 'number', nullable: true },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        401: { $ref: '#/components/responses/Unauthorized' },
-        403: { $ref: '#/components/responses/Forbidden' },
-        500: { $ref: '#/components/responses/InternalServerError' },
+        200: commonResponses[200]!('#/components/schemas/EstoqueListagem'),
+        401: commonResponses[401]!(),
+        403: commonResponses[403]!(),
+        500: commonResponses[500]!(),
       },
     },
   },
+
   '/estoques/item/{itemId}': {
     get: {
+      tags: ['Estoque'],
       summary: 'Listar estoques de um item específico',
       description: `
             **Funcionalidade:**
             - Permitir ao usuário autenticado listar todos os estoques que contêm um item específico.
 
-            **Regras de negócio:**
-            - Apenas estoques do usuário autenticado são retornados.
-            - Filtrados automaticamente pelo itemId fornecido na URL.
-            - Suporte a filtros adicionais por localização e quantidade.
-            - Resultados paginados com limite máximo de 100 itens por página.
-            - Ordenação padrão por data de criação (mais recentes primeiro).
-
-            **Filtros adicionais disponíveis:**
-            - localizacao: ObjectId da localização
-            - quantidade: Quantidade específica em estoque
-            - page: Página atual (padrão: 1)
-            - limite: Limite de itens por página (máximo: 100, padrão: 10)
-
             **Casos de uso:** Verificar em quais localizações um item específico está armazenado e suas quantidades.
             `,
-      tags: ['Estoque'],
-      security: [{ Bearer: [] }],
+      security: [{ bearerAuth: [] }],
       parameters: [
-        {
-          name: 'itemId',
-          in: 'path',
-          required: true,
-          schema: { type: 'string', format: 'objectid' },
-          description: 'ID do item para buscar estoques',
-        },
-        {
-          name: 'localizacao',
-          in: 'query',
-          schema: { type: 'string', format: 'objectid' },
-          description: 'Filtrar por ID da localização',
-        },
-        {
-          name: 'quantidade',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Filtrar por quantidade específica',
-        },
-        {
-          name: 'page',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Número da página (padrão: 1)',
-        },
-        {
-          name: 'limite',
-          in: 'query',
-          schema: { type: 'string' },
-          description: 'Limite de itens por página (máximo: 100, padrão: 10)',
-        },
+        { name: 'itemId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do item para buscar estoques' },
+        { name: 'localizacao', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID da localização' },
+        ...paginationQueryParams,
       ],
       responses: {
-        200: {
-          description: 'Estoques do item retornados com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  success: { type: 'boolean', example: true },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      docs: {
-                        type: 'array',
-                        items: { $ref: '#/components/schemas/EstoqueCompleto' },
-                      },
-                      totalDocs: { type: 'number' },
-                      limit: { type: 'number' },
-                      totalPages: { type: 'number' },
-                      page: { type: 'number' },
-                      pagingCounter: { type: 'number' },
-                      hasPrevPage: { type: 'boolean' },
-                      hasNextPage: { type: 'boolean' },
-                      prevPage: { type: 'number', nullable: true },
-                      nextPage: { type: 'number', nullable: true },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        401: { $ref: '#/components/responses/Unauthorized' },
-        403: { $ref: '#/components/responses/Forbidden' },
-        404: { $ref: '#/components/responses/NotFound' },
-        500: { $ref: '#/components/responses/InternalServerError' },
+        200: commonResponses[200]!('#/components/schemas/EstoqueListagem'),
+        401: commonResponses[401]!(),
+        403: commonResponses[403]!(),
+        404: commonResponses[404]!(),
+        500: commonResponses[500]!(),
       },
     },
   },
+
   '/estoques/{id}': {
     get: {
+      tags: ['Estoque'],
       summary: 'Buscar estoque por ID',
       description: `
             **Funcionalidade:**
@@ -198,42 +85,18 @@ export default {
 
             **Regras de negócio:**
             - Apenas estoques do usuário autenticado podem ser acessados.
-            - Retorna erro 404 se o estoque não for encontrado ou não pertencer ao usuário.
+            - Retorna erro 404 se o estoque não for encontrado.
             - Inclui dados completos do item e localização (populate).
-
-            **Casos de uso:** Visualizar detalhes específicos de um estoque, verificar dados para edição.
             `,
-      tags: ['Estoque'],
-      security: [{ Bearer: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string', format: 'objectid' },
-          description: 'ID do estoque a ser buscado',
-        },
-      ],
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do estoque')],
       responses: {
-        200: {
-          description: 'Estoque encontrado com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  success: { type: 'boolean', example: true },
-                  data: { $ref: '#/components/schemas/EstoqueCompleto' },
-                },
-              },
-            },
-          },
-        },
-        401: { $ref: '#/components/responses/Unauthorized' },
-        403: { $ref: '#/components/responses/Forbidden' },
-        404: { $ref: '#/components/responses/NotFound' },
-        500: { $ref: '#/components/responses/InternalServerError' },
+        200: commonResponses[200]!('#/components/schemas/EstoqueDetalhes'),
+        401: commonResponses[401]!(),
+        403: commonResponses[403]!(),
+        404: commonResponses[404]!(),
+        500: commonResponses[500]!(),
       },
     },
   },
-};
+});

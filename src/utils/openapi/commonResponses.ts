@@ -1,15 +1,15 @@
-import HttpStatusCodes from '../../utils/helpers/HttpStatusCodes.js';
+import HttpStatusCodes from '../helpers/HttpStatusCodes.js';
 
 type SwaggerResponse = (schemaRef?: string | null, description?: string) => Record<string, unknown>;
 
-const swaggerCommonResponses: Record<number, SwaggerResponse> = {};
+const commonResponses: Record<number, SwaggerResponse> = {};
 
 Object.keys(HttpStatusCodes).forEach((statusKey) => {
   const entry = (HttpStatusCodes as unknown as Record<string, { code: number; message: string }>)[statusKey];
   if (!entry) return;
   const { code, message } = entry;
 
-  swaggerCommonResponses[code] = (schemaRef: string | null = null, description = message) => ({
+  commonResponses[code] = (schemaRef: string | null = null, description = message) => ({
     description,
     content: {
       'application/json': {
@@ -31,4 +31,4 @@ Object.keys(HttpStatusCodes).forEach((statusKey) => {
   });
 });
 
-export default swaggerCommonResponses;
+export default commonResponses;

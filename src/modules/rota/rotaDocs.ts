@@ -1,8 +1,30 @@
-import rotasSchemas from './rotaDocsSchema.js';
-import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
-import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+import { RotaSchema, RotaUpdateSchema } from './RotaSchema.js';
 
-const rotasRoutes = {
+const RotaDetalhes = registry.register(
+  'RotaDetalhes',
+  z.object({
+    _id: objectIdField,
+    rota: z.string().openapi({ example: '/itens' }),
+    dominio: z.string().openapi({ example: 'localhost' }),
+    ativo: z.boolean().openapi({ example: true }),
+    buscar: z.boolean().openapi({ example: true }),
+    enviar: z.boolean().openapi({ example: false }),
+    substituir: z.boolean().openapi({ example: false }),
+    modificar: z.boolean().openapi({ example: false }),
+    excluir: z.boolean().openapi({ example: false }),
+    ...timestampFields,
+  }),
+);
+
+registry.register('RotaListagem', z.object({ data: z.array(RotaDetalhes), ...paginationMetaFields }));
+registry.register('RotaPost', RotaSchema);
+registry.register('RotaPatch', RotaUpdateSchema);
+
+registerPaths({
   '/rotas': {
     post: {
       tags: ['Rotas'],
@@ -10,30 +32,18 @@ const rotasRoutes = {
       description: `
             + Caso de uso: Criação de nova rota de acesso no sistema para controle de permissões.
 
-            + Função de Negócio:
-                - Permitir ao usuário autenticado criar uma nova rota para controle de permissões de acesso.
-                + Recebe no corpo da requisição:
-                    - Objeto conforme schema **RotaPost**, contendo rota, dominio e descrição opcional.
-
             + Regras de Negócio:
                 - Rota é obrigatória e deve ter no mínimo 1 caractere.
                 - Dominio é obrigatório.
                 - Combinação rota + dominio deve ser única no sistema.
                 - Campo 'ativo' tem padrão true.
-                - Em caso de duplicidade ou erro de validação, retorna erro apropriado.
 
             + Resultado Esperado:
-                - HTTP 201 Created com corpo conforme **RotaDetalhes**, contendo todos os dados da rota criada.
+                - HTTP 201 Created com corpo conforme **RotaDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/RotaPost',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/RotaDetalhes'),
@@ -51,35 +61,21 @@ const rotasRoutes = {
       description: `
         + Caso de uso: Listagem de rotas para gerenciamento e consulta.
 
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de rotas cadastradas.
-            + Recebe como query parameters (opcionais):
-                • filtros: rota, dominio, ativo.
-                • paginação: page (número da página), limite (quantidade de itens por página).
-
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.
-            - Respeitar as permissões do usuário autenticado.
-            - Aplicar paginação e retornar metadados: total de registros e total de páginas.
+            - Aplicar paginação. Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **RotaListagem**, contendo:
-                • **docs**: array de rotas.
-                • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
+            - 200 OK com corpo conforme schema **RotaListagem**.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: generateParameters(rotasSchemas.RotaFiltro),
+      parameters: [
+        { name: 'rota', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por rota' },
+        { name: 'dominio', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por domínio' },
+        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        ...paginationQueryParams,
+      ],
       responses: {
-        200: {
-          description: 'Lista de rotas retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/RotaListagem',
-              },
-            },
-          },
-        },
+        200: commonResponses[200]!('#/components/schemas/RotaListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
@@ -88,38 +84,13 @@ const rotasRoutes = {
       },
     },
   },
+
   '/rotas/{id}': {
     get: {
       tags: ['Rotas'],
       summary: 'Obtém detalhes de uma rota',
-      description: `
-            + Caso de uso: Consulta de detalhes de rota específica.
-
-            + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma rota cadastrada.
-                + Recebe como path parameter:
-                    - **id**: identificador da rota (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - Validação do formato do ID.
-                - Verificar existência da rota e seu status (ativo/inativo).
-                - Checar permissões do solicitante para visualizar dados.
-
-            + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **RotaDetalhes**, contendo dados completos da rota.
-        `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da rota',
-        },
-      ],
+      parameters: [idPathParam('ID da rota')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),
         400: commonResponses[400]!(),
@@ -136,40 +107,17 @@ const rotasRoutes = {
       description: `
             + Caso de uso: Atualização parcial de dados da rota.
 
-            + Função de Negócio:
-                - Permitir ao usuário autorizado modificar os campos desejados da rota.
-                + Recebe:
-                    - **id** no path.
-                    - No corpo, objeto conforme **RotaPutPatch** com os campos a alterar.
-
             + Regras de Negócio:
                 - Garantir unicidade da combinação rota + dominio.
                 - Aplicar imediatamente alterações críticas (ex.: desativação).
-                - Impedir alterações inconsistentes com regras de negócio.
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **RotaDetalhes**, refletindo as alterações.
+                - HTTP 200 OK com corpo conforme **RotaDetalhes**.
         `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da rota',
-        },
-      ],
+      parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/RotaPutPatch',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPatch' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),
@@ -188,40 +136,17 @@ const rotasRoutes = {
       description: `
             + Caso de uso: Substituição completa de dados da rota.
 
-            + Função de Negócio:
-                - Permitir ao usuário autorizado substituir completamente os dados da rota.
-                + Recebe:
-                    - **id** no path.
-                    - No corpo, objeto conforme **RotaPutPatch** com todos os campos.
-
             + Regras de Negócio:
                 - Garantir unicidade da combinação rota + dominio.
-                - Aplicar imediatamente alterações críticas (ex.: desativação).
                 - Campos não informados assumem valores padrão.
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **RotaDetalhes**, refletindo as alterações.
+                - HTTP 200 OK com corpo conforme **RotaDetalhes**.
         `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da rota',
-        },
-      ],
+      parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/RotaPutPatch',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),
@@ -240,31 +165,14 @@ const rotasRoutes = {
       description: `
             + Caso de uso: Exclusão de rota do sistema.
 
-            + Função de Negócio:
-                - Permitir ao usuário autorizado remover uma rota sem afetar integridade de dados.
-                + Recebe como path parameter:
-                    - **id**: identificador da rota.
-
             + Regras de Negócio:
                 - Verificar impedimentos por relacionamento (permissões vinculadas) antes de excluir.
-                - Registrar log de auditoria sobre a operação.
-                - Garantir que não haja vínculos críticos pendentes.
 
             + Resultado Esperado:
                 - HTTP 200 OK - rota excluída com sucesso.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da rota',
-        },
-      ],
+      parameters: [idPathParam('ID da rota')],
       responses: {
         200: commonResponses[200]!(),
         400: commonResponses[400]!(),
@@ -275,6 +183,4 @@ const rotasRoutes = {
       },
     },
   },
-};
-
-export default rotasRoutes;
+});

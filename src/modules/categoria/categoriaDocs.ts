@@ -1,8 +1,31 @@
-import categoriasSchemas from './categoriaDocsSchema.js';
-import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
-import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+import { CategoriaSchema, CategoriaUpdateSchema } from './CategoriaSchema.js';
 
-const categoriasRoutes = {
+const CategoriaDetalhes = registry.register(
+  'CategoriaDetalhes',
+  z.object({
+    _id: objectIdField,
+    nome: z.string().openapi({ example: 'Eletrônicos' }),
+    ativo: z.boolean().openapi({ example: true }),
+    ...timestampFields,
+  }),
+);
+
+const CategoriaListagem = registry.register(
+  'CategoriaListagem',
+  z.object({
+    data: z.array(CategoriaDetalhes),
+    ...paginationMetaFields,
+  }),
+);
+
+registry.register('CategoriaPost', CategoriaSchema);
+registry.register('CategoriaPatch', CategoriaUpdateSchema);
+
+registerPaths({
   '/categorias': {
     post: {
       tags: ['Categorias'],
@@ -27,9 +50,7 @@ const categoriasRoutes = {
       requestBody: {
         content: {
           'application/json': {
-            schema: {
-              $ref: '#/components/schemas/CategoriaPost',
-            },
+            schema: { $ref: '#/components/schemas/CategoriaPost' },
           },
         },
       },
@@ -53,7 +74,7 @@ const categoriasRoutes = {
             - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de categorias cadastradas.
             + Recebe como query parameters (opcionais):
                 • filtros: nome.
-                • paginação: page (número da página), limite (quantidade de itens por página).
+                • paginação: page, limite.
 
         + Regras de Negócio:
             - Validar formatos e valores dos filtros fornecidos.
@@ -62,47 +83,15 @@ const categoriasRoutes = {
             - Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **CategoriaListagem**, contendo:
-                • **data**: array de categorias.
-                • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
+            - 200 OK com corpo conforme schema **CategoriaListagem**.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: generateParameters(categoriasSchemas.CategoriaFiltro).concat([
-        {
-          name: 'page',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            default: 1,
-          },
-          description: 'Número da página',
-        },
-        {
-          name: 'limite',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            maximum: 100,
-            default: 10,
-          },
-          description: 'Quantidade de itens por página (máximo 100)',
-        },
-      ]),
+      parameters: [
+        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
+        ...paginationQueryParams,
+      ],
       responses: {
-        200: {
-          description: 'Lista de categorias retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/CategoriaListagem',
-              },
-            },
-          },
-        },
+        200: commonResponses[200]!('#/components/schemas/CategoriaListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
@@ -111,6 +100,7 @@ const categoriasRoutes = {
       },
     },
   },
+
   '/categorias/{id}': {
     get: {
       tags: ['Categorias'],
@@ -118,31 +108,15 @@ const categoriasRoutes = {
       description: `
             + Caso de uso: Consulta de detalhes de categoria específica.
 
-            + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de uma categoria cadastrada.
-                + Recebe como path parameter:
-                    - **id**: identificador da categoria (MongoDB ObjectId).
-
             + Regras de Negócio:
                 - Validação do formato do ID.
                 - Verificar existência da categoria.
-                - Checar permissões do solicitante para visualizar dados.
 
             + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **CategoriaDetalhes**, contendo dados completos da categoria.
+                - HTTP 200 OK com corpo conforme **CategoriaDetalhes**.
         `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da categoria',
-        },
-      ],
+      parameters: [idPathParam('ID da categoria')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/CategoriaDetalhes'),
         400: commonResponses[400]!(),
@@ -159,38 +133,19 @@ const categoriasRoutes = {
       description: `
             + Caso de uso: Atualização parcial de dados da categoria.
 
-            + Função de Negócio:
-                - Permitir ao usuário autenticado modificar o nome da categoria.
-                + Recebe:
-                    - **id** no path.
-                    - No corpo, objeto conforme **CategoriaPutPatch** com os campos a alterar.
-
             + Regras de Negócio:
                 - Garantir unicidade do nome da categoria.
                 - Verificar se a categoria existe antes de atualizar.
-                - Impedir alterações que violem regras de negócio.
 
             + Resultado Esperado:
                 - HTTP 200 OK com corpo conforme **CategoriaDetalhes**, refletindo as alterações.
         `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da categoria',
-        },
-      ],
+      parameters: [idPathParam('ID da categoria')],
       requestBody: {
         content: {
           'application/json': {
-            schema: {
-              $ref: '#/components/schemas/CategoriaPutPatch',
-            },
+            schema: { $ref: '#/components/schemas/CategoriaPatch' },
           },
         },
       },
@@ -211,32 +166,15 @@ const categoriasRoutes = {
       description: `
             + Caso de uso: Exclusão de categoria.
 
-            + Função de Negócio:
-                - Permitir ao usuário autenticado remover uma categoria que não está sendo utilizada.
-                + Recebe como path parameter:
-                    - **id**: identificador da categoria.
-
             + Regras de Negócio:
                 - Verificar se a categoria existe antes de excluir.
                 - Não permitir exclusão se há itens vinculados à categoria.
-                - Registrar log de auditoria sobre a operação.
-                - Garantir que não haja vínculos críticos pendentes.
 
             + Resultado Esperado:
                 - HTTP 200 OK - categoria excluída com sucesso.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
-            type: 'string',
-          },
-          description: 'ID da categoria',
-        },
-      ],
+      parameters: [idPathParam('ID da categoria')],
       responses: {
         200: commonResponses[200]!(),
         400: commonResponses[400]!(),
@@ -247,6 +185,4 @@ const categoriasRoutes = {
       },
     },
   },
-};
-
-export default categoriasRoutes;
+});

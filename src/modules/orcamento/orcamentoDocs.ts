@@ -1,8 +1,52 @@
-import orcamentosSchemas from './orcamentoDocsSchema.js';
-import commonResponses from '../../docs/schemas/swaggerCommonResponses.js';
-import { generateParameters } from '../../docs/paths/utils/generateParameters.js';
+import { z } from 'zod';
+import { registry, registerPaths } from '../../utils/openapi/registry.js';
+import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import commonResponses from '../../utils/openapi/commonResponses.js';
+import { OrcamentoSchema, OrcamentoUpdateSchema, ItemOrcamentoSchema, ItemOrcamentoUpdateSchema } from './OrcamentoSchema.js';
 
-const orcamentosRoutes = {
+const ItemOrcamentoDetalhes = registry.register(
+  'ItemOrcamentoDetalhes',
+  z.object({
+    _id: objectIdField,
+    item: objectIdField,
+    nome: z.string().openapi({ example: 'Resistor 10k' }),
+    fornecedor: objectIdField,
+    quantidade: z.number().int().openapi({ example: 10 }),
+    valor_unitario: z.number().openapi({ example: 0.5 }),
+    subtotal: z.number().openapi({ example: 5.0 }),
+  }),
+);
+
+const OrcamentoDetalhes = registry.register(
+  'OrcamentoDetalhes',
+  z.object({
+    _id: objectIdField,
+    nome: z.string().openapi({ example: 'Orçamento Sistema de Automação' }),
+    descricao: z.string().optional().openapi({ example: 'Orçamento para itens do sistema de automação residencial' }),
+    total: z.number().openapi({ example: 15.5 }),
+    itens: z.array(ItemOrcamentoDetalhes),
+    usuario: objectIdField,
+    ativo: z.boolean().openapi({ example: true }),
+    ...timestampFields,
+  }),
+);
+
+const itemOrcamentoDocsFields = {
+  quantidade: z.number().int().min(1).openapi({ example: 10 }),
+  valor_unitario: z.number().min(0).openapi({ example: 0.5 }),
+  item: objectIdField,
+  fornecedor: objectIdField,
+};
+
+registry.register('OrcamentoListagem', z.object({ data: z.array(OrcamentoDetalhes), ...paginationMetaFields }));
+registry.register('OrcamentoPost', OrcamentoSchema.extend({
+  itens: z.array(ItemOrcamentoSchema.extend(itemOrcamentoDocsFields)).min(1),
+}));
+registry.register('OrcamentoPatch', OrcamentoUpdateSchema);
+registry.register('ItemOrcamentoPost', ItemOrcamentoSchema.extend(itemOrcamentoDocsFields));
+registry.register('ItemOrcamentoPatch', ItemOrcamentoSchema.extend(itemOrcamentoDocsFields).partial());
+
+registerPaths({
   '/orcamentos': {
     post: {
       tags: ['Orçamentos'],
@@ -10,30 +54,17 @@ const orcamentosRoutes = {
       description: `
             + Caso de uso: Criar um novo orçamento com itens e seus respectivos valores.
 
-            + Função de Negócio:
-                - Permitir ao usuário criar orçamentos para projetos específicos.
-                + Recebe no corpo da requisição:
-                    - Objeto conforme schema **OrcamentoPost**, contendo dados do orçamento e itens.
-
             + Regras de Negócio:
-                - Campos obrigatórios: nome, item_orcamento (array).
-                - Protocolo é gerado automaticamente pelo sistema (UUID).
+                - Campos obrigatórios: nome, itens (array com ao menos 1 item).
                 - Valor total é calculado automaticamente baseado nos itens.
-                - Cada item deve ter: nome, fornecedor, quantidade, valor_unitario.
                 - Subtotal de cada item é calculado automaticamente.
 
             + Resultado Esperado:
-                - HTTP 201 Created com corpo conforme **OrcamentoDetalhes**, contendo todos os dados do orçamento criado.
+                - HTTP 201 Created com corpo conforme **OrcamentoDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/OrcamentoPost',
-            },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/OrcamentoPost' } } },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/OrcamentoDetalhes'),
@@ -51,60 +82,20 @@ const orcamentosRoutes = {
       description: `
         + Caso de uso: Listagem de orçamentos para consulta e controle.
 
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista paginada de orçamentos.
-            + Recebe como query parameters (opcionais):
-                • filtros: nome, protocolo, valor.
-                • paginação: page (número da página), limite (quantidade de itens por página).
-
         + Regras de Negócio:
-            - Validar formatos e valores dos filtros fornecidos.
-            - Respeitar as permissões do usuário autenticado.
-            - Aplicar paginação e retornar metadados: total de registros e total de páginas.
-            - Limite máximo de 100 itens por página.
+            - Aplicar paginação. Limite máximo de 100 itens por página.
 
         + Resultado Esperado:
-            - 200 OK com corpo conforme schema **OrcamentoListagem**, contendo:
-                • **data**: array de orçamentos.
-                • **dados de paginação**: totalDocs, limit, totalPages, page, pagingCounter, hasPrevPage, hasNextPage, prevPage, nextPage.
+            - 200 OK com corpo conforme schema **OrcamentoListagem**.
             `,
       security: [{ bearerAuth: [] }],
-      parameters: generateParameters(orcamentosSchemas.OrcamentoFiltro).concat([
-        {
-          name: 'page',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            default: 1,
-          },
-          description: 'Número da página',
-        },
-        {
-          name: 'limite',
-          in: 'query',
-          required: false,
-          schema: {
-            type: 'integer',
-            minimum: 1,
-            maximum: 100,
-            default: 10,
-          },
-          description: 'Quantidade de itens por página (máximo 100)',
-        },
-      ]),
+      parameters: [
+        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
+        { name: 'valor', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total' },
+        ...paginationQueryParams,
+      ],
       responses: {
-        200: {
-          description: 'Lista de orçamentos retornada com sucesso',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/OrcamentoListagem',
-              },
-            },
-          },
-        },
+        200: commonResponses[200]!('#/components/schemas/OrcamentoListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
@@ -113,36 +104,13 @@ const orcamentosRoutes = {
       },
     },
   },
+
   '/orcamentos/{id}': {
     get: {
       tags: ['Orçamentos'],
       summary: 'Obtém detalhes de um orçamento',
-      description: `
-            + Caso de uso: Consulta de detalhes de orçamento específico.
-
-            + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de um orçamento.
-                + Recebe como path parameter:
-                    - **id**: identificador do orçamento (MongoDB ObjectId).
-
-            + Regras de Negócio:
-                - Validação do formato do ID.
-                - Verificar existência do orçamento.
-                - Retorna orçamento com todos os itens e cálculos.
-
-            + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados completos do orçamento.
-        `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
-      ],
+      parameters: [idPathParam('ID do orçamento')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
         400: commonResponses[400]!(),
@@ -152,43 +120,19 @@ const orcamentosRoutes = {
         500: commonResponses[500]!(),
       },
     },
+
     patch: {
       tags: ['Orçamentos'],
       summary: 'Atualiza um orçamento',
       description: `
-            + Caso de uso: Atualizar informações básicas de um orçamento.
-
-            + Função de Negócio:
-                - Permitir ao usuário atualizar nome e descrição do orçamento.
-                + Recebe como path parameter:
-                    - **id**: identificador do orçamento (MongoDB ObjectId).
-                + Recebe no corpo da requisição:
-                    - Objeto conforme schema **OrcamentoUpdate** com campos a serem atualizados.
-
             + Regras de Negócio:
                 - Permite atualização parcial de nome e descrição.
                 - Não permite alterar itens diretamente (usar rotas específicas).
-                - Valor total permanece baseado nos itens existentes.
-
-            + Resultado Esperado:
-                - HTTP 200 OK com corpo conforme **OrcamentoDetalhes**, contendo dados atualizados.
-        `,
+            `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
-      ],
+      parameters: [idPathParam('ID do orçamento')],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/OrcamentoUpdate' },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/OrcamentoPatch' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
@@ -199,35 +143,16 @@ const orcamentosRoutes = {
         500: commonResponses[500]!(),
       },
     },
+
     delete: {
       tags: ['Orçamentos'],
       summary: 'Remove um orçamento',
       description: `
-            + Caso de uso: Remover orçamento do sistema.
-
-            + Função de Negócio:
-                - Permitir ao usuário remover orçamentos desnecessários.
-                + Recebe como path parameter:
-                    - **id**: identificador do orçamento (MongoDB ObjectId).
-
             + Regras de Negócio:
-                - Validação do formato do ID.
-                - Verificar existência do orçamento.
                 - Remove orçamento e todos os itens associados.
-
-            + Resultado Esperado:
-                - HTTP 200 OK com confirmação de remoção.
-        `,
+            `,
       security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
-      ],
+      parameters: [idPathParam('ID do orçamento')],
       responses: {
         200: commonResponses[200]!(),
         400: commonResponses[400]!(),
@@ -238,26 +163,17 @@ const orcamentosRoutes = {
       },
     },
   },
+
   '/orcamentos/{orcamentoId}/itens': {
     post: {
       tags: ['Orçamentos'],
       summary: 'Adiciona item ao orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        {
-          name: 'orcamentoId',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
+        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
       ],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ItemOrcamento' },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemOrcamentoPost' } } },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/OrcamentoDetalhes'),
@@ -269,33 +185,18 @@ const orcamentosRoutes = {
       },
     },
   },
+
   '/orcamentos/{orcamentoId}/itens/{id}': {
     patch: {
       tags: ['Orçamentos'],
       summary: 'Atualiza item do orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        {
-          name: 'orcamentoId',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do item',
-        },
+        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
+        idPathParam('ID do item'),
       ],
       requestBody: {
-        content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ItemOrcamentoUpdate' },
-          },
-        },
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemOrcamentoPatch' } } },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
@@ -306,25 +207,14 @@ const orcamentosRoutes = {
         500: commonResponses[500]!(),
       },
     },
+
     delete: {
       tags: ['Orçamentos'],
       summary: 'Remove item do orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        {
-          name: 'orcamentoId',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do orçamento',
-        },
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: { type: 'string' },
-          description: 'ID do item',
-        },
+        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
+        idPathParam('ID do item'),
       ],
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
@@ -336,6 +226,4 @@ const orcamentosRoutes = {
       },
     },
   },
-};
-
-export default orcamentosRoutes;
+});
