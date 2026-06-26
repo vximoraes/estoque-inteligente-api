@@ -1,6 +1,6 @@
 import Grupo from '../modules/grupo/GrupoModel.js';
-
-export default async function seedGrupos(rotas: any[]) {
+import type { RotaDocument } from '../modules/rota/RotaModel.js';
+export default async function seedGrupos(rotas: RotaDocument[]) {
   await Grupo.deleteMany();
 
   const grupos = [];

@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 
-interface EmprestimoEmailData {
+export interface EmprestimoEmailData {
   item?: { nome?: string };
   localizacao?: { nome?: string };
   solicitante_nome?: string;

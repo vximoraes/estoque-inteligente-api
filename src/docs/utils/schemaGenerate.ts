@@ -22,8 +22,7 @@ export async function generateExample(
     return schema['example'];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapping = await getGlobalFakeMapping() as Record<string, any>;
+  const mapping = await getGlobalFakeMapping() as Record<string, unknown>;
 
   if (key && mapping[key]) {
     const generator = mapping[key];

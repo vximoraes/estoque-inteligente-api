@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-class TokenUtil {
+export class TokenUtil {
   generateAccessToken(id: string | unknown): Promise<string> {
     return new Promise((resolve, reject) => {
       jwt.sign(

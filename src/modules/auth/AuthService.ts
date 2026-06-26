@@ -1,18 +1,16 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
-import tokenUtil from '../../utils/TokenUtil.js';
+import tokenUtil, { type TokenUtil } from '../../utils/TokenUtil.js';
 import AuthHelper from '../../utils/AuthHelper.js';
 import UsuarioRepository from '../usuario/UsuarioRepository.js';
 import EmailService from '../../utils/services/EmailService.js';
 
 class AuthService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private TokenUtil: any;
+  private TokenUtil: TokenUtil;
   private repository: UsuarioRepository;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor({ tokenUtil: injectedTokenUtil }: { tokenUtil?: any } = {}) {
+  constructor({ tokenUtil: injectedTokenUtil }: { tokenUtil?: TokenUtil } = {}) {
     this.TokenUtil = injectedTokenUtil ?? tokenUtil;
     this.repository = new UsuarioRepository();
   }
@@ -169,8 +167,7 @@ class AuthService {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (EmailService as any).enviarEmailRecuperacaoSenha(
+      await EmailService.enviarEmailRecuperacaoSenha(
         userEncontrado.nome,
         userEncontrado.email,
         tokenUnico,
@@ -202,8 +199,7 @@ class AuthService {
       process.env['JWT_SECRET_PASSWORD_RECOVERY'],
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const senhaHasheada = await (AuthHelper as any).hashPassword(senhaBody.senha);
+    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
 
     const usuario = await this.repository.buscarPorTokenUnico(tokenRecuperacao);
     if (!usuario) {
@@ -249,8 +245,7 @@ class AuthService {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const senhaHasheada = await (AuthHelper as any).hashPassword(senhaBody.senha);
+    const senhaHasheada = await AuthHelper.hashPassword(senhaBody.senha);
 
     const atualizado = await this.repository.atualizarSenha(String(user._id), senhaHasheada);
     if (!atualizado) {

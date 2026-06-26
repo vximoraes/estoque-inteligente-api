@@ -4,7 +4,7 @@ import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
 import Estoque from '../estoque/EstoqueModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
-import EmailService from '../../utils/services/EmailService.js';
+import EmailService, { type EmprestimoEmailData } from '../../utils/services/EmailService.js';
 import EmprestimoModel from './EmprestimoModel.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type { Emprestimo, DevolucaoEmprestimo, AtualizarEmprestimo } from './EmprestimoSchema.js';
@@ -81,9 +81,12 @@ class EmprestimoService {
     });
 
     if (data['solicitante_email']) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (EmailService as any)
-        .enviarEmailNovoEmprestimo(data['solicitante_nome'], data['solicitante_email'], data)
+      EmailService
+        .enviarEmailNovoEmprestimo(
+          data['solicitante_nome'] as string,
+          data['solicitante_email'] as string,
+          data as unknown as EmprestimoEmailData,
+        )
         .catch((err: unknown) => console.error('Erro ao enviar e-mail de novo emprestimo:', err));
     }
 
@@ -92,9 +95,12 @@ class EmprestimoService {
       data['data_prevista_devolucao'] &&
       new Date(data['data_prevista_devolucao'] as string) < new Date()
     ) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (EmailService as any)
-        .enviarEmailEmprestimoAtrasado(data['solicitante_nome'], data['solicitante_email'], data)
+      EmailService
+        .enviarEmailEmprestimoAtrasado(
+          data['solicitante_nome'] as string,
+          data['solicitante_email'] as string,
+          data as unknown as EmprestimoEmailData,
+        )
         .then(() => EmprestimoModel.updateOne({ _id: data['_id'] }, { email_atraso_enviado: true }))
         .catch((err: unknown) => console.error('Erro ao enviar e-mail de atraso na criacao:', err));
     }
@@ -168,12 +174,11 @@ class EmprestimoService {
     const emprestimoAtualizado = await this.repository.atualizarDevolucao(id, payload);
 
     if (emprestimoAtualizado['solicitante_email']) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (EmailService as any)
+      EmailService
         .enviarEmailDevolucaoEmprestimo(
-          emprestimoAtualizado['solicitante_nome'],
-          emprestimoAtualizado['solicitante_email'],
-          emprestimoAtualizado,
+          emprestimoAtualizado['solicitante_nome'] as string,
+          emprestimoAtualizado['solicitante_email'] as string,
+          emprestimoAtualizado as unknown as EmprestimoEmailData,
           parsedData.quantidade_devolvida,
         )
         .catch((err: unknown) => console.error('Erro ao enviar e-mail de devolucao:', err));

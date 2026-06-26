@@ -9,6 +9,9 @@ import { EmailSchema } from './EmailSchema.js';
 import AuthService from './AuthService.js';
 import type { Request, Response } from 'express';
 
+type VerifyAsync = (token: string, secret: string) => Promise<jwt.JwtPayload>;
+const verifyAsync = promisify(jwt.verify) as unknown as VerifyAsync;
+
 class AuthController {
   private service: AuthService;
 
@@ -98,11 +101,7 @@ class AuthController {
     let decoded: jwt.JwtPayload;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      decoded = (await (promisify(jwt.verify) as any)(
-        token,
-        process.env['JWT_SECRET_REFRESH_TOKEN'],
-      )) as jwt.JwtPayload;
+      decoded = await verifyAsync(token, process.env['JWT_SECRET_REFRESH_TOKEN'] ?? '');
     } catch (err) {
       const error = err as Error;
       if (error.name === 'TokenExpiredError') {
@@ -144,11 +143,7 @@ class AuthController {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const decoded = (await (promisify(jwt.verify) as any)(
-      token,
-      process.env['JWT_SECRET_ACCESS_TOKEN'],
-    )) as jwt.JwtPayload;
+    const decoded = await verifyAsync(token, process.env['JWT_SECRET_ACCESS_TOKEN'] ?? '');
 
     if (!decoded || !decoded['id']) {
       throw new CustomError({
@@ -170,11 +165,7 @@ class AuthController {
     const bodyrequest = req.body ?? {};
     const validatedBody = RequestAuthorizationSchema.parse(bodyrequest);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const decoded = (await (promisify(jwt.verify) as any)(
-      validatedBody.accesstoken,
-      process.env['JWT_SECRET_ACCESS_TOKEN'],
-    )) as jwt.JwtPayload;
+    const decoded = await verifyAsync(validatedBody.accesstoken, process.env['JWT_SECRET_ACCESS_TOKEN'] ?? '');
 
     UsuarioIdSchema.parse(decoded['id']);
 

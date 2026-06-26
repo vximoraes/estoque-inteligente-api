@@ -123,10 +123,7 @@ class UsuarioService {
       });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (minioClient as any).putObject(process.env['MINIO_BUCKET'], objectName, newFile, {
-        'Content-Type': 'image/jpeg',
-      });
+      await minioClient.putObject(process.env['MINIO_BUCKET']!, objectName, newFile, newFile.length, { 'Content-Type': 'image/jpeg' });
       return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
       throw new Error(String(err));
@@ -135,8 +132,7 @@ class UsuarioService {
 
   async deletarFoto(_req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (minioClient as any).removeObject(process.env['MINIO_BUCKET'], objectName);
+    await minioClient.removeObject(process.env['MINIO_BUCKET']!, objectName);
     const data = await this.repository.atualizar(id, { fotoPerfil: '' });
     return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
   }
@@ -144,8 +140,7 @@ class UsuarioService {
   async convidarUsuario(nome: string, email: string) {
     await this.validateEmail(email, null, null);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tokenConvite = await (tokenUtil as any).generateInviteToken(email);
+    const tokenConvite = await tokenUtil.generateInviteToken(email);
     const convidadoEm = new Date();
 
     const novoUsuario = await this.repository.criar({
@@ -157,8 +152,7 @@ class UsuarioService {
     });
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (EmailService as any).enviarEmailConvite(nome, email, tokenConvite);
+      await EmailService.enviarEmailConvite(nome, email, tokenConvite);
     } catch (error) {
       await this.repository.deletar(String(novoUsuario._id));
       throw error;
@@ -178,8 +172,7 @@ class UsuarioService {
   async ativarConta(token: string, senha: string | undefined) {
     let emailDoToken: string;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const decoded = await (tokenUtil as any).decodeInviteToken(token);
+      const decoded = await tokenUtil.decodeInviteToken(token);
       emailDoToken = (decoded as { email: string }).email;
     } catch {
       throw new CustomError({
@@ -287,8 +280,7 @@ class UsuarioService {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tokenConvite = await (tokenUtil as any).generateInviteToken(usuario.email);
+    const tokenConvite = await tokenUtil.generateInviteToken(usuario.email);
     const convidadoEm = new Date();
 
     await this.repository.atualizar(String(usuario._id), {
@@ -296,8 +288,7 @@ class UsuarioService {
       convidadoEm,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (EmailService as any).enviarEmailConvite(usuario.nome, usuario.email, tokenConvite);
+    await EmailService.enviarEmailConvite(usuario.nome, usuario.email, tokenConvite);
 
     return { message: 'Convite reenviado com sucesso!' };
   }

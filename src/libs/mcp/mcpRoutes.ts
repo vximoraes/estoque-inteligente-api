@@ -7,6 +7,9 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { criarMCPServer } from './MCPServerFactory.js';
 import MCPSessionStore from './MCPSessionStore.js';
 
+type VerifyAsync = (token: string, secret: string) => Promise<jwt.JwtPayload>;
+const verifyAsync = promisify(jwt.verify) as unknown as VerifyAsync;
+
 interface MCPError extends Error {
   statusCode?: number;
 }
@@ -27,11 +30,7 @@ async function autenticarRequisicao(req: Request): Promise<string> {
   const token = (parts.length === 2 ? parts[1] : parts[0]) as string;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const decoded = (await (promisify(jwt.verify) as any)(
-      token,
-      process.env['JWT_SECRET_ACCESS_TOKEN'],
-    )) as jwt.JwtPayload;
+    const decoded = await verifyAsync(token, process.env['JWT_SECRET_ACCESS_TOKEN'] ?? '');
     if (!decoded?.['id']) throw new Error('Token inválido');
     return decoded['id'] as string;
   } catch {

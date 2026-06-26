@@ -1,7 +1,7 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import Item from '../modules/item/ItemModel.js';
-import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
+import Localizacao, { type LocalizacaoDocument } from '../modules/localizacao/LocalizacaoModel.js';
 import Usuario from '../modules/usuario/UsuarioModel.js';
 
 export default async function estoqueSeed() {
@@ -13,21 +13,20 @@ export default async function estoqueSeed() {
 
   for (const item of itemList) {
     const numLocalizacoes = Math.floor(Math.random() * 3) + 1;
-    const localizacoesSelecionadas: unknown[] = [];
+    const localizacoesSelecionadas: LocalizacaoDocument[] = [];
 
     for (let i = 0; i < numLocalizacoes; i++) {
-      let localizacaoRandom: unknown;
+      let localizacaoRandom: LocalizacaoDocument | undefined;
       do {
         localizacaoRandom =
           localizacaoList[Math.floor(Math.random() * localizacaoList.length)];
       } while (
         localizacoesSelecionadas.some(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (loc) => (loc as any)._id.toString() === (localizacaoRandom as any)._id.toString(),
+          (loc) => String(loc._id) === String(localizacaoRandom?._id),
         )
       );
 
-      localizacoesSelecionadas.push(localizacaoRandom);
+      if (localizacaoRandom) localizacoesSelecionadas.push(localizacaoRandom);
     }
 
     for (const localizacao of localizacoesSelecionadas) {
@@ -37,8 +36,7 @@ export default async function estoqueSeed() {
       const estoque = {
         quantidade: fakeMappings.Estoque.quantidade(),
         item: item._id,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        localizacao: (localizacao as any)._id,
+        localizacao: localizacao._id,
         usuario: usuarioRandom._id,
       };
 
@@ -47,7 +45,6 @@ export default async function estoqueSeed() {
   }
 
   for (const item of itemList) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await Estoque.atualizarQuantidadeItem(item._id as any);
+    await Estoque.atualizarQuantidadeItem(item._id);
   }
 }

@@ -1,6 +1,6 @@
 import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
 import GrupoModel, { type GrupoDocument, type IGrupoPermissao } from './GrupoModel.js';
-import UsuarioModel from '../usuario/UsuarioModel.js';
+import UsuarioModel, { type UsuarioDocument } from '../usuario/UsuarioModel.js';
 import RotaModel, { type RotaDocument } from '../rota/RotaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import GrupoFilterBuilder from './GrupoFilterBuilder.js';
@@ -12,8 +12,7 @@ type GrupoPermissaoInput = { rota: string; dominio?: string | null };
 class GrupoRepository {
   private model: mongoose.PaginateModel<GrupoDocument>;
   private rotaModel: mongoose.PaginateModel<RotaDocument>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private usuarioModel: any;
+  private usuarioModel: mongoose.PaginateModel<UsuarioDocument>;
 
   constructor({
     grupoModel = GrupoModel,
@@ -22,8 +21,7 @@ class GrupoRepository {
   }: {
     grupoModel?: mongoose.PaginateModel<GrupoDocument>;
     rotaModel?: mongoose.PaginateModel<RotaDocument>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    usuarioModel?: any;
+    usuarioModel?: mongoose.PaginateModel<UsuarioDocument>;
   } = {}) {
     this.model = grupoModel;
     this.rotaModel = rotaModel;

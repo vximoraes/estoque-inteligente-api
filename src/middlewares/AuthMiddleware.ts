@@ -7,6 +7,9 @@ import { CustomError } from '../utils/helpers/index.js';
 import AuthService from '../modules/auth/AuthService.js';
 import type { AuthenticatedRequest } from '../utils/types.js';
 
+type VerifyAsync = (token: string, secret: string) => Promise<jwt.JwtPayload>;
+const verifyAsync = promisify(jwt.verify) as unknown as VerifyAsync;
+
 class AuthMiddleware {
   private service: AuthService;
   handle: (req: Request, res: Response, next: NextFunction) => Promise<void>;
@@ -42,8 +45,7 @@ class AuthMiddleware {
     try {
       const { token, secret } = this._getTokenAndSecret(req);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const decoded = (await (promisify(jwt.verify) as any)(token, secret)) as jwt.JwtPayload;
+      const decoded = await verifyAsync(token, secret);
 
       if (!decoded) {
         throw new TokenExpiredError('Token JWT expirado, tente novamente.');

@@ -7,8 +7,7 @@ import type { Grupo, GrupoUpdate } from './GrupoSchema.js';
 
 class GrupoService {
   private repository: GrupoRepository;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private usuarioRepository: any;
+  private usuarioRepository: UsuarioRepository;
   private rotaRepository: RotaRepository;
 
   constructor() {

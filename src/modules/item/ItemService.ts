@@ -132,13 +132,7 @@ class ItemService {
       );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (minioClient as any).putObject(
-        process.env['MINIO_BUCKET_2'],
-        objectName,
-        newFile,
-        { 'Content-Type': 'image/jpeg' },
-      );
+      await minioClient.putObject(process.env['MINIO_BUCKET_2']!, objectName, newFile, newFile.length, { 'Content-Type': 'image/jpeg' });
 
       return { imagem: (data as Record<string, unknown>)['imagem'] };
     } catch (err) {
@@ -148,8 +142,7 @@ class ItemService {
 
   async deletarFoto(req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (minioClient as any).removeObject(process.env['MINIO_BUCKET_2'], objectName);
+    await minioClient.removeObject(process.env['MINIO_BUCKET_2']!, objectName);
     const data = await this.repository.atualizar(id, { imagem: '' }, req);
 
     return { imagem: (data as Record<string, unknown>)['imagem'] };
