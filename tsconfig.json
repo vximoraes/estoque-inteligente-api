@@ -11,6 +11,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*", "server.js"],
+  "include": ["src/**/*", "server.ts"],
   "exclude": ["src/**/__tests__/**", "src/**/*.test.ts"]
 }

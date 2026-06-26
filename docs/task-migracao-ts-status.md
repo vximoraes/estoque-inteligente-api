@@ -1,63 +1,41 @@
-# Task: Migração JS → TypeScript — estado atual
+# Task: Migração JS → TypeScript — CONCLUÍDA
 
 **Branch:** `7-migrar-para-typescript`  
-**Plano completo:** [`/home/vinicius/.claude-pessoal/plans/ultra-steady-sundae.md`](../../../.claude-pessoal/plans/ultra-steady-sundae.md)  
-**Estratégia:** incremental `allowJs:true` + `checkJs:false`; runtime `tsx`; `strict:true` desde o dia 1
+**Estratégia:** incremental `allowJs:true` + `checkJs:false`; runtime `tsx`; `strict:true` desde o dia 1  
+**Estado final:** `allowJs: false` — zero `.js` em `src/`, zero erros em `npm run typecheck`
 
 ---
 
-## Progresso — Fase 0 e 1 (toolchain + utils)
+## Progresso — Resumo por fase
 
-| # | O que | Status | Commit |
+| Fase | O que | Status | Commits |
 |---|---|---|---|
-| 0 | Toolchain TypeScript (tsconfig, package.json, babel, jest, eslint, nodemon) | ✅ Concluído | `492cf62` |
-| 1 | `src/utils/errors/` + `src/utils/helpers/` (CustomError, HttpStatusCodes, StatusService, CommonResponse, errorHandler, messages, asyncWrapper, index) | ✅ Concluído | `7436cd2` |
-| 1b | `src/utils/commonFields.ts` + `src/utils/types.ts` (AuthenticatedRequest, PaginatedResult) | ✅ Concluído | `7436cd2` |
+| 0 | Toolchain TypeScript (tsconfig, package.json, babel, jest, eslint) | ✅ | `492cf62` |
+| 1 | `src/utils/errors/`, `src/utils/helpers/`, `src/utils/types.ts` | ✅ | `7436cd2` |
+| 2 | Todos os módulos: fornecedor, rota, notificacao, orcamento, estoque, localizacao, categoria, item, movimentacao, emprestimo, grupo, usuario | ✅ | vários |
+| 2 | `auth` | ✅ | `18f48e8` |
+| 2 | `ia` | ✅ | `a3825cd` |
+| 3 | `src/config/`, `src/middlewares/`, `src/utils/` (logger, SSE, Permission, Token, Sharp, Multer) | ✅ | `5136fa9` |
+| 3 | `src/libs/mcp/` + `tools/` | ✅ | `ae76c16` |
+| 3 | `src/app.ts` + `server.ts` | ✅ | `713086b` |
+| 3 | `src/utils/services/EmailService.ts`, `src/docs/**`, `src/utils/swagger_utils/` | ✅ | `f4347e7`, `44e2d9d` |
+| 3 | `src/seeds/**` | ✅ | `031b69c` |
+| 3 | `src/**/__tests__/**` (renomeados, excluídos do tsc — compilados por Babel) | ✅ | `031b69c` |
+| **Final** | **`allowJs: false` — porta trancada** | ✅ | `031b69c` |
 
 ---
 
-## Progresso — Fase 2 (módulos)
+## Estado atual
 
-| # | Módulo | Status | Commit |
-|---|---|---|---|
-| 1 | `fornecedor` | ✅ Concluído | `e78107f` |
-| 2 | `rota` | ✅ Concluído | `678f426` |
-| 3 | `notificacao` | ✅ Concluído | `1141715` |
-| 4 | `orcamento` | ✅ Concluído | `1335ca7` |
-| 5 | `estoque` | ⏳ Próximo | — |
-| 6 | `localizacao` | ⏸ Pendente | — |
-| 7+8 | `categoria` + `item` | ⏸ Pendente | — |
-| 9 | `movimentacao` | ⏸ Pendente | — |
-| 10 | `emprestimo` | ⏸ Pendente | — |
-| 11 | `grupo` | ⏸ Pendente | — |
-| 12 | `usuario` | ⏸ Pendente | — |
-| 13 | `auth` | ⏸ Pendente | — |
-| 14 | `ia` | ⏸ Pendente (mais complexo — deixar por último) | — |
-
----
-
-## Progresso — Fase 3 (infra + entrada)
-
-| # | O que | Status |
-|---|---|---|
-| — | `src/config/` (DbConnect, MinIO, Multer, Sharp, Pagination) | ⏸ Pendente |
-| — | `src/middlewares/` (AuthMiddleware, AuthPermission, LogRoutes) | ⏸ Pendente |
-| — | `src/libs/mcp/` + `tools/` | ⏸ Pendente |
-| — | `src/app.js` + `server.js` | ⏸ Pendente |
-| — | Docs/Swagger + `src/seeds/` | ⏸ Pendente |
-| — | **Trancamento final:** remover `allowJs`, `allowJs:false` | ⏸ Pendente |
-
----
-
-## Padrões estabelecidos (repetir em cada módulo)
-
-### Conversão de arquivos
-
-```bash
-# 1. Renomear com git mv (preserva histórico)
-git mv src/modules/<dom>/<Arq>.js src/modules/<dom>/<Arq>.ts
-# Exceção: *Docs.js e *DocsSchema.js ficam como .js
 ```
+npm run typecheck  →  zero erros
+allowJs: false     →  nenhum .js pode entrar em src/
+testes excluídos   →  src/**/__tests__/** não são verificados pelo tsc (Babel compila)
+```
+
+---
+
+## Padrões estabelecidos
 
 ### Interfaces Mongoose
 
@@ -85,51 +63,16 @@ export type FooQuery = z.output<typeof FooQuerySchema>;
 ### Repository
 
 ```typescript
-// Parâmetros do construtor tipados
 constructor({ fooModel = FooModel }: { fooModel?: mongoose.PaginateModel<FooDocument> } = {})
-
-// Query cast
 const query = req.query as Record<string, string | undefined>;
-const limite = Math.min(parseInt(query['limite'] ?? '', 10) || DEFAULT, MAX);
-
-// Spread docs (nunca reassign diretamente)
 return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
-
-// Params
-const id = req.params['id'] as string;
-```
-
-### Service
-
-```typescript
-// Nunca mutar parsedData — usar spread
-const dataToCreate = { ...parsedData, usuario: req.user_id };
 ```
 
 ### Controller
 
 ```typescript
-// Params sempre cast
-const id = req.params['id'] as string;
-
-// Método typed como (req: AuthenticatedRequest, res: Response)
 async listar(req: AuthenticatedRequest, res: Response) { ... }
-```
-
-### FilterBuilder com repo/model públicos
-
-```typescript
-// Quando testes checam filterBuilder.xxxRepository e filterBuilder.xxxModel:
-class FooFilterBuilder {
-  private filtros: FilterQuery<IFoo> = {};
-  fooRepository: FooRepository;    // public — testes verificam
-  fooModel: typeof FooModel;       // public — testes verificam
-  constructor() {
-    this.fooRepository = new FooRepository();
-    this.fooModel = FooModel;
-  }
-  ...
-}
+const id = req.params['id'] as string;
 ```
 
 ---
@@ -138,40 +81,12 @@ class FooFilterBuilder {
 
 | Problema | Solução |
 |---|---|
-| `req.params['id']` é `string \| string[]` em `@types/express@5` | Cast `as string` sempre que usar como ID |
-| `resultado.docs = resultado.docs.map(...)` falha — não pode reassign typed array | Retornar `{ ...resultado, docs: resultado.docs.map(...) }` |
-| `@babel/preset-typescript@8` requer `@babel/core@^8` | Usar `@babel/preset-typescript@^7` |
-| `messages.error` tem funções com 2+ params | Cast via `as unknown as Record<string, unknown>` |
-| `filterBuilder.build !== 'function'` check no repository falha quando FilterBuilder não tem o método | Garantir que `build()` existe como método tipado |
-| `errorTypes` (typo) em vez de `errorType` | Corrigir para `errorType` — TypeScript detecta |
-| Jest resolve `.js` literalmente após rename | `moduleNameMapper: { "^(\\.{1,2}/.*)\\.js$": "$1" }` no jest config |
-| `CustomError` defaults mudam comportamento dos testes | Manter `statusCode \| undefined` e `errorType \| undefined` sem defaults |
-| Mock de `HttpStatusCodes.NOT_FOUND: 404` (número) + controller usa `.code` | Atualizar mock para `{ code: 404, message: '...' }` e atualizar expectativa do teste |
-| `IItemOrcamento` e subdoc arrays — `itens[idx]` é `T \| undefined` | Adicionar null check explícito após `findIndex !== -1` |
-| `parsedData as Record<string, unknown>` no repository de subdocs | Usar `unknown as IItemOrcamento` para o cast duplo |
-
----
-
-## Baseline de testes (manter durante toda a migração)
-
-```
-Test Suites: 16 failed, 60 passed, 76 total
-Tests:       123 failed, 834 passed, 957 total
-```
-
-Falhas pré-existentes:
-- **10 `*Routes.test.js`** — `ECONNREFUSED 127.0.0.1:3010` (precisam de servidor rodando)
-- **6 `*Model.test.js`** — unique constraint + outros comportamentos de schema não testáveis sem DB
-
-**Regra:** nunca ultrapassar 16 suítes / 123 testes falhando. Ao introduzir regressão, investigar imediatamente antes de avançar.
-
----
-
-## Como retomar
-
-1. `git checkout 7-migrar-para-typescript`
-2. Próximo módulo: **`estoque`**
-3. Ordem de conversão dentro de cada módulo: Schema → QuerySchema → Model → FilterBuilder → Repository → Service → Controller → Routes → index
-4. Após cada módulo: `npm run typecheck` limpo + `npm test` no baseline
-5. Commitar com `feat: migrar módulo <nome> para TypeScript`
-6. **NÃO mergear em develop** sob nenhuma circunstância
+| `req.params['id']` é `string \| string[]` em `@types/express@5` | Cast `as string` |
+| `toObject()` retorna tipo específico Mongoose | Double cast: `as unknown as Record<string, unknown>` |
+| `multer FileFilterCallback` erro path: `cb(err, false)` | Só `cb(err)` — segundo arg inválido no overload de erro |
+| `noUncheckedIndexedAccess` em `Record<N, Fn>` | Non-null assertion `record[key]!()` |
+| `Date - Date` não permitido em TS | Usar `.getTime() - .getTime()` |
+| `mongoose-schema-jsonschema` sem tipos | `src/types/mongoose-schema-jsonschema.d.ts` com augment |
+| `faker-br` sem tipos | `src/types/faker-br.d.ts` com `any` |
+| `swaggerCommonResponses[N]` + `noUncheckedIndexedAccess` | `swaggerCommonResponses[N]!()` com `!` |
+| Testes com imports sem `.js` + NodeNext resolution | Excluídos do tsc; Babel compila sem precisar de extensões |
