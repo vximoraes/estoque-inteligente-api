@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const itemJsonSchema = Item.schema.jsonSchema();
+const itemJsonSchema = Item.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete itemJsonSchema.properties.__v;
 
-const itensSchemas = {
+const itensSchemas: Record<string, Record<string, unknown>> = {
   ItemFiltro: {
     type: 'object',
     properties: {
@@ -113,17 +113,17 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const itemMongooseSchema = Item.schema;
 
-itensSchemas.ItemResumo.example = await generateExample(
-  itensSchemas.ItemResumo,
+itensSchemas.ItemResumo!.example = await generateExample(
+  itensSchemas.ItemResumo!,
   null,
   itemMongooseSchema,
 );
-itensSchemas.ItemDetalhes.example = await generateExample(
-  itensSchemas.ItemDetalhes,
+itensSchemas.ItemDetalhes!.example = await generateExample(
+  itensSchemas.ItemDetalhes!,
   null,
   itemMongooseSchema,
 );
-itensSchemas.ItemPost.example = {
+itensSchemas.ItemPost!.example = {
   nome: 'Resistor 10k Ohm',
   estoque_minimo: '50',
   descricao: 'Resistor de precisão 1/4W 5%',
@@ -131,7 +131,7 @@ itensSchemas.ItemPost.example = {
   categoria: '507f1f77bcf86cd799439012',
   ativo: true,
 };
-itensSchemas.ItemPutPatch.example = {
+itensSchemas.ItemPutPatch!.example = {
   nome: 'Resistor 10k Ohm - Atualizado',
   estoque_minimo: '75',
   descricao: 'Resistor de precisão 1/4W 5% - Versão atualizada',

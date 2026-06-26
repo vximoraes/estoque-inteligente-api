@@ -4,7 +4,7 @@ import Estoque from './EstoqueModel.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const estoqueJsonSchema = Estoque.schema.jsonSchema();
+const estoqueJsonSchema = Estoque.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 
 const EstoqueBasico = {
   type: 'object',

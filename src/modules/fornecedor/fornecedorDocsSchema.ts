@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const fornecedorJsonSchema = Fornecedor.schema.jsonSchema();
+const fornecedorJsonSchema = Fornecedor.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete fornecedorJsonSchema.properties.__v;
 
-const fornecedoresSchemas = {
+const fornecedoresSchemas: Record<string, Record<string, unknown>> = {
   FornecedorFiltro: {
     type: 'object',
     properties: {
@@ -74,23 +74,23 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const fornecedorMongooseSchema = Fornecedor.schema;
 
-fornecedoresSchemas.FornecedorItem.example = await generateExample(
-  fornecedoresSchemas.FornecedorItem,
+fornecedoresSchemas.FornecedorItem!.example = await generateExample(
+  fornecedoresSchemas.FornecedorItem!,
   null,
   fornecedorMongooseSchema,
 );
-fornecedoresSchemas.FornecedorDetalhes.example = await generateExample(
-  fornecedoresSchemas.FornecedorDetalhes,
+fornecedoresSchemas.FornecedorDetalhes!.example = await generateExample(
+  fornecedoresSchemas.FornecedorDetalhes!,
   null,
   fornecedorMongooseSchema,
 );
-fornecedoresSchemas.FornecedorPost.example = {
+fornecedoresSchemas.FornecedorPost!.example = {
   nome: 'TechComponents LTDA',
   url: 'https://www.techcomponents.com.br',
   contato: '(11) 98765-4321',
   descricao: 'Fornecedor especializado em itens do estoque',
 };
-fornecedoresSchemas.FornecedorPutPatch.example = {
+fornecedoresSchemas.FornecedorPutPatch!.example = {
   nome: 'TechComponents LTDA - Atualizado',
   url: 'https://www.newtechcomponents.com.br',
   contato: '(11) 91234-5678',

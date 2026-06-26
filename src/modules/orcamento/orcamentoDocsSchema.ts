@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const orcamentoJsonSchema = Orcamento.schema.jsonSchema();
+const orcamentoJsonSchema = Orcamento.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete orcamentoJsonSchema.properties.__v;
 
-const orcamentosSchemas = {
+const orcamentosSchemas: Record<string, Record<string, unknown>> = {
   OrcamentoFiltro: {
     type: 'object',
     properties: {
@@ -121,17 +121,17 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const orcamentoMongooseSchema = Orcamento.schema;
 
-orcamentosSchemas.OrcamentoItem.example = await generateExample(
-  orcamentosSchemas.OrcamentoItem,
+orcamentosSchemas.OrcamentoItem!.example = await generateExample(
+  orcamentosSchemas.OrcamentoItem!,
   null,
   orcamentoMongooseSchema,
 );
-orcamentosSchemas.OrcamentoDetalhes.example = await generateExample(
-  orcamentosSchemas.OrcamentoDetalhes,
+orcamentosSchemas.OrcamentoDetalhes!.example = await generateExample(
+  orcamentosSchemas.OrcamentoDetalhes!,
   null,
   orcamentoMongooseSchema,
 );
-orcamentosSchemas.OrcamentoPost.example = {
+orcamentosSchemas.OrcamentoPost!.example = {
   nome: 'Orçamento Sistema de Automação',
   descricao: 'Orçamento para itens do sistema de automação residencial',
   item_orcamento: [

@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const movimentacaoJsonSchema = Movimentacao.schema.jsonSchema();
+const movimentacaoJsonSchema = Movimentacao.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete movimentacaoJsonSchema.properties.__v;
 
-const movimentacoesSchemas = {
+const movimentacoesSchemas: Record<string, Record<string, unknown>> = {
   MovimentacaoFiltro: {
     type: 'object',
     properties: {
@@ -74,17 +74,17 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const movimentacaoMongooseSchema = Movimentacao.schema;
 
-movimentacoesSchemas.MovimentacaoItem.example = await generateExample(
-  movimentacoesSchemas.MovimentacaoItem,
+movimentacoesSchemas.MovimentacaoItem!.example = await generateExample(
+  movimentacoesSchemas.MovimentacaoItem!,
   null,
   movimentacaoMongooseSchema,
 );
-movimentacoesSchemas.MovimentacaoDetalhes.example = await generateExample(
-  movimentacoesSchemas.MovimentacaoDetalhes,
+movimentacoesSchemas.MovimentacaoDetalhes!.example = await generateExample(
+  movimentacoesSchemas.MovimentacaoDetalhes!,
   null,
   movimentacaoMongooseSchema,
 );
-movimentacoesSchemas.MovimentacaoPost.example = {
+movimentacoesSchemas.MovimentacaoPost!.example = {
   tipo: 'entrada',
   quantidade: '10',
   item: '507f1f77bcf86cd799439011',

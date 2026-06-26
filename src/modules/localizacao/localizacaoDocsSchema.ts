@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const localizacaoJsonSchema = Localizacao.schema.jsonSchema();
+const localizacaoJsonSchema = Localizacao.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete localizacaoJsonSchema.properties.__v;
 
-const localizacoesSchemas = {
+const localizacoesSchemas: Record<string, Record<string, unknown>> = {
   LocalizacaoFiltro: {
     type: 'object',
     properties: {
@@ -73,20 +73,20 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const localizacaoMongooseSchema = Localizacao.schema;
 
-localizacoesSchemas.LocalizacaoItem.example = await generateExample(
-  localizacoesSchemas.LocalizacaoItem,
+localizacoesSchemas.LocalizacaoItem!.example = await generateExample(
+  localizacoesSchemas.LocalizacaoItem!,
   null,
   localizacaoMongooseSchema,
 );
-localizacoesSchemas.LocalizacaoDetalhes.example = await generateExample(
-  localizacoesSchemas.LocalizacaoDetalhes,
+localizacoesSchemas.LocalizacaoDetalhes!.example = await generateExample(
+  localizacoesSchemas.LocalizacaoDetalhes!,
   null,
   localizacaoMongooseSchema,
 );
-localizacoesSchemas.LocalizacaoPost.example = {
+localizacoesSchemas.LocalizacaoPost!.example = {
   nome: 'Estante A - Prateleira 1',
 };
-localizacoesSchemas.LocalizacaoPutPatch.example = {
+localizacoesSchemas.LocalizacaoPutPatch!.example = {
   nome: 'Estante A - Prateleira 1 - Atualizada',
 };
 

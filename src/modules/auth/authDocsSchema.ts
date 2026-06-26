@@ -333,17 +333,18 @@ const authSchemas = {
 // Função para adicionar exemplos aos schemas
 const addExamples = async () => {
   for (const key of Object.keys(authSchemas)) {
-    const schema = authSchemas[key];
+    const schema = (authSchemas as Record<string, Record<string, unknown>>)[key];
 
     // Gera exemplos para propriedades que ainda não têm
-    if (schema.properties) {
+    if (schema?.['properties']) {
       for (const [propKey, propertySchema] of Object.entries(
-        schema.properties,
+        schema['properties'] as Record<string, Record<string, unknown>>,
       )) {
-        if (!propertySchema.example && !propertySchema.properties) {
+        const ps = propertySchema as Record<string, unknown>;
+        if (!ps['example'] && !ps['properties']) {
           try {
-            propertySchema.example = await generateExample(
-              propertySchema,
+            ps['example'] = await generateExample(
+              ps,
               propKey,
             );
           } catch (error) {
@@ -357,9 +358,9 @@ const addExamples = async () => {
     }
 
     // Gera exemplo para o schema completo se não existir
-    if (!schema.example) {
+    if (schema && !schema['example']) {
       try {
-        schema.example = await generateExample(schema);
+        schema['example'] = await generateExample(schema);
       } catch (error) {
         console.warn(`Erro ao gerar exemplo para ${key}:`, error);
       }

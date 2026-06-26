@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const categoriaJsonSchema = Categoria.schema.jsonSchema();
+const categoriaJsonSchema = Categoria.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete categoriaJsonSchema.properties.__v;
 
-const categoriasSchemas = {
+const categoriasSchemas: Record<string, Record<string, unknown>> = {
   CategoriaFiltro: {
     type: 'object',
     properties: {
@@ -72,23 +72,23 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const categoriaMongooseSchema = Categoria.schema;
 
-categoriasSchemas.CategoriaItem.example = await generateExample(
-  categoriasSchemas.CategoriaItem,
+categoriasSchemas.CategoriaItem!.example = await generateExample(
+  categoriasSchemas.CategoriaItem!,
   null,
   categoriaMongooseSchema,
 );
-categoriasSchemas.CategoriaDetalhes.example = await generateExample(
-  categoriasSchemas.CategoriaDetalhes,
+categoriasSchemas.CategoriaDetalhes!.example = await generateExample(
+  categoriasSchemas.CategoriaDetalhes!,
   null,
   categoriaMongooseSchema,
 );
-categoriasSchemas.CategoriaPost.example = await generateExample(
-  categoriasSchemas.CategoriaPost,
+categoriasSchemas.CategoriaPost!.example = await generateExample(
+  categoriasSchemas.CategoriaPost!,
   null,
   categoriaMongooseSchema,
 );
-categoriasSchemas.CategoriaPutPatch.example = await generateExample(
-  categoriasSchemas.CategoriaPutPatch,
+categoriasSchemas.CategoriaPutPatch!.example = await generateExample(
+  categoriasSchemas.CategoriaPutPatch!,
   null,
   categoriaMongooseSchema,
 );

@@ -59,7 +59,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         401: {
           description: 'Credenciais inválidas',
           content: {
@@ -80,7 +80,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -142,7 +142,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         409: {
           description: 'Email já cadastrado',
           content: {
@@ -153,7 +153,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -213,7 +213,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         401: {
           description: 'Token inválido',
           content: {
@@ -224,7 +224,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -285,7 +285,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         401: {
           description: 'Refresh token inválido ou expirado',
           content: {
@@ -296,7 +296,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -356,7 +356,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         404: {
           description: 'Token não encontrado',
           content: {
@@ -367,7 +367,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -427,8 +427,8 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
-        500: commonResponses[500](),
+        400: commonResponses[400]!(),
+        500: commonResponses[500]!(),
       },
     },
   },
@@ -489,7 +489,7 @@ const authPaths = {
             },
           },
         },
-        400: commonResponses[400](),
+        400: commonResponses[400]!(),
         404: {
           description: 'Email não encontrado',
           content: {
@@ -500,7 +500,7 @@ const authPaths = {
             },
           },
         },
-        500: commonResponses[500](),
+        500: commonResponses[500]!(),
       },
     },
   },

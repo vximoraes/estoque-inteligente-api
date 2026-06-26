@@ -11,12 +11,12 @@ interface Schema {
 }
 
 export function generateParameters(
-  schema: Schema,
+  schema: unknown,
   _baseRef = '',
   parentKey = '',
 ): Record<string, unknown>[] {
   const params: Record<string, unknown>[] = [];
-  const properties = schema.properties ?? {};
+  const properties = (schema as Schema)?.properties ?? {};
 
   for (const [key, value] of Object.entries(properties)) {
     if (!value) continue;

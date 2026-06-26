@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const usuarioJsonSchema = Usuario.schema.jsonSchema();
+const usuarioJsonSchema = Usuario.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete usuarioJsonSchema.properties.__v;
 
-const usuariosSchemas = {
+const usuariosSchemas: Record<string, Record<string, unknown>> = {
   UsuarioFiltro: {
     type: 'object',
     properties: {
@@ -155,33 +155,33 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const usuarioMongooseSchema = Usuario.schema;
 
-usuariosSchemas.UsuarioItem.example = await generateExample(
-  usuariosSchemas.UsuarioItem,
+usuariosSchemas.UsuarioItem!.example = await generateExample(
+  usuariosSchemas.UsuarioItem!,
   null,
   usuarioMongooseSchema,
 );
-usuariosSchemas.UsuarioDetalhes.example = await generateExample(
-  usuariosSchemas.UsuarioDetalhes,
+usuariosSchemas.UsuarioDetalhes!.example = await generateExample(
+  usuariosSchemas.UsuarioDetalhes!,
   null,
   usuarioMongooseSchema,
 );
-usuariosSchemas.UsuarioPost.example = await generateExample(
-  usuariosSchemas.UsuarioPost,
+usuariosSchemas.UsuarioPost!.example = await generateExample(
+  usuariosSchemas.UsuarioPost!,
   null,
   usuarioMongooseSchema,
 );
-usuariosSchemas.UsuarioPutPatch.example = await generateExample(
-  usuariosSchemas.UsuarioPutPatch,
+usuariosSchemas.UsuarioPutPatch!.example = await generateExample(
+  usuariosSchemas.UsuarioPutPatch!,
   null,
   usuarioMongooseSchema,
 );
-usuariosSchemas.UsuarioLogin.example = await generateExample(
-  usuariosSchemas.UsuarioLogin,
+usuariosSchemas.UsuarioLogin!.example = await generateExample(
+  usuariosSchemas.UsuarioLogin!,
   null,
   usuarioMongooseSchema,
 );
-usuariosSchemas.UsuarioRespostaLogin.example = await generateExample(
-  usuariosSchemas.UsuarioRespostaLogin,
+usuariosSchemas.UsuarioRespostaLogin!.example = await generateExample(
+  usuariosSchemas.UsuarioRespostaLogin!,
   null,
   usuarioMongooseSchema,
 );

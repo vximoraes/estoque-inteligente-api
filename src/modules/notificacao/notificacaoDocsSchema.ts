@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const notificacaoJsonSchema = Notificacao.schema.jsonSchema();
+const notificacaoJsonSchema = Notificacao.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete notificacaoJsonSchema.properties.__v;
 
-const notificacoesSchemas = {
+const notificacoesSchemas: Record<string, Record<string, unknown>> = {
   NotificacaoFiltro: {
     type: 'object',
     properties: {
@@ -93,17 +93,17 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const notificacaoMongooseSchema = Notificacao.schema;
 
-notificacoesSchemas.NotificacaoItem.example = await generateExample(
-  notificacoesSchemas.NotificacaoItem,
+notificacoesSchemas.NotificacaoItem!.example = await generateExample(
+  notificacoesSchemas.NotificacaoItem!,
   null,
   notificacaoMongooseSchema,
 );
-notificacoesSchemas.NotificacaoDetalhes.example = await generateExample(
-  notificacoesSchemas.NotificacaoDetalhes,
+notificacoesSchemas.NotificacaoDetalhes!.example = await generateExample(
+  notificacoesSchemas.NotificacaoDetalhes!,
   null,
   notificacaoMongooseSchema,
 );
-notificacoesSchemas.NotificacaoPost.example = {
+notificacoesSchemas.NotificacaoPost!.example = {
   mensagem: 'Estoque baixo do item Resistor 10k',
 };
 

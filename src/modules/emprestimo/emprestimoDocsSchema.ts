@@ -6,10 +6,10 @@ import { deepCopy, generateExample } from '../../docs/utils/schemaGenerate.js';
 
 mongooseSchemaJsonSchema(mongoose);
 
-const emprestimoJsonSchema = Emprestimo.schema.jsonSchema();
+const emprestimoJsonSchema = Emprestimo.schema.jsonSchema() as { properties: Record<string, unknown>; [key: string]: unknown };
 delete emprestimoJsonSchema.properties.__v;
 
-const emprestimosSchemas = {
+const emprestimosSchemas: Record<string, Record<string, unknown>> = {
   EmprestimoFiltro: {
     type: 'object',
     properties: {
@@ -113,17 +113,17 @@ Object.entries(removalMapping).forEach(([schemaKey, fields]) => {
 
 const emprestimoMongooseSchema = Emprestimo.schema;
 
-emprestimosSchemas.EmprestimoItem.example = await generateExample(
-  emprestimosSchemas.EmprestimoItem,
+emprestimosSchemas.EmprestimoItem!.example = await generateExample(
+  emprestimosSchemas.EmprestimoItem!,
   null,
   emprestimoMongooseSchema,
 );
-emprestimosSchemas.EmprestimoDetalhes.example = await generateExample(
-  emprestimosSchemas.EmprestimoDetalhes,
+emprestimosSchemas.EmprestimoDetalhes!.example = await generateExample(
+  emprestimosSchemas.EmprestimoDetalhes!,
   null,
   emprestimoMongooseSchema,
 );
-emprestimosSchemas.EmprestimoPost.example = {
+emprestimosSchemas.EmprestimoPost!.example = {
   item: '507f1f77bcf86cd799439011',
   localizacao: '507f1f77bcf86cd799439012',
   quantidade_emprestada: 3,
@@ -131,7 +131,7 @@ emprestimosSchemas.EmprestimoPost.example = {
   data_prevista_devolucao: '2026-04-15T10:00:00.000Z',
   observacoes_emprestimo: 'Emprestimo para manutencao externa.',
 };
-emprestimosSchemas.DevolucaoEmprestimoPost.example = {
+emprestimosSchemas.DevolucaoEmprestimoPost!.example = {
   quantidade_devolvida: 1,
   observacoes_devolucao: 'Primeira devolucao parcial.',
 };
