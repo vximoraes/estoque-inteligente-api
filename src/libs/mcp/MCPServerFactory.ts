@@ -11,7 +11,7 @@ import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
 
-export function criarMCPServer(usuarioId) {
+export function criarMCPServer(usuarioId: string): McpServer {
   const server = new McpServer({
     name: 'estoque-inteligente',
     version: '1.0.0',

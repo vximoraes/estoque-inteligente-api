@@ -1,7 +1,7 @@
 import ItemModel from '../../../modules/item/ItemModel.js';
 import EmprestimoModel from '../../../modules/emprestimo/EmprestimoModel.js';
 
-export async function resumoEstoque(_args, _usuarioId) {
+export async function resumoEstoque(_args: unknown, _usuarioId: string) {
   const [totalItens, emEstoque, baixoEstoque, indisponivel, totalEmprestimosAtivos] =
     await Promise.all([
       ItemModel.countDocuments({ ativo: true }),
@@ -22,7 +22,7 @@ export async function resumoEstoque(_args, _usuarioId) {
     total_itens: totalItens,
     em_estoque: emEstoque,
     baixo_estoque: baixoEstoque,
-    indisponivel: indisponivel,
+    indisponivel,
     emprestimos_ativos: totalEmprestimosAtivos,
     emprestimos_atrasados: emprestimosAtrasados,
   };

@@ -1,23 +1,35 @@
-const SESSION_TTL_MS = 10 * 60 * 1000; // 10 minutos
+import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+const SESSION_TTL_MS = 10 * 60 * 1000;
+
+export interface MCPSession {
+  transport: StreamableHTTPServerTransport;
+  server: McpServer;
+  usuarioId: string;
+}
 
 class MCPSessionStore {
+  private _store: Map<string, MCPSession>;
+  private _timers: Map<string, ReturnType<typeof setTimeout>>;
+
   constructor() {
     this._store = new Map();
     this._timers = new Map();
   }
 
-  set(sessionId, sessionData) {
+  set(sessionId: string, sessionData: MCPSession): void {
     this._store.set(sessionId, sessionData);
     this._resetTimer(sessionId);
   }
 
-  get(sessionId) {
+  get(sessionId: string): MCPSession | null {
     if (!this._store.has(sessionId)) return null;
     this._resetTimer(sessionId);
-    return this._store.get(sessionId);
+    return this._store.get(sessionId) ?? null;
   }
 
-  delete(sessionId) {
+  delete(sessionId: string): void {
     this._store.delete(sessionId);
     const timer = this._timers.get(sessionId);
     if (timer) {
@@ -26,11 +38,11 @@ class MCPSessionStore {
     }
   }
 
-  has(sessionId) {
+  has(sessionId: string): boolean {
     return this._store.has(sessionId);
   }
 
-  _resetTimer(sessionId) {
+  private _resetTimer(sessionId: string): void {
     const existing = this._timers.get(sessionId);
     if (existing) clearTimeout(existing);
 
