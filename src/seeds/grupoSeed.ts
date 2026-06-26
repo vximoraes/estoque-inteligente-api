@@ -1,6 +1,6 @@
 import Grupo from '../modules/grupo/GrupoModel.js';
 
-export default async function seedGrupos(rotas) {
+export default async function seedGrupos(rotas: any[]) {
   await Grupo.deleteMany();
 
   const grupos = [];

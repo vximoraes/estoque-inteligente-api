@@ -83,7 +83,7 @@ export const fakeMappings = {
       'Rede',
       'Armazenamento',
     ],
-    nome(index) {
+    nome(index: number) {
       return this.categorias[index];
     },
     usuario: () => new mongoose.Types.ObjectId().toString(),
@@ -203,11 +203,12 @@ export async function getGlobalFakeMapping() {
   const models = await loadModels();
   let globalMapping = { ...fakeMappings.common };
 
+  const fm = fakeMappings as Record<string, Record<string, unknown>>;
   models.forEach(({ name }) => {
-    if (fakeMappings[name]) {
+    if (fm[name]) {
       globalMapping = {
         ...globalMapping,
-        ...fakeMappings[name],
+        ...fm[name],
       };
     }
   });
@@ -217,12 +218,12 @@ export async function getGlobalFakeMapping() {
 
 // Função auxiliar para extrair os nomes dos campos de um schema, considerando apenas os níveis superiores (campos aninhados são verificados pela parte antes do ponto).
 
-function getSchemaFieldNames(schema) {
-  const fieldNames = new Set();
+function getSchemaFieldNames(schema: Record<string, unknown>) {
+  const fieldNames = new Set<string>();
 
-  Object.keys(schema.paths).forEach((key) => {
+  Object.keys(schema['paths'] as object).forEach((key) => {
     if (['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) return;
-    const topLevel = key.split('.')[0];
+    const topLevel = key.split('.')[0]!;
     fieldNames.add(topLevel);
   });
 
@@ -232,8 +233,8 @@ function getSchemaFieldNames(schema) {
 // Valida se o mapping fornecido cobre todos os campos do model.
 // Retorna um array com os nomes dos campos que estiverem faltando.
 
-function validateModelMapping(model, modelName, mapping) {
-  const fields = getSchemaFieldNames(model.schema);
+function validateModelMapping(model: Record<string, unknown>, modelName: string, mapping: Record<string, unknown>) {
+  const fields = getSchemaFieldNames(model['schema'] as Record<string, unknown>);
   const missing = fields.filter((field) => !(field in mapping));
 
   if (missing.length > 0) {
@@ -253,15 +254,16 @@ async function validateAllMappings() {
   const models = await loadModels();
   const totalMissing = {};
 
+  const fm2 = fakeMappings as Record<string, Record<string, unknown>>;
   models.forEach(({ model, name }) => {
     // Combina os campos comuns com os específicos de cada model.
     const mapping = {
       ...fakeMappings.common,
-      ...(fakeMappings[name] || {}),
+      ...(fm2[name] || {}),
     };
-    const missing = validateModelMapping(model, name, mapping);
+    const missing = validateModelMapping(model as Record<string, unknown>, name, mapping);
     if (missing.length > 0) {
-      totalMissing[name] = missing;
+      (totalMissing as Record<string, unknown>)[name] = missing;
     }
   });
 

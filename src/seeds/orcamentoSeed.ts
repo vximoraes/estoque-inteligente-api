@@ -3,7 +3,7 @@ import Orcamento from '../modules/orcamento/OrcamentoModel.js';
 import Item from '../modules/item/ItemModel.js';
 import Fornecedor from '../modules/fornecedor/FornecedorModel.js';
 
-export default async function orcamentoSeed(adminId) {
+export default async function orcamentoSeed(adminId: string) {
   const itemList = await Item.find({});
   const fornecedorList = await Fornecedor.find({});
 
@@ -15,9 +15,9 @@ export default async function orcamentoSeed(adminId) {
     const numItens = Math.floor(Math.random() * 4) + 2;
 
     for (let j = 0; j < numItens; j++) {
-      const itemRandom = itemList[Math.floor(Math.random() * itemList.length)];
+      const itemRandom = itemList[Math.floor(Math.random() * itemList.length)]!;
       const fornecedorRandom =
-        fornecedorList[Math.floor(Math.random() * fornecedorList.length)];
+        fornecedorList[Math.floor(Math.random() * fornecedorList.length)]!;
 
       const quantidade = Math.floor(Math.random() * 10) + 1;
       const valor_unitario = parseFloat((Math.random() * 100 + 5).toFixed(2));
@@ -33,8 +33,8 @@ export default async function orcamentoSeed(adminId) {
     }
 
     const orcamento = {
-      nome: fakeMappings.Orcamento.nome.apply(),
-      descricao: fakeMappings.Orcamento.descricao.apply(),
+      nome: fakeMappings.Orcamento.nome(),
+      descricao: fakeMappings.Orcamento.descricao(),
       itens,
       usuario: adminId,
       ativo: true,

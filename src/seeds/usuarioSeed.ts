@@ -16,16 +16,16 @@ export default async function usuarioSeed() {
   const usuarios = [];
 
   for (let i = 0; i < 10; i++) {
-    const senhaGerada = fakeMappings.Usuario.senha.apply();
+    const senhaGerada = fakeMappings.Usuario.senha();
     const senhaCriptografada = await bcrypt.hash(senhaGerada, 10);
 
     const usuario = {
-      nome: fakeMappings.Usuario.nome.apply(),
-      email: fakeMappings.Usuario.email.apply(),
+      nome: fakeMappings.Usuario.nome(),
+      email: fakeMappings.Usuario.email(),
       senha: senhaCriptografada,
       permissoes: grupoUsuario?.permissoes || [],
       grupos: grupoUsuario ? [grupoUsuario._id] : [],
-      ativo: fakeMappings.Usuario.ativo.apply(),
+      ativo: fakeMappings.Usuario.ativo(),
     };
 
     usuarios.push(usuario);
@@ -50,7 +50,7 @@ export default async function usuarioSeed() {
   });
 
   return {
-    adminId: adminCriado._id,
+    adminId: adminCriado!._id as unknown as string,
     usuarios: result,
   };
 }

@@ -1,7 +1,7 @@
 import { fakeMappings } from './globalFakeMapping.js';
 import Notificacao from '../modules/notificacao/NotificacaoModel.js';
 
-export default async function notificacaoSeed(adminId) {
+export default async function notificacaoSeed(adminId: string) {
   await Notificacao.deleteMany({});
 
   for (let i = 0; i < 10; i++) {

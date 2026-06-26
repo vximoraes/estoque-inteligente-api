@@ -13,16 +13,17 @@ export default async function estoqueSeed() {
 
   for (const item of itemList) {
     const numLocalizacoes = Math.floor(Math.random() * 3) + 1;
-    const localizacoesSelecionadas = [];
+    const localizacoesSelecionadas: unknown[] = [];
 
     for (let i = 0; i < numLocalizacoes; i++) {
-      let localizacaoRandom;
+      let localizacaoRandom: unknown;
       do {
         localizacaoRandom =
           localizacaoList[Math.floor(Math.random() * localizacaoList.length)];
       } while (
         localizacoesSelecionadas.some(
-          (loc) => loc._id.toString() === localizacaoRandom._id.toString(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (loc) => (loc as any)._id.toString() === (localizacaoRandom as any)._id.toString(),
         )
       );
 
@@ -31,12 +32,13 @@ export default async function estoqueSeed() {
 
     for (const localizacao of localizacoesSelecionadas) {
       const usuarioRandom =
-        usuarios[Math.floor(Math.random() * usuarios.length)];
+        usuarios[Math.floor(Math.random() * usuarios.length)]!;
 
       const estoque = {
-        quantidade: fakeMappings.Estoque.quantidade.apply(),
+        quantidade: fakeMappings.Estoque.quantidade(),
         item: item._id,
-        localizacao: localizacao._id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        localizacao: (localizacao as any)._id,
         usuario: usuarioRandom._id,
       };
 
@@ -45,6 +47,7 @@ export default async function estoqueSeed() {
   }
 
   for (const item of itemList) {
-    await Estoque.atualizarQuantidadeItem(item._id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await Estoque.atualizarQuantidadeItem(item._id as any);
   }
 }
