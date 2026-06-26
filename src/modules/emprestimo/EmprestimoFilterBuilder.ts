@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 const { Types } = mongoose;
 
@@ -16,7 +17,7 @@ class EmprestimoFilterBuilder {
       return this;
     }
 
-    const itemEncontrado = await Item.findOne({ nome: { $regex: item, $options: 'i' } });
+    const itemEncontrado = await Item.findOne({ nome: { $regex: escapeRegex(item), $options: 'i' } });
     this.filtros['item'] = itemEncontrado ? itemEncontrado._id : { $in: [] };
     return this;
   }
@@ -31,7 +32,7 @@ class EmprestimoFilterBuilder {
     }
 
     const localizacaoEncontrada = await Localizacao.findOne({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     });
     this.filtros['localizacao'] = localizacaoEncontrada
       ? localizacaoEncontrada._id
@@ -41,7 +42,7 @@ class EmprestimoFilterBuilder {
 
   comSolicitanteNome(solicitanteNome: string | null | undefined): this {
     if (solicitanteNome) {
-      this.filtros['solicitante_nome'] = { $regex: solicitanteNome, $options: 'i' };
+      this.filtros['solicitante_nome'] = { $regex: escapeRegex(solicitanteNome), $options: 'i' };
     }
     return this;
   }

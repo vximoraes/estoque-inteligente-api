@@ -2,6 +2,7 @@ import ItemModel from './ItemModel.js';
 import ItemRepository from './ItemRepository.js';
 import Categoria from '../categoria/CategoriaModel.js';
 import mongoose from 'mongoose';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 const { Types } = mongoose;
 
@@ -18,7 +19,7 @@ class ItemFilterBuilder {
 
   comNome(nome: string | null | undefined): this {
     if (nome) {
-      this.filtros['nome'] = { $regex: nome, $options: 'i' };
+      this.filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
     }
     return this;
   }
@@ -50,7 +51,7 @@ class ItemFilterBuilder {
         }
       } else {
         const categoriaEncontrada = await Categoria.findOne({
-          nome: { $regex: categoria, $options: 'i' },
+          nome: { $regex: escapeRegex(categoria), $options: 'i' },
         });
         if (categoriaEncontrada) {
           this.filtros['categoria'] = categoriaEncontrada._id;

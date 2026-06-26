@@ -198,7 +198,7 @@ describe('ItemFilterBuilder', () => {
         categoriaNome,
       );
       expect(Categoria.findOne).toHaveBeenCalledWith({
-        nome: { $regex: categoriaNome, $options: 'i' },
+        nome: { $regex: 'Categoria\\ Inexistente', $options: 'i' },
       });
       expect(itemFilterBuilder.filtros.categoria).toEqual({ $in: [] });
       expect(resultado).toBe(itemFilterBuilder);

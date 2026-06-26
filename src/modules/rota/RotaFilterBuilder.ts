@@ -1,5 +1,6 @@
 import type mongoose from 'mongoose';
 import type { IRota } from './RotaModel.js';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 type RotaFilter = mongoose.FilterQuery<IRota>;
 
@@ -8,14 +9,14 @@ class RotaFilterBuilder {
 
   comRota(rota: string | null | undefined): this {
     if (rota) {
-      this.filtros.rota = { $regex: rota, $options: 'i' };
+      this.filtros.rota = { $regex: escapeRegex(rota), $options: 'i' };
     }
     return this;
   }
 
   comDominio(dominio: string | null | undefined): this {
     if (dominio) {
-      this.filtros.dominio = { $regex: dominio, $options: 'i' };
+      this.filtros.dominio = { $regex: escapeRegex(dominio), $options: 'i' };
     }
     return this;
   }

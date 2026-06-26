@@ -1,6 +1,7 @@
 import type mongoose from 'mongoose';
 import FornecedorModel, { type IFornecedor } from './FornecedorModel.js';
 import FornecedorRepository from './FornecedorRepository.js';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 type FornecedorFilter = mongoose.FilterQuery<IFornecedor>;
 
@@ -16,28 +17,28 @@ class FornecedorFilterBuilder {
 
   comNome(nome: string | null | undefined): this {
     if (nome !== undefined && nome !== null && nome !== '') {
-      this.filtros.nome = { $regex: nome, $options: 'i' };
+      this.filtros.nome = { $regex: escapeRegex(nome), $options: 'i' };
     }
     return this;
   }
 
   comContato(contato: string | null | undefined): this {
     if (contato !== undefined && contato !== null && contato !== '') {
-      this.filtros.contato = { $regex: contato, $options: 'i' };
+      this.filtros.contato = { $regex: escapeRegex(contato), $options: 'i' };
     }
     return this;
   }
 
   comDescricao(descricao: string | null | undefined): this {
     if (descricao !== undefined && descricao !== null && descricao !== '') {
-      this.filtros.descricao = { $regex: descricao, $options: 'i' };
+      this.filtros.descricao = { $regex: escapeRegex(descricao), $options: 'i' };
     }
     return this;
   }
 
   comUrl(url: string | null | undefined): this {
     if (url !== undefined && url !== null && url !== '') {
-      this.filtros.url = { $regex: url, $options: 'i' };
+      this.filtros.url = { $regex: escapeRegex(url), $options: 'i' };
     }
     return this;
   }

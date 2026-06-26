@@ -1,4 +1,5 @@
 import UsuarioFilterBuilder from '../UsuarioFilterBuilder.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 describe('UsuarioFilterBuilder', () => {
   it('deve criar e combinar filtros corretamente', () => {
@@ -10,16 +11,15 @@ describe('UsuarioFilterBuilder', () => {
       .comEmail('maria@email.com')
       .comAtivo('true');
     expect(builderComFiltros.build()).toEqual({
-      nome: { $regex: 'Maria', $options: 'i' },
-      email: { $regex: 'maria@email.com', $options: 'i' },
+      nome: { $regex: escapeRegex('Maria'), $options: 'i' },
+      email: { $regex: escapeRegex('maria@email.com'), $options: 'i' },
       ativo: true,
     });
   });
 
   it('escapeRegex deve escapar caracteres especiais', () => {
-    const builder = new UsuarioFilterBuilder();
     const texto = 'nome.*[teste]';
-    expect(builder.escapeRegex(texto)).toBe('nome\\.\\*\\[teste\\]');
+    expect(escapeRegex(texto)).toBe('nome\\.\\*\\[teste\\]');
   });
 
   it('não deve adicionar filtro de nome/email se valor for vazio', () => {

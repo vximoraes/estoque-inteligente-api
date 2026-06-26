@@ -2,6 +2,7 @@ import UsuarioModel from './UsuarioModel.js';
 import UsuarioRepository from './UsuarioRepository.js';
 import type mongoose from 'mongoose';
 import type { IUsuario } from './UsuarioModel.js';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 type UsuarioFilter = mongoose.FilterQuery<IUsuario>;
 
@@ -18,14 +19,14 @@ class UsuarioFilterBuilder {
 
   comNome(nome: string | null | undefined): this {
     if (nome) {
-      this.filtros['nome'] = { $regex: nome, $options: 'i' };
+      this.filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
     }
     return this;
   }
 
   comEmail(email: string | null | undefined): this {
     if (email) {
-      this.filtros['email'] = { $regex: email, $options: 'i' };
+      this.filtros['email'] = { $regex: escapeRegex(email), $options: 'i' };
     }
     return this;
   }
@@ -38,10 +39,6 @@ class UsuarioFilterBuilder {
       this.filtros['ativo'] = false;
     }
     return this;
-  }
-
-  escapeRegex(texto: string): string {
-    return texto.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
   }
 
   build(): UsuarioFilter {

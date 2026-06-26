@@ -2,6 +2,15 @@ import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 
+function esc(str: string | undefined | null): string {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 export interface EmprestimoEmailData {
   item?: { nome?: string };
   localizacao?: { nome?: string };
@@ -107,10 +116,10 @@ Equipe Estoque Inteligente
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Bem-vindo ao Estoque Inteligente!</h1>
-            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nome}</strong>!</p>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${esc(nome)}</strong>!</p>
             <p style="margin: 0 0 20px 0; font-size: 18px;">Sua conta foi criada no sistema. Para começar, clique no botão abaixo e defina sua senha.</p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${activationUrl}" style="display: inline-block; padding: 14px 32px; background-color: #306FCC; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Ativar minha conta</a>
+                <a href="${esc(activationUrl)}" style="display: inline-block; padding: 14px 32px; background-color: #306FCC; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Ativar minha conta</a>
             </div>
             <div style="margin-top: 25px; border-radius: 4px;">
                 <p style="margin: 0; font-size: 18px;"><strong>Importante:</strong> Este link expira em 5 minutos por segurança.</p>
@@ -170,20 +179,20 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Novo Empréstimo Registrado</h1>
-            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${esc(nomeResponsavel)}</strong>!</p>
             <p style="margin: 0 0 20px 0; font-size: 16px;">Um novo empréstimo foi registrado no sistema com os seguintes detalhes:</p>
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(itemNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(solicitante)}</td>
                 </tr>
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(localizacaoNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade emprestada</td>
@@ -197,7 +206,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Previsão de devolução</td>
                     <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataPrevista}</td>
                 </tr>
-                ${observacoes ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoes}</td></tr>` : ''}
+                ${observacoes ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(observacoes)}</td></tr>` : ''}
             </table>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
                 <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}</p>
@@ -252,20 +261,20 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">${totalmenteDevolvido ? 'Empréstimo Devolvido' : 'Devolução Parcial Registrada'}</h1>
-            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${esc(nomeResponsavel)}</strong>!</p>
             <p style="margin: 0 0 20px 0; font-size: 16px;">${totalmenteDevolvido ? 'O empréstimo abaixo foi <strong>totalmente devolvido</strong>.' : 'Uma <strong>devolução parcial</strong> foi registrada para o empréstimo abaixo.'}</p>
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(itemNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(solicitante)}</td>
                 </tr>
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(localizacaoNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade devolvida</td>
@@ -279,7 +288,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Data da devolução</td>
                     <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${dataDevolucao}</td>
                 </tr>
-                ${observacoesDevolucao ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoesDevolucao}</td></tr>` : ''}
+                ${observacoesDevolucao ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(observacoesDevolucao)}</td></tr>` : ''}
             </table>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
                 <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}</p>
@@ -336,20 +345,20 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h1 style="color: #dc2626; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Empréstimo em Atraso</h1>
-            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nomeResponsavel}</strong>!</p>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${esc(nomeResponsavel)}</strong>!</p>
             <p style="margin: 0 0 20px 0; font-size: 16px;">O empréstimo abaixo está em atraso há <strong style="color: #dc2626;">${diasAtraso} dia(s)</strong>. Por favor, tome as providências necessárias.</p>
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6; width: 40%;">Item</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${itemNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(itemNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Solicitante</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${solicitante}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(solicitante)}</td>
                 </tr>
                 <tr style="background-color: #f8f9fa;">
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Localização</td>
-                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${localizacaoNome}</td>
+                    <td style="padding: 10px 14px; border: 1px solid #dee2e6;">${esc(localizacaoNome)}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Quantidade em aberto</td>
@@ -408,10 +417,10 @@ Equipe Estoque Inteligente
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h1 style="color: #306FCC; font-size: 24px; margin-bottom: 20px; margin-top: 0;">Recuperação de Senha</h1>
-            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${nome}</strong>!</p>
+            <p style="margin: 0 0 15px 0; font-size: 18px;">Olá, <strong>${esc(nome)}</strong>!</p>
             <p style="margin: 0 0 20px 0; font-size: 18px;">Você solicitou a recuperação de senha da sua conta. Para redefinir, clique no botão abaixo.</p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #306FCC; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Redefinir minha senha</a>
+                <a href="${esc(resetUrl)}" style="display: inline-block; padding: 14px 32px; background-color: #306FCC; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Redefinir minha senha</a>
             </div>
             <div style="margin-top: 25px; border-radius: 4px;">
                 <p style="margin: 0; font-size: 18px;"><strong>Importante:</strong> Este link expira em 5 minutos por segurança.</p>

@@ -1,3 +1,5 @@
+import { escapeRegex } from './helpers/escapeRegex.js';
+
 export default function handleQuery(
   query: Record<string, string>,
   defaultSort: Record<string, unknown>,
@@ -37,7 +39,7 @@ export default function handleQuery(
       continue;
     }
     if (value) {
-      filtros[key] = { $regex: new RegExp(value, 'i') };
+      filtros[key] = { $regex: escapeRegex(value), $options: 'i' };
     }
   }
 

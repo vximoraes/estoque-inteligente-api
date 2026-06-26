@@ -1,6 +1,7 @@
 import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
 import mongoose from 'mongoose';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 const { Types } = mongoose;
 
@@ -9,7 +10,7 @@ class MovimentacaoFilterBuilder {
 
   comTipo(tipo: string | null | undefined): this {
     if (tipo) {
-      this.filtros['tipo'] = { $regex: tipo, $options: 'i' };
+      this.filtros['tipo'] = { $regex: escapeRegex(tipo), $options: 'i' };
     }
     return this;
   }
@@ -42,7 +43,7 @@ class MovimentacaoFilterBuilder {
           this.filtros['item'] = { $in: [] };
         }
       } else {
-        const itemEncontrado = await Item.findOne({ nome: { $regex: item, $options: 'i' } });
+        const itemEncontrado = await Item.findOne({ nome: { $regex: escapeRegex(item), $options: 'i' } });
         if (itemEncontrado) {
           this.filtros['item'] = itemEncontrado._id;
         } else {
@@ -63,7 +64,7 @@ class MovimentacaoFilterBuilder {
         }
       } else {
         const localizacaoEncontrada = await Localizacao.findOne({
-          nome: { $regex: localizacao, $options: 'i' },
+          nome: { $regex: escapeRegex(localizacao), $options: 'i' },
         });
         if (localizacaoEncontrada) {
           this.filtros['localizacao'] = localizacaoEncontrada._id;
