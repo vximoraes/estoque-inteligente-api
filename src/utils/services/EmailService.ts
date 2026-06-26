@@ -1,14 +1,29 @@
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import { CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 
+interface EmprestimoEmailData {
+  item?: { nome?: string };
+  localizacao?: { nome?: string };
+  solicitante_nome?: string;
+  quantidade_emprestada?: number;
+  data_prevista_devolucao?: string | Date;
+  data_saida?: string | Date;
+  observacoes_emprestimo?: string;
+  quantidade_aberta?: number;
+  observacoes_devolucao?: string;
+}
+
 class EmailService {
+  private transporter: Transporter | null;
+
   constructor() {
     this.transporter = null;
     this.initializeTransporter();
   }
 
-  initializeTransporter() {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+  initializeTransporter(): void {
+    if (!process.env['EMAIL_USER'] || !process.env['EMAIL_APP_PASSWORD']) {
       console.warn(
         'Variáveis de ambiente EMAIL_USER e EMAIL_APP_PASSWORD não configuradas. Serviço de e-mail não estará disponível.',
       );
@@ -19,15 +34,19 @@ class EmailService {
       this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_APP_PASSWORD,
+          user: process.env['EMAIL_USER'],
+          pass: process.env['EMAIL_APP_PASSWORD'],
         },
       });
-    } catch (error) {
-    }
+    } catch (_error) {}
   }
 
-  async enviarEmail(to, subject, text, html = null) {
+  async enviarEmail(
+    to: string,
+    subject: string,
+    text: string,
+    html: string | null = null,
+  ): Promise<{ success: boolean; messageId: string }> {
     if (!this.transporter) {
       throw new CustomError({
         statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
@@ -39,17 +58,17 @@ class EmailService {
     }
 
     const mailOptions = {
-      from: `"${process.env.COMPANY_NAME || 'Estoque Inteligente'}" <${process.env.EMAIL_USER}>`,
-      to: to,
-      subject: subject,
-      text: text,
-      html: html || text,
+      from: `"${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}" <${process.env['EMAIL_USER']}>`,
+      to,
+      subject,
+      text,
+      html: html ?? text,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
       return { success: true, messageId: info.messageId };
-    } catch (error) {
+    } catch (_error) {
       throw new CustomError({
         statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
         errorType: 'emailSendError',
@@ -60,8 +79,12 @@ class EmailService {
     }
   }
 
-  async enviarEmailConvite(nome, email, token) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  async enviarEmailConvite(
+    nome: string,
+    email: string,
+    token: string,
+  ): Promise<{ success: boolean; messageId: string }> {
+    const frontendUrl = process.env['FRONTEND_URL'] || 'http://localhost:3000';
     const activationUrl = `${frontendUrl}/ativar-conta?token=${token}`;
 
     const subject = 'Ative sua conta';
@@ -102,10 +125,14 @@ Equipe Estoque Inteligente
 </html>
         `.trim();
 
-    return await this.enviarEmail(email, subject, text, html);
+    return this.enviarEmail(email, subject, text, html);
   }
 
-  async enviarEmailNovoEmprestimo(nomeResponsavel, emailResponsavel, emprestimo) {
+  async enviarEmailNovoEmprestimo(
+    nomeResponsavel: string,
+    emailResponsavel: string,
+    emprestimo: EmprestimoEmailData,
+  ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = emprestimo.item?.nome || 'Item desconhecido';
     const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
@@ -113,7 +140,7 @@ Equipe Estoque Inteligente
     const dataPrevista = emprestimo.data_prevista_devolucao
       ? new Date(emprestimo.data_prevista_devolucao).toLocaleString('pt-BR')
       : 'Sem previsão';
-    const dataSaida = new Date(emprestimo.data_saida).toLocaleString('pt-BR');
+    const dataSaida = new Date(emprestimo.data_saida!).toLocaleString('pt-BR');
 
     const observacoes = emprestimo.observacoes_emprestimo || '';
     const subject = `Novo empréstimo registrado — ${itemNome}`;
@@ -133,7 +160,7 @@ Detalhes:
 
 Acesse o sistema para mais detalhes.
 
-Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     `.trim();
 
     const html = `
@@ -173,7 +200,7 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
                 ${observacoes ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoes}</td></tr>` : ''}
             </table>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}</p>
             </div>
         </div>
     </div>
@@ -181,14 +208,19 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
 </html>
     `.trim();
 
-    return await this.enviarEmail(emailResponsavel, subject, text, html);
+    return this.enviarEmail(emailResponsavel, subject, text, html);
   }
 
-  async enviarEmailDevolucaoEmprestimo(nomeResponsavel, emailResponsavel, emprestimo, quantidadeDevolvida) {
+  async enviarEmailDevolucaoEmprestimo(
+    nomeResponsavel: string,
+    emailResponsavel: string,
+    emprestimo: EmprestimoEmailData,
+    quantidadeDevolvida: number,
+  ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = emprestimo.item?.nome || 'Item desconhecido';
     const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
-    const quantidadeAberta = emprestimo.quantidade_aberta;
+    const quantidadeAberta = emprestimo.quantidade_aberta ?? 0;
     const totalmenteDevolvido = quantidadeAberta <= 0;
     const observacoesDevolucao = emprestimo.observacoes_devolucao || '';
     const dataDevolucao = new Date().toLocaleString('pt-BR');
@@ -210,7 +242,7 @@ Detalhes:
 - Quantidade ainda em aberto: ${quantidadeAberta}
 - Data da devolução: ${dataDevolucao}${observacoesDevolucao ? `\n- Observações: ${observacoesDevolucao}` : ''}
 
-Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     `.trim();
 
     const html = `
@@ -250,7 +282,7 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
                 ${observacoesDevolucao ? `<tr style="background-color: #f8f9fa;"><td style="padding: 10px 14px; font-weight: bold; border: 1px solid #dee2e6;">Observações</td><td style="padding: 10px 14px; border: 1px solid #dee2e6;">${observacoesDevolucao}</td></tr>` : ''}
             </table>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}</p>
             </div>
         </div>
     </div>
@@ -258,17 +290,23 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
 </html>
     `.trim();
 
-    return await this.enviarEmail(emailResponsavel, subject, text, html);
+    return this.enviarEmail(emailResponsavel, subject, text, html);
   }
 
-  async enviarEmailEmprestimoAtrasado(nomeResponsavel, emailResponsavel, emprestimo) {
+  async enviarEmailEmprestimoAtrasado(
+    nomeResponsavel: string,
+    emailResponsavel: string,
+    emprestimo: EmprestimoEmailData,
+  ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = emprestimo.item?.nome || 'Item desconhecido';
     const localizacaoNome = emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
-    const quantidadeAberta = emprestimo.quantidade_aberta;
-    const dataPrevista = new Date(emprestimo.data_prevista_devolucao);
+    const quantidadeAberta = emprestimo.quantidade_aberta ?? 0;
+    const dataPrevista = new Date(emprestimo.data_prevista_devolucao!);
     const hoje = new Date();
-    const diasAtraso = Math.floor((hoje - dataPrevista) / (1000 * 60 * 60 * 24));
+    const diasAtraso = Math.floor(
+      (hoje.getTime() - dataPrevista.getTime()) / (1000 * 60 * 60 * 24),
+    );
     const dataPrevistaFormatada = dataPrevista.toLocaleString('pt-BR');
 
     const subject = `Empréstimo em atraso — ${itemNome}`;
@@ -288,7 +326,7 @@ Detalhes:
 
 Por favor, tome as providências necessárias.
 
-Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
+Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     `.trim();
 
     const html = `
@@ -327,7 +365,7 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
                 </tr>
             </table>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}</p>
+                <p style="margin: 0; font-size: 16px; color: #999;">Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}</p>
             </div>
         </div>
     </div>
@@ -335,11 +373,15 @@ Equipe ${process.env.COMPANY_NAME || 'Estoque Inteligente'}
 </html>
     `.trim();
 
-    return await this.enviarEmail(emailResponsavel, subject, text, html);
+    return this.enviarEmail(emailResponsavel, subject, text, html);
   }
 
-  async enviarEmailRecuperacaoSenha(nome, email, token) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  async enviarEmailRecuperacaoSenha(
+    nome: string,
+    email: string,
+    token: string,
+  ): Promise<{ success: boolean; messageId: string }> {
+    const frontendUrl = process.env['FRONTEND_URL'] || 'http://localhost:3000';
     const resetUrl = `${frontendUrl}/redefinir-senha?token=${token}`;
 
     const subject = 'Recuperação de senha';
@@ -384,7 +426,7 @@ Equipe Estoque Inteligente
 </html>
         `.trim();
 
-    return await this.enviarEmail(email, subject, text, html);
+    return this.enviarEmail(email, subject, text, html);
   }
 }
 

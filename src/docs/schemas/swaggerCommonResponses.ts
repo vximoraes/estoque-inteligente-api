@@ -1,13 +1,15 @@
 import HttpStatusCodes from '../../utils/helpers/HttpStatusCodes.js';
 
-const swaggerCommonResponses = {};
+type SwaggerResponse = (schemaRef?: string | null, description?: string) => Record<string, unknown>;
 
-// Percorre todas as chaves do HttpStatusCodes e cria dinamicamente
-// um método para cada status code, no mesmo padrão que você já utiliza.
+const swaggerCommonResponses: Record<number, SwaggerResponse> = {};
+
 Object.keys(HttpStatusCodes).forEach((statusKey) => {
-  const { code, message } = HttpStatusCodes[statusKey];
+  const entry = (HttpStatusCodes as unknown as Record<string, { code: number; message: string }>)[statusKey];
+  if (!entry) return;
+  const { code, message } = entry;
 
-  swaggerCommonResponses[code] = (schemaRef = null, description = message) => ({
+  swaggerCommonResponses[code] = (schemaRef: string | null = null, description = message) => ({
     description,
     content: {
       'application/json': {
@@ -20,7 +22,6 @@ Object.keys(HttpStatusCodes).forEach((statusKey) => {
             message: { type: 'string', example: message },
             errors: {
               type: 'array',
-              // Para status de erro, retorna um array com um objeto contendo a mensagem
               example: code >= 400 ? [{ message }] : [],
             },
           },
