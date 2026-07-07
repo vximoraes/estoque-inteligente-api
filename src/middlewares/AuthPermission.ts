@@ -1,13 +1,12 @@
-import jwt from 'jsonwebtoken';
+import { fromNodeHeaders } from 'better-auth/node';
 import type { Request, Response, NextFunction } from 'express';
 import PermissionService from '../utils/services/PermissionService.js';
 import RotaModel from '../modules/rota/RotaModel.js';
 import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
+import { getAuth } from '../config/auth.js';
 import type { AuthenticatedRequest } from '../utils/types.js';
 import type { RotaDocument } from '../modules/rota/RotaModel.js';
 import type mongoose from 'mongoose';
-
-const JWT_SECRET_ACCESS_TOKEN = process.env['JWT_SECRET_ACCESS_TOKEN'];
 
 const metodoMap: Record<string, string> = {
   GET: 'buscar',
@@ -30,34 +29,21 @@ class AuthPermission {
 
   async _handle(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const authHeader = req.headers.authorization;
+      const session = await getAuth().api.getSession({
+        headers: fromNodeHeaders(req.headers),
+      });
 
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (!session?.user?.id) {
         throw new CustomError({
           statusCode: 401,
           errorType: 'authenticationError',
           field: 'Authorization',
           details: [],
-          customMessage: messages.error.resourceNotFound('Token'),
+          customMessage: messages.error.resourceNotFound('Sessão'),
         });
       }
 
-      const token = authHeader.split(' ')[1] as string;
-
-      let decoded: jwt.JwtPayload;
-      try {
-        decoded = jwt.verify(token, JWT_SECRET_ACCESS_TOKEN ?? '') as jwt.JwtPayload;
-      } catch {
-        throw new CustomError({
-          statusCode: 401,
-          errorType: 'authenticationError',
-          field: 'Token',
-          details: [],
-          customMessage: messages.error.resourceNotFound('Token'),
-        });
-      }
-
-      const userId = decoded['id'] as string;
+      const userId = session.user.id;
 
       const rotaReq = req.url.split('/').filter(Boolean)[0]?.split('?')[0] ?? '';
       const dominioReq = 'localhost';
