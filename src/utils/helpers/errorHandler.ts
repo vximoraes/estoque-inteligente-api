@@ -5,7 +5,6 @@ import CommonResponse from './CommonResponse.js';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 import AuthenticationError from '../errors/AuthenticationError.js';
-import TokenExpiredError from '../errors/TokenExpiredError.js';
 import CustomError from './CustomError.js';
 import type { AuthenticatedRequest } from '../types.js';
 
@@ -72,7 +71,7 @@ const errorHandler = (
     return;
   }
 
-  if (err instanceof AuthenticationError || err instanceof TokenExpiredError) {
+  if (err instanceof AuthenticationError) {
     logger.warn({ message: err.message, path: req.path, requestId }, 'Erro de autenticação');
     CommonResponse.error(
       res,

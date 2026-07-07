@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import errorHandler from '../errorHandler.js';
 import CustomError from '../CustomError.js';
 import AuthenticationError from '../../errors/AuthenticationError.js';
-import TokenExpiredError from '../../errors/TokenExpiredError.js';
 import CommonResponse from '../CommonResponse.js';
 import logger from '../../logger.js';
 
@@ -95,20 +94,6 @@ describe('errorHandler', () => {
 
   it('should handle AuthenticationError and return its status and message', () => {
     const fakeError = new AuthenticationError('Not authenticated', 401);
-    errorHandler(fakeError, req, res, next);
-
-    expect(CommonResponse.error).toHaveBeenCalledWith(
-      res,
-      fakeError.statusCode,
-      'authenticationError',
-      null,
-      [{ message: fakeError.message }],
-      fakeError.message,
-    );
-  });
-
-  it('should handle TokenExpiredError and return its status and message', () => {
-    const fakeError = new TokenExpiredError('Token expired', 401);
     errorHandler(fakeError, req, res, next);
 
     expect(CommonResponse.error).toHaveBeenCalledWith(
