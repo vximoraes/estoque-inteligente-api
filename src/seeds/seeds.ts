@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import DbConnect from '../config/DbConnect.js';
+import { initAuth } from '../config/auth.js';
 import categoriaSeed from './categoriaSeed.js';
 import localizacaoSeed from './localizacaoSeed.js';
 import itemSeed from './itemSeed.js';
@@ -12,6 +13,7 @@ import emprestimoSeed from './emprestimoSeed.js';
 import rotasSeed from './rotasSeed.js';
 
 await DbConnect.conectar();
+initAuth();
 
 try {
   console.log(

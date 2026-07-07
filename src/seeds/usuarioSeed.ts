@@ -1,56 +1,52 @@
+import mongoose from 'mongoose';
 import Usuario from '../modules/usuario/UsuarioModel.js';
 import { fakeMappings } from './globalFakeMapping.js';
-import bcrypt from 'bcrypt';
+import { getAuth } from '../config/auth.js';
 import seedRotas from './rotasSeed.js';
 import seedGrupos from './grupoSeed.js';
 
 export default async function usuarioSeed() {
   await Usuario.deleteMany({});
+  const db = mongoose.connection.db!;
+  await db.collection('account').deleteMany({});
+  await db.collection('session').deleteMany({});
+  await db.collection('verification').deleteMany({});
 
   const rotasCompletas = await seedRotas();
-
   const grupos = await seedGrupos(rotasCompletas);
-
   const grupoUsuario = grupos.find((g) => g.nome === 'Usuario');
 
-  const usuarios = [];
+  const auth = getAuth();
 
   for (let i = 0; i < 10; i++) {
-    const senhaGerada = fakeMappings.Usuario.senha();
-    const senhaCriptografada = await bcrypt.hash(senhaGerada, 10);
+    const nome = fakeMappings.Usuario.nome();
+    const email = fakeMappings.Usuario.email();
+    const senha = fakeMappings.Usuario.senha();
 
-    const usuario = {
-      nome: fakeMappings.Usuario.nome(),
-      email: fakeMappings.Usuario.email(),
-      senha: senhaCriptografada,
+    const { user } = await auth.api.signUpEmail({
+      body: { email, name: nome, password: senha },
+    });
+
+    await Usuario.findByIdAndUpdate(user.id, {
+      ativo: fakeMappings.Usuario.ativo(),
       permissoes: grupoUsuario?.permissoes || [],
       grupos: grupoUsuario ? [grupoUsuario._id] : [],
-      ativo: fakeMappings.Usuario.ativo(),
-    };
-
-    usuarios.push(usuario);
+    });
   }
 
-  const admin = {
-    nome: process.env.ADMIN_NAME || 'Administrador',
-    email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-    senha: await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Senha@123', 10),
-    ativo: true,
-    permissoes: rotasCompletas.map((r) => r.toObject()),
-    grupos: grupos[0],
-  };
+  const adminNome = process.env['ADMIN_NAME'] ?? 'Administrador';
+  const adminEmail = process.env['ADMIN_EMAIL'] ?? 'admin@admin.com';
+  const adminSenha = process.env['ADMIN_PASSWORD'] ?? 'Senha@123';
 
-  usuarios.push(admin);
-
-  const result = await Usuario.collection.insertMany(usuarios);
-
-  // Buscar o admin criado para retornar seu ID
-  const adminCriado = await Usuario.findOne({
-    email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+  const { user: adminUser } = await auth.api.signUpEmail({
+    body: { email: adminEmail, name: adminNome, password: adminSenha },
   });
 
-  return {
-    adminId: adminCriado!._id as unknown as string,
-    usuarios: result,
-  };
+  await Usuario.findByIdAndUpdate(adminUser.id, {
+    ativo: true,
+    permissoes: rotasCompletas.map((r) => r.toObject()),
+    grupos: grupos[0] ? [grupos[0]._id] : [],
+  });
+
+  return { adminId: adminUser.id };
 }

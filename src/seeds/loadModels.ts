@@ -2,29 +2,26 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
-// Obtém o diretório atual do arquivo.
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Função para ler automaticamente os models da pasta "../models".
-// Retorna um array com objetos { model, name }.
-
 async function loadModels() {
   const models = [];
-  const modelsDir = path.join(__dirname, '../models');
-  const files = fs.readdirSync(modelsDir);
+  const modulesDir = path.join(__dirname, '../modules');
 
-  for (const file of files) {
-    if (file.endsWith('.js')) {
-      const modelPath = path.join(modelsDir, file);
+  for (const moduleName of fs.readdirSync(modulesDir)) {
+    const moduleDir = path.join(modulesDir, moduleName);
+    if (!fs.statSync(moduleDir).isDirectory()) continue;
+
+    for (const file of fs.readdirSync(moduleDir)) {
+      if (!file.endsWith('Model.ts') && !file.endsWith('Model.js')) continue;
+      if (file.includes('.test.') || file.includes('.spec.')) continue;
+
+      const modelPath = path.join(moduleDir, file);
       const fileUrl = pathToFileURL(modelPath).href;
-      // Importação dinâmica do módulo.
       const module = await import(fileUrl);
-      // Considera que o model está exportado como default.
       const model = module.default || module;
-      // Usa o nome do arquivo (sem extensão) como identificador.
-      const modelName = path.basename(file, '.js');
+      const modelName = path.basename(file).replace(/Model\.(ts|js)$/, '');
       models.push({ model, name: modelName });
     }
   }

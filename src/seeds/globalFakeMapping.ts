@@ -1,9 +1,6 @@
 import fakebr from 'faker-br';
 import mongoose from 'mongoose';
-import { v4 as uuid } from 'uuid';
-// import TokenUtil from '../utils/TokenUtil.js';
 import loadModels from './loadModels.js';
-import TokenUtil from '../utils/TokenUtil.js';
 
 export const fakeMappings = {
   common: {
@@ -41,17 +38,10 @@ export const fakeMappings = {
     nome: () =>
       `${fakebr.name.firstName()} ${fakebr.name.lastName()} ${fakebr.name.lastName()}`,
     email: () => fakebr.internet.email(),
-    senha: () => fakebr.internet.password(),
+    senha: () => `Senha@${fakebr.random.number({ min: 100, max: 999 })}`,
     ativo: () => fakebr.random.boolean(),
     grupos: () => [],
-    tokenUnico: () =>
-      TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
-    refreshtoken: () =>
-      TokenUtil.generateRefreshToken(new mongoose.Types.ObjectId().toString()),
-    accesstoken: () =>
-      TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
     fotoPerfil: () => '',
-    tokenConvite: () => uuid(),
     convidadoEm: () => null,
     ativadoEm: () => null,
   },

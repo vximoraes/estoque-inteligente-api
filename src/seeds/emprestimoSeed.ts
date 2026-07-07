@@ -36,7 +36,7 @@ export default async function emprestimoSeed(adminId: string) {
       data_devolucao_total: quantidade_aberta === 0 ? new Date().toISOString() : null,
       observacoes_emprestimo: fakeMappings.Emprestimo.observacoes_emprestimo(),
       observacoes_devolucao: fakeMappings.Emprestimo.observacoes_devolucao(),
-      usuario_responsavel: usuarioRandom._id,
+      usuario_responsavel: String(usuarioRandom._id),
       ativo: true,
     };
 

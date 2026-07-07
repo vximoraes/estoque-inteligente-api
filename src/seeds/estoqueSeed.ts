@@ -36,9 +36,9 @@ export default async function estoqueSeed() {
 
       const estoque = {
         quantidade: fakeMappings.Estoque.quantidade(),
-        item: item._id as mongoose.Types.ObjectId,
-        localizacao: localizacao._id as mongoose.Types.ObjectId,
-        usuario: usuarioRandom._id as mongoose.Types.ObjectId,
+        item: item._id,
+        localizacao: localizacao._id,
+        usuario: String(usuarioRandom._id),
       };
 
       await Estoque.create(estoque);
