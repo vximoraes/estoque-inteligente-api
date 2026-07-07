@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import UsuarioService from './UsuarioService.js';
 import { UsuarioQuerySchema, UsuarioIdSchema } from './UsuarioQuerySchema.js';
-import { UsuarioSchema, UsuarioUpdateSchema } from './UsuarioSchema.js';
+import { UsuarioUpdateSchema } from './UsuarioSchema.js';
 import { CommonResponse, CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -10,16 +10,6 @@ class UsuarioController {
 
   constructor() {
     this.service = new UsuarioService();
-  }
-
-  async criar(req: AuthenticatedRequest, res: Response) {
-    const parsedData = UsuarioSchema.parse(req.body);
-    const data = await this.service.criar(parsedData);
-
-    const usuarioLimpo = data.toObject() as unknown as Record<string, unknown>;
-    delete usuarioLimpo['senha'];
-
-    return CommonResponse.created(res, usuarioLimpo);
   }
 
   async listar(req: AuthenticatedRequest, res: Response) {

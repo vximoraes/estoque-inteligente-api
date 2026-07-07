@@ -10,6 +10,18 @@ import { buscarCategorias } from './tools/buscarCategorias.js';
 import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
+import PermissionService from '../../utils/services/PermissionService.js';
+
+const permissionService = new PermissionService();
+
+async function verificarPermissao(usuarioId: string, ...rotas: string[]): Promise<void> {
+  for (const rota of rotas) {
+    const permitido = await permissionService.hasPermission(usuarioId, rota, 'localhost', 'buscar');
+    if (!permitido) {
+      throw new Error(`Permissão negada para acessar "${rota}".`);
+    }
+  }
+}
 
 export function criarMCPServer(usuarioId: string): McpServer {
   const server = new McpServer({
@@ -29,6 +41,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
     },
     async ({ nome, status, limite }) => {
+      await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens({ nome, status, limite }, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -43,6 +56,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
     },
     async ({ itemId, localizacaoId, limite }) => {
+      await verificarPermissao(usuarioId, 'estoques');
       const resultado = await buscarEstoque({ itemId, localizacaoId, limite }, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -62,6 +76,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
     },
     async ({ tipo, dataInicio, dataFim, itemNome, limite }) => {
+      await verificarPermissao(usuarioId, 'movimentacoes');
       const resultado = await buscarMovimentacoes(
         { tipo, dataInicio, dataFim, itemNome, limite },
         usuarioId,
@@ -85,6 +100,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
     },
     async ({ status, solicitanteNome, limite }) => {
+      await verificarPermissao(usuarioId, 'emprestimos');
       const resultado = await buscarEmprestimos({ status, solicitanteNome, limite }, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -98,6 +114,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
     },
     async ({ nome, limite }) => {
+      await verificarPermissao(usuarioId, 'orcamentos');
       const resultado = await buscarOrcamentos({ nome, limite }, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -108,6 +125,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Retorna todos os itens com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit',
     {},
     async () => {
+      await verificarPermissao(usuarioId, 'itens');
       const resultado = await verificarItensAbaixoMinimo({}, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -118,6 +136,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Lista todas as categorias de itens cadastradas no sistema',
     {},
     async () => {
+      await verificarPermissao(usuarioId, 'categorias');
       const resultado = await buscarCategorias({}, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -128,6 +147,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Lista todos os locais de armazenamento (prateleiras, depósitos, laboratórios, etc.)',
     {},
     async () => {
+      await verificarPermissao(usuarioId, 'localizacoes');
       const resultado = await buscarLocalizacoes({}, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -140,6 +160,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       nome: z.string().optional().describe('Filtrar por nome do fornecedor (busca parcial)'),
     },
     async ({ nome }) => {
+      await verificarPermissao(usuarioId, 'fornecedores');
       const resultado = await buscarFornecedores({ nome }, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },
@@ -150,6 +171,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Retorna um resumo estatístico geral: total de itens, quantos estão em estoque, baixo estoque, indisponíveis e empréstimos ativos/atrasados',
     {},
     async () => {
+      await verificarPermissao(usuarioId, 'itens', 'emprestimos');
       const resultado = await resumoEstoque({}, usuarioId);
       return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
     },

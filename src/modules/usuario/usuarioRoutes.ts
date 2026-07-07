@@ -23,10 +23,6 @@ router
     asyncWrapper(usuarioController.listar.bind(usuarioController)),
   )
   .post(
-    '/usuarios',
-    asyncWrapper(usuarioController.criar.bind(usuarioController)),
-  )
-  .post(
     '/usuarios/convidar',
     AuthMiddleware,
     AuthPermission,

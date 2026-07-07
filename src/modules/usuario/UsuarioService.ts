@@ -6,7 +6,7 @@ import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
 import { getAuth } from '../../config/auth.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
-import type { Usuario, UsuarioUpdate } from './UsuarioSchema.js';
+import type { UsuarioUpdate } from './UsuarioSchema.js';
 import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 class UsuarioService {
@@ -16,51 +16,6 @@ class UsuarioService {
   constructor() {
     this.repository = new UsuarioRepository();
     this.grupoRepository = new GrupoRepository();
-  }
-
-  async criar(parsedData: Partial<Usuario> & Record<string, unknown>) {
-    const email = parsedData['email'] as string;
-    const nome = parsedData['nome'] as string;
-    const senha = parsedData['senha'] as string;
-
-    await this.validateEmail(email, null);
-
-    // Better Auth cria o documento em `usuarios` + entrada em `account` (hash da senha)
-    const authResult = await getAuth().api.signUpEmail({
-      body: { email, name: nome, password: senha },
-    });
-
-    if (!authResult?.user) {
-      throw new CustomError({
-        statusCode: 500,
-        errorType: 'internalServerError',
-        field: 'Usuário',
-        details: [],
-        customMessage: 'Erro ao criar usuário.',
-      });
-    }
-
-    let permissoes: IGrupoPermissao[] = [];
-    if (!parsedData['permissoes'] || (parsedData['permissoes'] as unknown[]).length === 0) {
-      try {
-        const grupoUsuario = await this.grupoRepository.buscarPorNome('Usuario');
-        if (grupoUsuario) {
-          permissoes = grupoUsuario.permissoes as unknown as IGrupoPermissao[];
-        }
-      } catch (error) {
-        console.warn(
-          'Nao foi possivel buscar o grupo "Usuario" padrao:',
-          (error as Error).message,
-        );
-      }
-    }
-
-    await this.repository.atualizar(authResult.user.id, {
-      ativo: true,
-      permissoes: permissoes as unknown as Record<string, unknown>[],
-    });
-
-    return this.repository.buscarPorId(authResult.user.id);
   }
 
   async listar(req: AuthenticatedRequest) {
