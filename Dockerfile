@@ -8,4 +8,4 @@ RUN npm ci
 
 COPY . .
 
-CMD ["node", "server.js"]
+CMD ["npx", "tsx", "server.js"]
