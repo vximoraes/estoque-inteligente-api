@@ -1,14 +1,11 @@
 import express from 'express';
 import { randomUUID } from 'crypto';
-import { promisify } from 'util';
-import jwt from 'jsonwebtoken';
+import { fromNodeHeaders } from 'better-auth/node';
 import type { Request, Response } from 'express';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { getAuth } from '../../config/auth.js';
 import { criarMCPServer } from './MCPServerFactory.js';
 import MCPSessionStore from './MCPSessionStore.js';
-
-type VerifyAsync = (token: string, secret: string) => Promise<jwt.JwtPayload>;
-const verifyAsync = promisify(jwt.verify) as unknown as VerifyAsync;
 
 interface MCPError extends Error {
   statusCode?: number;
@@ -23,19 +20,12 @@ function mcpError(message: string, statusCode: number): MCPError {
 const router = express.Router();
 
 async function autenticarRequisicao(req: Request): Promise<string> {
-  const authHeader = req.headers?.authorization;
-  if (!authHeader) throw mcpError('Token não informado', 401);
+  const session = await getAuth().api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  });
 
-  const parts = authHeader.split(' ');
-  const token = (parts.length === 2 ? parts[1] : parts[0]) as string;
-
-  try {
-    const decoded = await verifyAsync(token, process.env['JWT_SECRET_ACCESS_TOKEN'] ?? '');
-    if (!decoded?.['id']) throw new Error('Token inválido');
-    return decoded['id'] as string;
-  } catch {
-    throw mcpError('Token JWT inválido ou expirado', 401);
-  }
+  if (!session?.user?.id) throw mcpError('Sessão inválida ou expirada', 401);
+  return session.user.id;
 }
 
 function resolverSessao(sessionId: string, usuarioId: string) {

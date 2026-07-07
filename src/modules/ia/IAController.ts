@@ -135,8 +135,7 @@ class IAController {
       });
     }
 
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(' ')[1] ?? authHeader;
+    const cookie = req.headers.cookie;
 
     conversa.mensagens.push({ role: 'user', content: mensagemSanitizada });
 
@@ -149,7 +148,7 @@ class IAController {
     let respostaCompleta = '';
 
     try {
-      const stream = await processarMensagem(conversa, mensagemSanitizada, token);
+      const stream = await processarMensagem(conversa, mensagemSanitizada, cookie);
 
       for await (const event of stream) {
         const evt = event as { event?: string; data?: Record<string, unknown> };

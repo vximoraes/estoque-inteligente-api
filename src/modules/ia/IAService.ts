@@ -90,7 +90,7 @@ function prepararHistorico(mensagens: IMensagem[]) {
 export async function processarMensagem(
   conversa: ConversaDocument,
   novaMensagem: string,
-  token: string | undefined,
+  cookie: string | undefined,
 ): Promise<AsyncGenerator<unknown>> {
   const apiBaseUrl =
     process.env['API_INTERNAL_URL'] || `http://localhost:${process.env['PORT'] ?? 3010}`;
@@ -100,7 +100,7 @@ export async function processarMensagem(
       estoque: {
         url: `${apiBaseUrl}/mcp`,
         headers: {
-          Authorization: `Bearer ${token}`,
+          Cookie: cookie ?? '',
         },
       },
     },
