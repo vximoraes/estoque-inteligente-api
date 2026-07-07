@@ -5,16 +5,9 @@ import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 export interface IUsuario {
   nome: string;
   email: string;
-  senha?: string;
   ativo: boolean;
-  tokenUnico?: string;
-  tokenConvite?: string;
-  convidadoEm?: Date;
-  ativadoEm?: Date;
-  refreshtoken?: string | null;
-  accesstoken?: string | null;
-  codigo_recupera_senha?: string | null;
-  exp_codigo_recupera_senha?: Date | string | null;
+  convidadoEm?: Date | null;
+  ativadoEm?: Date | null;
   grupos: mongoose.Types.ObjectId[];
   permissoes: IGrupoPermissao[];
   fotoPerfil?: string;
@@ -25,16 +18,9 @@ export type UsuarioDocument = IUsuario & Document;
 const usuarioSchema = new mongoose.Schema<UsuarioDocument>({
   nome: { type: String, index: true, required: true },
   email: { type: String, unique: true, required: true },
-  senha: { type: String, select: false, required: false },
   ativo: { type: Boolean, default: false },
-  tokenUnico: { type: String, select: false },
-  tokenConvite: { type: String, select: false },
-  convidadoEm: { type: Date, select: false },
-  ativadoEm: { type: Date, select: false },
-  refreshtoken: { type: String, select: false },
-  accesstoken: { type: String, select: false },
-  codigo_recupera_senha: { type: String, default: null },
-  exp_codigo_recupera_senha: { type: Date, default: null },
+  convidadoEm: { type: Date, default: null },
+  ativadoEm: { type: Date, default: null },
   grupos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'grupos' }],
   permissoes: [
     {

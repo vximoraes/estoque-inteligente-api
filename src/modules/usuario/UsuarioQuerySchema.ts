@@ -1,11 +1,5 @@
 import { z } from 'zod';
-import mongoose from 'mongoose';
-
-export const UsuarioIdSchema = z
-  .string()
-  .refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: 'ID inválido',
-  });
+export const UsuarioIdSchema = z.string().min(1, 'ID inválido');
 
 export const UsuarioQuerySchema = z.object({
   nome: z

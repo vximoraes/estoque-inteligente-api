@@ -9,7 +9,7 @@ export interface IItem {
   imagem?: string;
   categoria: mongoose.Types.ObjectId;
   ativo: boolean;
-  usuario: mongoose.Types.ObjectId;
+  usuario: string;
   status: 'Indisponível' | 'Baixo Estoque' | 'Em Estoque';
 }
 
@@ -24,7 +24,7 @@ const itemSchema = new mongoose.Schema<ItemDocument>(
     imagem: { type: String, required: false },
     categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'categorias', required: true },
     ativo: { type: Boolean, default: true },
-    usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'usuarios', required: true },
+    usuario: { type: String, ref: 'usuarios', required: true },
     status: {
       type: String,
       enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'],

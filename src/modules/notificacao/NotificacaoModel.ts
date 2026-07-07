@@ -7,7 +7,7 @@ export interface INotificacao {
   visualizada: boolean;
   dataLeitura?: Date;
   ativo: boolean;
-  usuario: mongoose.Types.ObjectId;
+  usuario: string;
 }
 
 export type NotificacaoDocument = INotificacao & Document;
@@ -18,7 +18,7 @@ const notificacaoSchema = new mongoose.Schema<NotificacaoDocument>({
   visualizada: { type: Boolean, required: false, default: false },
   dataLeitura: { type: Date, required: false },
   ativo: { type: Boolean, required: false, default: true },
-  usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'usuarios', required: true },
+  usuario: { type: String, ref: 'usuarios', required: true },
 });
 
 notificacaoSchema.plugin(mongoosePaginate);

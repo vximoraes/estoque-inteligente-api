@@ -22,15 +22,6 @@ class UsuarioController {
     return CommonResponse.created(res, usuarioLimpo);
   }
 
-  async criarComSenha(req: AuthenticatedRequest, res: Response) {
-    const parsedData = UsuarioSchema.parse(req.body);
-    const data = await this.service.criar(parsedData, req);
-
-    const usuarioLimpo = data.toObject();
-
-    return CommonResponse.created(res, usuarioLimpo);
-  }
-
   async listar(req: AuthenticatedRequest, res: Response) {
     const id = req.params?.['id'] as string | undefined;
     if (id) {
@@ -133,7 +124,7 @@ class UsuarioController {
     }
 
     const senhaValidada = UsuarioUpdateSchema.parse({ senha });
-    const data = await this.service.ativarConta(token, senhaValidada.senha);
+    const data = await this.service.ativarConta(token, senhaValidada.senha!);
     return CommonResponse.success(res, data, 200, data.message);
   }
 

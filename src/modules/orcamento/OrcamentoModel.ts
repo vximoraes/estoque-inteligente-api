@@ -16,7 +16,7 @@ export interface IOrcamento {
   descricao?: string;
   total: number;
   itens: IItemOrcamento[];
-  usuario: mongoose.Types.ObjectId;
+  usuario: string;
   ativo: boolean;
 }
 
@@ -37,7 +37,7 @@ const orcamentoSchema = new mongoose.Schema<OrcamentoDocument>(
         subtotal: { type: Number, default: 0, min: 0 },
       },
     ],
-    usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'usuarios', required: true },
+    usuario: { type: String, ref: 'usuarios', required: true },
     ativo: { type: Boolean, default: true },
   },
   { timestamps: true },

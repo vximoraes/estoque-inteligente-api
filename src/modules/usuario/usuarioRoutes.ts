@@ -68,6 +68,10 @@ router
     AuthMiddleware,
     AuthPermission,
     asyncWrapper(usuarioController.deletarFoto.bind(usuarioController)),
+  )
+  .post(
+    '/ativar-conta',
+    asyncWrapper(usuarioController.ativarConta.bind(usuarioController)),
   );
 
 export default router;

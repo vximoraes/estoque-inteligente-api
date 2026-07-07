@@ -1,11 +1,10 @@
-import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 import UsuarioRepository from './UsuarioRepository.js';
 import GrupoRepository from '../grupo/GrupoRepository.js';
 import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
-import EmailService from '../../utils/services/EmailService.js';
-import tokenUtil from '../../utils/TokenUtil.js';
+import { getAuth } from '../../config/auth.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type { Usuario, UsuarioUpdate } from './UsuarioSchema.js';
 import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
@@ -19,20 +18,34 @@ class UsuarioService {
     this.grupoRepository = new GrupoRepository();
   }
 
-  async criar(parsedData: Partial<Usuario> & Record<string, unknown>, req?: AuthenticatedRequest) {
-    const userId = req?.user_id ?? null;
-    await this.validateEmail(parsedData['email'] as string, null, userId);
+  async criar(parsedData: Partial<Usuario> & Record<string, unknown>) {
+    const email = parsedData['email'] as string;
+    const nome = parsedData['nome'] as string;
+    const senha = parsedData['senha'] as string;
 
-    if (parsedData['senha']) {
-      const saltRounds = 10;
-      parsedData['senha'] = await bcrypt.hash(parsedData['senha'] as string, saltRounds);
+    await this.validateEmail(email, null);
+
+    // Better Auth cria o documento em `usuarios` + entrada em `account` (hash da senha)
+    const authResult = await getAuth().api.signUpEmail({
+      body: { email, name: nome, password: senha },
+    });
+
+    if (!authResult?.user) {
+      throw new CustomError({
+        statusCode: 500,
+        errorType: 'internalServerError',
+        field: 'Usuário',
+        details: [],
+        customMessage: 'Erro ao criar usuário.',
+      });
     }
 
+    let permissoes: IGrupoPermissao[] = [];
     if (!parsedData['permissoes'] || (parsedData['permissoes'] as unknown[]).length === 0) {
       try {
         const grupoUsuario = await this.grupoRepository.buscarPorNome('Usuario');
         if (grupoUsuario) {
-          parsedData['permissoes'] = grupoUsuario.permissoes as unknown as IGrupoPermissao[];
+          permissoes = grupoUsuario.permissoes as unknown as IGrupoPermissao[];
         }
       } catch (error) {
         console.warn(
@@ -42,8 +55,12 @@ class UsuarioService {
       }
     }
 
-    parsedData['usuarioId'] = userId;
-    return await this.repository.criar(parsedData);
+    await this.repository.atualizar(authResult.user.id, {
+      ativo: true,
+      permissoes: permissoes as unknown as Record<string, unknown>[],
+    });
+
+    return this.repository.buscarPorId(authResult.user.id);
   }
 
   async listar(req: AuthenticatedRequest) {
@@ -65,7 +82,7 @@ class UsuarioService {
     return this.repository.deletar(id, req.user_id);
   }
 
-  async validateEmail(email: string, id: string | null = null, _usuarioId?: string | null) {
+  async validateEmail(email: string, id: string | null = null) {
     const usuarioExistente = await this.repository.buscarPorEmail(email, id);
     if (usuarioExistente) {
       throw new CustomError({
@@ -138,43 +155,52 @@ class UsuarioService {
   }
 
   async convidarUsuario(nome: string, email: string) {
-    await this.validateEmail(email, null, null);
+    await this.validateEmail(email, null);
 
-    const tokenConvite = await tokenUtil.generateInviteToken(email);
-    const convidadoEm = new Date();
+    const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
 
-    const novoUsuario = await this.repository.criar({
-      nome,
-      email,
-      tokenConvite,
-      convidadoEm,
-      ativo: false,
+    // Cria conta no Better Auth (senha aleatória, usuário definirá a sua ao ativar)
+    const authResult = await getAuth().api.signUpEmail({
+      body: { email, name: nome, password: crypto.randomUUID() },
     });
 
+    const userId = authResult.user.id;
+
+    // Marca como pendente de ativação
+    await this.repository.atualizar(userId, { convidadoEm: new Date() });
+
+    // Gera token de reset e dispara email de convite via sendResetPassword callback
     try {
-      await EmailService.enviarEmailConvite(nome, email, tokenConvite);
+      await getAuth().api.requestPasswordReset({
+        body: { email, redirectTo: `${frontendUrl}/ativar-conta` },
+      });
     } catch (error) {
-      await this.repository.deletar(String(novoUsuario._id));
+      // Limpa o usuário criado se o envio do convite falhar
+      await this.repository.deletar(userId);
+      await mongoose.connection.db!.collection('account').deleteMany({ userId });
       throw error;
     }
+
+    const usuario = await this.repository.buscarPorId(userId);
 
     return {
       message: 'Convite enviado com sucesso!',
       usuario: {
-        id: novoUsuario._id,
-        nome: novoUsuario.nome,
-        email: novoUsuario.email,
-        convidadoEm: novoUsuario.convidadoEm,
+        id: usuario._id,
+        nome: usuario.nome,
+        email: usuario.email,
+        convidadoEm: usuario.convidadoEm,
       },
     };
   }
 
-  async ativarConta(token: string, senha: string | undefined) {
-    let emailDoToken: string;
-    try {
-      const decoded = await tokenUtil.decodeInviteToken(token);
-      emailDoToken = (decoded as { email: string }).email;
-    } catch {
+  async ativarConta(token: string, senha: string) {
+    const db = mongoose.connection.db!;
+    const verRecord = await db
+      .collection('verification')
+      .findOne({ identifier: `reset-password:${token}` });
+
+    if (!verRecord || new Date(verRecord['expiresAt'] as Date) < new Date()) {
       throw new CustomError({
         statusCode: HttpStatusCodes.UNAUTHORIZED.code,
         errorType: 'invalidToken',
@@ -184,9 +210,8 @@ class UsuarioService {
       });
     }
 
-    void emailDoToken;
-
-    const usuario = await this.repository.buscarPorTokenConvite(token);
+    const userIdDoToken = verRecord['value'] as string;
+    const usuario = await this.repository.buscarPorId(userIdDoToken);
 
     if (!usuario) {
       throw new CustomError({
@@ -194,7 +219,7 @@ class UsuarioService {
         errorType: 'resourceNotFound',
         field: 'Token',
         details: [],
-        customMessage: 'Token de convite inválido ou já utilizado.',
+        customMessage: 'Usuário não encontrado.',
       });
     }
 
@@ -208,30 +233,8 @@ class UsuarioService {
       });
     }
 
-    if (!usuario.convidadoEm) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.BAD_REQUEST.code,
-        errorType: 'invalidInvitation',
-        field: 'Token',
-        details: [],
-        customMessage: 'Convite inválido. Solicite um novo convite ao administrador.',
-      });
-    }
-
-    const minutosDesdeConvite =
-      (new Date().getTime() - new Date(usuario.convidadoEm).getTime()) / (1000 * 60);
-    if (minutosDesdeConvite > 5) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.UNAUTHORIZED.code,
-        errorType: 'tokenExpired',
-        field: 'Token',
-        details: [],
-        customMessage: 'Token de convite expirado. Solicite um novo convite ao administrador.',
-      });
-    }
-
-    const saltRounds = 10;
-    const senhaHash = await bcrypt.hash(senha ?? '', saltRounds);
+    // Better Auth valida o token e atualiza a senha na collection account
+    await getAuth().api.resetPassword({ body: { token, newPassword: senha } });
 
     let permissoes: IGrupoPermissao[] = [];
     try {
@@ -247,10 +250,8 @@ class UsuarioService {
     }
 
     const usuarioAtualizado = await this.repository.atualizar(String(usuario._id), {
-      senha: senhaHash,
       ativo: true,
       ativadoEm: new Date(),
-      tokenConvite: null,
       convidadoEm: null,
       permissoes: permissoes as unknown as Record<string, unknown>[],
     });
@@ -280,15 +281,13 @@ class UsuarioService {
       });
     }
 
-    const tokenConvite = await tokenUtil.generateInviteToken(usuario.email);
-    const convidadoEm = new Date();
+    const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
 
-    await this.repository.atualizar(String(usuario._id), {
-      tokenConvite,
-      convidadoEm,
+    await getAuth().api.requestPasswordReset({
+      body: { email: usuario.email, redirectTo: `${frontendUrl}/ativar-conta` },
     });
 
-    await EmailService.enviarEmailConvite(usuario.nome, usuario.email, tokenConvite);
+    await this.repository.atualizar(id, { convidadoEm: new Date() });
 
     return { message: 'Convite reenviado com sucesso!' };
   }

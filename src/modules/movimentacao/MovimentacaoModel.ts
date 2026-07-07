@@ -8,7 +8,7 @@ export interface IMovimentacao {
   quantidade: number;
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
-  usuario: mongoose.Types.ObjectId;
+  usuario: string;
 }
 
 export type MovimentacaoDocument = IMovimentacao & Document;
@@ -17,7 +17,7 @@ export interface IMovimentacaoModel extends mongoose.PaginateModel<MovimentacaoD
   atualizarEstoque(
     itemId: mongoose.Types.ObjectId,
     localizacaoId: mongoose.Types.ObjectId,
-    usuarioId: mongoose.Types.ObjectId,
+    usuarioId: string,
   ): Promise<void>;
 }
 
@@ -28,7 +28,7 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
     quantidade: { type: Number, required: true, min: 0, max: 999999999 },
     item: { type: mongoose.Schema.Types.ObjectId, ref: 'itens', required: true },
     localizacao: { type: mongoose.Schema.Types.ObjectId, ref: 'localizacoes', required: true },
-    usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'usuarios', required: true },
+    usuario: { type: String, ref: 'usuarios', required: true },
   },
   { timestamps: true },
 );
@@ -64,7 +64,7 @@ movimentacaoSchema.statics['atualizarEstoque'] = async function (
   this: unknown,
   itemId: mongoose.Types.ObjectId,
   localizacaoId: mongoose.Types.ObjectId,
-  usuarioId: mongoose.Types.ObjectId,
+  usuarioId: string,
 ) {
   const self = this as IMovimentacaoModel;
   const EstoqueModel = mongoose.model('estoques') as unknown as IEstoqueModel;

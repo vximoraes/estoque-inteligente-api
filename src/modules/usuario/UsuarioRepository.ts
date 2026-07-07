@@ -120,17 +120,11 @@ class UsuarioRepository {
       filtro['_id'] = { $ne: idIgnorado };
     }
 
-    return await this.model.findOne(filtro, '+senha');
+    return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id: string, includeTokens = false) {
-    let query = this.model.findById(id);
-
-    if (includeTokens) {
-      query = query.select('+refreshtoken +accesstoken');
-    }
-
-    const user = await query;
+  async buscarPorId(id: string) {
+    const user = await this.model.findById(id);
 
     if (!user) {
       throw new CustomError({
@@ -143,82 +137,6 @@ class UsuarioRepository {
     }
 
     return user;
-  }
-
-  async armazenarTokens(id: string, accesstoken: string, refreshtoken: string) {
-    const documento = await this.model.findById(id);
-    if (!documento) {
-      throw new CustomError({
-        statusCode: 404,
-        errorType: 'resourceNotFound',
-        field: 'Usuário',
-        details: [],
-        customMessage: messages.error.resourceNotFound('Usuário'),
-      });
-    }
-
-    documento.accesstoken = accesstoken;
-    documento.refreshtoken = refreshtoken;
-
-    return await documento.save();
-  }
-
-  async buscarPorCodigoRecuperacao(codigo: string) {
-    return await this.model.findOne({ codigo_recupera_senha: codigo } as mongoose.FilterQuery<UsuarioDocument>);
-  }
-
-  async buscarPorTokenConvite(token: string) {
-    return await this.model
-      .findOne({ tokenConvite: token })
-      .select('+tokenConvite +convidadoEm');
-  }
-
-  async atualizarSenha(id: string, senhaHash: string) {
-    const usuario = await this.model.findByIdAndUpdate(
-      id,
-      {
-        senha: senhaHash,
-        tokenUnico: null,
-        codigo_recupera_senha: null,
-        exp_codigo_recupera_senha: null,
-      } as mongoose.UpdateQuery<UsuarioDocument>,
-      { new: true },
-    );
-
-    if (!usuario) {
-      throw new CustomError({
-        statusCode: 404,
-        errorType: 'resourceNotFound',
-        field: 'Usuário',
-        details: [],
-        customMessage: messages.error.resourceNotFound('Usuário'),
-      });
-    }
-
-    return usuario;
-  }
-
-  async buscarPorTokenUnico(token: string) {
-    return await this.model.findOne({ tokenUnico: token }).select('+tokenUnico');
-  }
-
-  async removeToken(id: string) {
-    const usuarioExistente = await this.model.findById(id);
-    if (!usuarioExistente) {
-      throw new CustomError({
-        statusCode: 404,
-        errorType: 'resourceNotFound',
-        field: 'Usuário',
-        details: [],
-        customMessage: messages.error.resourceNotFound('Usuário'),
-      });
-    }
-
-    usuarioExistente.accesstoken = null;
-    usuarioExistente.refreshtoken = null;
-
-    await usuarioExistente.save();
-    return usuarioExistente;
   }
 }
 

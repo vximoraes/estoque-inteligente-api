@@ -4,7 +4,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 export interface ICategoria {
   nome: string;
   ativo: boolean;
-  usuario: mongoose.Types.ObjectId;
+  usuario: string;
 }
 
 export type CategoriaDocument = ICategoria & Document;
@@ -13,7 +13,7 @@ const categoriaSchema = new mongoose.Schema<CategoriaDocument>(
   {
     nome: { type: String, required: true },
     ativo: { type: Boolean, default: true },
-    usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'usuarios', required: true },
+    usuario: { type: String, ref: 'usuarios', required: true },
   },
   { timestamps: true },
 );
