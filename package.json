@@ -29,6 +29,7 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@scalar/express-api-reference": "^0.10.6",
     "bcrypt": "^6.0.0",
+    "better-auth": "^1.6.22",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

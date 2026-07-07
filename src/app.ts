@@ -4,16 +4,17 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { apiReference } from '@scalar/express-api-reference';
 import dotenv from 'dotenv';
+import { toNodeHandler } from 'better-auth/node';
 import setupMinio from './config/setupMinio.js';
 import errorHandler from './utils/helpers/errorHandler.js';
 import logger from './utils/logger.js';
 import CommonResponse from './utils/helpers/CommonResponse.js';
 import DbConnect from './config/DbConnect.js';
+import { initAuth } from './config/auth.js';
 import { generateSpec } from './utils/openapi/registry.js';
 import logRoutes from './middlewares/LogRoutesMiddleware.js';
 import { iniciarJobEmprestimosAtrasados } from './modules/emprestimo/EmprestimoAtrasadoJob.js';
 import mcpRoutes from './libs/mcp/mcpRoutes.js';
-import auth from './modules/auth/authRoutes.js';
 import usuarios from './modules/usuario/usuarioRoutes.js';
 import categorias from './modules/categoria/categoriaRoutes.js';
 import localizacoes from './modules/localizacao/localizacaoRoutes.js';
@@ -27,7 +28,6 @@ import emprestimos from './modules/emprestimo/emprestimoRoutes.js';
 import grupos from './modules/grupo/grupoRoutes.js';
 import rotas from './modules/rota/rotaRoutes.js';
 import iaRoutes from './modules/ia/iaRoutes.js';
-import './modules/auth/authDocs.js';
 import './modules/usuario/usuarioDocs.js';
 import './modules/categoria/categoriaDocs.js';
 import './modules/localizacao/localizacaoDocs.js';
@@ -46,6 +46,7 @@ dotenv.config();
 const app = express();
 
 await DbConnect.conectar();
+const auth = initAuth();
 await setupMinio();
 iniciarJobEmprestimosAtrasados();
 
@@ -61,6 +62,9 @@ app.use(
   }),
 );
 app.use(compression());
+
+app.all('/api/auth/*splat', toNodeHandler(auth));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -71,7 +75,6 @@ if (process.env.DEBUGLOG) {
 app.use(mcpRoutes);
 
 app.use(
-  auth,
   usuarios,
   categorias,
   localizacoes,
