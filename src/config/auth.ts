@@ -4,6 +4,7 @@ import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { bearer } from 'better-auth/plugins';
 import EmailService from '../utils/services/EmailService.js';
+import { ativarUsuarioPadrao } from '../modules/usuario/ativarUsuarioPadrao.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _auth: any = null;
@@ -17,6 +18,10 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     baseURL: process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3010',
     secret: process.env['BETTER_AUTH_SECRET'] ?? '',
     trustedOrigins: [process.env['FRONTEND_URL'] ?? 'http://localhost:3000'],
+
+    onAPIError: {
+      errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login?erro=google-nao-convidado`,
+    },
 
     emailAndPassword: {
       enabled: true,
@@ -50,6 +55,41 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
+    },
+
+    socialProviders: {
+      google: {
+        clientId: process.env['GOOGLE_CLIENT_ID'] ?? '',
+        clientSecret: process.env['GOOGLE_CLIENT_SECRET'] ?? '',
+        disableImplicitSignUp: true,
+      },
+    },
+
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+      },
+    },
+
+    databaseHooks: {
+      account: {
+        create: {
+          async after(account: Record<string, unknown>) {
+            // Convidado ativa a conta ao vincular Google em vez de criar senha
+            if (account['providerId'] !== 'google') return;
+
+            const userId = account['userId'] as string;
+            const usuario = await mongoose.connection
+              .db!.collection('usuarios')
+              .findOne({ _id: new mongoose.Types.ObjectId(userId) });
+
+            if (usuario && usuario['ativo'] === false) {
+              await ativarUsuarioPadrao(userId);
+            }
+          },
+        },
+      },
     },
 
     plugins: [bearer()],

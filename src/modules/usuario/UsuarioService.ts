@@ -1,21 +1,18 @@
 import mongoose from 'mongoose';
 import UsuarioRepository from './UsuarioRepository.js';
-import GrupoRepository from '../grupo/GrupoRepository.js';
 import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
 import { getAuth } from '../../config/auth.js';
+import { ativarUsuarioPadrao } from './ativarUsuarioPadrao.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type { UsuarioUpdate } from './UsuarioSchema.js';
-import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 class UsuarioService {
   private repository: UsuarioRepository;
-  private grupoRepository: GrupoRepository;
 
   constructor() {
     this.repository = new UsuarioRepository();
-    this.grupoRepository = new GrupoRepository();
   }
 
   async listar(req: AuthenticatedRequest) {
@@ -191,25 +188,7 @@ class UsuarioService {
     // Better Auth valida o token e atualiza a senha na collection account
     await getAuth().api.resetPassword({ body: { token, newPassword: senha } });
 
-    let permissoes: IGrupoPermissao[] = [];
-    try {
-      const grupoUsuario = await this.grupoRepository.buscarPorNome('Usuario');
-      if (grupoUsuario) {
-        permissoes = grupoUsuario.permissoes;
-      }
-    } catch (error) {
-      console.warn(
-        'Nao foi possivel buscar o grupo "Usuario" padrao:',
-        (error as Error).message,
-      );
-    }
-
-    const usuarioAtualizado = await this.repository.atualizar(String(usuario._id), {
-      ativo: true,
-      ativadoEm: new Date(),
-      convidadoEm: null,
-      permissoes: permissoes as unknown as Record<string, unknown>[],
-    });
+    const usuarioAtualizado = await ativarUsuarioPadrao(String(usuario._id));
 
     const u = usuarioAtualizado as Record<string, unknown>;
 
