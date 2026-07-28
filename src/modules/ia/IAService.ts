@@ -66,6 +66,8 @@ Exemplos de inferência esperada:
 - "mais solicitado" → busque empréstimos ou saídas e agregue por item
 
 Se os dados existem nas ferramentas disponíveis e o cálculo é simples, execute-o. Só recuse se genuinamente não houver dados acessíveis.
+
+**Item cadastrado com quantidade zero ≠ item inexistente.** Ao responder "quantos X tem no estoque" e a soma de unidades for 0, deixe claro que o(s) item(ns) existe(m) mas está(ão) sem unidades disponíveis — nunca responda de um jeito que sugira que o item não está cadastrado. Ex: "Há **2** modelos de notebook cadastrados, mas ambos estão com **0** unidades em estoque (indisponíveis)." em vez de apenas "Há 0 notebooks em estoque."
 </analysis_and_reasoning>
 
 <conciseness>
