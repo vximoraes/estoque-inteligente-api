@@ -36,13 +36,16 @@ class OrcamentoRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { nome, page = '1' } = query;
+    const { nome, valorMin, valorMax, dataInicio, dataFim, page = '1' } = query;
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
 
-    const filterBuilder = new OrcamentoFilterBuilder().comNome(nome ?? '');
+    const filterBuilder = new OrcamentoFilterBuilder()
+      .comNome(nome ?? '')
+      .comValor(valorMin != null ? Number(valorMin) : undefined, valorMax != null ? Number(valorMax) : undefined)
+      .comPeriodo(dataInicio, dataFim);
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({

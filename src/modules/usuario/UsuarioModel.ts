@@ -11,31 +11,37 @@ export interface IUsuario {
   grupos: mongoose.Types.ObjectId[];
   permissoes: IGrupoPermissao[];
   fotoPerfil?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type UsuarioDocument = IUsuario & Document;
 
-const usuarioSchema = new mongoose.Schema<UsuarioDocument>({
-  nome: { type: String, index: true, required: true },
-  email: { type: String, unique: true, required: true },
-  ativo: { type: Boolean, default: false },
-  convidadoEm: { type: Date, default: null },
-  ativadoEm: { type: Date, default: null },
-  grupos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'grupos' }],
-  permissoes: [
-    {
-      rota: { type: String, index: true, required: true },
-      dominio: { type: String },
-      ativo: { type: Boolean, default: false },
-      buscar: { type: Boolean, default: false },
-      enviar: { type: Boolean, default: false },
-      substituir: { type: Boolean, default: false },
-      modificar: { type: Boolean, default: false },
-      excluir: { type: Boolean, default: false },
-    },
-  ],
-  fotoPerfil: { type: String, required: false },
-});
+const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
+  {
+    nome: { type: String, index: true, required: true },
+    email: { type: String, unique: true, required: true },
+    ativo: { type: Boolean, default: false },
+    convidadoEm: { type: Date, default: null },
+    ativadoEm: { type: Date, default: null },
+    grupos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'grupos' }],
+    permissoes: [
+      {
+        rota: { type: String, index: true, required: true },
+        dominio: { type: String },
+        ativo: { type: Boolean, default: false },
+        buscar: { type: Boolean, default: false },
+        enviar: { type: Boolean, default: false },
+        substituir: { type: Boolean, default: false },
+        modificar: { type: Boolean, default: false },
+        excluir: { type: Boolean, default: false },
+      },
+    ],
+    fotoPerfil: { type: String, required: false },
+  },
+  // Better Auth já grava createdAt/updatedAt nesta collection; declarar aqui expõe o campo na resposta
+  { timestamps: true },
+);
 
 usuarioSchema.plugin(mongoosePaginate);
 

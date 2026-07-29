@@ -35,4 +35,33 @@ describe('OrcamentoQuerySchema', () => {
     expect(result.success).toBe(true);
     expect(result.data.foo).toBeUndefined();
   });
+
+  it('valida query com valorMin e valorMax', () => {
+    const query = { valorMin: '10', valorMax: '100' };
+    const result = OrcamentoQuerySchema.safeParse(query);
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({ valorMin: 10, valorMax: 100 });
+  });
+
+  it('falha para valorMin não numérico', () => {
+    const query = { valorMin: 'abc' };
+    const result = OrcamentoQuerySchema.safeParse(query);
+    expect(result.success).toBe(false);
+  });
+
+  it('valida query com dataInicio e dataFim', () => {
+    const query = { dataInicio: '2026-01-01', dataFim: '2026-01-31' };
+    const result = OrcamentoQuerySchema.safeParse(query);
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({
+      dataInicio: '2026-01-01',
+      dataFim: '2026-01-31',
+    });
+  });
+
+  it('falha para data inválida', () => {
+    const query = { dataInicio: 'not-a-date' };
+    const result = OrcamentoQuerySchema.safeParse(query);
+    expect(result.success).toBe(false);
+  });
 });

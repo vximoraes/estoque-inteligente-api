@@ -18,6 +18,8 @@ export interface IOrcamento {
   itens: IItemOrcamento[];
   usuario: string;
   ativo: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type OrcamentoDocument = IOrcamento & Document;

@@ -91,7 +91,10 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [
         { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'valor', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total' },
+        { name: 'valorMin', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total mínimo' },
+        { name: 'valorMax', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total máximo' },
+        { name: 'dataInicio', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Filtro por data de criação inicial' },
+        { name: 'dataFim', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Filtro por data de criação final' },
         ...paginationQueryParams,
       ],
       responses: {
