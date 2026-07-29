@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "estoque-inteligente": {
+      "type": "http",
+      "url": "http://localhost:3010/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ESTOQUE_MCP_TOKEN}"
+      }
+    }
+  }
+}
