@@ -32,13 +32,15 @@ Back-end para gerenciamento de estoque inteligente.
 
 ### Backend
 
-- **Node.js** - Runtime JavaScript
+- **Node.js / TypeScript** - Runtime e linguagem
 - **Express.js** - Framework web
 - **MongoDB** - Banco de dados NoSQL
 - **Mongoose** - ODM para MongoDB
-- **JWT** - Autenticação e autorização
+- **Better Auth** - Sessão (cookie) + OAuth Google, montado em `/api/auth/*`
+- **Zod** - Validação de payloads e query params
 - **Bcrypt** - Criptografia de senhas
-- **Swagger** - Documentação da API
+- **LangChain + MCP SDK** - Assistente de IA integrado, com ferramentas MCP sobre os dados da API
+- **Scalar / OpenAPI** - Documentação da API
 - **Docker** - Containerização
 
 ### Desenvolvimento
@@ -153,37 +155,46 @@ docker compose down -v
 
 ## Estrutura do Projeto
 
+O projeto é organizado em módulos por domínio, cada um com seu próprio model, schema de validação, repositório, serviço, controller, rotas e documentação Swagger:
+
 ```
 estoque-inteligente-api/
 ├── src/
-│   ├── app.js                 # Configuração principal da aplicação
-│   ├── config/
-│   │   └── DbConnect.js       # Configuração do banco de dados
-│   ├── controllers/           # Controladores das rotas
-│   ├── middlewares/           # Middlewares personalizados
-│   ├── models/                # Modelos do MongoDB/Mongoose
-│   ├── repositories/          # Camada de acesso aos dados
-│   ├── routes/                # Definição das rotas
-│   ├── services/              # Lógica de negócio
-│   ├── seeds/                 # Scripts para popular o banco
-│   ├── tests/                 # Testes unitários e de integração
-│   ├── docs/                  # Configurações do Swagger
-│   └── utils/                 # Utilitários e helpers
-├── documentacao/            # Documentação do projeto/desenvolvimento
-├── docker-compose.yml       # Configuração Docker Compose
-├── Dockerfile               # Configuração Docker
-├── package.json             # Dependências e scripts
-├── jest.setup.js            # Configuração do Jest
-├── eslint.config.mjs        # Configuração do ESLint
-├── README.md                # Este arquivo
-└── server.js                # Servidor que roda a aplicação
+│   ├── app.ts                    # Configuração principal da aplicação (Express)
+│   ├── config/                   # Conexão com banco, auth (Better Auth), MinIO, etc.
+│   ├── middlewares/               # AuthMiddleware, AuthPermission, LogRoutesMiddleware...
+│   ├── modules/
+│   │   ├── usuario/
+│   │   │   ├── UsuarioModel.ts        # Schema/model Mongoose
+│   │   │   ├── UsuarioSchema.ts       # Validação Zod (create/update)
+│   │   │   ├── UsuarioQuerySchema.ts  # Validação Zod (query/id)
+│   │   │   ├── UsuarioFilterBuilder.ts
+│   │   │   ├── UsuarioRepository.ts
+│   │   │   ├── UsuarioService.ts
+│   │   │   ├── UsuarioController.ts
+│   │   │   ├── usuarioRoutes.ts
+│   │   │   ├── usuarioDocs.ts
+│   │   │   └── index.ts
+│   │   ├── categoria/, localizacao/, item/, estoque/, fornecedor/,
+│   │   │   movimentacao/, notificacao/, orcamento/, emprestimo/,
+│   │   │   grupo/, rota/, ia/         # mesmo padrão acima
+│   │   └── */__tests__/               # testes unitários e de model por módulo
+│   ├── libs/mcp/                  # servidor MCP e ferramentas usadas pelo assistente de IA
+│   └── utils/                     # helpers (CommonResponse, CustomError, logger, openapi...)
+├── docker-compose.yml          # Configuração Docker Compose
+├── Dockerfile                  # Configuração Docker
+├── package.json                 # Dependências e scripts
+├── jest.setup.js                # Configuração global do Jest
+├── eslint.config.mjs            # Configuração do ESLint
+├── README.md                    # Este arquivo
+└── server.ts                    # Servidor que roda a aplicação
 ```
 
 ## API Endpoints
 
 ### Autenticação
 
-- `POST /auth/login` - Login de usuário
+Autenticação por sessão (cookie) via [Better Auth](https://better-auth.com), montada em `/api/auth/*` (login e-mail/senha, OAuth Google, etc.). Rotas protegidas exigem sessão válida (`AuthMiddleware`) e permissão liberada para o grupo do usuário (`AuthPermission`, ver módulo `rota`).
 
 ### Usuários
 
@@ -247,6 +258,13 @@ estoque-inteligente-api/
 - `PUT /notificacoes/:id` - Marcar como lida
 - `DELETE /notificacoes/:id` - Excluir notificação
 
+### Outros módulos
+
+- `/emprestimos` - Empréstimos de itens (CRUD + job automático de empréstimos atrasados)
+- `/grupos` - Grupos de usuários (RBAC)
+- `/rotas` - Rotas cadastradas e permissões por grupo/método (base do RBAC)
+- `/ia` - Chat com o assistente de IA (LangChain + MCP), consulta os dados da API
+
 > **Documentação Completa**: Acesse `/docs` quando o servidor estiver rodando para ver a documentação completa da API com Swagger.
 
 ## Testes
@@ -262,8 +280,4 @@ npm run test
 
 ### Estrutura de Testes
 
-```
-src/tests/
-├── unit/          # Testes unitários
-└── routes/        # Testes de integração das rotas
-```
+Cada módulo mantém seus próprios testes em `src/modules/<nome>/__tests__/` (model + regras de negócio); testes de middlewares e utilitários ficam em `src/middlewares/__tests__/` e `src/utils/**/__tests__/`. Testes de model sobem uma instância `mongodb-memory-server` própria por arquivo.

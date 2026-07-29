@@ -144,3 +144,6 @@ minio-data/
 
 # Docs
 /docs/
+
+# Claude Code personal overrides
+CLAUDE.local.md

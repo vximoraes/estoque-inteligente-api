@@ -35,6 +35,8 @@ const itemSchema = new mongoose.Schema<ItemDocument>(
   { timestamps: true },
 );
 
+itemSchema.index({ nome: 1 }, { unique: true, partialFilterExpression: { ativo: true } });
+
 itemSchema.pre('save', function (this: ItemDocument) {
   if (this.quantidade === 0) {
     this.status = 'Indisponível';

@@ -4,22 +4,25 @@ import dotenv from 'dotenv';
 import faker from 'faker-br';
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const BASE_URL = `http://localhost:${PORT}`;
 
 let token;
 let usuarioId;
 
+// Não há mais auto-cadastro público: usa o fluxo de convite (admin-only), que
+// dispara um e-mail de verdade via EmailService (requer MAIL_API_KEY/MAIL_API_URL
+// configurados no ambiente em que os testes rodam).
 const criarUsuarioValido = async () => {
   const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
   const email = `user${unique}@test.com`;
-  const senha = 'Senha1234!';
   const nomeBruto = await faker.name.findName();
   const nome = nomeBruto.replace(/-/g, ' ');
   const res = await request(BASE_URL)
-    .post('/signup')
-    .send({ nome, email, senha, ativo: true });
-  return res.body?.data?._id;
+    .post('/usuarios/convidar')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ nome, email });
+  return res.body?.data?.usuario?._id;
 };
 
 const criarNotificacaoValida = async (override = {}) => {
@@ -35,20 +38,13 @@ describe('Rotas de Notificação', () => {
   let notificacaoId;
 
   beforeAll(async () => {
-    // Garante usuário admin e login
-    const senhaAdmin = 'Senha@123';
-    try {
-      await request(BASE_URL).post('/usuarios').send({
-        nome: 'Admin',
-        email: 'admin@admin.com',
-        senha: senhaAdmin,
-        ativo: true,
-      });
-    } catch (err) {}
-    const loginRes = await request(BASE_URL)
-      .post('/login')
-      .send({ email: 'admin@admin.com', senha: senhaAdmin });
-    token = loginRes.body?.data?.user?.accesstoken;
+    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
+    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
+    const loginRes = await request(BASE_URL).post('/api/auth/sign-in/email').send({
+      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+      password: process.env.ADMIN_PASSWORD || 'Senha@123',
+    });
+    token = loginRes.body?.token;
     expect(token).toBeTruthy();
     usuarioId = await criarUsuarioValido();
   });

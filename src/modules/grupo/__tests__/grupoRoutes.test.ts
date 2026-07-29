@@ -2,11 +2,10 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import faker from 'faker-br';
 import dotenv from 'dotenv';
-import '../grupoRoutes.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const BASE_URL = `http://localhost:${PORT}`;
 
 describe('Grupos', () => {
@@ -14,10 +13,13 @@ describe('Grupos', () => {
   let tokenUser;
   let idGrupo;
   beforeAll(async () => {
-    const res = await request(BASE_URL)
-      .post('/login')
-      .send({ email: 'admin@admin.com', senha: 'Senha@123' });
-    tokenAdmin = res.body?.data?.user?.accesstoken;
+    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
+    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
+    const res = await request(BASE_URL).post('/api/auth/sign-in/email').send({
+      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+      password: process.env.ADMIN_PASSWORD || 'Senha@123',
+    });
+    tokenAdmin = res.body?.token;
   });
   it('Deve listar os grupos com sucesso sendo administrador e verificar se todos os campos estão sendo informados', async () => {
     const res = await request(BASE_URL)
@@ -90,8 +92,9 @@ describe('Grupos', () => {
     expect(res.body?.data?.docs[0].ativo).toEqual(true);
   });
   it('Deve falhar ao tentar listar grupos não sendo um administrador', async () => {
+    // Depende de um usuário não-admin fixo já existir no DB (fora do que `npm run seed` cria).
     const login = await logar('vinicius@gmail.com', 'Senha@123');
-    tokenUser = login.body?.data?.user?.accesstoken;
+    tokenUser = login.body?.token;
     const res = await request(BASE_URL)
       .get('/grupos')
       .set('Authorization', `Bearer ${tokenUser}`);
@@ -101,7 +104,7 @@ describe('Grupos', () => {
 });
 async function logar(email, senha) {
   const res = await request(BASE_URL)
-    .post('/login')
-    .send({ email: email, senha: senha });
+    .post('/api/auth/sign-in/email')
+    .send({ email, password: senha });
   return res;
 }
