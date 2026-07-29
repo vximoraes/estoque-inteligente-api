@@ -1,11 +1,10 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import '../emprestimoRoutes.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const BASE_URL = `http://localhost:${PORT}`;
 
 let token;
@@ -57,22 +56,14 @@ const criarDependenciasEmprestimo = async () => {
 
 describe('Rotas de Emprestimo', () => {
   beforeAll(async () => {
-    const senhaAdmin = 'Senha@123';
+    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
+    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
+    const loginRes = await request(BASE_URL).post('/api/auth/sign-in/email').send({
+      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+      password: process.env.ADMIN_PASSWORD || 'Senha@123',
+    });
 
-    try {
-      await request(BASE_URL).post('/signup').send({
-        nome: 'Admin',
-        email: 'admin@admin.com',
-        senha: senhaAdmin,
-        ativo: true,
-      });
-    } catch (err) {}
-
-    const loginRes = await request(BASE_URL)
-      .post('/login')
-      .send({ email: 'admin@admin.com', senha: senhaAdmin });
-
-    token = loginRes.body?.data?.user?.accesstoken;
+    token = loginRes.body?.token;
     expect(token).toBeTruthy();
   });
 

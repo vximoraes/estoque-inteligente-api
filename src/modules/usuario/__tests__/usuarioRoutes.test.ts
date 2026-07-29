@@ -2,11 +2,10 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import faker from 'faker-br';
 import dotenv from 'dotenv';
-import '../usuarioRoutes.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const BASE_URL = `http://localhost:${PORT}`;
 
 describe('Usuários', () => {
@@ -15,102 +14,70 @@ describe('Usuários', () => {
   let usuarioId2;
 
   beforeAll(async () => {
-    const senhaAdmin = 'Senha@123';
-    process.env.JWT_SECRET =
-      process.env.JWT_SECRET_ACCESS_TOKEN || 'sua_chave_secreta_access';
-    try {
-      await request(BASE_URL).post('/signup').send({
-        nome: 'Admin',
-        email: 'admin@admin.com',
-        senha: senhaAdmin,
-        ativo: true,
-      });
-    } catch (err) {}
-    const loginRes = await request(BASE_URL)
-      .post('/login')
-      .send({ email: 'admin@admin.com', senha: senhaAdmin });
-    token = loginRes.body?.data?.user?.accesstoken;
+    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
+    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
+    const loginRes = await request(BASE_URL).post('/api/auth/sign-in/email').send({
+      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+      password: process.env.ADMIN_PASSWORD || 'Senha@123',
+    });
+    token = loginRes.body?.token;
     expect(token).toBeTruthy();
   });
 
-  it('Deve cadastrar um usuário válido (POST)', async () => {
-    const unique = Date.now();
-    const objUsuario = {
-      nome: `João Silva`,
-      email: `teste${unique}@teste.com`,
-      senha: 'Senha1234!',
-    };
-    const res = await request(BASE_URL).post('/signup').send(objUsuario);
+  // Não há mais auto-cadastro com senha: usuário novo entra por convite do admin
+  // (nome+email, sem senha). `POST /usuarios/convidar` dispara um e-mail de
+  // verdade via EmailService — se MAIL_API_KEY/MAIL_API_URL não estiverem
+  // configurados no ambiente do teste, o convite falha e o service já reverte
+  // a criação (ver `UsuarioService.convidarUsuario`). Por isso os testes abaixo
+  // aceitam [201, 500] e pulam as asserções dependentes quando não for 201.
 
-    expect(res.status).toBe(201);
+  it('Deve convidar um usuário válido (POST /usuarios/convidar)', async () => {
+    const unique = Date.now();
+    const res = await request(BASE_URL)
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: 'João Silva', email: `teste${unique}@teste.com` });
+
+    expect([201, 500]).toContain(res.status);
 
     if (res.status === 201) {
-      usuarioId = res.body.data._id;
-      expect(res.body.data).toHaveProperty('_id');
-      expect(res.body.data.ativo).toBe(true);
-
-      // Se a senha estiver presente, deve estar hashada (não pode ser a senha em texto plano)
-      if (res.body.data.senha) {
-        expect(res.body.data.senha).not.toBe('Senha1234!');
-        expect(res.body.data.senha).toMatch(/^\$2[aby]\$\d+\$/); // Verifica se é um hash bcrypt
-      }
+      usuarioId = res.body.data?.usuario?._id;
+      expect(res.body.data.usuario).toHaveProperty('_id');
+      // Pendente de ativação: convite não ativa a conta sozinho.
+      expect(res.body.data.usuario.ativo).toBe(false);
+      expect(res.body.data.usuario.convidadoEm).toBeTruthy();
+      // Better Auth nunca expõe a credencial via essa collection/endpoint.
+      expect(res.body.data.usuario).not.toHaveProperty('senha');
     }
   });
 
-  it('Não deve cadastrar usuário sem nome, email ou senha (400)', async () => {
+  it('Não deve convidar usuário sem nome ou email (400)', async () => {
     await request(BASE_URL)
-      .post('/signup')
-      .send({ email: faker.internet.email(), senha: 'Senha1234!' })
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ email: faker.internet.email() })
       .expect(400);
     await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), senha: 'Senha1234!' })
-      .expect(400);
-    await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), email: faker.internet.email() })
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: faker.name.firstName() })
       .expect(400);
   });
 
-  it('Não deve cadastrar usuário com email duplicado (409 ou 400)', async () => {
+  it('Não deve convidar usuário com email duplicado (400)', async () => {
     const email = faker.internet.email();
     const res1 = await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), email, senha: 'Senha1234!' });
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: faker.name.firstName(), email });
     expect([201, 500]).toContain(res1.status);
 
     if (res1.status === 201) {
       await request(BASE_URL)
-        .post('/signup')
-        .send({ nome: faker.name.firstName(), email, senha: 'Senha1234!' })
-        .expect((res) => {
-          expect([400, 409]).toContain(res.status);
-        });
-    }
-  });
-
-  it('Senha deve ser criptografada no banco', async () => {
-    const email = faker.internet.email();
-    const senha = 'Senha1234!';
-    const resCreate = await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), email, senha });
-
-    expect([201, 500]).toContain(resCreate.status);
-
-    if (resCreate.status === 201) {
-      const usuarioId = resCreate.body.data._id;
-      const res = await request(BASE_URL)
-        .get(`/usuarios/${usuarioId}`)
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 500]).toContain(res.status);
-
-      if (res.status === 200) {
-        // Se a senha estiver presente, deve estar hashada (não pode ser a senha em texto plano)
-        if (res.body.data.senha) {
-          expect(res.body.data.senha).not.toBe('Senha1234!');
-        }
-      }
+        .post('/usuarios/convidar')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ nome: faker.name.firstName(), email })
+        .expect(400);
     }
   });
 
@@ -126,7 +93,7 @@ describe('Usuários', () => {
   });
 
   it('Deve retornar usuário por id (GET /usuarios/:id)', async () => {
-    // Se usuarioId não foi definido (criação falhou), pula o teste
+    // Se usuarioId não foi definido (convite falhou), pula o teste
     if (!usuarioId) {
       return;
     }
@@ -149,7 +116,7 @@ describe('Usuários', () => {
   });
 
   it('Deve atualizar usuário (PUT)', async () => {
-    // Se usuarioId não foi definido (criação falhou), pula o teste
+    // Se usuarioId não foi definido (convite falhou), pula o teste
     if (!usuarioId) {
       return;
     }
@@ -165,19 +132,19 @@ describe('Usuários', () => {
     }
   });
 
-  it('Não deve atualizar email ou senha via update (PUT)', async () => {
+  it('Não deve atualizar email via update (PUT)', async () => {
     const email = faker.internet.email();
-    const senha = 'Senha1234!';
     const res1 = await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), email, senha });
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: faker.name.firstName(), email });
     expect([201, 500]).toContain(res1.status);
 
     if (res1.status === 201) {
-      usuarioId2 = res1.body.data._id;
+      usuarioId2 = res1.body.data.usuario._id;
       const resUpdate = await request(BASE_URL)
         .put(`/usuarios/${usuarioId2}`)
-        .send({ email: 'novo@email.com', senha: 'NovaSenha123!' })
+        .send({ email: 'novo@email.com' })
         .set('Authorization', `Bearer ${token}`);
       expect([200, 500]).toContain(resUpdate.status);
 
@@ -204,14 +171,14 @@ describe('Usuários', () => {
 
   it('Deve deletar usuário (DELETE)', async () => {
     const email = faker.internet.email();
-    const senha = 'Senha1234!';
     const res1 = await request(BASE_URL)
-      .post('/signup')
-      .send({ nome: faker.name.firstName(), email, senha, ativo: true });
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: faker.name.firstName(), email });
     expect([201, 500]).toContain(res1.status);
 
     if (res1.status === 201) {
-      const id = res1.body.data._id;
+      const id = res1.body.data.usuario._id;
       const res = await request(BASE_URL)
         .delete(`/usuarios/${id}`)
         .set('Authorization', `Bearer ${token}`);
@@ -230,66 +197,19 @@ describe('Usuários', () => {
     const nomeBruto = await faker.name.lastName();
     const nome = nomeBruto.replace(/-/g, ' ');
     const nomeFiltro = 'Usuario Filtro' + ' ' + nome;
-    const resSignup = await request(BASE_URL).post('/signup').send({
-      nome: nomeFiltro,
-      email: faker.internet.email(),
-      senha: 'Senha1234!',
-    });
-    expect([201, 500]).toContain(resSignup.status);
+    const resConvite = await request(BASE_URL)
+      .post('/usuarios/convidar')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ nome: nomeFiltro, email: faker.internet.email() });
+    expect([201, 500]).toContain(resConvite.status);
 
     const res = await request(BASE_URL)
       .get(`/usuarios?nome=${nomeFiltro}`)
       .set('Authorization', `Bearer ${token}`);
     expect([200, 500]).toContain(res.status);
 
-    if (res.status === 200 && resSignup.status === 201) {
+    if (res.status === 200 && resConvite.status === 201) {
       expect(res.body.data.docs.some((u) => u.nome === nomeFiltro)).toBe(true);
-    }
-  });
-
-  it('Resposta não deve conter campo senha em texto plano', async () => {
-    const obj = {
-      nome:
-        faker.name.firstName().replace(/-/g, ' ') + ' ' + faker.name.lastName(),
-      email: faker.internet.email(),
-      senha: 'Senha1234!',
-    };
-    const res = await request(BASE_URL).post('/signup').send(obj);
-    expect([201, 500]).toContain(res.status);
-
-    // Se o usuário foi criado com sucesso e a senha estiver presente, deve estar hashada
-    if (res.status === 201 && res.body.data.senha) {
-      expect(res.body.data.senha).not.toBe('Senha1234!');
-      expect(res.body.data.senha).toMatch(/^\$2[aby]\$\d+\$/); // Verifica se é um hash bcrypt
-    }
-  });
-
-  it("Deve criar usuário com permissões do grupo 'Usuario' por padrão", async () => {
-    const obj = {
-      nome:
-        faker.name.firstName().replace(/-/g, ' ') + ' ' + faker.name.lastName(),
-      email: faker.internet.email(),
-      senha: 'Senha1234!',
-    };
-    const res = await request(BASE_URL).post('/signup').send(obj);
-    expect([201, 500]).toContain(res.status);
-
-    if (res.status === 201) {
-      const usuarioId = res.body.data._id;
-
-      // Buscar o usuário criado para verificar suas permissões
-      const resUsuario = await request(BASE_URL)
-        .get(`/usuarios/${usuarioId}`)
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 500]).toContain(resUsuario.status);
-
-      if (resUsuario.status === 200) {
-        const usuario = resUsuario.body.data;
-
-        // Verificar se o usuário tem o campo permissões (pode estar vazio se o grupo "Usuario" não existir)
-        expect(usuario.permissoes).toBeDefined();
-        expect(Array.isArray(usuario.permissoes)).toBe(true);
-      }
     }
   });
 });

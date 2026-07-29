@@ -2,11 +2,10 @@ import request from 'supertest';
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import faker from 'faker-br';
 import dotenv from 'dotenv';
-import '../orcamentoRoutes.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const BASE_URL = `http://localhost:${PORT}`;
 
 describe('Orçamentos', () => {
@@ -54,21 +53,13 @@ describe('Orçamentos', () => {
   };
 
   beforeAll(async () => {
-    const senhaAdmin = 'Senha@123';
-    process.env.JWT_SECRET =
-      process.env.JWT_SECRET_ACCESS_TOKEN || 'sua_chave_secreta_access';
-    try {
-      await request(BASE_URL).post('/usuarios').send({
-        nome: 'Admin',
-        email: 'admin@admin.com',
-        senha: senhaAdmin,
-        ativo: true,
-      });
-    } catch (err) {}
-    const loginRes = await request(BASE_URL)
-      .post('/login')
-      .send({ email: 'admin@admin.com', senha: senhaAdmin });
-    token = loginRes.body?.data?.user?.accesstoken;
+    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
+    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
+    const loginRes = await request(BASE_URL).post('/api/auth/sign-in/email').send({
+      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+      password: process.env.ADMIN_PASSWORD || 'Senha@123',
+    });
+    token = loginRes.body?.token;
     expect(token).toBeTruthy();
 
     const { item, fornecedor } = await criarItemEFornecedor();
