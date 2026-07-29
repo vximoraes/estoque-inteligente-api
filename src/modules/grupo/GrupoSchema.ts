@@ -1,0 +1,16 @@
+import { z } from 'zod';
+import { RotaSchema } from '../rota/RotaSchema.js';
+
+const GrupoSchema = z.object({
+  nome: z.string().min(1, 'O campo nome é obrigatório.'),
+  descricao: z.string().min(1, 'O campo descrição é obrigatório.'),
+  ativo: z.boolean().default(true),
+  permissoes: z.array(RotaSchema).default([]),
+});
+
+const GrupoUpdateSchema = GrupoSchema.partial();
+
+export type Grupo = z.infer<typeof GrupoSchema>;
+export type GrupoUpdate = z.infer<typeof GrupoUpdateSchema>;
+
+export { GrupoSchema, GrupoUpdateSchema };
