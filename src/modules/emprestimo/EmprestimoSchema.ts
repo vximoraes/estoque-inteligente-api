@@ -28,6 +28,23 @@ const dataFuturaSchema = z
     message: 'Data prevista de devolucao deve ser futura',
   });
 
+const dataSaidaSchema = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((val) => {
+    if (!val || (typeof val === 'string' && val.trim() === '')) {
+      return null;
+    }
+
+    const data = new Date(val);
+    return Number.isNaN(data.getTime()) ? 'INVALID_DATE' : data;
+  })
+  .refine((val) => val === null || val !== 'INVALID_DATE', {
+    message: 'Data do emprestimo invalida',
+  })
+  .refine((val) => val === null || val <= new Date(), {
+    message: 'Data do emprestimo nao pode ser futura',
+  });
+
 const EmprestimoSchema = z.object({
   item: objectIdSchema,
   localizacao: objectIdSchema,
@@ -37,7 +54,12 @@ const EmprestimoSchema = z.object({
     .trim()
     .min(3, 'Solicitante deve ter no minimo 3 caracteres')
     .max(120, 'Solicitante deve ter no maximo 120 caracteres'),
-  solicitante_email: z.string().trim().email('E-mail do solicitante invalido').optional(),
+  solicitante_email: z
+    .string()
+    .trim()
+    .email('E-mail do solicitante invalido')
+    .optional(),
+  data_saida: dataSaidaSchema,
   data_prevista_devolucao: dataFuturaSchema,
   observacoes_emprestimo: z
     .string()
@@ -62,9 +84,18 @@ const AtualizarEmprestimoSchema = z.object({
     .min(3, 'Solicitante deve ter no minimo 3 caracteres')
     .max(120, 'Solicitante deve ter no maximo 120 caracteres')
     .optional(),
-  solicitante_email: z.string().trim().email('E-mail do solicitante invalido').optional(),
+  solicitante_email: z
+    .string()
+    .trim()
+    .email('E-mail do solicitante invalido')
+    .optional(),
   data_prevista_devolucao: dataFuturaSchema.optional(),
   observacoes_emprestimo: z
+    .string()
+    .trim()
+    .max(500, 'Observacoes devem ter no maximo 500 caracteres')
+    .optional(),
+  observacoes_devolucao: z
     .string()
     .trim()
     .max(500, 'Observacoes devem ter no maximo 500 caracteres')
@@ -75,4 +106,8 @@ export type Emprestimo = z.infer<typeof EmprestimoSchema>;
 export type DevolucaoEmprestimo = z.infer<typeof DevolucaoEmprestimoSchema>;
 export type AtualizarEmprestimo = z.infer<typeof AtualizarEmprestimoSchema>;
 
-export { EmprestimoSchema, DevolucaoEmprestimoSchema, AtualizarEmprestimoSchema };
+export {
+  EmprestimoSchema,
+  DevolucaoEmprestimoSchema,
+  AtualizarEmprestimoSchema,
+};

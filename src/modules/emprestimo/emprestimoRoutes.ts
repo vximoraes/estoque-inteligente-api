@@ -33,6 +33,14 @@ router
     AuthPermission,
     asyncWrapper(emprestimoController.devolver.bind(emprestimoController)),
   )
+  .patch(
+    '/emprestimos/:id/desfazer-devolucao',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(
+      emprestimoController.desfazerDevolucao.bind(emprestimoController),
+    ),
+  )
   .put(
     '/emprestimos/:id',
     AuthMiddleware,

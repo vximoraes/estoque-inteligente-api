@@ -1,11 +1,27 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
-import { EmprestimoSchema, DevolucaoEmprestimoSchema, AtualizarEmprestimoSchema } from './EmprestimoSchema.js';
+import {
+  EmprestimoSchema,
+  DevolucaoEmprestimoSchema,
+  AtualizarEmprestimoSchema,
+} from './EmprestimoSchema.js';
 
-const dateTimeNullableField = z.string().datetime().nullable().optional().openapi({ example: '2024-02-15T10:30:00.000Z' });
-const quantidadeIntField = (min: number, example: number) => z.number().int().min(min).openapi({ example });
+const dateTimeNullableField = z
+  .string()
+  .datetime()
+  .nullable()
+  .optional()
+  .openapi({ example: '2024-02-15T10:30:00.000Z' });
+const quantidadeIntField = (min: number, example: number) =>
+  z.number().int().min(min).openapi({ example });
 
 const EmprestimoDetalhes = registry.register(
   'EmprestimoDetalhes',
@@ -17,33 +33,59 @@ const EmprestimoDetalhes = registry.register(
     quantidade_devolvida: quantidadeIntField(0, 0),
     quantidade_em_aberto: quantidadeIntField(0, 5),
     solicitante_nome: z.string().openapi({ example: 'João Silva' }),
-    solicitante_email: z.string().email().optional().openapi({ example: 'joao@exemplo.com' }),
-    data_prevista_devolucao: z.string().datetime().nullable().openapi({ example: '2024-02-15T10:30:00.000Z' }),
+    solicitante_email: z
+      .string()
+      .email()
+      .optional()
+      .openapi({ example: 'joao@exemplo.com' }),
+    data_prevista_devolucao: z
+      .string()
+      .datetime()
+      .nullable()
+      .openapi({ example: '2024-02-15T10:30:00.000Z' }),
     data_devolucao: z.string().datetime().nullable(),
-    observacoes_emprestimo: z.string().optional().openapi({ example: 'Empréstimo para laboratório' }),
+    observacoes_emprestimo: z
+      .string()
+      .optional()
+      .openapi({ example: 'Empréstimo para laboratório' }),
     observacoes_devolucao: z.string().optional(),
-    status: z.enum(['aberto', 'devolvido', 'atrasado']).openapi({ example: 'aberto' }),
+    status: z
+      .enum(['aberto', 'devolvido', 'atrasado'])
+      .openapi({ example: 'aberto' }),
     usuario: objectIdField,
     ...timestampFields,
   }),
 );
 
-registry.register('EmprestimoPost', EmprestimoSchema.extend({
-  item: objectIdField,
-  localizacao: objectIdField,
-  quantidade_emprestada: quantidadeIntField(1, 5),
-  data_prevista_devolucao: dateTimeNullableField,
-}));
+registry.register(
+  'EmprestimoPost',
+  EmprestimoSchema.extend({
+    item: objectIdField,
+    localizacao: objectIdField,
+    quantidade_emprestada: quantidadeIntField(1, 5),
+    data_saida: dateTimeNullableField,
+    data_prevista_devolucao: dateTimeNullableField,
+  }),
+);
 
-registry.register('DevolucaoEmprestimoPost', DevolucaoEmprestimoSchema.extend({
-  quantidade_devolvida: quantidadeIntField(1, 3),
-}));
+registry.register(
+  'DevolucaoEmprestimoPost',
+  DevolucaoEmprestimoSchema.extend({
+    quantidade_devolvida: quantidadeIntField(1, 3),
+  }),
+);
 
-registry.register('AtualizarEmprestimoPost', AtualizarEmprestimoSchema.extend({
-  data_prevista_devolucao: dateTimeNullableField,
-}));
+registry.register(
+  'AtualizarEmprestimoPost',
+  AtualizarEmprestimoSchema.extend({
+    data_prevista_devolucao: dateTimeNullableField,
+  }),
+);
 
-registry.register('EmprestimoListagem', z.object({ data: z.array(EmprestimoDetalhes), ...paginationMetaFields }));
+registry.register(
+  'EmprestimoListagem',
+  z.object({ data: z.array(EmprestimoDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/emprestimos': {
@@ -64,7 +106,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/EmprestimoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/EmprestimoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/EmprestimoDetalhes'),
@@ -89,10 +135,34 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'item', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID do item' },
-        { name: 'localizacao', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID da localização' },
-        { name: 'solicitante_nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome do solicitante' },
-        { name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['aberto', 'devolvido', 'atrasado'] }, description: 'Filtro por status' },
+        {
+          name: 'item',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por ID do item',
+        },
+        {
+          name: 'localizacao',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por ID da localização',
+        },
+        {
+          name: 'solicitante_nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome do solicitante',
+        },
+        {
+          name: 'status',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['aberto', 'devolvido', 'atrasado'] },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -128,7 +198,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do emprestimo')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/AtualizarEmprestimoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/AtualizarEmprestimoPost' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/EmprestimoDetalhes'),
@@ -156,8 +230,37 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do emprestimo')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/DevolucaoEmprestimoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/DevolucaoEmprestimoPost' },
+          },
+        },
       },
+      responses: {
+        200: commonResponses[200]!('#/components/schemas/EmprestimoDetalhes'),
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/emprestimos/{id}/desfazer-devolucao': {
+    patch: {
+      tags: ['Emprestimos'],
+      summary: 'Desfaz a devolucao registrada de um emprestimo',
+      description: `
+            + Caso de uso: Reverter uma devolucao registrada por engano.
+
+            + Regras de Negocio:
+                - So pode ser desfeita se houver quantidade devolvida registrada.
+                - O sistema gera automaticamente uma movimentacao de saida para remover novamente o estoque reposto.
+                - Zera a quantidade devolvida, restaura a quantidade em aberto e limpa a data/observacoes de devolucao.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do emprestimo')],
       responses: {
         200: commonResponses[200]!('#/components/schemas/EmprestimoDetalhes'),
         400: commonResponses[400]!(),
