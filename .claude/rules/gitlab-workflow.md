@@ -14,6 +14,12 @@ Mais o eixo de status:
 
 **Issue fechada não carrega nenhuma label `workflow::`** — o estado "closed" do próprio GitLab já basta; não usar `workflow::Closed`.
 
+Para remover uma label via `glab issue update`, usar `--unlabel "nome"` — **nunca** `--label "-nome"`. Esse segundo formato não remove nada, cria uma label lixo literal chamada `-nome` e deixa a original intacta.
+
+## Assignee
+
+Toda issue criada via `glab issue create` leva `--assignee vximoraes` (dono do projeto) — não deixar sem assignee.
+
 ## Branches
 
 Nome: `<numero-da-issue>-slug-do-titulo` (ex.: `6-migrar-arquitetura-da-api-para-modulos`), criada a partir de `develop`.
