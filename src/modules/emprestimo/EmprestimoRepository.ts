@@ -1,4 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
 import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
@@ -20,12 +23,15 @@ class EmprestimoRepository {
     if (!emprestimo) return 'Ativo';
     if ((emprestimo['quantidade_aberta'] as number) <= 0) return 'Devolvido';
     if (!emprestimo['data_prevista_devolucao']) return 'Ativo';
-    return new Date(emprestimo['data_prevista_devolucao'] as string | Date) < new Date()
+    return new Date(emprestimo['data_prevista_devolucao'] as string | Date) <
+      new Date()
       ? 'Atrasado'
       : 'Ativo';
   }
 
-  async criar(parsedData: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async criar(
+    parsedData: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const emprestimo = new this.model(parsedData);
     const emprestimoSalvo = await emprestimo.save();
 
@@ -74,14 +80,23 @@ class EmprestimoRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { item, localizacao, solicitante_nome, apenas_abertos, atrasados, data_saida_inicio, data_saida_fim } =
-      query;
+    const {
+      item,
+      localizacao,
+      solicitante_nome,
+      apenas_abertos,
+      atrasados,
+      data_saida_inicio,
+      data_saida_fim,
+    } = query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
-    const dataSaidaInicio = data_saida_inicio ? new Date(data_saida_inicio) : null;
+    const dataSaidaInicio = data_saida_inicio
+      ? new Date(data_saida_inicio)
+      : null;
     const dataSaidaFim = data_saida_fim ? new Date(data_saida_fim) : null;
 
     const filterBuilder = new EmprestimoFilterBuilder()
@@ -137,7 +152,10 @@ class EmprestimoRepository {
     return emprestimo;
   }
 
-  async atualizarDevolucao(id: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async atualizarDevolucao(
+    id: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const emprestimoAtualizado = await this.model
       .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
@@ -154,11 +172,15 @@ class EmprestimoRepository {
       });
     }
 
-    const objeto = emprestimoAtualizado.toObject() as unknown as EmprestimoPlain;
+    const objeto =
+      emprestimoAtualizado.toObject() as unknown as EmprestimoPlain;
     return { ...objeto, status: this.calcularStatus(objeto) };
   }
 
-  async atualizar(id: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async atualizar(
+    id: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const emprestimo = await this.model.findOne({ _id: id, ativo: true });
 
     if (!emprestimo) {
@@ -168,21 +190,6 @@ class EmprestimoRepository {
         field: 'Emprestimo',
         details: [],
         customMessage: messages.error.resourceNotFound('Emprestimo'),
-      });
-    }
-
-    if (emprestimo.quantidade_aberta <= 0) {
-      throw new CustomError({
-        statusCode: 400,
-        errorType: 'validationError',
-        field: 'emprestimo',
-        details: [
-          {
-            path: 'emprestimo',
-            message: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.',
-          },
-        ],
-        customMessage: 'Emprestimo ja foi totalmente devolvido e nao pode ser editado.',
       });
     }
 

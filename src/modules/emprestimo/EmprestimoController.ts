@@ -5,7 +5,10 @@ import {
   DevolucaoEmprestimoSchema,
   AtualizarEmprestimoSchema,
 } from './EmprestimoSchema.js';
-import { EmprestimoIdSchema, EmprestimoQuerySchema } from './EmprestimoQuerySchema.js';
+import {
+  EmprestimoIdSchema,
+  EmprestimoQuerySchema,
+} from './EmprestimoQuerySchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -44,7 +47,26 @@ class EmprestimoController {
     const parsedData = DevolucaoEmprestimoSchema.parse(req.body);
     const data = await this.service.devolver(id, parsedData, req);
 
-    return CommonResponse.success(res, data, 200, 'Devolucao de emprestimo registrada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Devolucao de emprestimo registrada com sucesso.',
+    );
+  }
+
+  async desfazerDevolucao(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    EmprestimoIdSchema.parse(id);
+
+    const data = await this.service.desfazerDevolucao(id, req);
+
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Devolucao desfeita com sucesso.',
+    );
   }
 
   async atualizar(req: AuthenticatedRequest, res: Response) {
@@ -54,7 +76,12 @@ class EmprestimoController {
     const parsedData = AtualizarEmprestimoSchema.parse(req.body);
     const data = await this.service.atualizar(id, parsedData, req);
 
-    return CommonResponse.success(res, data, 200, 'Emprestimo atualizado com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Emprestimo atualizado com sucesso.',
+    );
   }
 
   async excluir(req: AuthenticatedRequest, res: Response) {
@@ -62,7 +89,12 @@ class EmprestimoController {
     EmprestimoIdSchema.parse(id);
 
     const data = await this.service.excluir(id);
-    return CommonResponse.success(res, data, 200, 'Emprestimo excluido com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Emprestimo excluido com sucesso.',
+    );
   }
 }
 
