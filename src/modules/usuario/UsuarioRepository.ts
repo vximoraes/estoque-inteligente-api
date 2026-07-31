@@ -138,6 +138,23 @@ class UsuarioRepository {
 
     return user;
   }
+
+  // Único ponto que popula grupos — usado pelo PermissionService pra avaliar permissão via grupo.
+  async buscarPorIdComGrupos(id: string) {
+    const user = await this.model.findById(id).populate('grupos');
+
+    if (!user) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Usuário',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Usuário'),
+      });
+    }
+
+    return user;
+  }
 }
 
 export default UsuarioRepository;

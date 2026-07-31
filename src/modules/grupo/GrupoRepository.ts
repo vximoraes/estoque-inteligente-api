@@ -28,11 +28,11 @@ class GrupoRepository {
     this.usuarioModel = usuarioModel;
   }
 
-  async obterParesRotaDominioUnicos(permissoes: GrupoPermissaoInput[]) {
+  async obterParesRotaDominioUnicos(permissoes: GrupoPermissaoInput[]): Promise<GrupoPermissaoInput[]> {
     const combinacoes = permissoes.map((p) => `${p.rota}_${p.dominio || 'undefined'}`);
     const combinacoesUnicas = [...new Set(combinacoes)];
     return combinacoesUnicas.map((combinacao) => {
-      const [rota, dominio] = combinacao.split('_');
+      const [rota, dominio] = combinacao.split('_') as [string, string];
       return { rota, dominio: dominio === 'undefined' ? null : dominio };
     });
   }

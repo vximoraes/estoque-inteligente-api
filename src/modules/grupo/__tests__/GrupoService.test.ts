@@ -41,6 +41,8 @@ describe('GrupoService', () => {
       deletar: jest.fn(),
       buscarPorNome: jest.fn(),
       buscarPorId: jest.fn(),
+      obterParesRotaDominioUnicos: jest.fn().mockResolvedValue([]),
+      buscarPorPermissao: jest.fn().mockResolvedValue([]),
     };
 
     usuarioRepositoryMock = {
@@ -84,6 +86,63 @@ describe('GrupoService', () => {
       );
 
       await expect(service.criar(grupoData)).rejects.toThrow('Database error');
+    });
+  });
+
+  describe('validarPermissoes', () => {
+    const permissao = {
+      rota: 'itens',
+      dominio: 'localhost',
+      ativo: true,
+      buscar: true,
+    };
+
+    it('não consulta o banco quando não há permissoes', async () => {
+      await service.validarPermissoes(undefined);
+      await service.validarPermissoes([]);
+
+      expect(repositoryMock.obterParesRotaDominioUnicos).not.toHaveBeenCalled();
+    });
+
+    it('passa quando toda permissao aponta pra uma rota existente', async () => {
+      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
+        { rota: 'itens', dominio: 'localhost' },
+      ]);
+      repositoryMock.buscarPorPermissao.mockResolvedValue([
+        { rota: 'itens', dominio: 'localhost' },
+      ]);
+
+      await expect(
+        service.validarPermissoes([permissao]),
+      ).resolves.toBeUndefined();
+    });
+
+    it('lança erro quando alguma permissao aponta pra rota inexistente', async () => {
+      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
+        { rota: 'itens', dominio: 'localhost' },
+      ]);
+      repositoryMock.buscarPorPermissao.mockResolvedValue([]);
+
+      await expect(service.validarPermissoes([permissao])).rejects.toThrow(
+        CustomError,
+      );
+    });
+
+    it('criar() valida as permissoes antes de persistir', async () => {
+      const grupoData = {
+        nome: 'Operadores',
+        descricao: 'Grupo operacional',
+        permissoes: [permissao],
+      };
+
+      repositoryMock.buscarPorNome.mockResolvedValue(null);
+      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
+        { rota: 'itens', dominio: 'localhost' },
+      ]);
+      repositoryMock.buscarPorPermissao.mockResolvedValue([]);
+
+      await expect(service.criar(grupoData)).rejects.toThrow(CustomError);
+      expect(repositoryMock.criar).not.toHaveBeenCalled();
     });
   });
 
