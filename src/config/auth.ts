@@ -19,6 +19,11 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     secret: process.env['BETTER_AUTH_SECRET'] ?? '',
     trustedOrigins: [process.env['FRONTEND_URL'] ?? 'http://localhost:3000'],
 
+    // Padrão do better-auth só liga em NODE_ENV=production; regras default já cobrem /sign-in* e /forget-password*.
+    rateLimit: {
+      enabled: process.env['NODE_ENV'] !== 'test',
+    },
+
     onAPIError: {
       errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login?erro=google-nao-convidado`,
     },
