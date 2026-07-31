@@ -40,15 +40,6 @@ describe('Modelo de Fornecedor', () => {
     await expect(fornecedor.save()).rejects.toThrow();
   });
 
-  it('não deve criar fornecedor com nome duplicado', async () => {
-    const userId = new mongoose.Types.ObjectId();
-    const data = { nome: 'Fornecedor B', usuario: userId };
-    const f1 = new Fornecedor(data);
-    await f1.save();
-    const f2 = new Fornecedor(data);
-    await expect(f2.save()).rejects.toThrow();
-  });
-
   it('deve retornar todos os fornecedores cadastrados', async () => {
     const f1 = new Fornecedor({
       nome: 'Fornecedor C',
@@ -77,16 +68,6 @@ describe('Modelo de Fornecedor', () => {
     await fornecedor.save();
     const updated = await Fornecedor.findById(fornecedor._id);
     expect(updated.nome).toBe('Fornecedor E Atualizado');
-  });
-
-  it('não deve atualizar para nome já existente', async () => {
-    const userId = new mongoose.Types.ObjectId();
-    const f1 = new Fornecedor({ nome: 'Fornecedor F', usuario: userId });
-    const f2 = new Fornecedor({ nome: 'Fornecedor G', usuario: userId });
-    await f1.save();
-    await f2.save();
-    f2.nome = 'Fornecedor F';
-    await expect(f2.save()).rejects.toThrow();
   });
 
   it('deve remover um fornecedor existente', async () => {

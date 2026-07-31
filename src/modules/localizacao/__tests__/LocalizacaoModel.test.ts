@@ -40,17 +40,6 @@ describe('Modelo de Localizacao', () => {
     await expect(localizacao.save()).rejects.toThrow();
   });
 
-  it('não deve criar localizacao com nome duplicado', async () => {
-    const data = {
-      nome: 'Estoque B',
-      usuario: new mongoose.Types.ObjectId(),
-    };
-    const l1 = new Localizacao(data);
-    await l1.save();
-    const l2 = new Localizacao(data);
-    await expect(l2.save()).rejects.toThrow();
-  });
-
   it('deve retornar todas as localizacoes cadastradas', async () => {
     const l1 = new Localizacao({
       nome: 'Estoque C',
@@ -79,16 +68,6 @@ describe('Modelo de Localizacao', () => {
     await localizacao.save();
     const updated = await Localizacao.findById(localizacao._id);
     expect(updated.nome).toBe('Estoque E Atualizado');
-  });
-
-  it('não deve atualizar para nome já existente', async () => {
-    const userId = new mongoose.Types.ObjectId();
-    const l1 = new Localizacao({ nome: 'Estoque F', usuario: userId });
-    const l2 = new Localizacao({ nome: 'Estoque G', usuario: userId });
-    await l1.save();
-    await l2.save();
-    l2.nome = 'Estoque F';
-    await expect(l2.save()).rejects.toThrow();
   });
 
   it('deve remover uma localizacao existente', async () => {

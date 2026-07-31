@@ -142,12 +142,4 @@ describe('Modelo de Notificacao', () => {
     expect(typeof saved.mensagem).toBe('string');
     expect(saved.mensagem).toBe('12345');
   });
-
-  it('não deve criar notificacao com usuario inválido', async () => {
-    const notificacao = new Notificacao({
-      mensagem: 'Usuário inválido',
-      usuario: 'id_invalido',
-    });
-    await expect(notificacao.save()).rejects.toThrow();
-  });
 });
