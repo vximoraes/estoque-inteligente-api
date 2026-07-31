@@ -161,4 +161,24 @@ describe('UsuarioRepository', () => {
       await expect(repo.buscarPorId('notfound')).rejects.toThrow(CustomError);
     });
   });
+
+  describe('buscarPorIdComGrupos', () => {
+    it('deve buscar usuário por id com os grupos populados', async () => {
+      const populateMock = jest.fn().mockResolvedValue(makeFakeUser({ grupos: [{ nome: 'Admin' }] }));
+      UsuarioModel.findById = jest.fn(() => ({ populate: populateMock }));
+
+      const result = await repo.buscarPorIdComGrupos('user123');
+
+      expect(UsuarioModel.findById).toHaveBeenCalledWith('user123');
+      expect(populateMock).toHaveBeenCalledWith('grupos');
+      expect(result.grupos).toEqual([{ nome: 'Admin' }]);
+    });
+
+    it('deve lançar erro 404 se usuário não encontrado', async () => {
+      const populateMock = jest.fn().mockResolvedValue(null);
+      UsuarioModel.findById = jest.fn(() => ({ populate: populateMock }));
+
+      await expect(repo.buscarPorIdComGrupos('notfound')).rejects.toThrow(CustomError);
+    });
+  });
 });

@@ -31,6 +31,7 @@ class GrupoService {
         customMessage: messages.error.resourceConflict('Grupos', 'nome duplicado'),
       });
     }
+    await this.validarPermissoes(parsedData.permissoes);
     return this.repository.criar(parsedData as unknown as Record<string, unknown>);
   }
 
@@ -47,7 +48,26 @@ class GrupoService {
         customMessage: messages.error.resourceConflict('Grupos', 'nome duplicado'),
       });
     }
+    await this.validarPermissoes(parsedData.permissoes);
     return this.repository.atualizar(id, parsedData as unknown as Record<string, unknown>);
+  }
+
+  // Evita permissao "orfa" apontando pra rota+dominio que nao existe em Rota.
+  async validarPermissoes(permissoes: Grupo['permissoes'] | undefined) {
+    if (!permissoes || permissoes.length === 0) return;
+
+    const pares = await this.repository.obterParesRotaDominioUnicos(permissoes);
+    const rotasEncontradas = await this.repository.buscarPorPermissao(pares);
+
+    if (rotasEncontradas.length !== pares.length) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'Permissoes',
+        details: [],
+        customMessage: 'Uma ou mais permissoes referenciam rota/dominio inexistentes.',
+      });
+    }
   }
 
   async deletar(id: string, user: Record<string, unknown> | undefined) {

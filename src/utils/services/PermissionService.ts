@@ -18,7 +18,7 @@ class PermissionService {
     httpMethod = '',
   ): Promise<boolean> {
     try {
-      const usuario = await this.repository.buscarPorId(userId);
+      const usuario = await this.repository.buscarPorIdComGrupos(userId);
       if (!usuario) {
         throw new CustomError({
           statusCode: 404,

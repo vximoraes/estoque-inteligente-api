@@ -11,12 +11,13 @@ import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
 import PermissionService from '../../utils/services/PermissionService.js';
+import { DOMINIO_PADRAO } from '../../config/RbacConfig.js';
 
 const permissionService = new PermissionService();
 
 async function verificarPermissao(usuarioId: string, ...rotas: string[]): Promise<void> {
   for (const rota of rotas) {
-    const permitido = await permissionService.hasPermission(usuarioId, rota, 'localhost', 'buscar');
+    const permitido = await permissionService.hasPermission(usuarioId, rota, DOMINIO_PADRAO, 'buscar');
     if (!permitido) {
       throw new Error(`Permissão negada para acessar "${rota}".`);
     }
