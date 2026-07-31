@@ -45,65 +45,72 @@ dotenv.config();
 
 const app = express();
 
-await DbConnect.conectar();
-const auth = initAuth();
-await setupMinio();
-iniciarJobEmprestimosAtrasados();
+// Construção do app fica num factory async em vez de top-level await: um
+// módulo com top-level await não pode ser importado via require/import()
+// dinâmico sob o Jest (CJS via Babel neste projeto) — quebra os testes de
+// rota, que precisam montar o app em memória. server.ts chama bootstrap()
+// antes de app.listen(); quem só precisa do app pronto (testes) também chama.
+export async function bootstrap(): Promise<express.Express> {
+  await DbConnect.conectar();
+  const auth = initAuth();
+  await setupMinio();
+  iniciarJobEmprestimosAtrasados();
 
-app.get('/', (req, res) => res.redirect('/docs'));
-app.get('/openapi.json', (req, res) => res.json(generateSpec()));
-app.use('/docs', apiReference({ url: '/openapi.json' }));
+  app.get('/', (req, res) => res.redirect('/docs'));
+  app.get('/openapi.json', (req, res) => res.json(generateSpec()));
+  app.use('/docs', apiReference({ url: '/openapi.json' }));
 
-app.use(helmet());
-app.use(
-  cors({
-    origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
-    credentials: true,
-  }),
-);
-app.use(compression());
+  app.use(helmet());
+  app.use(
+    cors({
+      origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+      credentials: true,
+    }),
+  );
+  app.use(compression());
 
-app.all('/api/auth/*splat', toNodeHandler(auth));
+  app.all('/api/auth/*splat', toNodeHandler(auth));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-if (process.env.DEBUGLOG) {
-  app.use(logRoutes);
+  if (process.env.DEBUGLOG) {
+    app.use(logRoutes);
+  }
+
+  app.use(mcpRoutes);
+
+  app.use(
+    usuarios,
+    categorias,
+    localizacoes,
+    itens,
+    estoques,
+    fornecedores,
+    movimentacoes,
+    notificacoes,
+    orcamentos,
+    emprestimos,
+    grupos,
+    rotas,
+    iaRoutes,
+  );
+
+  app.use((req, res) => {
+    return CommonResponse.error(res, 404, 'resourceNotFound', null, [
+      { message: 'Rota não encontrada.' },
+    ]);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error({ promise, reason }, 'Unhandled Rejection at:');
+  });
+
+  process.on('uncaughtException', (error) => {
+    logger.error(error, 'Uncaught Exception thrown:');
+  });
+
+  app.use(errorHandler);
+
+  return app;
 }
-
-app.use(mcpRoutes);
-
-app.use(
-  usuarios,
-  categorias,
-  localizacoes,
-  itens,
-  estoques,
-  fornecedores,
-  movimentacoes,
-  notificacoes,
-  orcamentos,
-  emprestimos,
-  grupos,
-  rotas,
-  iaRoutes,
-);
-
-app.use((req, res) => {
-  return CommonResponse.error(res, 404, 'resourceNotFound', null, [
-    { message: 'Rota não encontrada.' },
-  ]);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error({ promise, reason }, 'Unhandled Rejection at:');
-});
-
-process.on('uncaughtException', (error) => {
-  logger.error(error, 'Uncaught Exception thrown:');
-});
-
-app.use(errorHandler);
-
-export default app;

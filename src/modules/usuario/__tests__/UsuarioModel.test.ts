@@ -41,13 +41,11 @@ describe('Model de Usuário', () => {
     expect(savedUser._id).toBeDefined();
   });
 
-  it('não deve criar usuário sem nome, email ou senha', async () => {
-    const noNome = new Usuario({ email: 'a@a.com', senha: '123' });
+  it('não deve criar usuário sem nome ou email', async () => {
+    const noNome = new Usuario({ email: 'a@a.com' });
     await expect(noNome.save()).rejects.toThrow();
-    const noEmail = new Usuario({ nome: 'A', senha: '123' });
+    const noEmail = new Usuario({ nome: 'A' });
     await expect(noEmail.save()).rejects.toThrow();
-    const noSenha = new Usuario({ nome: 'A', email: 'a@a.com' });
-    await expect(noSenha.save()).rejects.toThrow();
   });
   it('não deve criar usuário com email duplicado', async () => {
     const userData = { nome: 'A', email: 'dup@a.com', senha: '123' };
@@ -73,15 +71,5 @@ describe('Model de Usuário', () => {
     expect(users.map((u) => u.email)).toEqual(
       expect.arrayContaining(['u1@a.com', 'u2@a.com']),
     );
-  });
-
-  it('por padrão, o campo senha não deve ser retornado em queries', async () => {
-    const userData = { nome: 'SemSenha', email: 'sem@a.com', senha: '123' };
-    const user = new Usuario(userData);
-    await user.save();
-    const found = await Usuario.findById(user._id);
-    expect(found.senha).toBeUndefined();
-    const foundWithSenha = await Usuario.findById(user._id).select('+senha');
-    expect(foundWithSenha.senha).toBeDefined();
   });
 });

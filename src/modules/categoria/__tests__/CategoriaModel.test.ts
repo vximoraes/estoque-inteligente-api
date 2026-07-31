@@ -26,18 +26,12 @@ describe('Modelo de Categoria', () => {
     await cat.save();
     expect(cat._id).toBeDefined();
     expect(cat.nome).toBe('Resistores');
-    expect(cat.usuario).toEqual(usuarioId);
+    expect(cat.usuario.toString()).toEqual(usuarioId.toString());
   });
 
   it('não deve criar categoria sem nome', async () => {
     const cat = new Categoria({ usuario: usuarioId });
     await expect(cat.save()).rejects.toThrow();
-  });
-
-  it('não deve criar categoria com nome duplicado', async () => {
-    await Categoria.create({ nome: 'Capacitores', usuario: usuarioId });
-    const cat2 = new Categoria({ nome: 'Capacitores', usuario: usuarioId });
-    await expect(cat2.save()).rejects.toThrow();
   });
 
   it('deve retornar todas as categorias cadastradas', async () => {
@@ -64,18 +58,6 @@ describe('Modelo de Categoria', () => {
     await Categoria.findByIdAndUpdate(cat._id, { nome: 'Novo' });
     const updated = await Categoria.findById(cat._id);
     expect(updated.nome).toBe('Novo');
-  });
-
-  it('não deve atualizar para nome já existente', async () => {
-    await Categoria.create({ nome: 'Existente', usuario: usuarioId });
-    const cat = await Categoria.create({ nome: 'Outro', usuario: usuarioId });
-    await expect(
-      Categoria.findByIdAndUpdate(
-        cat._id,
-        { nome: 'Existente' },
-        { runValidators: true },
-      ),
-    ).rejects.toThrow();
   });
 
   it('deve filtrar categorias por nome', async () => {

@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 import Movimentacao from '../MovimentacaoModel.js';
 import Item from '../../item/ItemModel.js';
 import Fornecedor from '../../fornecedor/FornecedorModel.js';
-import Estoque from '../../estoque/EstoqueModel.js'; // Importar para registrar o modelo
+import '../../estoque/EstoqueModel.js'; // registra o schema (default import não usado é removido pelo Babel)
+import '../../notificacao/NotificacaoModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;
