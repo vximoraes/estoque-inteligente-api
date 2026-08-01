@@ -14,23 +14,18 @@ describe('Usuários', () => {
   let usuarioId2;
 
   beforeAll(async () => {
-    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
-    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
-    const loginRes = await request(BASE_URL).post('/api/auth/sign-in/email').send({
-      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-      password: process.env.ADMIN_PASSWORD || 'Senha@123',
-    });
+    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
+    const loginRes = await request(BASE_URL)
+      .post('/api/auth/sign-in/email')
+      .send({
+        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+        password: process.env.ADMIN_PASSWORD || 'Senha@123',
+      });
     token = loginRes.body?.token;
     expect(token).toBeTruthy();
   });
 
-  // Não há mais auto-cadastro com senha: usuário novo entra por convite do admin
-  // (nome+email, sem senha). `POST /usuarios/convidar` dispara um e-mail de
-  // verdade via EmailService — se MAIL_API_KEY/MAIL_API_URL não estiverem
-  // configurados no ambiente do teste, o convite falha e o service já reverte
-  // a criação (ver `UsuarioService.convidarUsuario`). Por isso os testes abaixo
-  // aceitam [201, 500] e pulam as asserções dependentes quando não for 201.
-
+  // Convite dispara e-mail real via EmailService; sem MAIL_API_KEY/URL no ambiente de teste, aceita [201, 500].
   it('Deve convidar um usuário válido (POST /usuarios/convidar)', async () => {
     const unique = Date.now();
     const res = await request(BASE_URL)

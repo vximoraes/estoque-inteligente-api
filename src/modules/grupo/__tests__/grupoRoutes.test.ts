@@ -13,12 +13,13 @@ describe('Grupos', () => {
   let tokenUser;
   let idGrupo;
   beforeAll(async () => {
-    // Requer `npm run seed` já rodado contra o mesmo DB_URL do servidor em teste
-    // (cria o admin com ADMIN_EMAIL/ADMIN_PASSWORD e todas as permissões).
-    const res = await request(BASE_URL).post('/api/auth/sign-in/email').send({
-      email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-      password: process.env.ADMIN_PASSWORD || 'Senha@123',
-    });
+    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
+    const res = await request(BASE_URL)
+      .post('/api/auth/sign-in/email')
+      .send({
+        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+        password: process.env.ADMIN_PASSWORD || 'Senha@123',
+      });
     tokenAdmin = res.body?.token;
   });
   it('Deve listar os grupos com sucesso sendo administrador e verificar se todos os campos estão sendo informados', async () => {

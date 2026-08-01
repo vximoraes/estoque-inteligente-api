@@ -45,11 +45,7 @@ dotenv.config();
 
 const app = express();
 
-// Construção do app fica num factory async em vez de top-level await: um
-// módulo com top-level await não pode ser importado via require/import()
-// dinâmico sob o Jest (CJS via Babel neste projeto) — quebra os testes de
-// rota, que precisam montar o app em memória. server.ts chama bootstrap()
-// antes de app.listen(); quem só precisa do app pronto (testes) também chama.
+// Factory async em vez de top-level await: top-level await quebra o import do módulo sob Jest/Babel (CJS).
 export async function bootstrap(): Promise<express.Express> {
   await DbConnect.conectar();
   const auth = initAuth();
