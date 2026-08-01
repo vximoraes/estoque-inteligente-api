@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 
 const EstoqueDetalhes = registry.register(
@@ -15,7 +21,10 @@ const EstoqueDetalhes = registry.register(
   }),
 );
 
-registry.register('EstoqueListagem', z.object({ data: z.array(EstoqueDetalhes), ...paginationMetaFields }));
+registry.register(
+  'EstoqueListagem',
+  z.object({ data: z.array(EstoqueDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/estoques': {
@@ -35,9 +44,44 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'item', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID do item' },
-        { name: 'localizacao', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID da localização' },
-        { name: 'quantidade', in: 'query', required: false, schema: { type: 'integer' }, description: 'Filtrar por quantidade específica' },
+        {
+          name: 'item',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtrar por ID do item',
+        },
+        {
+          name: 'localizacao',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtrar por ID da localização',
+        },
+        {
+          name: 'quantidade',
+          in: 'query',
+          required: false,
+          schema: { type: 'integer' },
+          description: 'Filtrar por quantidade específica',
+        },
+        {
+          name: 'categoria',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtrar por ID da categoria do item',
+        },
+        {
+          name: 'status',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+            enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'],
+          },
+          description: 'Filtrar por status do item',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -61,8 +105,20 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'itemId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do item para buscar estoques' },
-        { name: 'localizacao', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtrar por ID da localização' },
+        {
+          name: 'itemId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID do item para buscar estoques',
+        },
+        {
+          name: 'localizacao',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtrar por ID da localização',
+        },
         ...paginationQueryParams,
       ],
       responses: {
