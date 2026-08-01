@@ -44,7 +44,7 @@ class ItemFilterBuilder {
   async comCategoria(categoria: string | null | undefined): Promise<this> {
     if (categoria) {
       if (Types.ObjectId.isValid(categoria)) {
-        this.filtros['categoria'] = categoria;
+        this.filtros['categoria'] = new Types.ObjectId(categoria);
         const categoriaEncontrada = await Categoria.findById(categoria);
         if (!categoriaEncontrada) {
           this.filtros['categoria'] = { $in: [] };
@@ -74,7 +74,10 @@ class ItemFilterBuilder {
   }
 
   comStatus(status: string | null | undefined): this {
-    if (status && ['Indisponível', 'Baixo Estoque', 'Em Estoque'].includes(status)) {
+    if (
+      status &&
+      ['Indisponível', 'Baixo Estoque', 'Em Estoque'].includes(status)
+    ) {
       this.filtros['status'] = status;
     }
     return this;

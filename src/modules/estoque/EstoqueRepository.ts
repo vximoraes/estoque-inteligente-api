@@ -1,5 +1,12 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
-import EstoqueModel, { type EstoqueDocument, type IEstoqueModel } from './EstoqueModel.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
+import EstoqueModel, {
+  type EstoqueDocument,
+  type IEstoqueModel,
+} from './EstoqueModel.js';
+import ItemModel from '../item/ItemModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -7,19 +14,31 @@ import type { AuthenticatedRequest } from '../../utils/types.js';
 class EstoqueRepository {
   private model: IEstoqueModel;
 
-  constructor({ estoqueModel = EstoqueModel }: { estoqueModel?: IEstoqueModel } = {}) {
+  constructor({
+    estoqueModel = EstoqueModel,
+  }: { estoqueModel?: IEstoqueModel } = {}) {
     this.model = estoqueModel;
   }
 
   async criar(parsedData: Record<string, unknown>) {
     const estoque = new this.model(parsedData);
     const estoqueSalvo = await estoque.save();
-    return await this.model.findById(estoqueSalvo._id).populate('item').populate('localizacao');
+    return await this.model
+      .findById(estoqueSalvo._id)
+      .populate('item')
+      .populate('localizacao');
   }
 
   async listar(req: AuthenticatedRequest) {
     const query = req.query as Record<string, string | undefined>;
-    const { item, localizacao, quantidade, page = '1' } = query;
+    const {
+      item,
+      localizacao,
+      quantidade,
+      categoria,
+      status,
+      page = '1',
+    } = query;
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
@@ -27,7 +46,15 @@ class EstoqueRepository {
 
     const filtros: Record<string, unknown> = {};
 
-    if (item) filtros['item'] = item;
+    if (item) {
+      filtros['item'] = item;
+    } else if (categoria || status) {
+      const filtrosItem: Record<string, unknown> = { ativo: true };
+      if (categoria) filtrosItem['categoria'] = categoria;
+      if (status) filtrosItem['status'] = status;
+      const itemIds = await ItemModel.find(filtrosItem).distinct('_id');
+      filtros['item'] = { $in: itemIds };
+    }
     if (localizacao) filtros['localizacao'] = localizacao;
     if (quantidade !== undefined && quantidade !== null && quantidade !== '') {
       const num = Number(quantidade);
@@ -41,7 +68,10 @@ class EstoqueRepository {
       sort: { createdAt: -1 },
     };
 
-    return await this.model.paginate(filtros as mongoose.FilterQuery<EstoqueDocument>, options);
+    return await this.model.paginate(
+      filtros as mongoose.FilterQuery<EstoqueDocument>,
+      options,
+    );
   }
 
   async listarPorItem(req: AuthenticatedRequest) {
@@ -68,10 +98,17 @@ class EstoqueRepository {
       sort: { createdAt: -1 },
     };
 
-    return await this.model.paginate(filtros as mongoose.FilterQuery<EstoqueDocument>, options);
+    return await this.model.paginate(
+      filtros as mongoose.FilterQuery<EstoqueDocument>,
+      options,
+    );
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
     const estoque = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .populate('item')
@@ -91,7 +128,10 @@ class EstoqueRepository {
   }
 
   async deletar(id: string, _req?: AuthenticatedRequest) {
-    const estoque = await this.model.findOne({ _id: id }).populate('item').populate('localizacao');
+    const estoque = await this.model
+      .findOne({ _id: id })
+      .populate('item')
+      .populate('localizacao');
     if (!estoque) {
       throw new CustomError({
         statusCode: 404,
@@ -106,7 +146,10 @@ class EstoqueRepository {
   }
 
   async buscarPorId(id: string, _req?: AuthenticatedRequest) {
-    const estoque = await this.model.findOne({ _id: id }).populate('item').populate('localizacao');
+    const estoque = await this.model
+      .findOne({ _id: id })
+      .populate('item')
+      .populate('localizacao');
     if (!estoque) {
       throw new CustomError({
         statusCode: 404,

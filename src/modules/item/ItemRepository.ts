@@ -1,4 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import ItemFilterBuilder from './ItemFilterBuilder.js';
 import ItemModel, { type ItemDocument } from './ItemModel.js';
 import MovimentacaoModel from '../movimentacao/MovimentacaoModel.js';
@@ -25,7 +28,9 @@ class ItemRepository {
     const id = req?.params?.['id'] ?? null;
 
     if (id) {
-      const data = await this.model.findOne({ _id: id, ativo: true }).populate('categoria');
+      const data = await this.model
+        .findOne({ _id: id, ativo: true })
+        .populate('categoria');
 
       if (!data) {
         throw new CustomError({
@@ -41,7 +46,8 @@ class ItemRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { nome, quantidade, estoque_minimo, categoria, ativo, status } = query;
+    const { nome, quantidade, estoque_minimo, categoria, ativo, status } =
+      query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
@@ -81,19 +87,22 @@ class ItemRepository {
       options,
     );
 
-    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => ({ ...doc.toObject() })),
+    };
   }
 
   async stats(req: AuthenticatedRequest) {
     const query = req.query as Record<string, string | undefined>;
-    const { categoria, ativo = 'true' } = query;
+    const { categoria, status, ativo = 'true' } = query;
 
     const filterBuilder = new ItemFilterBuilder()
       .comAtivo(ativo ?? 'true')
       .comNome('')
       .comQuantidade('')
       .comEstoqueMinimo('')
-      .comStatus('');
+      .comStatus(status ?? '');
 
     await filterBuilder.comCategoria(categoria ?? '');
 
@@ -108,7 +117,12 @@ class ItemRepository {
       filtros as mongoose.FilterQuery<ItemDocument>,
     );
 
-    const stats = { totalItens, emEstoque: 0, baixoEstoque: 0, indisponiveis: 0 };
+    const stats = {
+      totalItens,
+      emEstoque: 0,
+      baixoEstoque: 0,
+      indisponiveis: 0,
+    };
 
     for (const row of resultado) {
       if (row._id === 'Em Estoque') stats.emEstoque = row.count;
@@ -119,7 +133,11 @@ class ItemRepository {
     return stats;
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
     const item = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .populate('categoria')
@@ -146,7 +164,8 @@ class ItemRepository {
         errorType: 'resourceInUse',
         field: 'Item',
         details: [],
-        customMessage: 'Não é possível deletar: item está vinculado a movimentações.',
+        customMessage:
+          'Não é possível deletar: item está vinculado a movimentações.',
       });
     }
 
@@ -166,7 +185,11 @@ class ItemRepository {
     return item;
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const item = await this.model.findOne({ _id: id }).populate('categoria');
 
     if (!item) {
@@ -182,7 +205,11 @@ class ItemRepository {
     return item;
   }
 
-  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
+  async buscarPorNome(
+    nome: string,
+    idIgnorado?: string | null,
+    _req?: AuthenticatedRequest,
+  ) {
     const filtro: mongoose.FilterQuery<ItemDocument> = { nome, ativo: true };
 
     if (idIgnorado) {
