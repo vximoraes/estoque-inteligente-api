@@ -1,23 +1,40 @@
+jest.mock('../../../config/auth.js', () => ({
+  initAuth: jest.fn(),
+  getAuth: jest.fn(),
+}));
+
+jest.mock('../ativarUsuarioPadrao.js', () => ({
+  ativarUsuarioPadrao: jest.fn(),
+}));
+
+import mongoose from 'mongoose';
 import UsuarioService from '../UsuarioService.js';
 import UsuarioRepository from '../UsuarioRepository.js';
-import GrupoRepository from '../../grupo/GrupoRepository.js';
-import bcrypt from 'bcrypt';
+import minioClient from '../../../config/MinIO.js';
+import compress from '../../../config/SharpConfig.js';
+import { getAuth } from '../../../config/auth.js';
+import { ativarUsuarioPadrao } from '../ativarUsuarioPadrao.js';
 
 jest.mock('../UsuarioRepository.js');
-jest.mock('../../grupo/GrupoRepository.js');
-jest.mock('bcrypt');
+
+const mockCollection = { deleteMany: jest.fn(), findOne: jest.fn() };
+mongoose.connection.db = { collection: jest.fn(() => mockCollection) };
 
 describe('UsuarioService', () => {
   let service;
   let repositoryMock;
-  let grupoRepositoryMock;
+  let authApiMock;
 
   beforeEach(() => {
     UsuarioRepository.mockClear();
-    GrupoRepository.mockClear();
+    mockCollection.deleteMany.mockClear();
+    mockCollection.findOne.mockClear();
+    minioClient.putObject.mockClear();
+    minioClient.removeObject.mockClear();
+    compress.mockClear();
+    ativarUsuarioPadrao.mockClear();
 
     repositoryMock = {
-      criar: jest.fn(),
       listar: jest.fn(),
       atualizar: jest.fn(),
       deletar: jest.fn(),
@@ -25,102 +42,15 @@ describe('UsuarioService', () => {
       buscarPorId: jest.fn(),
     };
 
-    grupoRepositoryMock = {
-      buscarPorNome: jest.fn(),
+    authApiMock = {
+      signUpEmail: jest.fn(),
+      requestPasswordReset: jest.fn(),
+      resetPassword: jest.fn(),
     };
+    getAuth.mockReturnValue({ api: authApiMock });
 
     UsuarioRepository.mockImplementation(() => repositoryMock);
-    GrupoRepository.mockImplementation(() => grupoRepositoryMock);
     service = new UsuarioService();
-  });
-
-  describe('criar', () => {
-    it('deve criar usuário com senha criptografada', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockResolvedValue(null);
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      bcrypt.hash.mockResolvedValue('senha_criptografada');
-      repositoryMock.criar.mockResolvedValue({
-        _id: '1',
-        nome: 'Teste',
-        email: 'a@a.com',
-        senha: 'senha_criptografada',
-        ativo: false,
-      });
-
-      const data = await service.criar(
-        { nome: 'Teste', email: 'a@a.com', senha: '123' },
-        req,
-      );
-
-      expect(bcrypt.hash).toHaveBeenCalledWith('123', 10);
-      expect(data.senha).toBe('senha_criptografada');
-      expect(data.ativo).toBe(false);
-    });
-
-    it('deve criar usuário sem senha quando não fornecida', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockResolvedValue(null);
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      repositoryMock.criar.mockResolvedValue({
-        _id: '1',
-        nome: 'Teste',
-        email: 'a@a.com',
-        ativo: false,
-      });
-
-      // Limpa mocks do bcrypt para não interferir de outros testes
-      bcrypt.hash.mockClear();
-
-      const data = await service.criar(
-        { nome: 'Teste', email: 'a@a.com' },
-        req,
-      );
-
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-      expect(data).not.toHaveProperty('senha');
-    });
-
-    it('deve criar usuário quando senha é undefined', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockResolvedValue(null);
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      repositoryMock.criar.mockResolvedValue({
-        _id: '1',
-        nome: 'Teste',
-        email: 'a@a.com',
-        ativo: false,
-      });
-
-      bcrypt.hash.mockClear();
-
-      const userData = { nome: 'Teste', email: 'a@a.com' };
-      const data = await service.criar(userData, req);
-      expect(bcrypt.hash).not.toHaveBeenCalled();
-      expect(data).toHaveProperty('_id');
-    });
-
-    it('deve lançar erro se e-mail já existir', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockResolvedValue({
-        _id: '1',
-        email: 'a@a.com',
-      });
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      await expect(
-        service.criar({ nome: 'Teste', email: 'a@a.com', senha: '123' }, req),
-      ).rejects.toThrow('Email já está em uso.');
-    });
-
-    it('deve lançar erro se bcrypt falhar', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockResolvedValue(null);
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      bcrypt.hash.mockRejectedValue(new Error('bcrypt error'));
-      await expect(
-        service.criar({ nome: 'Teste', email: 'a@a.com', senha: '123' }, req),
-      ).rejects.toThrow('bcrypt error');
-    });
   });
 
   describe('listar', () => {
@@ -221,31 +151,6 @@ describe('UsuarioService', () => {
     });
   });
 
-  describe('unicidade de e-mail', () => {
-    it('deve impedir cadastro de dois usuários com o mesmo e-mail', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ _id: '1', email: 'a@a.com' });
-      grupoRepositoryMock.buscarPorNome.mockResolvedValue(null);
-      bcrypt.hash.mockResolvedValue('senha_criptografada');
-      repositoryMock.criar.mockResolvedValue({
-        _id: '1',
-        nome: 'Teste',
-        email: 'a@a.com',
-        senha: 'senha_criptografada',
-        ativo: false,
-      });
-      await service.criar(
-        { nome: 'Teste', email: 'a@a.com', senha: '123' },
-        req,
-      );
-      await expect(
-        service.criar({ nome: 'Outro', email: 'a@a.com', senha: '456' }, req),
-      ).rejects.toThrow('Email já está em uso.');
-    });
-  });
-
   describe('proibição de update de email e senha', () => {
     it('deve ignorar alterações em email e senha no update', async () => {
       const req = { user_id: 'user123' };
@@ -276,13 +181,218 @@ describe('UsuarioService', () => {
     });
   });
 
-  describe('erro inesperado do repository', () => {
-    it('deve lançar erro se o repository lançar exceção', async () => {
-      const req = { user_id: 'user123' };
-      repositoryMock.buscarPorEmail.mockRejectedValue(new Error('erro repo'));
+  describe('uploadFoto', () => {
+    it('deve lançar erro se nenhum arquivo for enviado', async () => {
+      const req = { file: undefined };
+      await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
+        statusCode: 400,
+      });
+    });
+
+    it('deve lançar erro se arquivo for maior que 5MB', async () => {
+      const req = { file: { size: 6 * 1024 * 1024, buffer: Buffer.from('x') } };
+      await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
+        statusCode: 413,
+      });
+    });
+
+    it('deve comprimir, enviar ao MinIO e retornar a fotoPerfil', async () => {
+      const req = { file: { size: 100, buffer: Buffer.from('x') } };
+      repositoryMock.atualizar.mockResolvedValue({ fotoPerfil: 'url/1.jpeg' });
+      compress.mockResolvedValue(Buffer.from('comprimido'));
+
+      const data = await service.uploadFoto(req, '1');
+
+      expect(compress).toHaveBeenCalledWith(req.file.buffer);
+      expect(minioClient.putObject).toHaveBeenCalled();
+      expect(data).toEqual({ fotoPerfil: 'url/1.jpeg' });
+    });
+
+    it('deve envolver erro inesperado em Error genérico', async () => {
+      const req = { file: { size: 100, buffer: Buffer.from('x') } };
+      repositoryMock.atualizar.mockRejectedValue(new Error('falha mongo'));
+      await expect(service.uploadFoto(req, '1')).rejects.toThrow(Error);
+    });
+  });
+
+  describe('deletarFoto', () => {
+    it('deve remover do MinIO e retornar fotoPerfil vazia', async () => {
+      repositoryMock.atualizar.mockResolvedValue({ fotoPerfil: '' });
+      const data = await service.deletarFoto({}, '1');
+      expect(minioClient.removeObject).toHaveBeenCalled();
+      expect(data).toEqual({ fotoPerfil: '' });
+    });
+  });
+
+  describe('convidarUsuario', () => {
+    it('deve criar conta via Better Auth e retornar dados do usuário', async () => {
+      authApiMock.signUpEmail.mockResolvedValue({ user: { id: 'user1' } });
+      authApiMock.requestPasswordReset.mockResolvedValue({});
+      repositoryMock.atualizar.mockResolvedValue({});
+      repositoryMock.buscarPorEmail.mockResolvedValue(null);
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: 'user1',
+        nome: 'Fulano',
+        email: 'fulano@teste.com',
+        ativo: false,
+        convidadoEm: new Date('2024-01-01'),
+      });
+
+      const data = await service.convidarUsuario('Fulano', 'Fulano@Teste.com');
+
+      expect(authApiMock.signUpEmail).toHaveBeenCalledWith({
+        body: expect.objectContaining({
+          email: 'fulano@teste.com',
+          name: 'Fulano',
+        }),
+      });
+      expect(data).toEqual({
+        message: 'Convite enviado com sucesso!',
+        usuario: {
+          _id: 'user1',
+          nome: 'Fulano',
+          email: 'fulano@teste.com',
+          ativo: false,
+          convidadoEm: new Date('2024-01-01'),
+        },
+      });
+    });
+
+    it('deve lançar erro se e-mail já estiver em uso', async () => {
+      repositoryMock.buscarPorEmail.mockResolvedValue({ _id: '1' });
       await expect(
-        service.criar({ nome: 'Teste', email: 'a@a.com', senha: '123' }, req),
-      ).rejects.toThrow('erro repo');
+        service.convidarUsuario('Fulano', 'fulano@teste.com'),
+      ).rejects.toThrow('Email já está em uso.');
+      expect(authApiMock.signUpEmail).not.toHaveBeenCalled();
+    });
+
+    it('deve desfazer o cadastro se o envio do convite falhar', async () => {
+      repositoryMock.buscarPorEmail.mockResolvedValue(null);
+      authApiMock.signUpEmail.mockResolvedValue({ user: { id: 'user1' } });
+      repositoryMock.atualizar.mockResolvedValue({});
+      const erroEnvio = new Error('smtp indisponível');
+      authApiMock.requestPasswordReset.mockRejectedValue(erroEnvio);
+
+      await expect(
+        service.convidarUsuario('Fulano', 'fulano@teste.com'),
+      ).rejects.toThrow('smtp indisponível');
+
+      expect(repositoryMock.deletar).toHaveBeenCalledWith('user1');
+      expect(mockCollection.deleteMany).toHaveBeenCalledWith({
+        userId: 'user1',
+      });
+    });
+  });
+
+  describe('ativarConta', () => {
+    it('deve lançar erro se token inválido ou expirado', async () => {
+      mockCollection.findOne.mockResolvedValue(null);
+      await expect(
+        service.ativarConta('token-invalido', 'Senha@123'),
+      ).rejects.toMatchObject({ statusCode: 401 });
+    });
+
+    it('deve lançar erro se token estiver expirado', async () => {
+      mockCollection.findOne.mockResolvedValue({
+        value: 'user1',
+        expiresAt: new Date(Date.now() - 1000),
+      });
+      await expect(
+        service.ativarConta('token-expirado', 'Senha@123'),
+      ).rejects.toMatchObject({ statusCode: 401 });
+    });
+
+    it('deve lançar erro se usuário do token não existir', async () => {
+      mockCollection.findOne.mockResolvedValue({
+        value: 'user1',
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+      repositoryMock.buscarPorId.mockResolvedValue(null);
+      await expect(
+        service.ativarConta('token', 'Senha@123'),
+      ).rejects.toMatchObject({ statusCode: 404 });
+    });
+
+    it('deve lançar erro se conta já estiver ativada', async () => {
+      mockCollection.findOne.mockResolvedValue({
+        value: 'user1',
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: 'user1',
+        ativo: true,
+        ativadoEm: new Date(),
+      });
+      await expect(
+        service.ativarConta('token', 'Senha@123'),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(authApiMock.resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('deve ativar a conta quando token válido e conta pendente', async () => {
+      mockCollection.findOne.mockResolvedValue({
+        value: 'user1',
+        expiresAt: new Date(Date.now() + 1000 * 60),
+      });
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: 'user1',
+        ativo: false,
+      });
+      authApiMock.resetPassword.mockResolvedValue({});
+      ativarUsuarioPadrao.mockResolvedValue({
+        _id: 'user1',
+        nome: 'Fulano',
+        email: 'fulano@teste.com',
+      });
+
+      const data = await service.ativarConta('token-valido', 'Senha@123');
+
+      expect(authApiMock.resetPassword).toHaveBeenCalledWith({
+        body: { token: 'token-valido', newPassword: 'Senha@123' },
+      });
+      expect(ativarUsuarioPadrao).toHaveBeenCalledWith('user1');
+      expect(data).toEqual({
+        message: 'Conta ativada com sucesso! Você já pode fazer login.',
+        usuario: {
+          id: 'user1',
+          nome: 'Fulano',
+          email: 'fulano@teste.com',
+        },
+      });
+    });
+  });
+
+  describe('reenviarConvite', () => {
+    it('deve lançar erro se conta já estiver ativada', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        ativo: true,
+        ativadoEm: new Date(),
+      });
+      await expect(service.reenviarConvite('1')).rejects.toMatchObject({
+        statusCode: 400,
+      });
+      expect(authApiMock.requestPasswordReset).not.toHaveBeenCalled();
+    });
+
+    it('deve reenviar convite quando conta pendente', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: '1',
+        email: 'fulano@teste.com',
+        ativo: false,
+      });
+      authApiMock.requestPasswordReset.mockResolvedValue({});
+      repositoryMock.atualizar.mockResolvedValue({});
+
+      const data = await service.reenviarConvite('1');
+
+      expect(authApiMock.requestPasswordReset).toHaveBeenCalledWith({
+        body: expect.objectContaining({ email: 'fulano@teste.com' }),
+      });
+      expect(repositoryMock.atualizar).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ convidadoEm: expect.any(Date) }),
+      );
+      expect(data).toEqual({ message: 'Convite reenviado com sucesso!' });
     });
   });
 });

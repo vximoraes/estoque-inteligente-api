@@ -64,16 +64,13 @@ describe('UsuarioRepository', () => {
 
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
-      jest.doMock(
-        '../UsuarioFilterBuilder.js',
-        () => {
-          return jest.fn().mockImplementation(() => ({
-            comNome: jest.fn().mockReturnThis(),
-            comEmail: jest.fn().mockReturnThis(),
-            comAtivo: jest.fn().mockReturnThis(),
-          }));
-        },
-      );
+      jest.doMock('../UsuarioFilterBuilder.js', () => {
+        return jest.fn().mockImplementation(() => ({
+          comNome: jest.fn().mockReturnThis(),
+          comEmail: jest.fn().mockReturnThis(),
+          comAtivo: jest.fn().mockReturnThis(),
+        }));
+      });
       const { default: UsuarioRepositoryMocked } =
         await import('../UsuarioRepository.js');
       const repoMocked = new UsuarioRepositoryMocked({
@@ -143,10 +140,10 @@ describe('UsuarioRepository', () => {
     it('deve ignorar id informado', async () => {
       UsuarioModel.findOne = jest.fn().mockResolvedValue(makeFakeUser());
       await repo.buscarPorEmail('teste@email.com', 'ignoreid');
-      expect(UsuarioModel.findOne).toHaveBeenCalledWith(
-        { email: 'teste@email.com', _id: { $ne: 'ignoreid' } },
-        '+senha',
-      );
+      expect(UsuarioModel.findOne).toHaveBeenCalledWith({
+        email: 'teste@email.com',
+        _id: { $ne: 'ignoreid' },
+      });
     });
   });
 
@@ -164,7 +161,9 @@ describe('UsuarioRepository', () => {
 
   describe('buscarPorIdComGrupos', () => {
     it('deve buscar usuário por id com os grupos populados', async () => {
-      const populateMock = jest.fn().mockResolvedValue(makeFakeUser({ grupos: [{ nome: 'Admin' }] }));
+      const populateMock = jest
+        .fn()
+        .mockResolvedValue(makeFakeUser({ grupos: [{ nome: 'Admin' }] }));
       UsuarioModel.findById = jest.fn(() => ({ populate: populateMock }));
 
       const result = await repo.buscarPorIdComGrupos('user123');
@@ -178,7 +177,9 @@ describe('UsuarioRepository', () => {
       const populateMock = jest.fn().mockResolvedValue(null);
       UsuarioModel.findById = jest.fn(() => ({ populate: populateMock }));
 
-      await expect(repo.buscarPorIdComGrupos('notfound')).rejects.toThrow(CustomError);
+      await expect(repo.buscarPorIdComGrupos('notfound')).rejects.toThrow(
+        CustomError,
+      );
     });
   });
 });

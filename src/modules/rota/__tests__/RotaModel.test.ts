@@ -8,6 +8,7 @@ describe('Modelo de Rota', () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
+    await Rota.init();
   });
 
   afterAll(async () => {
