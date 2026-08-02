@@ -38,7 +38,6 @@ jest.mock('../../../utils/helpers/index.js', () => {
 
 jest.mock('../UsuarioSchema.js', () => {
   return {
-    UsuarioSchema: { parse: jest.fn() },
     UsuarioUpdateSchema: { parse: jest.fn() },
   };
 });
@@ -56,14 +55,8 @@ import {
   CustomError,
   messages,
 } from '../../../utils/helpers/index.js';
-import {
-  UsuarioSchema,
-  UsuarioUpdateSchema,
-} from '../UsuarioSchema.js';
-import {
-  UsuarioQuerySchema,
-  UsuarioIdSchema,
-} from '../UsuarioQuerySchema.js';
+import { UsuarioUpdateSchema } from '../UsuarioSchema.js';
+import { UsuarioQuerySchema, UsuarioIdSchema } from '../UsuarioQuerySchema.js';
 
 describe('UsuarioController - regras de negócio (simples)', () => {
   let controller, req, res, next;
@@ -80,54 +73,19 @@ describe('UsuarioController - regras de negócio (simples)', () => {
     next = jest.fn();
     CommonResponse.success.mockClear();
     CommonResponse.created.mockClear();
-    UsuarioSchema.parse.mockClear();
     UsuarioUpdateSchema.parse.mockClear();
     UsuarioQuerySchema.parse.mockClear();
     UsuarioIdSchema.parse.mockClear();
     controller.service = {
       listar: jest.fn(),
-      criar: jest.fn(),
       atualizar: jest.fn(),
       deletar: jest.fn(),
+      uploadFoto: jest.fn(),
+      deletarFoto: jest.fn(),
+      convidarUsuario: jest.fn(),
+      ativarConta: jest.fn(),
+      reenviarConvite: jest.fn(),
     };
-  });
-
-  describe('criar', () => {
-    it('deve criar usuário e nunca retornar senha', async () => {
-      const user = {
-        toObject: () => ({
-          _id: '1',
-          nome: 'Fulano',
-          email: 'f@f.com',
-          senha: 'hash',
-        }),
-      };
-      req.body = { nome: 'Fulano', email: 'f@f.com', senha: '123' };
-      UsuarioSchema.parse.mockReturnValue(req.body);
-      controller.service.criar.mockResolvedValue(user);
-      await controller.criar(req, res, next);
-      expect(CommonResponse.created).toHaveBeenCalledWith(
-        res,
-        expect.not.objectContaining({ senha: expect.anything() }),
-      );
-    });
-    it('deve lançar erro se schema inválido', async () => {
-      UsuarioSchema.parse.mockImplementation(() => {
-        throw new Error('erro schema');
-      });
-      await expect(controller.criar(req, res, next)).rejects.toThrow(
-        'erro schema',
-      );
-    });
-    it('deve lançar erro se service.criar lançar', async () => {
-      UsuarioSchema.parse.mockReturnValue(req.body);
-      controller.service.criar.mockImplementation(() => {
-        throw new Error('erro service');
-      });
-      await expect(controller.criar(req, res, next)).rejects.toThrow(
-        'erro service',
-      );
-    });
   });
 
   describe('listar', () => {
@@ -218,6 +176,159 @@ describe('UsuarioController - regras de negócio (simples)', () => {
       });
       await expect(controller.deletar(req, res, next)).rejects.toThrow(
         'erro deletar',
+      );
+    });
+  });
+
+  describe('uploadFoto', () => {
+    it('deve fazer upload da foto', async () => {
+      req.params = { id: '1' };
+      UsuarioIdSchema.parse.mockReturnValue('1');
+      controller.service.uploadFoto.mockResolvedValue({ fotoPerfil: 'url' });
+      await controller.uploadFoto(req, res, next);
+      expect(controller.service.uploadFoto).toHaveBeenCalledWith(req, '1');
+      expect(CommonResponse.success).toHaveBeenCalledWith(
+        res,
+        { fotoPerfil: 'url' },
+        201,
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('deletarFoto', () => {
+    it('deve deletar a foto', async () => {
+      req.params = { id: '1' };
+      UsuarioIdSchema.parse.mockReturnValue('1');
+      controller.service.deletarFoto.mockResolvedValue({ fotoPerfil: '' });
+      await controller.deletarFoto(req, res, next);
+      expect(controller.service.deletarFoto).toHaveBeenCalledWith(req, '1');
+      expect(CommonResponse.success).toHaveBeenCalledWith(
+        res,
+        { fotoPerfil: '' },
+        200,
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('convidarUsuario', () => {
+    it('deve convidar usuário quando nome e email informados', async () => {
+      req.body = { nome: 'Fulano', email: 'fulano@teste.com' };
+      controller.service.convidarUsuario.mockResolvedValue({
+        message: 'Convite enviado com sucesso!',
+      });
+      await controller.convidarUsuario(req, res, next);
+      expect(controller.service.convidarUsuario).toHaveBeenCalledWith(
+        'Fulano',
+        'fulano@teste.com',
+      );
+      expect(CommonResponse.created).toHaveBeenCalledWith(res, {
+        message: 'Convite enviado com sucesso!',
+      });
+    });
+
+    it('deve lançar erro 400 se nome não informado', async () => {
+      req.body = { email: 'fulano@teste.com' };
+      await expect(
+        controller.convidarUsuario(req, res, next),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(controller.service.convidarUsuario).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro 400 se email não informado', async () => {
+      req.body = { nome: 'Fulano' };
+      await expect(
+        controller.convidarUsuario(req, res, next),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(controller.service.convidarUsuario).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro se service.convidarUsuario lançar', async () => {
+      req.body = { nome: 'Fulano', email: 'fulano@teste.com' };
+      controller.service.convidarUsuario.mockImplementation(() => {
+        throw new Error('erro convidar');
+      });
+      await expect(controller.convidarUsuario(req, res, next)).rejects.toThrow(
+        'erro convidar',
+      );
+    });
+  });
+
+  describe('ativarConta', () => {
+    it('deve ativar conta quando token e senha informados', async () => {
+      req.query = { token: 'abc123' };
+      req.body = { senha: 'Senha@123' };
+      UsuarioUpdateSchema.parse.mockReturnValue({ senha: 'Senha@123' });
+      controller.service.ativarConta.mockResolvedValue({
+        message: 'Conta ativada com sucesso!',
+      });
+      await controller.ativarConta(req, res, next);
+      expect(controller.service.ativarConta).toHaveBeenCalledWith(
+        'abc123',
+        'Senha@123',
+      );
+      expect(CommonResponse.success).toHaveBeenCalledWith(
+        res,
+        { message: 'Conta ativada com sucesso!' },
+        200,
+        'Conta ativada com sucesso!',
+      );
+    });
+
+    it('deve lançar erro 400 se token não informado', async () => {
+      req.body = { senha: 'Senha@123' };
+      await expect(
+        controller.ativarConta(req, res, next),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(controller.service.ativarConta).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro 400 se senha não informada', async () => {
+      req.query = { token: 'abc123' };
+      await expect(
+        controller.ativarConta(req, res, next),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(controller.service.ativarConta).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro se schema de senha inválido', async () => {
+      req.query = { token: 'abc123' };
+      req.body = { senha: '123' };
+      UsuarioUpdateSchema.parse.mockImplementation(() => {
+        throw new Error('senha fraca');
+      });
+      await expect(controller.ativarConta(req, res, next)).rejects.toThrow(
+        'senha fraca',
+      );
+    });
+  });
+
+  describe('reenviarConvite', () => {
+    it('deve reenviar convite', async () => {
+      req.params = { id: '1' };
+      UsuarioIdSchema.parse.mockReturnValue('1');
+      controller.service.reenviarConvite.mockResolvedValue({
+        message: 'Convite reenviado com sucesso!',
+      });
+      await controller.reenviarConvite(req, res, next);
+      expect(controller.service.reenviarConvite).toHaveBeenCalledWith('1');
+      expect(CommonResponse.success).toHaveBeenCalledWith(
+        res,
+        { message: 'Convite reenviado com sucesso!' },
+        200,
+        'Convite reenviado com sucesso!',
+      );
+    });
+
+    it('deve lançar erro se service.reenviarConvite lançar', async () => {
+      req.params = { id: '1' };
+      UsuarioIdSchema.parse.mockReturnValue('1');
+      controller.service.reenviarConvite.mockImplementation(() => {
+        throw new Error('erro reenviar');
+      });
+      await expect(controller.reenviarConvite(req, res, next)).rejects.toThrow(
+        'erro reenviar',
       );
     });
   });

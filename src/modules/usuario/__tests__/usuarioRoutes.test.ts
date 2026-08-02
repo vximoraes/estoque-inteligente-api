@@ -150,7 +150,7 @@ describe('Usuários', () => {
         expect([200, 500]).toContain(res2.status);
 
         if (res2.status === 200) {
-          expect(res2.body.data.email).toBe(email);
+          expect(res2.body.data.email).toBe(email.toLowerCase());
         }
       }
     }

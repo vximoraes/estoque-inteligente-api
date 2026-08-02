@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 import UsuarioRepository from './UsuarioRepository.js';
-import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
+import {
+  CustomError,
+  HttpStatusCodes,
+  messages,
+} from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
 import { getAuth } from '../../config/auth.js';
@@ -19,7 +23,11 @@ class UsuarioService {
     return this.repository.listar(req);
   }
 
-  async atualizar(id: string, parsedData: UsuarioUpdate, req: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: UsuarioUpdate,
+    req: AuthenticatedRequest,
+  ) {
     const data = parsedData as Record<string, unknown>;
     delete data['senha'];
     delete data['email'];
@@ -92,7 +100,13 @@ class UsuarioService {
       });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(process.env['MINIO_BUCKET']!, objectName, newFile, newFile.length, { 'Content-Type': 'image/jpeg' });
+      await minioClient.putObject(
+        process.env['MINIO_BUCKET']!,
+        objectName,
+        newFile,
+        newFile.length,
+        { 'Content-Type': 'image/jpeg' },
+      );
       return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
       throw new Error(String(err));
@@ -107,13 +121,18 @@ class UsuarioService {
   }
 
   async convidarUsuario(nome: string, email: string) {
-    await this.validateEmail(email, null);
+    const emailNormalizado = email.toLowerCase();
+    await this.validateEmail(emailNormalizado, null);
 
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
 
     // Cria conta no Better Auth (senha aleatória, usuário definirá a sua ao ativar)
     const authResult = await getAuth().api.signUpEmail({
-      body: { email, name: nome, password: crypto.randomUUID() },
+      body: {
+        email: emailNormalizado,
+        name: nome,
+        password: crypto.randomUUID(),
+      },
     });
 
     const userId = authResult.user.id;
@@ -124,12 +143,17 @@ class UsuarioService {
     // Gera token de reset e dispara email de convite via sendResetPassword callback
     try {
       await getAuth().api.requestPasswordReset({
-        body: { email, redirectTo: `${frontendUrl}/ativar-conta` },
+        body: {
+          email: emailNormalizado,
+          redirectTo: `${frontendUrl}/ativar-conta`,
+        },
       });
     } catch (error) {
       // Limpa o usuário criado se o envio do convite falhar
       await this.repository.deletar(userId);
-      await mongoose.connection.db!.collection('account').deleteMany({ userId });
+      await mongoose.connection
+        .db!.collection('account')
+        .deleteMany({ userId });
       throw error;
     }
 
@@ -138,9 +162,10 @@ class UsuarioService {
     return {
       message: 'Convite enviado com sucesso!',
       usuario: {
-        id: usuario._id,
+        _id: usuario._id,
         nome: usuario.nome,
         email: usuario.email,
+        ativo: usuario.ativo,
         convidadoEm: usuario.convidadoEm,
       },
     };
@@ -181,7 +206,8 @@ class UsuarioService {
         errorType: 'accountAlreadyActivated',
         field: 'Token',
         details: [],
-        customMessage: 'Esta conta já foi ativada. Faça login para acessar o sistema.',
+        customMessage:
+          'Esta conta já foi ativada. Faça login para acessar o sistema.',
       });
     }
 

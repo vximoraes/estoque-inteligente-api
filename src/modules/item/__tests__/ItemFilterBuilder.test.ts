@@ -25,12 +25,12 @@ jest.mock('../../movimentacao/MovimentacaoModel.js', () => {
 });
 
 jest.mock('mongoose', () => {
+  const ObjectId = jest
+    .fn()
+    .mockImplementation((id) => ({ toString: () => id }));
+  ObjectId.isValid = jest.fn();
   return {
-    Types: {
-      ObjectId: {
-        isValid: jest.fn(),
-      },
-    },
+    Types: { ObjectId },
     Schema: {
       Types: {
         ObjectId: 'ObjectId',
@@ -151,7 +151,7 @@ describe('ItemFilterBuilder', () => {
 
       expect(mongoose.Types.ObjectId.isValid).toHaveBeenCalledWith(categoriaId);
       expect(Categoria.findById).toHaveBeenCalledWith(categoriaId);
-      expect(itemFilterBuilder.filtros.categoria).toBe(categoriaId);
+      expect(mongoose.Types.ObjectId).toHaveBeenCalledWith(categoriaId);
       expect(resultado).toBe(itemFilterBuilder);
     });
 
@@ -317,11 +317,11 @@ describe('ItemFilterBuilder', () => {
 
       const filtros = itemFilterBuilder.build();
 
-      expect(filtros).toEqual({
+      expect(mongoose.Types.ObjectId).toHaveBeenCalledWith('categoriaId');
+      expect(filtros).toMatchObject({
         nome: { $regex: 'Resistor', $options: 'i' },
         quantidade: 10,
         ativo: true,
-        categoria: 'categoriaId',
       });
     });
   });
