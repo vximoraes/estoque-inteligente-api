@@ -31,6 +31,7 @@ export default async function seedRotas() {
     'notificacoes:id',
     'orcamentos',
     'orcamentos:id',
+    'ia',
   ];
 
   const rotas = rotas_array.map((rota) => ({

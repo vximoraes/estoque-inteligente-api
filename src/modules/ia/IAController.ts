@@ -1,7 +1,12 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
-import { TIMEOUT_MS, MODELO, ORCAMENTO_TOKENS_DIA } from './IAConfig.js';
+import {
+  TIMEOUT_MS,
+  MODELO,
+  ORCAMENTO_TOKENS_DIA,
+  MAX_CONVERSAS_POR_USUARIO,
+} from './IAConfig.js';
 import { registrarUso, tokensUsadosHoje } from './IAUsoService.js';
 import { iniciarStream, finalizarStream } from './IALimites.js';
 import { EnviarMensagemSchema, CriarConversaSchema } from './IASchema.js';
@@ -19,6 +24,19 @@ class IAController {
   async criarConversa(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
     const { mensagem_inicial } = CriarConversaSchema.parse(req.body ?? {});
+
+    const totalConversas = await ConversaModel.countDocuments({
+      usuario: usuarioId,
+    });
+    if (totalConversas >= MAX_CONVERSAS_POR_USUARIO) {
+      throw new CustomError({
+        statusCode: 422,
+        errorType: 'validationError',
+        field: 'conversas',
+        details: [],
+        customMessage: `Você atingiu o limite de ${MAX_CONVERSAS_POR_USUARIO} conversas. Exclua alguma para criar outra.`,
+      });
+    }
 
     const titulo = mensagem_inicial
       ? mensagem_inicial.slice(0, 60)
