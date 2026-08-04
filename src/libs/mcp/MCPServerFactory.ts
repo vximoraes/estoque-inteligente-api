@@ -10,14 +10,23 @@ import { buscarCategorias } from './tools/buscarCategorias.js';
 import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
+import { formatarResultado } from './formatarResultado.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 import { DOMINIO_PADRAO } from '../../config/RbacConfig.js';
 
 const permissionService = new PermissionService();
 
-async function verificarPermissao(usuarioId: string, ...rotas: string[]): Promise<void> {
+async function verificarPermissao(
+  usuarioId: string,
+  ...rotas: string[]
+): Promise<void> {
   for (const rota of rotas) {
-    const permitido = await permissionService.hasPermission(usuarioId, rota, DOMINIO_PADRAO, 'buscar');
+    const permitido = await permissionService.hasPermission(
+      usuarioId,
+      rota,
+      DOMINIO_PADRAO,
+      'buscar',
+    );
     if (!permitido) {
       throw new Error(`Permissão negada para acessar "${rota}".`);
     }
@@ -34,17 +43,27 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'buscarItens',
     'Busca itens do inventário com filtros opcionais de nome e status',
     {
-      nome: z.string().optional().describe('Filtrar por nome do item (busca parcial)'),
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar por nome do item (busca parcial)'),
       status: z
         .enum(['Em Estoque', 'Baixo Estoque', 'Indisponível'])
         .optional()
         .describe('Filtrar pelo status do item'),
-      limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
     },
     async ({ nome, status, limite }) => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens({ nome, status, limite }, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarItens', resultado);
     },
   );
 
@@ -53,13 +72,26 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Busca registros de quantidade em estoque por item ou localização',
     {
       itemId: z.string().optional().describe('ID do item para filtrar'),
-      localizacaoId: z.string().optional().describe('ID da localização para filtrar'),
-      limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
+      localizacaoId: z
+        .string()
+        .optional()
+        .describe('ID da localização para filtrar'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
     },
     async ({ itemId, localizacaoId, limite }) => {
       await verificarPermissao(usuarioId, 'estoques');
-      const resultado = await buscarEstoque({ itemId, localizacaoId, limite }, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      const resultado = await buscarEstoque(
+        { itemId, localizacaoId, limite },
+        usuarioId,
+      );
+      return formatarResultado('buscarEstoque', resultado);
     },
   );
 
@@ -70,11 +102,29 @@ export function criarMCPServer(usuarioId: string): McpServer {
       tipo: z
         .enum(['entrada', 'saida'])
         .optional()
-        .describe("Tipo de movimentação — use exatamente 'entrada' ou 'saida' (minúsculas)"),
-      dataInicio: z.string().optional().describe('Data de início no formato ISO 8601 (ex: 2026-01-01)'),
-      dataFim: z.string().optional().describe('Data de fim no formato ISO 8601 (ex: 2026-12-31)'),
-      itemNome: z.string().optional().describe('Filtrar por nome do item (busca parcial)'),
-      limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
+        .describe(
+          "Tipo de movimentação — use exatamente 'entrada' ou 'saida' (minúsculas)",
+        ),
+      dataInicio: z
+        .string()
+        .optional()
+        .describe('Data de início no formato ISO 8601 (ex: 2026-01-01)'),
+      dataFim: z
+        .string()
+        .optional()
+        .describe('Data de fim no formato ISO 8601 (ex: 2026-12-31)'),
+      itemNome: z
+        .string()
+        .optional()
+        .describe('Filtrar por nome do item (busca parcial)'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
     },
     async ({ tipo, dataInicio, dataFim, itemNome, limite }) => {
       await verificarPermissao(usuarioId, 'movimentacoes');
@@ -82,7 +132,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { tipo, dataInicio, dataFim, itemNome, limite },
         usuarioId,
       );
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarMovimentacoes', resultado);
     },
   );
 
@@ -98,12 +148,22 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .string()
         .optional()
         .describe('Filtrar pelo nome do solicitante (busca parcial)'),
-      limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
     },
     async ({ status, solicitanteNome, limite }) => {
       await verificarPermissao(usuarioId, 'emprestimos');
-      const resultado = await buscarEmprestimos({ status, solicitanteNome, limite }, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      const resultado = await buscarEmprestimos(
+        { status, solicitanteNome, limite },
+        usuarioId,
+      );
+      return formatarResultado('buscarEmprestimos', resultado);
     },
   );
 
@@ -111,13 +171,23 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'buscarOrcamentos',
     'Busca orçamentos com itens e fornecedores associados',
     {
-      nome: z.string().optional().describe('Filtrar por nome do orçamento (busca parcial)'),
-      limite: z.number().int().min(1).max(50).optional().default(20).describe('Máximo de resultados'),
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar por nome do orçamento (busca parcial)'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
     },
     async ({ nome, limite }) => {
       await verificarPermissao(usuarioId, 'orcamentos');
       const resultado = await buscarOrcamentos({ nome, limite }, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarOrcamentos', resultado);
     },
   );
 
@@ -128,7 +198,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await verificarItensAbaixoMinimo({}, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('verificarItensAbaixoMinimo', resultado);
     },
   );
 
@@ -139,7 +209,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'categorias');
       const resultado = await buscarCategorias({}, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarCategorias', resultado);
     },
   );
 
@@ -150,7 +220,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'localizacoes');
       const resultado = await buscarLocalizacoes({}, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarLocalizacoes', resultado);
     },
   );
 
@@ -158,12 +228,15 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'buscarFornecedores',
     'Lista fornecedores cadastrados com filtro opcional por nome',
     {
-      nome: z.string().optional().describe('Filtrar por nome do fornecedor (busca parcial)'),
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar por nome do fornecedor (busca parcial)'),
     },
     async ({ nome }) => {
       await verificarPermissao(usuarioId, 'fornecedores');
       const resultado = await buscarFornecedores({ nome }, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('buscarFornecedores', resultado);
     },
   );
 
@@ -174,7 +247,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');
       const resultado = await resumoEstoque({}, usuarioId);
-      return { content: [{ type: 'text', text: JSON.stringify(resultado, null, 2) }] };
+      return formatarResultado('resumoEstoque', resultado);
     },
   );
 
