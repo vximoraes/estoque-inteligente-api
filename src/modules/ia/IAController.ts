@@ -1,3 +1,4 @@
+import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
@@ -201,8 +202,14 @@ class IAController {
         { message: error?.message, stack: error?.stack },
         'Erro no agente IA:',
       );
+
+      const mensagemErro =
+        error instanceof GraphRecursionError
+          ? 'A consulta ficou complexa demais. Tente ser mais específico.'
+          : 'Não foi possível processar sua mensagem. Tente novamente.';
+
       res.write(
-        `data: ${JSON.stringify({ type: 'error', message: 'Não foi possível processar sua mensagem. Tente novamente.' })}\n\n`,
+        `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
       );
     } finally {
       res.end();

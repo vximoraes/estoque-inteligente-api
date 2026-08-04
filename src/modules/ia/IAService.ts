@@ -2,6 +2,13 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import {
+  MODELO,
+  MAX_OUTPUT_TOKENS,
+  THINKING_BUDGET,
+  RECURSION_LIMIT,
+  MAX_RETRIES,
+} from './IAConfig.js';
 import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 
 const JANELA_CONTEXTO = 15;
@@ -95,7 +102,8 @@ export async function processarMensagem(
   cookie: string | undefined,
 ): Promise<AsyncGenerator<unknown>> {
   const apiBaseUrl =
-    process.env['API_INTERNAL_URL'] || `http://localhost:${process.env['PORT'] ?? 3010}`;
+    process.env['API_INTERNAL_URL'] ||
+    `http://localhost:${process.env['PORT'] ?? 3010}`;
 
   const mcpClient = new MultiServerMCPClient({
     mcpServers: {
@@ -114,9 +122,13 @@ export async function processarMensagem(
     const tools = await mcpClient.getTools();
 
     const llm = new ChatGoogleGenerativeAI({
-      model: process.env['GEMINI_MODEL'] ?? 'gemini-2.5-flash',
+      model: MODELO,
       apiKey: process.env['GEMINI_API_KEY'],
       temperature: 0.2,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      maxRetries: MAX_RETRIES,
+      streamUsage: true,
+      thinkingConfig: { thinkingBudget: THINKING_BUDGET },
     });
 
     const agent = createReactAgent({
@@ -127,12 +139,11 @@ export async function processarMensagem(
 
     const historicoLangChain = prepararHistorico(conversa.mensagens);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = agent.streamEvents(
       {
         messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
       },
-      { version: 'v2', recursionLimit: 10 },
+      { version: 'v2', recursionLimit: RECURSION_LIMIT },
     ) as AsyncIterable<unknown>;
 
     return wrapStreamWithCleanup(stream, mcpClient);
