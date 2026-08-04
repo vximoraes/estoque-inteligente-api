@@ -31,14 +31,17 @@ async function autenticarRequisicao(req: Request): Promise<string> {
 function resolverSessao(sessionId: string, usuarioId: string) {
   const session = MCPSessionStore.get(sessionId);
   if (!session) throw mcpError('Sessão MCP não encontrada ou expirada', 404);
-  if (session.usuarioId !== usuarioId) throw mcpError('Sessão não pertence a este usuário', 403);
+  if (session.usuarioId !== usuarioId)
+    throw mcpError('Sessão não pertence a este usuário', 403);
   return session;
 }
 
 router.post('/mcp', express.json(), async (req: Request, res: Response) => {
   try {
     const usuarioId = await autenticarRequisicao(req);
-    const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
+    const existingSessionId = req.headers['mcp-session-id'] as
+      | string
+      | undefined;
 
     if (existingSessionId) {
       const session = resolverSessao(existingSessionId, usuarioId);
@@ -46,7 +49,7 @@ router.post('/mcp', express.json(), async (req: Request, res: Response) => {
     }
 
     const server = criarMCPServer(usuarioId);
-    const port = process.env['PORT'] ?? 5000;
+    const port = process.env['PORT'] ?? 3010;
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
 
     const transport = new StreamableHTTPServerTransport({

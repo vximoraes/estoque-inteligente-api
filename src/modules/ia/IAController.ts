@@ -32,7 +32,10 @@ class IAController {
   async listarConversas(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
     const page = Math.max(1, parseInt(String(req.query['page'] ?? '1')) || 1);
-    const limit = Math.min(parseInt(String(req.query['limite'] ?? '20')) || 20, 50);
+    const limit = Math.min(
+      parseInt(String(req.query['limite'] ?? '20')) || 20,
+      50,
+    );
 
     const resultado = await ConversaModel.paginate(
       { usuario: usuarioId },
@@ -51,7 +54,10 @@ class IAController {
     const id = req.params['id'];
     const usuarioId = req.user_id;
 
-    const conversa = await ConversaModel.findOne({ _id: id, usuario: usuarioId });
+    const conversa = await ConversaModel.findOne({
+      _id: id,
+      usuario: usuarioId,
+    });
 
     if (!conversa) {
       throw new CustomError({
@@ -70,7 +76,10 @@ class IAController {
     const id = req.params['id'];
     const usuarioId = req.user_id;
 
-    const conversa = await ConversaModel.findOneAndDelete({ _id: id, usuario: usuarioId });
+    const conversa = await ConversaModel.findOneAndDelete({
+      _id: id,
+      usuario: usuarioId,
+    });
 
     if (!conversa) {
       throw new CustomError({
@@ -113,7 +122,10 @@ class IAController {
 
     const mensagemSanitizada = sanitizarEntrada(content);
 
-    const conversa = await ConversaModel.findOne({ _id: id, usuario: usuarioId });
+    const conversa = await ConversaModel.findOne({
+      _id: id,
+      usuario: usuarioId,
+    });
 
     if (!conversa) {
       throw new CustomError({
@@ -125,7 +137,7 @@ class IAController {
       });
     }
 
-    if (conversa.mensagens.length >= MAX_MENSAGENS) {
+    if (conversa.mensagens.length >= MAX_MENSAGENS - 1) {
       throw new CustomError({
         statusCode: 422,
         errorType: 'validationError',
@@ -148,12 +160,18 @@ class IAController {
     let respostaCompleta = '';
 
     try {
-      const stream = await processarMensagem(conversa, mensagemSanitizada, cookie);
+      const stream = await processarMensagem(
+        conversa,
+        mensagemSanitizada,
+        cookie,
+      );
 
       for await (const event of stream) {
         const evt = event as { event?: string; data?: Record<string, unknown> };
         if (evt.event === 'on_chat_model_stream') {
-          const chunk_data = evt.data?.['chunk'] as Record<string, unknown> | undefined;
+          const chunk_data = evt.data?.['chunk'] as
+            | Record<string, unknown>
+            | undefined;
           const raw = chunk_data?.['content'];
           let chunk = '';
           if (typeof raw === 'string') {
@@ -166,7 +184,9 @@ class IAController {
           }
           if (chunk) {
             respostaCompleta += chunk;
-            res.write(`data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`);
+            res.write(
+              `data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`,
+            );
           }
         }
       }
@@ -177,7 +197,10 @@ class IAController {
       res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     } catch (err) {
       const error = err as Error;
-      logger.error({ message: error?.message, stack: error?.stack }, 'Erro no agente IA:');
+      logger.error(
+        { message: error?.message, stack: error?.stack },
+        'Erro no agente IA:',
+      );
       res.write(
         `data: ${JSON.stringify({ type: 'error', message: 'Não foi possível processar sua mensagem. Tente novamente.' })}\n\n`,
       );

@@ -19,15 +19,24 @@ const iaMensagemRateLimiter = rateLimit({
   message: {
     error: true,
     code: 429,
-    message: 'Limite de mensagens atingido. Aguarde 1 minuto e tente novamente.',
+    message:
+      'Limite de mensagens atingido. Aguarde 1 minuto e tente novamente.',
     data: null,
     errors: [],
   },
 });
 
 router
-  .post('/ia/conversas', AuthMiddleware, asyncWrapper(IAController.criarConversa.bind(IAController)))
-  .get('/ia/conversas', AuthMiddleware, asyncWrapper(IAController.listarConversas.bind(IAController)))
+  .post(
+    '/ia/conversas',
+    AuthMiddleware,
+    asyncWrapper(IAController.criarConversa.bind(IAController)),
+  )
+  .get(
+    '/ia/conversas',
+    AuthMiddleware,
+    asyncWrapper(IAController.listarConversas.bind(IAController)),
+  )
   .get(
     '/ia/conversas/:id',
     AuthMiddleware,
@@ -42,7 +51,7 @@ router
     '/ia/conversas/:id/mensagens',
     AuthMiddleware,
     iaMensagemRateLimiter,
-    IAController.enviarMensagem.bind(IAController),
+    asyncWrapper(IAController.enviarMensagem.bind(IAController)),
   );
 
 export default router;
