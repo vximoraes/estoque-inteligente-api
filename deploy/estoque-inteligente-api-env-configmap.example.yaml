@@ -79,8 +79,9 @@ data:
   GEMINI_MODEL: 'gemini-3.5-flash-lite'
   # Teto de tokens de saída por chamada ao modelo (contenção de custo)
   IA_MAX_OUTPUT_TOKENS: '1536'
-  # 0 desativa o "thinking" do Gemini (cobrado como output, invisível ao usuário)
-  IA_THINKING_BUDGET: '0'
+  # Orçamento de "thinking" do Gemini. gemini-3.5-flash-lite rejeita 0 (400 Bad
+  # Request) — usar um valor fixo baixo em vez de tentar desativar.
+  IA_THINKING_BUDGET: '512'
   # Nº máximo de passos do agente ReAct por mensagem
   IA_RECURSION_LIMIT: '6'
   # Timeout de uma resposta do agente, em milissegundos

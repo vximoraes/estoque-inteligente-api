@@ -4,7 +4,12 @@ export const MAX_OUTPUT_TOKENS = Number(
   process.env['IA_MAX_OUTPUT_TOKENS'] ?? 1536,
 );
 
-export const THINKING_BUDGET = Number(process.env['IA_THINKING_BUDGET'] ?? 0);
+// gemini-3.5-flash-lite rejeita thinkingBudget: 0 com 400 Bad Request (INVALID_ARGUMENT) —
+// confirmado direto na API. Aceita -1 (dinâmico) ou um orçamento fixo positivo.
+// 512 é o menor valor testado que a API aceita sem erro para esse modelo.
+export const THINKING_BUDGET = Number(
+  process.env['IA_THINKING_BUDGET'] ?? 512,
+);
 
 export const RECURSION_LIMIT = Number(process.env['IA_RECURSION_LIMIT'] ?? 6);
 
