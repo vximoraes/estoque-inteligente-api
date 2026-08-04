@@ -13,6 +13,16 @@ import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 
 const JANELA_CONTEXTO = 15;
 
+const CANARIOS_VAZAMENTO = [
+  '<assistente_estoque_config>',
+  '<injection_resistance>',
+  '<analysis_and_reasoning>',
+];
+
+export function contemVazamentoDoPrompt(texto: string): boolean {
+  return CANARIOS_VAZAMENTO.some((canario) => texto.includes(canario));
+}
+
 const SYSTEM_PROMPT = `<assistente_estoque_config>
 
 <identity>

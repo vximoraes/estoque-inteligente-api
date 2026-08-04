@@ -1,6 +1,6 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
-import { processarMensagem } from './IAService.js';
+import { processarMensagem, contemVazamentoDoPrompt } from './IAService.js';
 import {
   TIMEOUT_MS,
   MODELO,
@@ -244,6 +244,15 @@ class IAController {
         } else if (evt.event === 'on_tool_end') {
           uso.ferramentasChamadas += 1;
         }
+      }
+
+      if (contemVazamentoDoPrompt(respostaCompleta)) {
+        logger.warn(
+          { usuario: usuarioId, conversa: id },
+          'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
+        );
+        respostaCompleta =
+          '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações, empréstimos ou orçamentos?';
       }
 
       conversa.mensagens.push({ role: 'assistant', content: respostaCompleta });
