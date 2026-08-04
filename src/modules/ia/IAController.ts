@@ -1,6 +1,7 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
+import { TIMEOUT_MS } from './IAConfig.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
 import logger from '../../utils/logger.js';
 import type { Response } from 'express';
@@ -158,6 +159,11 @@ class IAController {
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
+    const abortCliente = new AbortController();
+    res.on('close', () => abortCliente.abort(new Error('cliente_desconectou')));
+    const timeoutSignal = AbortSignal.timeout(TIMEOUT_MS);
+    const signal = AbortSignal.any([timeoutSignal, abortCliente.signal]);
+
     let respostaCompleta = '';
 
     try {
@@ -165,6 +171,7 @@ class IAController {
         conversa,
         mensagemSanitizada,
         cookie,
+        signal,
       );
 
       for await (const event of stream) {
@@ -203,14 +210,30 @@ class IAController {
         'Erro no agente IA:',
       );
 
-      const mensagemErro =
-        error instanceof GraphRecursionError
-          ? 'A consulta ficou complexa demais. Tente ser mais específico.'
-          : 'Não foi possível processar sua mensagem. Tente novamente.';
+      if (respostaCompleta) {
+        conversa.mensagens.push({
+          role: 'assistant',
+          content: respostaCompleta,
+        });
+      }
+      await conversa.save().catch((saveErr: Error) => {
+        logger.error(
+          { message: saveErr?.message },
+          'Erro ao salvar conversa após falha do agente IA:',
+        );
+      });
 
-      res.write(
-        `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
-      );
+      if (!abortCliente.signal.aborted) {
+        const mensagemErro = timeoutSignal.aborted
+          ? 'A consulta demorou demais e foi interrompida.'
+          : error instanceof GraphRecursionError
+            ? 'A consulta ficou complexa demais. Tente ser mais específico.'
+            : 'Não foi possível processar sua mensagem. Tente novamente.';
+
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
+        );
+      }
     } finally {
       res.end();
     }

@@ -100,6 +100,7 @@ export async function processarMensagem(
   conversa: ConversaDocument,
   novaMensagem: string,
   cookie: string | undefined,
+  signal: AbortSignal,
 ): Promise<AsyncGenerator<unknown>> {
   const apiBaseUrl =
     process.env['API_INTERNAL_URL'] ||
@@ -143,7 +144,7 @@ export async function processarMensagem(
       {
         messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
       },
-      { version: 'v2', recursionLimit: RECURSION_LIMIT },
+      { version: 'v2', recursionLimit: RECURSION_LIMIT, signal },
     ) as AsyncIterable<unknown>;
 
     return wrapStreamWithCleanup(stream, mcpClient);
