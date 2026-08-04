@@ -1,8 +1,9 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
-import { TIMEOUT_MS, MODELO } from './IAConfig.js';
-import { registrarUso } from './IAUsoService.js';
+import { TIMEOUT_MS, MODELO, ORCAMENTO_TOKENS_DIA } from './IAConfig.js';
+import { registrarUso, tokensUsadosHoje } from './IAUsoService.js';
+import { iniciarStream, finalizarStream } from './IALimites.js';
 import type { FinalizadoPor } from './IAUsoModel.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
 import logger from '../../utils/logger.js';
@@ -151,6 +152,27 @@ class IAController {
       });
     }
 
+    if ((await tokensUsadosHoje(usuarioId as string)) >= ORCAMENTO_TOKENS_DIA) {
+      throw new CustomError({
+        statusCode: 429,
+        errorType: 'rateLimit',
+        field: 'ia',
+        details: [],
+        customMessage:
+          'Você atingiu o limite diário de uso do assistente. Tente novamente amanhã.',
+      });
+    }
+
+    if (!iniciarStream(usuarioId as string)) {
+      throw new CustomError({
+        statusCode: 429,
+        errorType: 'rateLimit',
+        field: 'ia',
+        details: [],
+        customMessage: 'Você já tem uma consulta em andamento.',
+      });
+    }
+
     const cookie = req.headers.cookie;
 
     conversa.mensagens.push({ role: 'user', content: mensagemSanitizada });
@@ -293,6 +315,7 @@ class IAController {
         finalizadoPor,
       });
 
+      finalizarStream(usuarioId as string);
       res.end();
     }
   }
