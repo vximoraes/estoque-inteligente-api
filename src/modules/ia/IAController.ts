@@ -1,7 +1,9 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem } from './IAService.js';
-import { TIMEOUT_MS } from './IAConfig.js';
+import { TIMEOUT_MS, MODELO } from './IAConfig.js';
+import { registrarUso } from './IAUsoService.js';
+import type { FinalizadoPor } from './IAUsoModel.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
 import logger from '../../utils/logger.js';
 import type { Response } from 'express';
@@ -165,6 +167,16 @@ class IAController {
     const signal = AbortSignal.any([timeoutSignal, abortCliente.signal]);
 
     let respostaCompleta = '';
+    let erroOcorrido: Error | null = null;
+    const inicioMs = Date.now();
+    const uso = {
+      tokensEntrada: 0,
+      tokensSaida: 0,
+      tokensTotais: 0,
+      tokensCacheLeitura: 0,
+      passosLlm: 0,
+      ferramentasChamadas: 0,
+    };
 
     try {
       const stream = await processarMensagem(
@@ -196,6 +208,28 @@ class IAController {
               `data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`,
             );
           }
+        } else if (evt.event === 'on_chat_model_end') {
+          const output = evt.data?.['output'] as
+            | {
+                usage_metadata?: {
+                  input_tokens?: number;
+                  output_tokens?: number;
+                  total_tokens?: number;
+                  input_token_details?: { cache_read?: number };
+                };
+              }
+            | undefined;
+          const usage = output?.usage_metadata;
+          if (usage) {
+            uso.tokensEntrada += usage.input_tokens ?? 0;
+            uso.tokensSaida += usage.output_tokens ?? 0;
+            uso.tokensTotais += usage.total_tokens ?? 0;
+            uso.tokensCacheLeitura +=
+              usage.input_token_details?.cache_read ?? 0;
+            uso.passosLlm += 1;
+          }
+        } else if (evt.event === 'on_tool_end') {
+          uso.ferramentasChamadas += 1;
         }
       }
 
@@ -204,9 +238,9 @@ class IAController {
 
       res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     } catch (err) {
-      const error = err as Error;
+      erroOcorrido = err as Error;
       logger.error(
-        { message: error?.message, stack: error?.stack },
+        { message: erroOcorrido?.message, stack: erroOcorrido?.stack },
         'Erro no agente IA:',
       );
 
@@ -226,7 +260,7 @@ class IAController {
       if (!abortCliente.signal.aborted) {
         const mensagemErro = timeoutSignal.aborted
           ? 'A consulta demorou demais e foi interrompida.'
-          : error instanceof GraphRecursionError
+          : erroOcorrido instanceof GraphRecursionError
             ? 'A consulta ficou complexa demais. Tente ser mais específico.'
             : 'Não foi possível processar sua mensagem. Tente novamente.';
 
@@ -235,6 +269,30 @@ class IAController {
         );
       }
     } finally {
+      const finalizadoPor: FinalizadoPor = abortCliente.signal.aborted
+        ? 'cancelado'
+        : timeoutSignal.aborted
+          ? 'tempo_esgotado'
+          : erroOcorrido instanceof GraphRecursionError
+            ? 'limite_passos'
+            : erroOcorrido
+              ? 'erro'
+              : 'concluido';
+
+      await registrarUso({
+        usuarioId: usuarioId as string,
+        conversaId: id as string,
+        modelo: MODELO,
+        tokensEntrada: uso.tokensEntrada,
+        tokensSaida: uso.tokensSaida,
+        tokensTotais: uso.tokensTotais,
+        tokensCacheLeitura: uso.tokensCacheLeitura,
+        passosLlm: uso.passosLlm,
+        ferramentasChamadas: uso.ferramentasChamadas,
+        duracaoMs: Date.now() - inicioMs,
+        finalizadoPor,
+      });
+
       res.end();
     }
   }
