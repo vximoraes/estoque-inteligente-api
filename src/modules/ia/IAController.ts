@@ -4,29 +4,24 @@ import { processarMensagem } from './IAService.js';
 import { TIMEOUT_MS, MODELO, ORCAMENTO_TOKENS_DIA } from './IAConfig.js';
 import { registrarUso, tokensUsadosHoje } from './IAUsoService.js';
 import { iniciarStream, finalizarStream } from './IALimites.js';
+import { EnviarMensagemSchema, CriarConversaSchema } from './IASchema.js';
+import {
+  ConversaIdSchema,
+  ListarConversasQuerySchema,
+} from './IAQuerySchema.js';
 import type { FinalizadoPor } from './IAUsoModel.js';
 import { CustomError, CommonResponse } from '../../utils/helpers/index.js';
 import logger from '../../utils/logger.js';
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
-const MAX_CONTENT_LENGTH = 2000;
-
-function sanitizarEntrada(raw: unknown): string {
-  return String(raw)
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
-    .trim()
-    .slice(0, MAX_CONTENT_LENGTH);
-}
-
 class IAController {
   async criarConversa(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
-    const body = req.body as Record<string, unknown> | undefined;
-    const mensagem_inicial = body?.['mensagem_inicial'];
+    const { mensagem_inicial } = CriarConversaSchema.parse(req.body ?? {});
 
     const titulo = mensagem_inicial
-      ? String(mensagem_inicial).trim().slice(0, 60)
+      ? mensagem_inicial.slice(0, 60)
       : 'Nova conversa';
 
     const conversa = await ConversaModel.create({ usuario: usuarioId, titulo });
@@ -36,17 +31,13 @@ class IAController {
 
   async listarConversas(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
-    const page = Math.max(1, parseInt(String(req.query['page'] ?? '1')) || 1);
-    const limit = Math.min(
-      parseInt(String(req.query['limite'] ?? '20')) || 20,
-      50,
-    );
+    const { page, limite } = ListarConversasQuerySchema.parse(req.query ?? {});
 
     const resultado = await ConversaModel.paginate(
       { usuario: usuarioId },
       {
         page,
-        limit,
+        limit: limite,
         select: '_id titulo atualizada_em criada_em',
         sort: { atualizada_em: -1 },
       },
@@ -56,7 +47,8 @@ class IAController {
   }
 
   async obterConversa(req: AuthenticatedRequest, res: Response) {
-    const id = req.params['id'];
+    const id = req.params['id'] as string;
+    ConversaIdSchema.parse(id);
     const usuarioId = req.user_id;
 
     const conversa = await ConversaModel.findOne({
@@ -78,7 +70,8 @@ class IAController {
   }
 
   async deletarConversa(req: AuthenticatedRequest, res: Response) {
-    const id = req.params['id'];
+    const id = req.params['id'] as string;
+    ConversaIdSchema.parse(id);
     const usuarioId = req.user_id;
 
     const conversa = await ConversaModel.findOneAndDelete({
@@ -100,32 +93,12 @@ class IAController {
   }
 
   async enviarMensagem(req: AuthenticatedRequest, res: Response) {
-    const id = req.params['id'];
+    const id = req.params['id'] as string;
+    ConversaIdSchema.parse(id);
     const usuarioId = req.user_id;
-    const body = req.body as Record<string, unknown> | undefined;
-    const content = body?.['content'];
-
-    if (!content || !String(content).trim()) {
-      throw new CustomError({
-        statusCode: 400,
-        errorType: 'validationError',
-        field: 'content',
-        details: [],
-        customMessage: 'O campo content é obrigatório.',
-      });
-    }
-
-    if (String(content).trim().length > MAX_CONTENT_LENGTH) {
-      throw new CustomError({
-        statusCode: 400,
-        errorType: 'validationError',
-        field: 'content',
-        details: [],
-        customMessage: `A mensagem não pode ultrapassar ${MAX_CONTENT_LENGTH} caracteres.`,
-      });
-    }
-
-    const mensagemSanitizada = sanitizarEntrada(content);
+    const { content: mensagemSanitizada } = EnviarMensagemSchema.parse(
+      req.body ?? {},
+    );
 
     const conversa = await ConversaModel.findOne({
       _id: id,

@@ -40,6 +40,7 @@ import './modules/orcamento/orcamentoDocs.js';
 import './modules/emprestimo/emprestimoDocs.js';
 import './modules/grupo/grupoDocs.js';
 import './modules/rota/rotaDocs.js';
+import './modules/ia/iaDocs.js';
 
 dotenv.config();
 
