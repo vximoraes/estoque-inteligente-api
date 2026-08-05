@@ -1,3 +1,32 @@
+x-langfuse-env: &langfuse-env
+  DATABASE_URL: postgresql://postgres:${LANGFUSE_POSTGRES_PASSWORD}@langfuse-postgres:5432/postgres
+  SALT: ${LANGFUSE_SALT}
+  ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
+  NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT}
+  TELEMETRY_ENABLED: 'false'
+  CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+  CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+  CLICKHOUSE_USER: clickhouse
+  CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD}
+  CLICKHOUSE_CLUSTER_ENABLED: 'false'
+  REDIS_HOST: langfuse-redis
+  REDIS_PORT: '6379'
+  REDIS_AUTH: ${LANGFUSE_REDIS_AUTH}
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:${MINIO_PORT}
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY}
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY}
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:${MINIO_PORT}
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY}
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY}
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: 'true'
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+
 services:
   mongodb:
     container_name: mongodb-estoque-inteligente
@@ -56,6 +85,9 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET}
       - MINIO_BUCKET_2=${MINIO_BUCKET_2}
       - MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_BASE_URL=http://langfuse-web:3000
     env_file:
       - .env
     depends_on:
@@ -80,6 +112,119 @@ services:
     depends_on:
       - api
 
+  langfuse-postgres:
+    container_name: langfuse-postgres-estoque-inteligente
+    image: postgres:17
+    profiles: ['langfuse']
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LANGFUSE_POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - vol-langfuse-postgres:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  langfuse-clickhouse:
+    container_name: langfuse-clickhouse-estoque-inteligente
+    image: clickhouse/clickhouse-server:25.12
+    profiles: ['langfuse']
+    user: '101:101'
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD}
+    volumes:
+      - vol-langfuse-clickhouse:/var/lib/clickhouse
+      - vol-langfuse-clickhouse-logs:/var/log/clickhouse-server
+    restart: always
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+
+  langfuse-redis:
+    container_name: langfuse-redis-estoque-inteligente
+    image: redis:7
+    profiles: ['langfuse']
+    command: >
+      --requirepass ${LANGFUSE_REDIS_AUTH}
+      --maxmemory-policy noeviction
+    volumes:
+      - vol-langfuse-redis:/data
+    restart: always
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  langfuse-minio-init:
+    container_name: langfuse-minio-init-estoque-inteligente
+    image: minio/mc:latest
+    profiles: ['langfuse']
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:${MINIO_PORT} ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} &&
+      mc mb --ignore-existing local/langfuse
+      "
+    restart: 'no'
+
+  langfuse-worker:
+    container_name: langfuse-worker-estoque-inteligente
+    image: langfuse/langfuse-worker:4
+    profiles: ['langfuse']
+    environment:
+      <<: *langfuse-env
+    depends_on: &langfuse-depends-on
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio-init:
+        condition: service_completed_successfully
+    restart: always
+
+  langfuse-web:
+    container_name: langfuse-web-estoque-inteligente
+    image: langfuse/langfuse:4
+    profiles: ['langfuse']
+    ports:
+      - '127.0.0.1:${LANGFUSE_WEB_PORT}:3000'
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
+      AUTH_DISABLE_SIGNUP: 'true'
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${MINIO_PUBLIC_URL}
+      LANGFUSE_INIT_ORG_ID: estoque-inteligente
+      LANGFUSE_INIT_ORG_NAME: Estoque Inteligente
+      LANGFUSE_INIT_PROJECT_ID: estoque-inteligente-api
+      LANGFUSE_INIT_PROJECT_NAME: Estoque Inteligente API
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD}
+    depends_on: *langfuse-depends-on
+    restart: always
+
 volumes:
   vol-mongodb:
   vol-minio:
+  vol-langfuse-postgres:
+  vol-langfuse-clickhouse:
+  vol-langfuse-clickhouse-logs:
+  vol-langfuse-redis:

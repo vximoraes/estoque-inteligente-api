@@ -10,6 +10,7 @@ import {
   MAX_RETRIES,
 } from './IAConfig.js';
 import type { IMensagem, ConversaDocument } from './ConversaModel.js';
+import { criarCallbacks } from './IAObservabilidade.js';
 
 const JANELA_CONTEXTO = 15;
 
@@ -155,7 +156,12 @@ export async function processarMensagem(
       {
         messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
       },
-      { version: 'v2', recursionLimit: RECURSION_LIMIT, signal },
+      {
+        version: 'v2',
+        recursionLimit: RECURSION_LIMIT,
+        signal,
+        callbacks: criarCallbacks(),
+      },
     ) as AsyncIterable<unknown>;
 
     return wrapStreamWithCleanup(stream, mcpClient);

@@ -16,26 +16,46 @@ export interface RegistrarUsoInput {
   finalizadoPor: FinalizadoPor;
 }
 
-function calcularCustoUsd(
+export function derivarTokens(
+  tokensEntrada: number,
+  tokensSaida: number,
+  tokensTotais: number,
+) {
+  const tokensPensamento = Math.max(
+    0,
+    tokensTotais - tokensEntrada - tokensSaida,
+  );
+  return {
+    tokensPensamento,
+    tokensSaidaFaturavel: tokensSaida + tokensPensamento,
+  };
+}
+
+export function calcularCustoDetalhado(
   modelo: string,
   tokensEntrada: number,
   tokensSaidaFaturavel: number,
-): number {
+): { input: number; output: number } | null {
   const preco = PRECOS[modelo];
-  if (!preco) return 0;
-  return (
-    (tokensEntrada / 1_000_000) * preco.entradaUsdPorMilhao +
-    (tokensSaidaFaturavel / 1_000_000) * preco.saidaUsdPorMilhao
-  );
+  if (!preco) return null;
+  return {
+    input: (tokensEntrada / 1_000_000) * preco.entradaUsdPorMilhao,
+    output: (tokensSaidaFaturavel / 1_000_000) * preco.saidaUsdPorMilhao,
+  };
 }
 
 export async function registrarUso(input: RegistrarUsoInput): Promise<void> {
   try {
-    const tokensPensamento = Math.max(
-      0,
-      input.tokensTotais - input.tokensEntrada - input.tokensSaida,
+    const { tokensPensamento, tokensSaidaFaturavel } = derivarTokens(
+      input.tokensEntrada,
+      input.tokensSaida,
+      input.tokensTotais,
     );
-    const tokensSaidaFaturavel = input.tokensSaida + tokensPensamento;
+    const custo = calcularCustoDetalhado(
+      input.modelo,
+      input.tokensEntrada,
+      tokensSaidaFaturavel,
+    );
 
     await IAUsoModel.create({
       usuario: input.usuarioId,
@@ -46,11 +66,7 @@ export async function registrarUso(input: RegistrarUsoInput): Promise<void> {
       tokens_totais: input.tokensTotais,
       tokens_pensamento: tokensPensamento,
       tokens_cache_leitura: input.tokensCacheLeitura,
-      custo_estimado_usd: calcularCustoUsd(
-        input.modelo,
-        input.tokensEntrada,
-        tokensSaidaFaturavel,
-      ),
+      custo_estimado_usd: custo ? custo.input + custo.output : 0,
       passos_llm: input.passosLlm,
       ferramentas_chamadas: input.ferramentasChamadas,
       duracao_ms: input.duracaoMs,

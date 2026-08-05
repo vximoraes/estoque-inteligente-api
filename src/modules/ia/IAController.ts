@@ -7,7 +7,13 @@ import {
   ORCAMENTO_TOKENS_DIA,
   MAX_CONVERSAS_POR_USUARIO,
 } from './IAConfig.js';
-import { registrarUso, tokensUsadosHoje } from './IAUsoService.js';
+import {
+  registrarUso,
+  tokensUsadosHoje,
+  derivarTokens,
+  calcularCustoDetalhado,
+} from './IAUsoService.js';
+import { comTrace } from './IAObservabilidade.js';
 import { iniciarStream, finalizarStream } from './IALimites.js';
 import { EnviarMensagemSchema, CriarConversaSchema } from './IASchema.js';
 import {
@@ -191,133 +197,165 @@ class IAController {
       ferramentasChamadas: 0,
     };
 
-    try {
-      const stream = await processarMensagem(
-        conversa,
-        mensagemSanitizada,
-        cookie,
-        signal,
-      );
+    await comTrace(
+      { usuarioId: usuarioId as string, conversaId: id as string },
+      async (registrarCusto) => {
+        try {
+          const stream = await processarMensagem(
+            conversa,
+            mensagemSanitizada,
+            cookie,
+            signal,
+          );
 
-      for await (const event of stream) {
-        const evt = event as { event?: string; data?: Record<string, unknown> };
-        if (evt.event === 'on_chat_model_stream') {
-          const chunk_data = evt.data?.['chunk'] as
-            | Record<string, unknown>
-            | undefined;
-          const raw = chunk_data?.['content'];
-          let chunk = '';
-          if (typeof raw === 'string') {
-            chunk = raw;
-          } else if (Array.isArray(raw)) {
-            chunk = (raw as Array<Record<string, unknown>>)
-              .filter((p) => p?.['type'] === 'text')
-              .map((p) => String(p['text'] ?? ''))
-              .join('');
+          for await (const event of stream) {
+            const evt = event as {
+              event?: string;
+              data?: Record<string, unknown>;
+            };
+            if (evt.event === 'on_chat_model_stream') {
+              const chunk_data = evt.data?.['chunk'] as
+                | Record<string, unknown>
+                | undefined;
+              const raw = chunk_data?.['content'];
+              let chunk = '';
+              if (typeof raw === 'string') {
+                chunk = raw;
+              } else if (Array.isArray(raw)) {
+                chunk = (raw as Array<Record<string, unknown>>)
+                  .filter((p) => p?.['type'] === 'text')
+                  .map((p) => String(p['text'] ?? ''))
+                  .join('');
+              }
+              if (chunk) {
+                respostaCompleta += chunk;
+                res.write(
+                  `data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`,
+                );
+              }
+            } else if (evt.event === 'on_chat_model_end') {
+              const output = evt.data?.['output'] as
+                | {
+                    usage_metadata?: {
+                      input_tokens?: number;
+                      output_tokens?: number;
+                      total_tokens?: number;
+                      input_token_details?: { cache_read?: number };
+                    };
+                  }
+                | undefined;
+              const usage = output?.usage_metadata;
+              if (usage) {
+                uso.tokensEntrada += usage.input_tokens ?? 0;
+                uso.tokensSaida += usage.output_tokens ?? 0;
+                uso.tokensTotais += usage.total_tokens ?? 0;
+                uso.tokensCacheLeitura +=
+                  usage.input_token_details?.cache_read ?? 0;
+                uso.passosLlm += 1;
+              }
+            } else if (evt.event === 'on_tool_end') {
+              uso.ferramentasChamadas += 1;
+            }
           }
-          if (chunk) {
-            respostaCompleta += chunk;
+
+          if (contemVazamentoDoPrompt(respostaCompleta)) {
+            logger.warn(
+              { usuario: usuarioId, conversa: id },
+              'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
+            );
+            respostaCompleta =
+              '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações, empréstimos ou orçamentos?';
+          }
+
+          conversa.mensagens.push({
+            role: 'assistant',
+            content: respostaCompleta,
+          });
+          await conversa.save();
+
+          res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+        } catch (err) {
+          erroOcorrido = err as Error;
+          logger.error(
+            { message: erroOcorrido?.message, stack: erroOcorrido?.stack },
+            'Erro no agente IA:',
+          );
+
+          if (respostaCompleta) {
+            conversa.mensagens.push({
+              role: 'assistant',
+              content: respostaCompleta,
+            });
+          }
+          await conversa.save().catch((saveErr: Error) => {
+            logger.error(
+              { message: saveErr?.message },
+              'Erro ao salvar conversa após falha do agente IA:',
+            );
+          });
+
+          if (!abortCliente.signal.aborted) {
+            const mensagemErro = timeoutSignal.aborted
+              ? 'A consulta demorou demais e foi interrompida.'
+              : erroOcorrido instanceof GraphRecursionError
+                ? 'A consulta ficou complexa demais. Tente ser mais específico.'
+                : 'Não foi possível processar sua mensagem. Tente novamente.';
+
             res.write(
-              `data: ${JSON.stringify({ type: 'token', content: chunk })}\n\n`,
+              `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
             );
           }
-        } else if (evt.event === 'on_chat_model_end') {
-          const output = evt.data?.['output'] as
-            | {
-                usage_metadata?: {
-                  input_tokens?: number;
-                  output_tokens?: number;
-                  total_tokens?: number;
-                  input_token_details?: { cache_read?: number };
-                };
-              }
-            | undefined;
-          const usage = output?.usage_metadata;
-          if (usage) {
-            uso.tokensEntrada += usage.input_tokens ?? 0;
-            uso.tokensSaida += usage.output_tokens ?? 0;
-            uso.tokensTotais += usage.total_tokens ?? 0;
-            uso.tokensCacheLeitura +=
-              usage.input_token_details?.cache_read ?? 0;
-            uso.passosLlm += 1;
-          }
-        } else if (evt.event === 'on_tool_end') {
-          uso.ferramentasChamadas += 1;
+        } finally {
+          const finalizadoPor: FinalizadoPor = abortCliente.signal.aborted
+            ? 'cancelado'
+            : timeoutSignal.aborted
+              ? 'tempo_esgotado'
+              : erroOcorrido instanceof GraphRecursionError
+                ? 'limite_passos'
+                : erroOcorrido
+                  ? 'erro'
+                  : 'concluido';
+
+          const { tokensPensamento, tokensSaidaFaturavel } = derivarTokens(
+            uso.tokensEntrada,
+            uso.tokensSaida,
+            uso.tokensTotais,
+          );
+
+          registrarCusto({
+            model: MODELO,
+            usageDetails: {
+              input: uso.tokensEntrada,
+              output: uso.tokensSaida,
+              output_reasoning: tokensPensamento,
+              total: uso.tokensTotais,
+            },
+            costDetails: calcularCustoDetalhado(
+              MODELO,
+              uso.tokensEntrada,
+              tokensSaidaFaturavel,
+            ),
+          });
+
+          await registrarUso({
+            usuarioId: usuarioId as string,
+            conversaId: id as string,
+            modelo: MODELO,
+            tokensEntrada: uso.tokensEntrada,
+            tokensSaida: uso.tokensSaida,
+            tokensTotais: uso.tokensTotais,
+            tokensCacheLeitura: uso.tokensCacheLeitura,
+            passosLlm: uso.passosLlm,
+            ferramentasChamadas: uso.ferramentasChamadas,
+            duracaoMs: Date.now() - inicioMs,
+            finalizadoPor,
+          });
+
+          finalizarStream(usuarioId as string);
+          res.end();
         }
-      }
-
-      if (contemVazamentoDoPrompt(respostaCompleta)) {
-        logger.warn(
-          { usuario: usuarioId, conversa: id },
-          'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
-        );
-        respostaCompleta =
-          '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações, empréstimos ou orçamentos?';
-      }
-
-      conversa.mensagens.push({ role: 'assistant', content: respostaCompleta });
-      await conversa.save();
-
-      res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
-    } catch (err) {
-      erroOcorrido = err as Error;
-      logger.error(
-        { message: erroOcorrido?.message, stack: erroOcorrido?.stack },
-        'Erro no agente IA:',
-      );
-
-      if (respostaCompleta) {
-        conversa.mensagens.push({
-          role: 'assistant',
-          content: respostaCompleta,
-        });
-      }
-      await conversa.save().catch((saveErr: Error) => {
-        logger.error(
-          { message: saveErr?.message },
-          'Erro ao salvar conversa após falha do agente IA:',
-        );
-      });
-
-      if (!abortCliente.signal.aborted) {
-        const mensagemErro = timeoutSignal.aborted
-          ? 'A consulta demorou demais e foi interrompida.'
-          : erroOcorrido instanceof GraphRecursionError
-            ? 'A consulta ficou complexa demais. Tente ser mais específico.'
-            : 'Não foi possível processar sua mensagem. Tente novamente.';
-
-        res.write(
-          `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
-        );
-      }
-    } finally {
-      const finalizadoPor: FinalizadoPor = abortCliente.signal.aborted
-        ? 'cancelado'
-        : timeoutSignal.aborted
-          ? 'tempo_esgotado'
-          : erroOcorrido instanceof GraphRecursionError
-            ? 'limite_passos'
-            : erroOcorrido
-              ? 'erro'
-              : 'concluido';
-
-      await registrarUso({
-        usuarioId: usuarioId as string,
-        conversaId: id as string,
-        modelo: MODELO,
-        tokensEntrada: uso.tokensEntrada,
-        tokensSaida: uso.tokensSaida,
-        tokensTotais: uso.tokensTotais,
-        tokensCacheLeitura: uso.tokensCacheLeitura,
-        passosLlm: uso.passosLlm,
-        ferramentasChamadas: uso.ferramentasChamadas,
-        duracaoMs: Date.now() - inicioMs,
-        finalizadoPor,
-      });
-
-      finalizarStream(usuarioId as string);
-      res.end();
-    }
+      },
+    );
   }
 }
 

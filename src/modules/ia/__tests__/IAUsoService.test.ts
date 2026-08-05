@@ -1,11 +1,50 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import IAUso from '../IAUsoModel.js';
-import { registrarUso, tokensUsadosHoje } from '../IAUsoService.js';
+import {
+  registrarUso,
+  tokensUsadosHoje,
+  derivarTokens,
+  calcularCustoDetalhado,
+} from '../IAUsoService.js';
 
 let mongoServer;
 const usuarioId = 'usuario-1';
 const conversaId = new mongoose.Types.ObjectId().toString();
+
+describe('derivarTokens', () => {
+  it('deriva tokens de pensamento a partir da diferença entre totais e entrada+saída', () => {
+    expect(derivarTokens(1000, 100, 1500)).toEqual({
+      tokensPensamento: 400,
+      tokensSaidaFaturavel: 500,
+    });
+  });
+
+  it('nunca retorna tokens de pensamento negativos', () => {
+    expect(derivarTokens(1000, 100, 900)).toEqual({
+      tokensPensamento: 0,
+      tokensSaidaFaturavel: 100,
+    });
+  });
+});
+
+describe('calcularCustoDetalhado', () => {
+  it('calcula input/output separadamente pela tabela de preços do modelo', () => {
+    const custo = calcularCustoDetalhado('gemini-3.5-flash-lite', 1000, 500);
+    expect(custo?.input).toBeCloseTo(0.0003, 6);
+    expect(custo?.output).toBeCloseTo(0.00125, 6);
+  });
+
+  it('retorna null para modelo sem preço cadastrado (Langfuse não infere custo em cima disso)', () => {
+    expect(calcularCustoDetalhado('modelo-desconhecido', 1000, 500)).toBeNull();
+  });
+
+  it('a soma de input+output bate com o custo_estimado_usd persistido por registrarUso', async () => {
+    const custo = calcularCustoDetalhado('gemini-3.5-flash-lite', 1000, 500);
+    const somaDetalhada = (custo?.input ?? 0) + (custo?.output ?? 0);
+    expect(somaDetalhada).toBeCloseTo(0.00155, 6);
+  });
+});
 
 describe('IAUsoService', () => {
   beforeAll(async () => {

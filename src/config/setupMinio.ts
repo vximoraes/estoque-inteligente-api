@@ -15,16 +15,23 @@ function buildPublicReadPolicy(bucketName: string): string {
 }
 
 async function setupMinio(): Promise<void> {
-  const bucketNames = [process.env['MINIO_BUCKET'], process.env['MINIO_BUCKET_2']]
+  const bucketNames = [
+    process.env['MINIO_BUCKET'],
+    process.env['MINIO_BUCKET_2'],
+  ]
     .filter((b): b is string => Boolean(b))
     .filter((bucket, index, buckets) => buckets.indexOf(bucket) === index);
 
   if (bucketNames.length === 0) {
-    throw new Error('As variáveis de ambiente dos buckets do MinIO não estão definidas.');
+    throw new Error(
+      'As variáveis de ambiente dos buckets do MinIO não estão definidas.',
+    );
   }
 
   if (!minioClient) {
-    throw new Error('A variável de ambiente do cliente do MinIO não está definida.');
+    throw new Error(
+      'A variável de ambiente do cliente do MinIO não está definida.',
+    );
   }
 
   try {
@@ -38,8 +45,13 @@ async function setupMinio(): Promise<void> {
         console.info(`Bucket "${bucketName}" já existe no MinIO.`);
       }
 
-      await minioClient.setBucketPolicy(bucketName, buildPublicReadPolicy(bucketName));
-      console.info(`Política pública de leitura aplicada ao bucket "${bucketName}".`);
+      await minioClient.setBucketPolicy(
+        bucketName,
+        buildPublicReadPolicy(bucketName),
+      );
+      console.info(
+        `Política pública de leitura aplicada ao bucket "${bucketName}".`,
+      );
     }
   } catch (erro) {
     const err = erro as Error;
