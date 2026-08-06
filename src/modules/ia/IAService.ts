@@ -11,6 +11,7 @@ import {
 } from './IAConfig.js';
 import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 import { criarCallbacks } from './IAObservabilidade.js';
+import { limparCaracteresInvisiveis } from './IASchema.js';
 
 const JANELA_CONTEXTO = 15;
 
@@ -21,7 +22,10 @@ const CANARIOS_VAZAMENTO = [
 ];
 
 export function contemVazamentoDoPrompt(texto: string): boolean {
-  return CANARIOS_VAZAMENTO.some((canario) => texto.includes(canario));
+  const textoNormalizado = limparCaracteresInvisiveis(texto);
+  return CANARIOS_VAZAMENTO.some((canario) =>
+    textoNormalizado.includes(canario),
+  );
 }
 
 const SYSTEM_PROMPT = `<assistente_estoque_config>

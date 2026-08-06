@@ -15,9 +15,7 @@ describe('EnviarMensagemSchema', () => {
 
   it('deve rejeitar conteúdo vazio após sanitização', () => {
     expect(() => EnviarMensagemSchema.parse({ content: '   ' })).toThrow();
-    expect(() =>
-      EnviarMensagemSchema.parse({ content: '\x00\x1f' }),
-    ).toThrow();
+    expect(() => EnviarMensagemSchema.parse({ content: '\x00\x1f' })).toThrow();
   });
 
   it('deve rejeitar conteúdo ausente', () => {
@@ -40,6 +38,24 @@ describe('EnviarMensagemSchema', () => {
     const conteudo = 'a'.repeat(2000);
     const resultado = EnviarMensagemSchema.parse({ content: conteudo });
     expect(resultado.content.length).toBe(2000);
+  });
+
+  it('deve remover caracteres Unicode invisíveis usados para ofuscar payloads', () => {
+    // zero-width space, zero-width non-joiner, right-to-left override,
+    // pop directional formatting e BOM intercalados no texto (escapes
+    // explícitos de propósito, não colar o glifo invisível no source).
+    const codigos = [
+      0x4f, 0x6c, 0x200b, 0x61, 0x200c, 0x20, 0x202e, 0x6d, 0x75, 0x6e, 0x64,
+      0x6f, 0x202c, 0x20, 0xfeff, 0x21,
+    ];
+    const conteudo = String.fromCharCode(...codigos);
+    const resultado = EnviarMensagemSchema.parse({ content: conteudo });
+    expect(resultado.content).toBe('Ola mundo !');
+  });
+
+  it('deve rejeitar conteúdo composto só por caracteres invisíveis', () => {
+    const conteudo = String.fromCharCode(0x200b, 0x200c, 0x200d, 0xfeff);
+    expect(() => EnviarMensagemSchema.parse({ content: conteudo })).toThrow();
   });
 });
 

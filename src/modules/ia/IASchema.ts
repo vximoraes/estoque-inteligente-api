@@ -1,13 +1,26 @@
 import { z } from 'zod';
 
-function limparCaracteresControle(valor: string): string {
+const REGEX_CONTROLES_ASCII = new RegExp(
   // eslint-disable-next-line no-control-regex
-  return valor.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '').trim();
+  '[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]',
+  'g',
+);
+const REGEX_INVISIVEIS_UNICODE = new RegExp(
+  // eslint-disable-next-line no-misleading-character-class
+  '[\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u2064\\uFE00-\\uFE0F\\uFEFF]',
+  'g',
+);
+
+export function limparCaracteresInvisiveis(valor: string): string {
+  return valor
+    .replace(REGEX_CONTROLES_ASCII, '')
+    .replace(REGEX_INVISIVEIS_UNICODE, '')
+    .trim();
 }
 
 const conteudoIA = z
   .string()
-  .transform(limparCaracteresControle)
+  .transform(limparCaracteresInvisiveis)
   .pipe(
     z
       .string()

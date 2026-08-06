@@ -26,4 +26,12 @@ describe('contemVazamentoDoPrompt', () => {
       contemVazamentoDoPrompt('A identity do fornecedor está em análise.'),
     ).toBe(false);
   });
+
+  it('deve detectar vazamento mesmo com caracteres invisíveis intercalados no canário (ofuscação)', () => {
+    // zero-width space (U+200B) inserido no meio da tag pra tentar escapar
+    // do match por substring — escape numérico de propósito, ver IASchema.test.ts.
+    const zwsp = String.fromCharCode(0x200b);
+    const textoOfuscado = `<assistente_estoque${zwsp}_config> ...`;
+    expect(contemVazamentoDoPrompt(textoOfuscado)).toBe(true);
+  });
 });
