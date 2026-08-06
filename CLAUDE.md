@@ -42,12 +42,13 @@ index.ts                # barrel export do que está acima
 Módulos: `usuario`, `categoria`, `localizacao`, `item`, `estoque`, `fornecedor`, `movimentacao`, `notificacao`, `orcamento`, `emprestimo`, `grupo`, `rota`, `ia`. Novas funcionalidades CRUD devem seguir essa mesma divisão de arquivos em vez de introduzir outra camada.
 
 **Autenticação & permissões** (duas camadas independentes, ambas exigidas nas rotas protegidas):
+
 - Autenticação de sessão é [better-auth](https://better-auth.com) (`src/config/auth.ts`), montada em `/api/auth/*` via `toNodeHandler`. Sessões ficam no Mongo, baseadas em cookie, com Google OAuth + e-mail/senha. `AuthMiddleware.ts` checa se existe uma sessão válida.
 - Autorização granular é um RBAC próprio: `AuthPermission.ts` busca a rota requisitada na coleção `rota` (módulo `rota`), checa se o método HTTP está habilitado nela, e então chama `PermissionService` para verificar se o `grupo` do usuário tem essa permissão. Adicionar uma rota nova geralmente exige um registro/seed correspondente de `Rota`, senão ela retorna 404/403 mesmo com o código acessível.
 
 **Respostas & erros**: controllers retornam via `CommonResponse` (`src/utils/helpers/CommonResponse.ts`) para um envelope consistente; falhas lançam `CustomError` (`src/utils/helpers/CustomError.ts`), capturado centralmente pelo middleware `errorHandler` montado por último em `app.ts`.
 
-**Camada de IA/MCP** (`src/modules/ia/`, `src/libs/mcp/`): um assistente de chat embutido no app, construído com LangChain (`@langchain/core`, `@langchain/google-genai`, `@langchain/ollama`), que acessa os próprios dados do app através de um servidor MCP (`@modelcontextprotocol/sdk`) exposto em rotas registradas em `src/libs/mcp/mcpRoutes.ts`. As ferramentas MCP ficam em `src/libs/mcp/tools/` (um arquivo por ferramenta de consulta somente-leitura, ex.: `buscarItens.ts`, `resumoEstoque.ts`) — são as ferramentas que o LLM pode chamar, não endpoints HTTP para o front-end.
+**Camada de IA/MCP** (`src/modules/ia/`, `src/libs/mcp/`): um assistente de chat embutido no app, construído com LangChain (`@langchain/core`, `@langchain/google-genai`), que acessa os próprios dados do app através de um servidor MCP (`@modelcontextprotocol/sdk`) exposto em rotas registradas em `src/libs/mcp/mcpRoutes.ts`. As ferramentas MCP ficam em `src/libs/mcp/tools/` (um arquivo por ferramenta de consulta somente-leitura, ex.: `buscarItens.ts`, `resumoEstoque.ts`) — são as ferramentas que o LLM pode chamar, não endpoints HTTP para o front-end.
 
 **Docs**: a UI do Swagger/OpenAPI é servida em `/docs` (Scalar), gerada a partir dos arquivos `*Docs.ts` registrados em `src/utils/openapi/registry.ts`.
 
