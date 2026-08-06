@@ -19,6 +19,7 @@ export interface IIAUso {
   custo_estimado_usd: number;
   passos_llm: number;
   ferramentas_chamadas: number;
+  ferramentas: string[];
   duracao_ms: number;
   finalizado_por: FinalizadoPor;
   criado_em?: Date;
@@ -43,6 +44,7 @@ const iaUsoSchema = new mongoose.Schema<IAUsoDocument>(
     custo_estimado_usd: { type: Number, default: 0 },
     passos_llm: { type: Number, default: 0 },
     ferramentas_chamadas: { type: Number, default: 0 },
+    ferramentas: { type: [String], default: [] },
     duracao_ms: { type: Number, default: 0 },
     finalizado_por: {
       type: String,

@@ -195,7 +195,9 @@ class IAController {
       tokensCacheLeitura: 0,
       passosLlm: 0,
       ferramentasChamadas: 0,
+      ferramentas: [] as string[],
     };
+    const inicioFerramentas = new Map<string, number>();
 
     await comTrace(
       { usuarioId: usuarioId as string, conversaId: id as string },
@@ -211,6 +213,8 @@ class IAController {
           for await (const event of stream) {
             const evt = event as {
               event?: string;
+              name?: string;
+              run_id?: string;
               data?: Record<string, unknown>;
             };
             if (evt.event === 'on_chat_model_stream') {
@@ -253,8 +257,33 @@ class IAController {
                   usage.input_token_details?.cache_read ?? 0;
                 uso.passosLlm += 1;
               }
-            } else if (evt.event === 'on_tool_end') {
-              uso.ferramentasChamadas += 1;
+            } else if (evt.event === 'on_tool_start') {
+              if (evt.run_id) inicioFerramentas.set(evt.run_id, Date.now());
+            } else if (
+              evt.event === 'on_tool_end' ||
+              evt.event === 'on_tool_error'
+            ) {
+              const nome = evt.name ?? 'desconhecida';
+              const inicio = evt.run_id
+                ? inicioFerramentas.get(evt.run_id)
+                : undefined;
+              if (evt.run_id) inicioFerramentas.delete(evt.run_id);
+
+              if (evt.event === 'on_tool_end') {
+                uso.ferramentasChamadas += 1;
+                uso.ferramentas.push(nome);
+              }
+
+              logger.info(
+                {
+                  usuario: usuarioId,
+                  conversa: id,
+                  ferramenta: nome,
+                  duracaoFerramentaMs: inicio ? Date.now() - inicio : null,
+                  sucesso: evt.event === 'on_tool_end',
+                },
+                'IA: tool MCP chamada',
+              );
             }
           }
 
@@ -347,6 +376,7 @@ class IAController {
             tokensCacheLeitura: uso.tokensCacheLeitura,
             passosLlm: uso.passosLlm,
             ferramentasChamadas: uso.ferramentasChamadas,
+            ferramentas: uso.ferramentas,
             duracaoMs: Date.now() - inicioMs,
             finalizadoPor,
           });

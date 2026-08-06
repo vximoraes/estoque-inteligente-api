@@ -12,6 +12,7 @@ export interface RegistrarUsoInput {
   tokensCacheLeitura: number;
   passosLlm: number;
   ferramentasChamadas: number;
+  ferramentas: string[];
   duracaoMs: number;
   finalizadoPor: FinalizadoPor;
 }
@@ -69,6 +70,7 @@ export async function registrarUso(input: RegistrarUsoInput): Promise<void> {
       custo_estimado_usd: custo ? custo.input + custo.output : 0,
       passos_llm: input.passosLlm,
       ferramentas_chamadas: input.ferramentasChamadas,
+      ferramentas: input.ferramentas,
       duracao_ms: input.duracaoMs,
       finalizado_por: input.finalizadoPor,
     });
