@@ -40,10 +40,13 @@ import './modules/orcamento/orcamentoDocs.js';
 import './modules/emprestimo/emprestimoDocs.js';
 import './modules/grupo/grupoDocs.js';
 import './modules/rota/rotaDocs.js';
+import './modules/ia/iaDocs.js';
 
 dotenv.config();
 
 const app = express();
+
+app.set('trust proxy', 1);
 
 // Factory async em vez de top-level await: top-level await quebra o import do módulo sob Jest/Babel (CJS).
 export async function bootstrap(): Promise<express.Express> {
@@ -52,6 +55,7 @@ export async function bootstrap(): Promise<express.Express> {
   await setupMinio();
   iniciarJobEmprestimosAtrasados();
 
+  app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
   app.get('/', (req, res) => res.redirect('/docs'));
   app.get('/openapi.json', (req, res) => res.json(generateSpec()));
   app.use('/docs', apiReference({ url: '/openapi.json' }));

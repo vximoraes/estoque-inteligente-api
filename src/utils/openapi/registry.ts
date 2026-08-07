@@ -1,4 +1,8 @@
-import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import {
+  extendZodWithOpenApi,
+  OpenAPIRegistry,
+  OpenApiGeneratorV3,
+} from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
 extendZodWithOpenApi(z);
@@ -20,9 +24,17 @@ export const generateSpec = () => {
       version: '1.0.0',
       description:
         'API para gestão de estoque inteligente.\n\nAutentique com JWT em /login antes de usar as rotas protegidas.',
-      contact: { name: 'Equipe de Desenvolvimento', email: 'dev@estoque-inteligente.com' },
+      contact: {
+        name: 'Equipe de Desenvolvimento',
+        email: 'dev@estoque-inteligente.com',
+      },
     },
-    servers: [{ url: process.env.SWAGGER_DEV_URL || `http://localhost:${process.env.PORT}` }],
+    servers: [
+      {
+        url:
+          process.env.SWAGGER_DEV_URL || `http://localhost:${process.env.PORT}`,
+      },
+    ],
   });
 
   return {
@@ -32,15 +44,37 @@ export const generateSpec = () => {
       { name: 'Usuários', description: 'Rotas para gestão de usuários' },
       { name: 'Itens', description: 'Rotas para gestão de itens do estoque' },
       { name: 'Categorias', description: 'Rotas para gestão de categorias' },
-      { name: 'Fornecedores', description: 'Rotas para gestão de fornecedores' },
+      {
+        name: 'Fornecedores',
+        description: 'Rotas para gestão de fornecedores',
+      },
       { name: 'Localização', description: 'Rotas para gestão de localização' },
       { name: 'Estoque', description: 'Rotas para gestão de estoque' },
-      { name: 'Movimentação', description: 'Rotas para gestão de movimentações' },
+      {
+        name: 'Movimentação',
+        description: 'Rotas para gestão de movimentações',
+      },
       { name: 'Orçamentos', description: 'Rotas para gestão de orçamentos' },
-      { name: 'Notificações', description: 'Rotas para gestão de notificações' },
-      { name: 'Emprestimos', description: 'Rotas para gestão de emprestimos de itens' },
-      { name: 'Grupos', description: 'Rotas para gestão de grupos e permissões' },
-      { name: 'Rotas', description: 'Rotas para gestão de rotas de acesso do sistema' },
+      {
+        name: 'Notificações',
+        description: 'Rotas para gestão de notificações',
+      },
+      {
+        name: 'Emprestimos',
+        description: 'Rotas para gestão de emprestimos de itens',
+      },
+      {
+        name: 'Grupos',
+        description: 'Rotas para gestão de grupos e permissões',
+      },
+      {
+        name: 'Rotas',
+        description: 'Rotas para gestão de rotas de acesso do sistema',
+      },
+      {
+        name: 'IA',
+        description: 'Rotas do assistente de IA (chat sobre o estoque)',
+      },
     ],
     paths: allPaths,
     components: {

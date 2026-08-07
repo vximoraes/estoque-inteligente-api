@@ -4,6 +4,7 @@ import {
   CustomError,
   HttpStatusCodes,
   messages,
+  urlPublicaUsuario,
 } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
@@ -96,7 +97,7 @@ class UsuarioService {
     }
     try {
       const data = await this.repository.atualizar(id, {
-        fotoPerfil: `${process.env['MINIO_PUBLIC_URL']}/${process.env['MINIO_BUCKET']}/${id}.jpeg`,
+        fotoPerfil: urlPublicaUsuario(id),
       });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;

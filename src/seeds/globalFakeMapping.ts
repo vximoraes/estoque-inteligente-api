@@ -184,6 +184,30 @@ export const fakeMappings = {
     criada_em: () => new Date().toISOString(),
     atualizada_em: () => new Date().toISOString(),
   },
+
+  IAUso: {
+    usuario: () => new mongoose.Types.ObjectId().toString(),
+    conversa: () => new mongoose.Types.ObjectId().toString(),
+    modelo: () => 'gemini-3.5-flash-lite',
+    tokens_entrada: () => fakebr.random.number({ min: 100, max: 5000 }),
+    tokens_saida: () => fakebr.random.number({ min: 10, max: 1000 }),
+    tokens_totais: () => fakebr.random.number({ min: 200, max: 6000 }),
+    tokens_pensamento: () => fakebr.random.number({ min: 0, max: 1000 }),
+    tokens_cache_leitura: () => fakebr.random.number({ min: 0, max: 1000 }),
+    custo_estimado_usd: () => Number(fakebr.commerce.price(0, 1, 6)),
+    passos_llm: () => fakebr.random.number({ min: 1, max: 5 }),
+    ferramentas_chamadas: () => fakebr.random.number({ min: 0, max: 5 }),
+    duracao_ms: () => fakebr.random.number({ min: 200, max: 10000 }),
+    finalizado_por: () =>
+      fakebr.helpers.randomize([
+        'concluido',
+        'erro',
+        'cancelado',
+        'tempo_esgotado',
+        'limite_passos',
+      ]),
+    criado_em: () => new Date().toISOString(),
+  },
 };
 
 // Retorna o mapping global, consolidando os mappings comuns e específicos.
@@ -223,8 +247,14 @@ function getSchemaFieldNames(schema: Record<string, unknown>) {
 // Valida se o mapping fornecido cobre todos os campos do model.
 // Retorna um array com os nomes dos campos que estiverem faltando.
 
-function validateModelMapping(model: Record<string, unknown>, modelName: string, mapping: Record<string, unknown>) {
-  const fields = getSchemaFieldNames(model['schema'] as Record<string, unknown>);
+function validateModelMapping(
+  model: Record<string, unknown>,
+  modelName: string,
+  mapping: Record<string, unknown>,
+) {
+  const fields = getSchemaFieldNames(
+    model['schema'] as Record<string, unknown>,
+  );
   const missing = fields.filter((field) => !(field in mapping));
 
   if (missing.length > 0) {
@@ -251,7 +281,11 @@ async function validateAllMappings() {
       ...fakeMappings.common,
       ...(fm2[name] || {}),
     };
-    const missing = validateModelMapping(model as Record<string, unknown>, name, mapping);
+    const missing = validateModelMapping(
+      model as Record<string, unknown>,
+      name,
+      mapping,
+    );
     if (missing.length > 0) {
       (totalMissing as Record<string, unknown>)[name] = missing;
     }

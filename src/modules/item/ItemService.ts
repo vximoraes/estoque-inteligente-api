@@ -3,6 +3,7 @@ import {
   CustomError,
   HttpStatusCodes,
   messages,
+  urlPublicaItem,
 } from '../../utils/helpers/index.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import minioClient from '../../config/MinIO.js';
@@ -36,16 +37,18 @@ class ItemService {
     return await this.repository.stats(req);
   }
 
-  async atualizar(id: string, parsedData: ItemUpdate, req: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: ItemUpdate,
+    req: AuthenticatedRequest,
+  ) {
     await this.ensureItemExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
     }
 
-    const { quantidade: _quantidade, ...dataWithoutQuantidade } = parsedData as Record<
-      string,
-      unknown
-    >;
+    const { quantidade: _quantidade, ...dataWithoutQuantidade } =
+      parsedData as Record<string, unknown>;
 
     return await this.repository.atualizar(id, dataWithoutQuantidade, req);
   }
@@ -87,7 +90,10 @@ class ItemService {
     return itemExistente;
   }
 
-  private async validateCategoria(categoriaId: string, _req: AuthenticatedRequest) {
+  private async validateCategoria(
+    categoriaId: string,
+    _req: AuthenticatedRequest,
+  ) {
     const categoria = await CategoriaModel.findOne({ _id: categoriaId });
     if (!categoria) {
       throw new CustomError({
@@ -108,7 +114,10 @@ class ItemService {
         errorType: 'badRequest',
         field: 'Foto',
         details: [
-          { path: 'Foto', message: 'Nenhum arquivo foi enviado ou o arquivo está vazio.' },
+          {
+            path: 'Foto',
+            message: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
+          },
         ],
         customMessage: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
       });
@@ -126,13 +135,19 @@ class ItemService {
       const data = await this.repository.atualizar(
         id,
         {
-          imagem: `${process.env['MINIO_PUBLIC_URL']}/${process.env['MINIO_BUCKET_2']}/${id}.jpeg`,
+          imagem: urlPublicaItem(id),
         },
         req,
       );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(process.env['MINIO_BUCKET_2']!, objectName, newFile, newFile.length, { 'Content-Type': 'image/jpeg' });
+      await minioClient.putObject(
+        process.env['MINIO_BUCKET_2']!,
+        objectName,
+        newFile,
+        newFile.length,
+        { 'Content-Type': 'image/jpeg' },
+      );
 
       return { imagem: (data as Record<string, unknown>)['imagem'] };
     } catch (err) {
