@@ -1,3 +1,4 @@
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import ItemRepository from './ItemRepository.js';
 import {
   CustomError,
@@ -141,12 +142,13 @@ class ItemService {
       );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(
-        process.env['MINIO_BUCKET_2']!,
-        objectName,
-        newFile,
-        newFile.length,
-        { 'Content-Type': 'image/jpeg' },
+      await minioClient.send(
+        new PutObjectCommand({
+          Bucket: process.env['MINIO_BUCKET_2']!,
+          Key: objectName,
+          Body: newFile,
+          ContentType: 'image/jpeg',
+        }),
       );
 
       return { imagem: (data as Record<string, unknown>)['imagem'] };
@@ -157,7 +159,12 @@ class ItemService {
 
   async deletarFoto(req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    await minioClient.removeObject(process.env['MINIO_BUCKET_2']!, objectName);
+    await minioClient.send(
+      new DeleteObjectCommand({
+        Bucket: process.env['MINIO_BUCKET_2']!,
+        Key: objectName,
+      }),
+    );
     const data = await this.repository.atualizar(id, { imagem: '' }, req);
 
     return { imagem: (data as Record<string, unknown>)['imagem'] };

@@ -1,3 +1,8 @@
+import {
+  HeadBucketCommand,
+  CreateBucketCommand,
+  PutBucketPolicyCommand,
+} from '@aws-sdk/client-s3';
 import minioClient from './MinIO.js';
 
 function buildPublicReadPolicy(bucketName: string): string {
@@ -12,6 +17,22 @@ function buildPublicReadPolicy(bucketName: string): string {
       },
     ],
   });
+}
+
+async function bucketExists(bucketName: string): Promise<boolean> {
+  try {
+    await minioClient.send(new HeadBucketCommand({ Bucket: bucketName }));
+    return true;
+  } catch (erro) {
+    const err = erro as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    if (err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404) {
+      return false;
+    }
+    throw erro;
+  }
 }
 
 async function setupMinio(): Promise<void> {
@@ -35,26 +56,24 @@ async function setupMinio(): Promise<void> {
     );
   }
 
-  if (!minioClient) {
-    throw new Error(
-      'A variável de ambiente do cliente do MinIO não está definida.',
-    );
-  }
-
   try {
     for (const bucketName of bucketNames) {
-      const exists = await minioClient.bucketExists(bucketName);
+      const exists = await bucketExists(bucketName);
 
       if (!exists) {
-        await minioClient.makeBucket(bucketName);
+        await minioClient.send(
+          new CreateBucketCommand({ Bucket: bucketName }),
+        );
         console.info(`Bucket "${bucketName}" criado com sucesso no MinIO.`);
       } else {
         console.info(`Bucket "${bucketName}" já existe no MinIO.`);
       }
 
-      await minioClient.setBucketPolicy(
-        bucketName,
-        buildPublicReadPolicy(bucketName),
+      await minioClient.send(
+        new PutBucketPolicyCommand({
+          Bucket: bucketName,
+          Policy: buildPublicReadPolicy(bucketName),
+        }),
       );
       console.info(
         `Política pública de leitura aplicada ao bucket "${bucketName}".`,

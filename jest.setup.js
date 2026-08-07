@@ -1,17 +1,10 @@
 process.env.NODE_ENV = 'test';
 
-// Mock do MinIO para evitar problemas nos testes
+// Mock do client S3 (MinIO) para evitar problemas nos testes
 jest.mock('./src/config/MinIO.js', () => ({
   __esModule: true,
   default: {
-    putObject: jest.fn().mockResolvedValue({
-      etag: 'mocked-etag',
-      versionId: null,
-    }),
-    bucketExists: jest.fn().mockResolvedValue(true),
-    makeBucket: jest.fn().mockResolvedValue(),
-    setBucketPolicy: jest.fn().mockResolvedValue(),
-    removeObject: jest.fn().mockResolvedValue(),
+    send: jest.fn().mockResolvedValue({}),
   },
 }));
 

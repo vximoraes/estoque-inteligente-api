@@ -1,9 +1,9 @@
-import * as Minio from 'minio';
+import { S3Client } from '@aws-sdk/client-s3';
 import 'dotenv/config';
 
 const requiredMinioVars = [
   'MINIO_ENDPOINT',
-  'MINIO_PORT',
+  'MINIO_REGION',
   'MINIO_ACCESS_KEY',
   'MINIO_SECRET_KEY',
   'MINIO_BUCKET',
@@ -15,12 +15,14 @@ for (const varName of requiredMinioVars) {
   }
 }
 
-const minioClient = new Minio.Client({
-  endPoint: process.env['MINIO_ENDPOINT'] as string,
-  port: parseInt(process.env['MINIO_PORT'] as string, 10),
-  useSSL: process.env['MINIO_USE_SSL'] === 'true',
-  accessKey: process.env['MINIO_ACCESS_KEY'] as string,
-  secretKey: process.env['MINIO_SECRET_KEY'] as string,
+const minioClient = new S3Client({
+  endpoint: process.env['MINIO_ENDPOINT'] as string,
+  region: process.env['MINIO_REGION'] as string,
+  credentials: {
+    accessKeyId: process.env['MINIO_ACCESS_KEY'] as string,
+    secretAccessKey: process.env['MINIO_SECRET_KEY'] as string,
+  },
+  forcePathStyle: true,
 });
 
 export default minioClient;

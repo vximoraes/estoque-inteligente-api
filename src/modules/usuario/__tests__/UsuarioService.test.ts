@@ -29,8 +29,7 @@ describe('UsuarioService', () => {
     UsuarioRepository.mockClear();
     mockCollection.deleteMany.mockClear();
     mockCollection.findOne.mockClear();
-    minioClient.putObject.mockClear();
-    minioClient.removeObject.mockClear();
+    minioClient.send.mockClear();
     compress.mockClear();
     ativarUsuarioPadrao.mockClear();
 
@@ -204,7 +203,7 @@ describe('UsuarioService', () => {
       const data = await service.uploadFoto(req, '1');
 
       expect(compress).toHaveBeenCalledWith(req.file.buffer);
-      expect(minioClient.putObject).toHaveBeenCalled();
+      expect(minioClient.send).toHaveBeenCalled();
       expect(data).toEqual({ fotoPerfil: 'url/1.jpeg' });
     });
 
@@ -219,7 +218,7 @@ describe('UsuarioService', () => {
     it('deve remover do MinIO e retornar fotoPerfil vazia', async () => {
       repositoryMock.atualizar.mockResolvedValue({ fotoPerfil: '' });
       const data = await service.deletarFoto({}, '1');
-      expect(minioClient.removeObject).toHaveBeenCalled();
+      expect(minioClient.send).toHaveBeenCalled();
       expect(data).toEqual({ fotoPerfil: '' });
     });
   });

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import UsuarioRepository from './UsuarioRepository.js';
 import {
   CustomError,
@@ -101,12 +102,13 @@ class UsuarioService {
       });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
-      await minioClient.putObject(
-        process.env['MINIO_BUCKET']!,
-        objectName,
-        newFile,
-        newFile.length,
-        { 'Content-Type': 'image/jpeg' },
+      await minioClient.send(
+        new PutObjectCommand({
+          Bucket: process.env['MINIO_BUCKET']!,
+          Key: objectName,
+          Body: newFile,
+          ContentType: 'image/jpeg',
+        }),
       );
       return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
@@ -116,7 +118,12 @@ class UsuarioService {
 
   async deletarFoto(_req: AuthenticatedRequest, id: string) {
     const objectName = `${id}.jpeg`;
-    await minioClient.removeObject(process.env['MINIO_BUCKET']!, objectName);
+    await minioClient.send(
+      new DeleteObjectCommand({
+        Bucket: process.env['MINIO_BUCKET']!,
+        Key: objectName,
+      }),
+    );
     const data = await this.repository.atualizar(id, { fotoPerfil: '' });
     return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
   }
