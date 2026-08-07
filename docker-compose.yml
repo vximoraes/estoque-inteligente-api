@@ -210,7 +210,7 @@ services:
       <<: *langfuse-env
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
       AUTH_DISABLE_SIGNUP: 'true'
-      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${MINIO_PUBLIC_URL}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:${MINIO_PORT}
       LANGFUSE_INIT_ORG_ID: estoque-inteligente
       LANGFUSE_INIT_ORG_NAME: Estoque Inteligente
       LANGFUSE_INIT_PROJECT_ID: estoque-inteligente-api

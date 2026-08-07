@@ -15,6 +15,13 @@ function buildPublicReadPolicy(bucketName: string): string {
 }
 
 async function setupMinio(): Promise<void> {
+  if (process.env['MINIO_GERENCIAR_BUCKETS'] === 'false') {
+    console.info(
+      'MINIO_GERENCIAR_BUCKETS=false: pulando criação/política de buckets (gerenciados fora da aplicação).',
+    );
+    return;
+  }
+
   const bucketNames = [
     process.env['MINIO_BUCKET'],
     process.env['MINIO_BUCKET_2'],

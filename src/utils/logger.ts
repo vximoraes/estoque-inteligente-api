@@ -3,6 +3,7 @@ import path from 'path';
 
 const level = process.env.LOG_LEVEL ?? 'info';
 const isTest = process.env.NODE_ENV === 'test';
+const isProduction = process.env.NODE_ENV === 'production';
 const usePretty = process.env.LOG_PRETTY !== 'false';
 
 const targets: pino.TransportTargetOptions[] = [];
@@ -13,6 +14,9 @@ if (!isTest) {
     options: usePretty ? { colorize: true } : { destination: 1 },
     level,
   });
+}
+
+if (!isTest && !isProduction) {
   targets.push(
     {
       target: 'pino-roll',

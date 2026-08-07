@@ -13,6 +13,7 @@
     "langfuse:down": "docker compose --profile langfuse down",
     "seed": "clear && tsx src/seeds/seeds.js",
     "start": "clear && tsx server.js",
+    "start:render": "tsx server.js",
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
     "test": "clear && jest --coverage",
     "test:routes": "clear && jest --config=jest.routes.config.cjs",
