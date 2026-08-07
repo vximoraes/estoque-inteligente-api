@@ -72,6 +72,7 @@ services:
 
   api:
     container_name: estoque-inteligente-api
+    profiles: ['app']
     build: .
     ports:
       - '${PORT}:${PORT}'
@@ -99,6 +100,7 @@ services:
 
   frontend:
     container_name: estoque-inteligente-front
+    profiles: ['app']
     build:
       context: ../estoque-inteligente-front
       dockerfile: Dockerfile

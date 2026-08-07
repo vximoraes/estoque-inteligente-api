@@ -9,6 +9,8 @@
   "scripts": {
     "dev:docker": "docker compose -f docker-compose.dev.yml up --build --force-recreate",
     "dev": "clear && tsx watch server.js",
+    "langfuse:up": "docker compose --profile langfuse up -d",
+    "langfuse:down": "docker compose --profile langfuse down",
     "seed": "clear && tsx src/seeds/seeds.js",
     "start": "clear && tsx server.js",
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
