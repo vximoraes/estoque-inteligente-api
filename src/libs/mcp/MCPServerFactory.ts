@@ -6,6 +6,7 @@ import { buscarMovimentacoes } from './tools/buscarMovimentacoes.js';
 import { buscarEmprestimos } from './tools/buscarEmprestimos.js';
 import { buscarOrcamentos } from './tools/buscarOrcamentos.js';
 import { verificarItensAbaixoMinimo } from './tools/verificarItensAbaixoMinimo.js';
+import { itensPrioritariosCompra } from './tools/itensPrioritariosCompra.js';
 import { buscarCategorias } from './tools/buscarCategorias.js';
 import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
@@ -199,6 +200,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await verificarItensAbaixoMinimo({}, usuarioId);
       return formatarResultado('verificarItensAbaixoMinimo', resultado);
+    },
+  );
+
+  server.tool(
+    'itensPrioritariosCompra',
+    'Retorna itens abaixo do estoque mínimo ou indisponíveis, cruzados com a quantidade de saídas nos últimos 30 dias, ranqueados por prioridade de compra (déficit de estoque × frequência de saída)',
+    {},
+    async () => {
+      await verificarPermissao(usuarioId, 'itens', 'movimentacoes');
+      const resultado = await itensPrioritariosCompra({}, usuarioId);
+      return formatarResultado('itensPrioritariosCompra', resultado);
     },
   );
 
