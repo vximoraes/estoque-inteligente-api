@@ -141,3 +141,9 @@ minio-data/
 
 # Configmap
 *secret*
+
+# Docs
+/docs/
+
+# Claude Code personal overrides
+CLAUDE.local.md

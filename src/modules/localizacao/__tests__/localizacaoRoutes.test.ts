@@ -1,0 +1,175 @@
+import request from 'supertest';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 3010;
+const BASE_URL = `http://localhost:${PORT}`;
+
+let token;
+
+const criarLocalizacaoValida = async (override = {}) => {
+  const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
+  const nome = `Localizacao Teste ${unique}`;
+  return {
+    nome,
+    ...override,
+  };
+};
+
+describe('Rotas de Localização', () => {
+  let localizacaoId;
+
+  beforeAll(async () => {
+    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
+    const loginRes = await request(BASE_URL)
+      .post('/api/auth/sign-in/email')
+      .send({
+        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
+        password: process.env.ADMIN_PASSWORD || 'Senha@123',
+      });
+    token = loginRes.body?.token;
+    expect(token).toBeTruthy();
+  });
+
+  describe('POST /localizacoes', () => {
+    it('deve cadastrar localização válida', async () => {
+      const dados = await criarLocalizacaoValida();
+      const res = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      expect([200, 201]).toContain(res.status);
+      expect(res.body.data).toHaveProperty('_id');
+      localizacaoId = res.body.data._id;
+    });
+    it('deve falhar ao cadastrar sem nome', async () => {
+      const res = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send({});
+      expect([400, 422]).toContain(res.status);
+    });
+    it('deve falhar ao cadastrar com nome já existente', async () => {
+      const dados = await criarLocalizacaoValida();
+      await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      const res = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      expect([400, 409, 422]).toContain(res.status);
+    });
+  });
+
+  describe('GET /localizacoes', () => {
+    it('deve listar todas as localizações', async () => {
+      const res = await request(BASE_URL)
+        .get('/localizacoes')
+        .set('Authorization', `Bearer ${token}`);
+      expect([200, 201]).toContain(res.status);
+      let lista = res.body.data;
+      if (!Array.isArray(lista)) {
+        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
+        else if (Array.isArray(res.body.data?.itens)) {
+          lista = res.body.data.itens;
+        } else if (Array.isArray(res.body.data?.results)) {
+          lista = res.body.data.results;
+        }
+      }
+      expect(Array.isArray(lista)).toBe(true);
+    });
+  });
+
+  describe('GET /localizacoes/:id', () => {
+    it('deve retornar localização por id', async () => {
+      const dados = await criarLocalizacaoValida();
+      const locRes = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      const id = locRes.body.data._id;
+      const res = await request(BASE_URL)
+        .get(`/localizacoes/${id}`)
+        .set('Authorization', `Bearer ${token}`);
+      expect([200, 201]).toContain(res.status);
+      expect(res.body.data).toHaveProperty('_id', id);
+    });
+    it('deve retornar 404 para localização inexistente', async () => {
+      const id = new mongoose.Types.ObjectId();
+      const res = await request(BASE_URL)
+        .get(`/localizacoes/${id}`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PATCH /localizacoes/:id', () => {
+    it('deve atualizar nome da localização', async () => {
+      const dados = await criarLocalizacaoValida();
+      const locRes = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      const id = locRes.body.data._id;
+      const novoNome = dados.nome + ' Atualizado';
+      const res = await request(BASE_URL)
+        .patch(`/localizacoes/${id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ nome: novoNome });
+      expect([200, 201]).toContain(res.status);
+      expect(res.body.data.nome).toBe(novoNome);
+    });
+    it('deve falhar ao atualizar para nome já existente', async () => {
+      const dados1 = await criarLocalizacaoValida();
+      const dados2 = await criarLocalizacaoValida();
+      const loc1 = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados1);
+      const loc2 = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados2);
+      const res = await request(BASE_URL)
+        .patch(`/localizacoes/${loc2.body.data._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ nome: dados1.nome });
+      expect([400, 409, 422]).toContain(res.status);
+    });
+    it('deve retornar 404 ao atualizar localização inexistente', async () => {
+      const id = new mongoose.Types.ObjectId();
+      const res = await request(BASE_URL)
+        .patch(`/localizacoes/${id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ nome: 'Qualquer' });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PATCH /localizacoes/:id/inativar', () => {
+    it('deve inativar localização existente', async () => {
+      const dados = await criarLocalizacaoValida();
+      const locRes = await request(BASE_URL)
+        .post('/localizacoes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(dados);
+      const id = locRes.body.data._id;
+      const res = await request(BASE_URL)
+        .patch(`/localizacoes/${id}/inativar`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.ativo).toBe(false);
+    });
+    it('deve retornar 404 ao inativar localização inexistente', async () => {
+      const id = new mongoose.Types.ObjectId();
+      const res = await request(BASE_URL)
+        .patch(`/localizacoes/${id}/inativar`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(404);
+    });
+  });
+});

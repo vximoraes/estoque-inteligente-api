@@ -1,21 +1,25 @@
 process.env.NODE_ENV = 'test';
 
-// Mock do MinIO para evitar problemas nos testes
+// Mock do client S3 (MinIO) para evitar problemas nos testes
 jest.mock('./src/config/MinIO.js', () => ({
+  __esModule: true,
   default: {
-    putObject: jest.fn().mockResolvedValue({
-      etag: 'mocked-etag',
-      versionId: null,
-    }),
-    bucketExists: jest.fn().mockResolvedValue(true),
-    makeBucket: jest.fn().mockResolvedValue(),
-    setBucketPolicy: jest.fn().mockResolvedValue(),
+    send: jest.fn().mockResolvedValue({}),
   },
 }));
 
 // Mock do SharpConfig para evitar problemas nos testes
 jest.mock('./src/config/SharpConfig.js', () => ({
+  __esModule: true,
   default: jest.fn().mockImplementation((buffer) => Promise.resolve(buffer)),
+}));
+
+// Mock do Better Auth para evitar problemas nos testes
+jest.mock('./src/config/auth.js', () => ({
+  initAuth: jest.fn(),
+  getAuth: jest.fn(() => {
+    throw new Error('Better Auth não inicializado. Chame initAuth() primeiro.');
+  }),
 }));
 
 beforeAll(() => {
