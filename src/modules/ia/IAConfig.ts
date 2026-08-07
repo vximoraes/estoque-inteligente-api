@@ -7,26 +7,16 @@ export const MAX_OUTPUT_TOKENS = Number(
 // gemini-3.5-flash-lite rejeita thinkingBudget: 0 com 400 Bad Request (INVALID_ARGUMENT) —
 // confirmado direto na API. Aceita -1 (dinâmico) ou um orçamento fixo positivo.
 // 512 é o menor valor testado que a API aceita sem erro para esse modelo.
-export const THINKING_BUDGET = Number(
-  process.env['IA_THINKING_BUDGET'] ?? 512,
-);
+export const THINKING_BUDGET = Number(process.env['IA_THINKING_BUDGET'] ?? 512);
 
-export const RECURSION_LIMIT = Number(process.env['IA_RECURSION_LIMIT'] ?? 6);
+export const RECURSION_LIMIT = Number(process.env['IA_RECURSION_LIMIT'] ?? 8);
 
-export const TIMEOUT_MS = Number(process.env['IA_TIMEOUT_MS'] ?? 45_000);
+export const TIMEOUT_MS = Number(process.env['IA_TIMEOUT_MS'] ?? 120_000);
 
 export const MAX_RETRIES = 1;
 
-export const ORCAMENTO_TOKENS_DIA = Number(
-  process.env['IA_ORCAMENTO_TOKENS_DIA'] ?? 150_000,
-);
-
 export const MAX_STREAMS_SIMULTANEOS = Number(
   process.env['IA_MAX_STREAMS_SIMULTANEOS'] ?? 2,
-);
-
-export const MAX_CONVERSAS_POR_USUARIO = Number(
-  process.env['IA_MAX_CONVERSAS_POR_USUARIO'] ?? 50,
 );
 
 interface PrecoModelo {

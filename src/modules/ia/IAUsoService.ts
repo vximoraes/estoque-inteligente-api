@@ -79,20 +79,3 @@ export async function registrarUso(input: RegistrarUsoInput): Promise<void> {
     logger.warn({ message: error?.message }, 'Falha ao registrar uso de IA:');
   }
 }
-
-export async function tokensUsadosHoje(usuarioId: string): Promise<number> {
-  const inicioDoDia = new Date();
-  inicioDoDia.setHours(0, 0, 0, 0);
-
-  const resultado = await IAUsoModel.aggregate<{ total: number }>([
-    {
-      $match: {
-        usuario: usuarioId,
-        criado_em: { $gte: inicioDoDia },
-      },
-    },
-    { $group: { _id: null, total: { $sum: '$tokens_totais' } } },
-  ]);
-
-  return resultado[0]?.total ?? 0;
-}

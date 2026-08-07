@@ -1,15 +1,9 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
 import { processarMensagem, contemVazamentoDoPrompt } from './IAService.js';
-import {
-  TIMEOUT_MS,
-  MODELO,
-  ORCAMENTO_TOKENS_DIA,
-  MAX_CONVERSAS_POR_USUARIO,
-} from './IAConfig.js';
+import { TIMEOUT_MS, MODELO } from './IAConfig.js';
 import {
   registrarUso,
-  tokensUsadosHoje,
   derivarTokens,
   calcularCustoDetalhado,
 } from './IAUsoService.js';
@@ -30,19 +24,6 @@ class IAController {
   async criarConversa(req: AuthenticatedRequest, res: Response) {
     const usuarioId = req.user_id;
     const { mensagem_inicial } = CriarConversaSchema.parse(req.body ?? {});
-
-    const totalConversas = await ConversaModel.countDocuments({
-      usuario: usuarioId,
-    });
-    if (totalConversas >= MAX_CONVERSAS_POR_USUARIO) {
-      throw new CustomError({
-        statusCode: 422,
-        errorType: 'validationError',
-        field: 'conversas',
-        details: [],
-        customMessage: `Você atingiu o limite de ${MAX_CONVERSAS_POR_USUARIO} conversas. Exclua alguma para criar outra.`,
-      });
-    }
 
     const titulo = mensagem_inicial
       ? mensagem_inicial.slice(0, 60)
@@ -149,17 +130,6 @@ class IAController {
       });
     }
 
-    if ((await tokensUsadosHoje(usuarioId as string)) >= ORCAMENTO_TOKENS_DIA) {
-      throw new CustomError({
-        statusCode: 429,
-        errorType: 'rateLimit',
-        field: 'ia',
-        details: [],
-        customMessage:
-          'Você atingiu o limite diário de uso do assistente. Tente novamente amanhã.',
-      });
-    }
-
     if (!iniciarStream(usuarioId as string)) {
       throw new CustomError({
         statusCode: 429,
@@ -186,6 +156,7 @@ class IAController {
     const signal = AbortSignal.any([timeoutSignal, abortCliente.signal]);
 
     let respostaCompleta = '';
+    let respostaTruncadaPorTamanho = false;
     let erroOcorrido: Error | null = null;
     const inicioMs = Date.now();
     const uso = {
@@ -246,6 +217,7 @@ class IAController {
                       total_tokens?: number;
                       input_token_details?: { cache_read?: number };
                     };
+                    response_metadata?: { finishReason?: string };
                   }
                 | undefined;
               const usage = output?.usage_metadata;
@@ -257,6 +229,8 @@ class IAController {
                   usage.input_token_details?.cache_read ?? 0;
                 uso.passosLlm += 1;
               }
+              respostaTruncadaPorTamanho =
+                output?.response_metadata?.finishReason === 'MAX_TOKENS';
             } else if (evt.event === 'on_tool_start') {
               if (evt.run_id) inicioFerramentas.set(evt.run_id, Date.now());
             } else if (
@@ -285,6 +259,15 @@ class IAController {
                 'IA: tool MCP chamada',
               );
             }
+          }
+
+          if (respostaTruncadaPorTamanho && respostaCompleta) {
+            const aviso =
+              '\n\n_Resposta cortada por limite de tamanho. Peça de forma mais específica ou em partes menores._';
+            respostaCompleta += aviso;
+            res.write(
+              `data: ${JSON.stringify({ type: 'token', content: aviso })}\n\n`,
+            );
           }
 
           if (contemVazamentoDoPrompt(respostaCompleta)) {

@@ -3,7 +3,6 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import IAUso from '../IAUsoModel.js';
 import {
   registrarUso,
-  tokensUsadosHoje,
   derivarTokens,
   calcularCustoDetalhado,
 } from '../IAUsoService.js';
@@ -119,34 +118,5 @@ describe('IAUsoService', () => {
         finalizadoPor: 'concluido',
       }),
     ).resolves.not.toThrow();
-  });
-
-  it('tokensUsadosHoje deve somar apenas registros do dia corrente', async () => {
-    await IAUso.create({
-      usuario: usuarioId,
-      conversa: conversaId,
-      modelo: 'gemini-3.5-flash-lite',
-      tokens_totais: 1000,
-      finalizado_por: 'concluido',
-    });
-
-    const ontem = new Date();
-    ontem.setDate(ontem.getDate() - 1);
-    await IAUso.create({
-      usuario: usuarioId,
-      conversa: conversaId,
-      modelo: 'gemini-3.5-flash-lite',
-      tokens_totais: 5000,
-      finalizado_por: 'concluido',
-      criado_em: ontem,
-    });
-
-    const total = await tokensUsadosHoje(usuarioId);
-    expect(total).toBe(1000);
-  });
-
-  it('tokensUsadosHoje deve retornar 0 quando não há uso registrado', async () => {
-    const total = await tokensUsadosHoje('usuario-sem-uso');
-    expect(total).toBe(0);
   });
 });
