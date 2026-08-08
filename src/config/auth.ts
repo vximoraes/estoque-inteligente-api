@@ -26,7 +26,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
 
     advanced: {
       ipAddress: {
-        ipAddressHeaders: ['x-forwarded-for'],
+        ipAddressHeaders: ['x-real-ip'],
       },
     },
 
