@@ -80,8 +80,17 @@ async function setupMinio(): Promise<void> {
       );
     }
   } catch (erro) {
-    const err = erro as Error;
-    throw new Error(`Erro ao verificar/criar buckets do MinIO: ${err.message}`);
+    const err = erro as {
+      name?: string;
+      message?: string;
+      Code?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    const detalhe =
+      err.message || err.Code || err.name || JSON.stringify(err);
+    throw new Error(
+      `Erro ao verificar/criar buckets do MinIO: ${detalhe} (status ${err.$metadata?.httpStatusCode ?? '?'})`,
+    );
   }
 }
 
