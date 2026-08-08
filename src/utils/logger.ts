@@ -4,7 +4,9 @@ import path from 'path';
 const level = process.env.LOG_LEVEL ?? 'info';
 const isTest = process.env.NODE_ENV === 'test';
 const isProduction = process.env.NODE_ENV === 'production';
-const usePretty = process.env.LOG_PRETTY !== 'false';
+// pino-pretty é devDependency: some do install em produção, então nunca usar lá,
+// independente da env var (produção sempre loga JSON cru em stdout).
+const usePretty = process.env.LOG_PRETTY !== 'false' && !isProduction;
 
 const targets: pino.TransportTargetOptions[] = [];
 
