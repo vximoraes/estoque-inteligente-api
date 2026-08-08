@@ -24,8 +24,6 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       enabled: process.env['NODE_ENV'] !== 'test',
     },
 
-    // Atrás do proxy do Render: sem isso, o better-auth não confia no IP real do
-    // cliente e trata todo mundo como um único bucket compartilhado de rate limit.
     advanced: {
       ipAddress: {
         ipAddressHeaders: ['x-forwarded-for'],
