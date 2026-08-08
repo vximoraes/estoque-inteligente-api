@@ -28,6 +28,9 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       ipAddress: {
         ipAddressHeaders: ['x-real-ip'],
       },
+      crossSubDomainCookies: {
+        enabled: true,
+      },
     },
 
     onAPIError: {
