@@ -5,6 +5,7 @@ import {
   HttpStatusCodes,
   messages,
   urlPublicaItem,
+  describirErro,
 } from '../../utils/helpers/index.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import minioClient from '../../config/MinIO.js';
@@ -153,7 +154,7 @@ class ItemService {
 
       return { imagem: (data as Record<string, unknown>)['imagem'] };
     } catch (err) {
-      throw new Error(String(err));
+      throw new Error(describirErro(err));
     }
   }
 

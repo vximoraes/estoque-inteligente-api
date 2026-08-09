@@ -58,7 +58,14 @@ export async function bootstrap(): Promise<express.Express> {
   app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
   app.get('/', (req, res) => res.redirect('/docs'));
   app.get('/openapi.json', (req, res) => res.json(generateSpec()));
-  app.use('/docs', apiReference({ url: '/openapi.json' }));
+  app.use(
+    '/docs',
+    apiReference({
+      url: '/openapi.json',
+      title: 'API Estoque Inteligente',
+      pageTitle: 'API Estoque Inteligente',
+    }),
+  );
 
   app.use(helmet());
   app.use(
@@ -69,6 +76,10 @@ export async function bootstrap(): Promise<express.Express> {
   );
   app.use(compression());
 
+  app.use('/api/auth', (req, res, next) => {
+    req.headers['x-real-ip'] = req.ip;
+    next();
+  });
   app.all('/api/auth/*splat', toNodeHandler(auth));
 
   app.use(express.json());

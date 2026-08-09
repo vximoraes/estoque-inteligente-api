@@ -24,6 +24,20 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       enabled: process.env['NODE_ENV'] !== 'test',
     },
 
+    advanced: {
+      ipAddress: {
+        ipAddressHeaders: ['x-real-ip'],
+      },
+      ...(process.env['COOKIE_DOMAIN']
+        ? {
+            crossSubDomainCookies: {
+              enabled: true,
+              domain: process.env['COOKIE_DOMAIN'],
+            },
+          }
+        : {}),
+    },
+
     onAPIError: {
       errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login?erro=google-nao-convidado`,
     },

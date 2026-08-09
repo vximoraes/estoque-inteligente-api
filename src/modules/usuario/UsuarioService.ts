@@ -6,6 +6,7 @@ import {
   HttpStatusCodes,
   messages,
   urlPublicaUsuario,
+  describirErro,
 } from '../../utils/helpers/index.js';
 import minioClient from '../../config/MinIO.js';
 import compress from '../../config/SharpConfig.js';
@@ -112,7 +113,7 @@ class UsuarioService {
       );
       return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
-      throw new Error(String(err));
+      throw new Error(describirErro(err));
     }
   }
 

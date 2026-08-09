@@ -9,3 +9,4 @@ export { default as StatusService } from './StatusService.js';
 export { default as asyncWrapper } from '../../middlewares/asyncWrapper.js';
 export { escapeRegex } from './escapeRegex.js';
 export { urlPublicaUsuario, urlPublicaItem } from './urlPublicaArquivo.js';
+export { describirErro } from './describirErro.js';
