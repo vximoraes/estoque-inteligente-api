@@ -197,6 +197,22 @@ export const fakeMappings = {
     custo_estimado_usd: () => Number(fakebr.commerce.price(0, 1, 6)),
     passos_llm: () => fakebr.random.number({ min: 1, max: 5 }),
     ferramentas_chamadas: () => fakebr.random.number({ min: 0, max: 5 }),
+    ferramentas: () =>
+      fakebr.helpers
+        .shuffle([
+          'buscarCategorias',
+          'buscarEmprestimos',
+          'buscarEstoque',
+          'buscarFornecedores',
+          'buscarItens',
+          'buscarLocalizacoes',
+          'buscarMovimentacoes',
+          'buscarOrcamentos',
+          'itensPrioritariosCompra',
+          'resumoEstoque',
+          'verificarItensAbaixoMinimo',
+        ])
+        .slice(0, fakebr.random.number({ min: 0, max: 3 })),
     duracao_ms: () => fakebr.random.number({ min: 200, max: 10000 }),
     finalizado_por: () =>
       fakebr.helpers.randomize([

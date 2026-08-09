@@ -76,7 +76,7 @@ export async function bootstrap(): Promise<express.Express> {
   );
   app.use(compression());
 
-  app.use('/api/auth', (req, res, next) => {
+  app.use((req, res, next) => {
     req.headers['x-real-ip'] = req.ip;
     next();
   });
