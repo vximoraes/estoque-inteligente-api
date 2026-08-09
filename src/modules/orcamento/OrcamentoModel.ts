@@ -31,9 +31,17 @@ const orcamentoSchema = new mongoose.Schema<OrcamentoDocument>(
     total: { type: Number, default: 0 },
     itens: [
       {
-        item: { type: mongoose.Schema.Types.ObjectId, ref: 'itens', required: true },
+        item: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'itens',
+          required: true,
+        },
         nome: { type: String, required: true },
-        fornecedor: { type: mongoose.Schema.Types.ObjectId, ref: 'fornecedores', required: true },
+        fornecedor: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'fornecedores',
+          required: true,
+        },
         quantidade: { type: Number, required: true, min: 1, max: 999999999 },
         valor_unitario: { type: Number, required: true, min: 0 },
         subtotal: { type: Number, default: 0, min: 0 },
@@ -47,7 +55,9 @@ const orcamentoSchema = new mongoose.Schema<OrcamentoDocument>(
 
 orcamentoSchema.pre('save', function (this: OrcamentoDocument) {
   this.itens.forEach((comp) => {
-    comp.subtotal = parseFloat((comp.quantidade * comp.valor_unitario).toFixed(2));
+    comp.subtotal = parseFloat(
+      (comp.quantidade * comp.valor_unitario).toFixed(2),
+    );
   });
   this.total = parseFloat(
     this.itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
@@ -59,7 +69,9 @@ orcamentoSchema.pre(['updateOne', 'findOneAndUpdate'], function () {
   if (update && 'itens' in update) {
     const itens = update['itens'] as IItemOrcamento[];
     itens.forEach((comp) => {
-      comp.subtotal = parseFloat((comp.quantidade * comp.valor_unitario).toFixed(2));
+      comp.subtotal = parseFloat(
+        (comp.quantidade * comp.valor_unitario).toFixed(2),
+      );
     });
     update['total'] = parseFloat(
       itens.reduce((acc, comp) => acc + comp.subtotal, 0).toFixed(2),
@@ -69,7 +81,7 @@ orcamentoSchema.pre(['updateOne', 'findOneAndUpdate'], function () {
 
 orcamentoSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<OrcamentoDocument, mongoose.PaginateModel<OrcamentoDocument>>(
-  'orcamentos',
-  orcamentoSchema,
-);
+export default mongoose.model<
+  OrcamentoDocument,
+  mongoose.PaginateModel<OrcamentoDocument>
+>('orcamentos', orcamentoSchema);

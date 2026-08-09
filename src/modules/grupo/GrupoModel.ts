@@ -63,7 +63,7 @@ grupoSchema.pre('save', function (this: GrupoDocument, next) {
 
 grupoSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<GrupoDocument, mongoose.PaginateModel<GrupoDocument>>(
-  'grupos',
-  grupoSchema,
-);
+export default mongoose.model<
+  GrupoDocument,
+  mongoose.PaginateModel<GrupoDocument>
+>('grupos', grupoSchema);

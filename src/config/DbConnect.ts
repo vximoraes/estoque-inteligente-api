@@ -27,11 +27,15 @@ class DbConnect {
       if (process.env['NODE_ENV'] === 'development') {
         mongoose.set('autoIndex', true);
         mongoose.set('debug', true);
-        logger.info('Configurações de desenvolvimento ativadas: autoIndex e debug.');
+        logger.info(
+          'Configurações de desenvolvimento ativadas: autoIndex e debug.',
+        );
       } else {
         mongoose.set('autoIndex', false);
         mongoose.set('debug', false);
-        logger.info('Configurações de produção ativadas: autoIndex e debug desativados.');
+        logger.info(
+          'Configurações de produção ativadas: autoIndex e debug desativados.',
+        );
       }
 
       mongoose.connection.on('connected', () => {
@@ -47,7 +51,9 @@ class DbConnect {
       });
 
       await mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: process.env['MONGO_SERVER_SELECTION_TIMEOUT_MS']
+        serverSelectionTimeoutMS: process.env[
+          'MONGO_SERVER_SELECTION_TIMEOUT_MS'
+        ]
           ? parseInt(process.env['MONGO_SERVER_SELECTION_TIMEOUT_MS'])
           : 5000,
         socketTimeoutMS: process.env['MONGO_SOCKET_TIMEOUT_MS']

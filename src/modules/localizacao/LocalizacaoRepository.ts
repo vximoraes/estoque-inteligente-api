@@ -1,6 +1,11 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import LocalizacaoFilterBuilder from './LocalizacaoFilterBuilder.js';
-import LocalizacaoModel, { type LocalizacaoDocument } from './LocalizacaoModel.js';
+import LocalizacaoModel, {
+  type LocalizacaoDocument,
+} from './LocalizacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -71,10 +76,17 @@ class LocalizacaoRepository {
       options,
     );
 
-    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => ({ ...doc.toObject() })),
+    };
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
     const localizacao = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .lean();
@@ -92,8 +104,15 @@ class LocalizacaoRepository {
     return localizacao;
   }
 
-  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
-    const filtro: mongoose.FilterQuery<LocalizacaoDocument> = { nome, ativo: true };
+  async buscarPorNome(
+    nome: string,
+    idIgnorado?: string | null,
+    _req?: AuthenticatedRequest,
+  ) {
+    const filtro: mongoose.FilterQuery<LocalizacaoDocument> = {
+      nome,
+      ativo: true,
+    };
 
     if (idIgnorado) {
       filtro['_id'] = { $ne: idIgnorado };
@@ -102,7 +121,11 @@ class LocalizacaoRepository {
     return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const localizacao = await this.model.findOne({ _id: id, ativo: true });
 
     if (!localizacao) {

@@ -37,9 +37,9 @@ export async function buscarEmprestimos(
     return { ...eObj, statusCalculado };
   });
 
-  const filtrados: Record<string, unknown>[] = (
-    status ? comStatus.filter((e) => e['statusCalculado'] === status) : comStatus
-  ) as unknown as Record<string, unknown>[];
+  const filtrados: Record<string, unknown>[] = (status
+    ? comStatus.filter((e) => e['statusCalculado'] === status)
+    : comStatus) as unknown as Record<string, unknown>[];
 
   return filtrados.slice(0, Math.min(Number(limite), 50)).map((e) => {
     const item = e['item'] as Record<string, unknown> | null;

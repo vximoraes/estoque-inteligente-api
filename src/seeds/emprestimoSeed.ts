@@ -15,9 +15,11 @@ export default async function emprestimoSeed(adminId: string) {
     const itemRandom = itemList[Math.floor(Math.random() * itemList.length)]!;
     const localizacaoRandom =
       localizacaoList[Math.floor(Math.random() * localizacaoList.length)]!;
-    const usuarioRandom = usuarioList[Math.floor(Math.random() * usuarioList.length)]!;
+    const usuarioRandom =
+      usuarioList[Math.floor(Math.random() * usuarioList.length)]!;
 
-    const quantidade_emprestada = fakeMappings.Emprestimo.quantidade_emprestada();
+    const quantidade_emprestada =
+      fakeMappings.Emprestimo.quantidade_emprestada();
     const quantidade_devolvida = Math.floor(
       Math.random() * quantidade_emprestada,
     );
@@ -32,8 +34,10 @@ export default async function emprestimoSeed(adminId: string) {
       solicitante_nome: fakeMappings.Emprestimo.solicitante_nome(),
       solicitante_email: fakeMappings.Emprestimo.solicitante_email(),
       data_saida: fakeMappings.Emprestimo.data_saida(),
-      data_prevista_devolucao: fakeMappings.Emprestimo.data_prevista_devolucao(),
-      data_devolucao_total: quantidade_aberta === 0 ? new Date().toISOString() : null,
+      data_prevista_devolucao:
+        fakeMappings.Emprestimo.data_prevista_devolucao(),
+      data_devolucao_total:
+        quantidade_aberta === 0 ? new Date().toISOString() : null,
       observacoes_emprestimo: fakeMappings.Emprestimo.observacoes_emprestimo(),
       observacoes_devolucao: fakeMappings.Emprestimo.observacoes_devolucao(),
       usuario_responsavel: String(usuarioRandom._id),

@@ -1,13 +1,7 @@
 import GrupoController from '../GrupoController.js';
 import GrupoService from '../GrupoService.js';
-import {
-  GrupoSchema,
-  GrupoUpdateSchema,
-} from '../GrupoSchema.js';
-import {
-  GrupoQuerySchema,
-  GrupoIdSchema,
-} from '../GrupoQuerySchema.js';
+import { GrupoSchema, GrupoUpdateSchema } from '../GrupoSchema.js';
+import { GrupoQuerySchema, GrupoIdSchema } from '../GrupoQuerySchema.js';
 import {
   CommonResponse,
   CustomError,

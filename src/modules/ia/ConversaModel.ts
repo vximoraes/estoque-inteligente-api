@@ -70,7 +70,7 @@ const conversaSchema = new mongoose.Schema<ConversaDocument>(
 
 conversaSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<ConversaDocument, mongoose.PaginateModel<ConversaDocument>>(
-  'conversas',
-  conversaSchema,
-);
+export default mongoose.model<
+  ConversaDocument,
+  mongoose.PaginateModel<ConversaDocument>
+>('conversas', conversaSchema);

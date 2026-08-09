@@ -1,4 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import RotaModel, { type RotaDocument } from './RotaModel.js';
 import RotaFilterBuilder from './RotaFilterBuilder.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
@@ -8,7 +11,9 @@ import type { AuthenticatedRequest } from '../../utils/types.js';
 class RotaRepository {
   private model: mongoose.PaginateModel<RotaDocument>;
 
-  constructor({ rotaModel = RotaModel }: { rotaModel?: mongoose.PaginateModel<RotaDocument> } = {}) {
+  constructor({
+    rotaModel = RotaModel,
+  }: { rotaModel?: mongoose.PaginateModel<RotaDocument> } = {}) {
     this.model = rotaModel;
   }
 
@@ -44,7 +49,17 @@ class RotaRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { rota, dominio, ativo, buscar, enviar, substituir, modificar, excluir, page = '1' } = query;
+    const {
+      rota,
+      dominio,
+      ativo,
+      buscar,
+      enviar,
+      substituir,
+      modificar,
+      excluir,
+      page = '1',
+    } = query;
 
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
@@ -109,7 +124,10 @@ class RotaRepository {
     return data;
   }
 
-  async buscarRotaPorNome(rota: string | undefined, idIgnorado: string | null = null) {
+  async buscarRotaPorNome(
+    rota: string | undefined,
+    idIgnorado: string | null = null,
+  ) {
     const filtro: Record<string, unknown> = { rota };
     if (idIgnorado) {
       filtro['_id'] = { $ne: idIgnorado };

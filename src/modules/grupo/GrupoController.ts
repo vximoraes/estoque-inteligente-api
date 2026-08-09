@@ -41,7 +41,11 @@ class GrupoController {
     }
 
     const parsedData = GrupoUpdateSchema.parse(req.body);
-    const data = await this.service.atualizar(parsedData, id as string, req.user);
+    const data = await this.service.atualizar(
+      parsedData,
+      id as string,
+      req.user,
+    );
     return CommonResponse.success(res, data);
   }
 
@@ -53,7 +57,12 @@ class GrupoController {
     }
 
     const data = await this.service.deletar(id, req.user);
-    return CommonResponse.success(res, data, 200, 'Grupo excluído com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Grupo excluído com sucesso.',
+    );
   }
 
   async adicionarRota(req: AuthenticatedRequest, res: Response) {
@@ -63,7 +72,12 @@ class GrupoController {
     ObjectIdSchema.parse(idRota);
 
     const data = await this.service.adicionarRota(id, idRota);
-    return CommonResponse.success(res, data, 200, 'Rota Adicionada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Rota Adicionada com sucesso.',
+    );
   }
 }
 

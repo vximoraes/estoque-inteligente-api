@@ -54,7 +54,12 @@ class MovimentacaoService {
           statusCode: 400,
           errorType: 'validationError',
           field: 'quantidade',
-          details: [{ path: 'quantidade', message: `Limite de estoque excedido (máx: 999.999.999)` }],
+          details: [
+            {
+              path: 'quantidade',
+              message: `Limite de estoque excedido (máx: 999.999.999)`,
+            },
+          ],
           customMessage: `Limite de estoque excedido (máx: 999.999.999)`,
         });
       }

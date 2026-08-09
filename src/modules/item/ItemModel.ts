@@ -18,11 +18,21 @@ export type ItemDocument = IItem & Document;
 const itemSchema = new mongoose.Schema<ItemDocument>(
   {
     nome: { type: String, required: true },
-    quantidade: { type: Number, required: false, default: 0, min: 0, max: 999999999 },
+    quantidade: {
+      type: Number,
+      required: false,
+      default: 0,
+      min: 0,
+      max: 999999999,
+    },
     estoque_minimo: { type: Number, required: true, min: 0, max: 999999999 },
     descricao: { type: String, required: false },
     imagem: { type: String, required: false },
-    categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'categorias', required: true },
+    categoria: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'categorias',
+      required: true,
+    },
     ativo: { type: Boolean, default: true },
     usuario: { type: String, ref: 'usuarios', required: true },
     status: {
@@ -35,7 +45,10 @@ const itemSchema = new mongoose.Schema<ItemDocument>(
   { timestamps: true },
 );
 
-itemSchema.index({ nome: 1 }, { unique: true, partialFilterExpression: { ativo: true } });
+itemSchema.index(
+  { nome: 1 },
+  { unique: true, partialFilterExpression: { ativo: true } },
+);
 
 itemSchema.pre('save', function (this: ItemDocument) {
   if (this.quantidade === 0) {
@@ -53,11 +66,12 @@ itemSchema.pre(
     const update = this.getUpdate() as Record<string, unknown> | null;
     if (
       update &&
-      (update['quantidade'] !== undefined || update['estoque_minimo'] !== undefined)
+      (update['quantidade'] !== undefined ||
+        update['estoque_minimo'] !== undefined)
     ) {
-      const docAtual = await (this.model as mongoose.Model<ItemDocument>).findOne(
-        this.getQuery() as mongoose.FilterQuery<ItemDocument>,
-      );
+      const docAtual = await (
+        this.model as mongoose.Model<ItemDocument>
+      ).findOne(this.getQuery() as mongoose.FilterQuery<ItemDocument>);
 
       if (docAtual) {
         const quantidade =
@@ -83,7 +97,7 @@ itemSchema.pre(
 
 itemSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<ItemDocument, mongoose.PaginateModel<ItemDocument>>(
-  'itens',
-  itemSchema,
-);
+export default mongoose.model<
+  ItemDocument,
+  mongoose.PaginateModel<ItemDocument>
+>('itens', itemSchema);

@@ -33,7 +33,11 @@ class SSEService {
     }
   }
 
-  sendToUser(userId: string | { toString(): string }, eventType: string, data: unknown) {
+  sendToUser(
+    userId: string | { toString(): string },
+    eventType: string,
+    data: unknown,
+  ) {
     const userIdStr = userId.toString();
     const clients = this.clients.get(userIdStr);
     if (clients) {
@@ -48,7 +52,10 @@ class SSEService {
     }
   }
 
-  sendNotification(userId: string | { toString(): string }, notificacao: unknown) {
+  sendNotification(
+    userId: string | { toString(): string },
+    notificacao: unknown,
+  ) {
     this.sendToUser(userId, 'notificacao', notificacao);
   }
 

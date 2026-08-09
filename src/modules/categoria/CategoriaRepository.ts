@@ -1,4 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import CategoriaFilterBuilder from './CategoriaFilterBuilder.js';
 import CategoriaModel, { type CategoriaDocument } from './CategoriaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
@@ -71,10 +74,17 @@ class CategoriaRepository {
       options,
     );
 
-    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => ({ ...doc.toObject() })),
+    };
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
     const categoria = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .lean();
@@ -92,8 +102,15 @@ class CategoriaRepository {
     return categoria;
   }
 
-  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
-    const filtro: mongoose.FilterQuery<CategoriaDocument> = { nome, ativo: true };
+  async buscarPorNome(
+    nome: string,
+    idIgnorado?: string | null,
+    _req?: AuthenticatedRequest,
+  ) {
+    const filtro: mongoose.FilterQuery<CategoriaDocument> = {
+      nome,
+      ativo: true,
+    };
 
     if (idIgnorado) {
       filtro['_id'] = { $ne: idIgnorado };
@@ -102,7 +119,11 @@ class CategoriaRepository {
     return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const categoria = await this.model.findOne({ _id: id, ativo: true });
 
     if (!categoria) {

@@ -1,5 +1,11 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
-import GrupoModel, { type GrupoDocument, type IGrupoPermissao } from './GrupoModel.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
+import GrupoModel, {
+  type GrupoDocument,
+  type IGrupoPermissao,
+} from './GrupoModel.js';
 import UsuarioModel, { type UsuarioDocument } from '../usuario/UsuarioModel.js';
 import RotaModel, { type RotaDocument } from '../rota/RotaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
@@ -28,8 +34,12 @@ class GrupoRepository {
     this.usuarioModel = usuarioModel;
   }
 
-  async obterParesRotaDominioUnicos(permissoes: GrupoPermissaoInput[]): Promise<GrupoPermissaoInput[]> {
-    const combinacoes = permissoes.map((p) => `${p.rota}_${p.dominio || 'undefined'}`);
+  async obterParesRotaDominioUnicos(
+    permissoes: GrupoPermissaoInput[],
+  ): Promise<GrupoPermissaoInput[]> {
+    const combinacoes = permissoes.map(
+      (p) => `${p.rota}_${p.dominio || 'undefined'}`,
+    );
     const combinacoesUnicas = [...new Set(combinacoes)];
     return combinacoesUnicas.map((combinacao) => {
       const [rota, dominio] = combinacao.split('_') as [string, string];
@@ -41,12 +51,16 @@ class GrupoRepository {
     permissoes: GrupoPermissaoInput[],
     _combinacoesRecebidas?: unknown,
   ) {
-    const combinacoes = permissoes.map((permissao) => `${permissao.rota}_${permissao.dominio}`);
+    const combinacoes = permissoes.map(
+      (permissao) => `${permissao.rota}_${permissao.dominio}`,
+    );
     const counts: Record<string, number> = {};
     combinacoes.forEach((combinacao) => {
       counts[combinacao] = (counts[combinacao] ?? 0) + 1;
     });
-    const duplicates = Object.keys(counts).filter((combinacao) => (counts[combinacao] ?? 0) > 1);
+    const duplicates = Object.keys(counts).filter(
+      (combinacao) => (counts[combinacao] ?? 0) > 1,
+    );
     const uniqueDuplicates: GrupoPermissaoInput[] = [];
     const seen = new Set<string>();
     permissoes.forEach((permissao) => {
@@ -89,7 +103,9 @@ class GrupoRepository {
       dominio: p.dominio || null,
     }));
 
-    return await this.rotaModel.find({ $or: query } as mongoose.FilterQuery<RotaDocument>);
+    return await this.rotaModel.find({
+      $or: query,
+    } as mongoose.FilterQuery<RotaDocument>);
   }
 
   async listar(req: AuthenticatedRequest) {
@@ -189,7 +205,9 @@ class GrupoRepository {
 
   async atualizar(id: string, parsedData: Record<string, unknown>) {
     try {
-      const grupo = await this.model.findByIdAndUpdate(id, parsedData, { new: true });
+      const grupo = await this.model.findByIdAndUpdate(id, parsedData, {
+        new: true,
+      });
 
       if (!grupo) {
         throw new CustomError({

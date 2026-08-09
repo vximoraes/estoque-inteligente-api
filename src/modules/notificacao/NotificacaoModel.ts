@@ -23,7 +23,7 @@ const notificacaoSchema = new mongoose.Schema<NotificacaoDocument>({
 
 notificacaoSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<NotificacaoDocument, mongoose.PaginateModel<NotificacaoDocument>>(
-  'notificacoes',
-  notificacaoSchema,
-);
+export default mongoose.model<
+  NotificacaoDocument,
+  mongoose.PaginateModel<NotificacaoDocument>
+>('notificacoes', notificacaoSchema);

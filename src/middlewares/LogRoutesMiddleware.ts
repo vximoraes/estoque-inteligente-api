@@ -3,7 +3,8 @@ import type { Request, Response, NextFunction } from 'express';
 const logRoutes = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     const timestamp = new Date().toISOString();
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+    const ip =
+      req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
     console.log(
       `${timestamp} ${ip} ${req.method} ${req.protocol}://${req.get('host')}${req.originalUrl}`,
     );

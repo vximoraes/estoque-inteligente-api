@@ -1,6 +1,9 @@
 import type { Response } from 'express';
 import OrcamentoService from './OrcamentoService.js';
-import { OrcamentoQuerySchema, OrcamentoIdSchema } from './OrcamentoQuerySchema.js';
+import {
+  OrcamentoQuerySchema,
+  OrcamentoIdSchema,
+} from './OrcamentoQuerySchema.js';
 import {
   OrcamentoSchema,
   OrcamentoUpdateSchema,
@@ -30,7 +33,12 @@ class OrcamentoController {
           statusCode: 404,
           errorType: 'resourceNotFound',
           field: 'item',
-          details: [{ path: 'item', message: `Item com ID ${comp.item} não encontrado.` }],
+          details: [
+            {
+              path: 'item',
+              message: `Item com ID ${comp.item} não encontrado.`,
+            },
+          ],
           customMessage: `Item com ID ${comp.item} não encontrado.`,
         });
       }
@@ -41,7 +49,12 @@ class OrcamentoController {
           statusCode: 404,
           errorType: 'resourceNotFound',
           field: 'fornecedor',
-          details: [{ path: 'fornecedor', message: `Fornecedor com ID ${comp.fornecedor} não encontrado.` }],
+          details: [
+            {
+              path: 'fornecedor',
+              message: `Fornecedor com ID ${comp.fornecedor} não encontrado.`,
+            },
+          ],
           customMessage: `Fornecedor com ID ${comp.fornecedor} não encontrado.`,
         });
       }
@@ -85,22 +98,41 @@ class OrcamentoController {
   async atualizar(req: AuthenticatedRequest, res: Response) {
     const id = req.params['id'] as string;
     const parsedData = OrcamentoUpdateSchema.parse(req.body);
-    const orcamentoAtualizado = await this.service.atualizar(id, parsedData as Record<string, unknown>, req);
-    return CommonResponse.success(res, orcamentoAtualizado, 200, 'Orçamento atualizado com sucesso.');
+    const orcamentoAtualizado = await this.service.atualizar(
+      id,
+      parsedData as Record<string, unknown>,
+      req,
+    );
+    return CommonResponse.success(
+      res,
+      orcamentoAtualizado,
+      200,
+      'Orçamento atualizado com sucesso.',
+    );
   }
 
   async deletar(req: AuthenticatedRequest, res: Response) {
     const id = req.params['id'] as string;
     OrcamentoIdSchema.parse(id);
     const data = await this.service.deletar(id, req);
-    return CommonResponse.success(res, data, 200, 'Orçamento excluído com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Orçamento excluído com sucesso.',
+    );
   }
 
   async inativar(req: AuthenticatedRequest, res: Response) {
     const id = req.params['id'] as string;
     OrcamentoIdSchema.parse(id);
     const data = await this.service.inativar(id, req);
-    return CommonResponse.success(res, data, 200, 'Orçamento inativado com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Orçamento inativado com sucesso.',
+    );
   }
 
   async adicionarItem(req: AuthenticatedRequest, res: Response) {
@@ -113,7 +145,12 @@ class OrcamentoController {
         statusCode: 404,
         errorType: 'resourceNotFound',
         field: 'item',
-        details: [{ path: 'item', message: `Item com ID ${parsedItem.item} não encontrado.` }],
+        details: [
+          {
+            path: 'item',
+            message: `Item com ID ${parsedItem.item} não encontrado.`,
+          },
+        ],
         customMessage: `Item com ID ${parsedItem.item} não encontrado.`,
       });
     }
@@ -124,7 +161,12 @@ class OrcamentoController {
         statusCode: 404,
         errorType: 'resourceNotFound',
         field: 'fornecedor',
-        details: [{ path: 'fornecedor', message: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.` }],
+        details: [
+          {
+            path: 'fornecedor',
+            message: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.`,
+          },
+        ],
         customMessage: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.`,
       });
     }
@@ -137,8 +179,17 @@ class OrcamentoController {
       valor_unitario: parsedItem.valor_unitario,
     };
 
-    const orcamentoAtualizado = await this.service.adicionarItem(orcamentoId, novoItem, req);
-    return CommonResponse.success(res, orcamentoAtualizado, 200, 'Item adicionado com sucesso.');
+    const orcamentoAtualizado = await this.service.adicionarItem(
+      orcamentoId,
+      novoItem,
+      req,
+    );
+    return CommonResponse.success(
+      res,
+      orcamentoAtualizado,
+      200,
+      'Item adicionado com sucesso.',
+    );
   }
 
   async atualizarItem(req: AuthenticatedRequest, res: Response) {
@@ -161,29 +212,60 @@ class OrcamentoController {
       ]);
     }
 
-    if (parsedItem.fornecedor && parsedItem.fornecedor !== oldItem.fornecedor.toString()) {
+    if (
+      parsedItem.fornecedor &&
+      parsedItem.fornecedor !== oldItem.fornecedor.toString()
+    ) {
       const fornecedor = await Fornecedor.findById(parsedItem.fornecedor);
       if (!fornecedor) {
         throw new CustomError({
           statusCode: 404,
           errorType: 'resourceNotFound',
           field: 'fornecedor',
-          details: [{ path: 'fornecedor', message: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.` }],
+          details: [
+            {
+              path: 'fornecedor',
+              message: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.`,
+            },
+          ],
           customMessage: `Fornecedor com ID ${parsedItem.fornecedor} não encontrado.`,
         });
       }
     }
 
-    const itemAtualizado: Record<string, unknown> = { ...oldItem, ...parsedItem, _id: id };
-    const orcamentoAtualizado = await this.service.atualizarItem(orcamentoId, id, itemAtualizado, req);
-    return CommonResponse.success(res, orcamentoAtualizado, 200, 'Item atualizado com sucesso.');
+    const itemAtualizado: Record<string, unknown> = {
+      ...oldItem,
+      ...parsedItem,
+      _id: id,
+    };
+    const orcamentoAtualizado = await this.service.atualizarItem(
+      orcamentoId,
+      id,
+      itemAtualizado,
+      req,
+    );
+    return CommonResponse.success(
+      res,
+      orcamentoAtualizado,
+      200,
+      'Item atualizado com sucesso.',
+    );
   }
 
   async removerItem(req: AuthenticatedRequest, res: Response) {
     const orcamentoId = req.params['orcamentoId'] as string;
     const id = req.params['id'] as string;
-    const orcamentoAtualizado = await this.service.removerItem(orcamentoId, id, req);
-    return CommonResponse.success(res, orcamentoAtualizado, 200, 'Item removido com sucesso.');
+    const orcamentoAtualizado = await this.service.removerItem(
+      orcamentoId,
+      id,
+      req,
+    );
+    return CommonResponse.success(
+      res,
+      orcamentoAtualizado,
+      200,
+      'Item removido com sucesso.',
+    );
   }
 }
 

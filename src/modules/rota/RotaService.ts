@@ -1,5 +1,9 @@
 import RotaRepository from './RotaRepository.js';
-import { CustomError, HttpStatusCodes, messages } from '../../utils/helpers/index.js';
+import {
+  CustomError,
+  HttpStatusCodes,
+  messages,
+} from '../../utils/helpers/index.js';
 import type { Rota, RotaUpdate } from './RotaSchema.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -23,10 +27,15 @@ class RotaService {
         errorType: 'resourceConflict',
         field: 'Rotas',
         details: [],
-        customMessage: messages.error.resourceConflict('Rotas', 'rotas duplicadas'),
+        customMessage: messages.error.resourceConflict(
+          'Rotas',
+          'rotas duplicadas',
+        ),
       });
     }
-    return await this.repository.criar(parsedData as unknown as Record<string, unknown>);
+    return await this.repository.criar(
+      parsedData as unknown as Record<string, unknown>,
+    );
   }
 
   async atualizar(parsedData: RotaUpdate, id: string) {
@@ -37,10 +46,16 @@ class RotaService {
         errorType: 'resourceConflict',
         field: 'Rotas',
         details: [],
-        customMessage: messages.error.resourceConflict('Rotas', 'rotas duplicadas'),
+        customMessage: messages.error.resourceConflict(
+          'Rotas',
+          'rotas duplicadas',
+        ),
       });
     }
-    return await this.repository.atualizar(parsedData as Record<string, unknown>, id);
+    return await this.repository.atualizar(
+      parsedData as Record<string, unknown>,
+      id,
+    );
   }
 
   async deletar(req: AuthenticatedRequest, id: string) {
@@ -52,7 +67,9 @@ class RotaService {
         errorType: 'forbidden',
         field: 'Rotas',
         details: [],
-        customMessage: messages.error.forbidden('Não pode deletar a rota atual'),
+        customMessage: messages.error.forbidden(
+          'Não pode deletar a rota atual',
+        ),
       });
     }
     return await this.repository.deletar(id);

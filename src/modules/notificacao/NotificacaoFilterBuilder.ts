@@ -20,7 +20,8 @@ class NotificacaoFilterBuilder {
 
   comDataInicial(dataInicial: string | undefined): this {
     if (dataInicial) {
-      const dataCriacao = (this.filtros['dataCriacao'] as Record<string, Date>) ?? {};
+      const dataCriacao =
+        (this.filtros['dataCriacao'] as Record<string, Date>) ?? {};
       dataCriacao['$gte'] = new Date(dataInicial);
       this.filtros['dataCriacao'] = dataCriacao;
     }
@@ -29,7 +30,8 @@ class NotificacaoFilterBuilder {
 
   comDataFinal(dataFinal: string | undefined): this {
     if (dataFinal) {
-      const dataCriacao = (this.filtros['dataCriacao'] as Record<string, Date>) ?? {};
+      const dataCriacao =
+        (this.filtros['dataCriacao'] as Record<string, Date>) ?? {};
       dataCriacao['$lte'] = new Date(dataFinal);
       this.filtros['dataCriacao'] = dataCriacao;
     }

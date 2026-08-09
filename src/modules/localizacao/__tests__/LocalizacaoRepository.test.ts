@@ -77,18 +77,15 @@ describe('LocalizacaoRepository', () => {
     });
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
-      jest.doMock(
-        '../LocalizacaoFilterBuilder.js',
-        () => {
-          return {
-            __esModule: true,
-            default: jest.fn(() => ({
-              comNome: jest.fn().mockReturnThis(),
-              build: undefined,
-            })),
-          };
-        },
-      );
+      jest.doMock('../LocalizacaoFilterBuilder.js', () => {
+        return {
+          __esModule: true,
+          default: jest.fn(() => ({
+            comNome: jest.fn().mockReturnThis(),
+            build: undefined,
+          })),
+        };
+      });
       const { default: LocalizacaoRepositoryWithMocks } =
         await import('../LocalizacaoRepository.js');
       const repo = new LocalizacaoRepositoryWithMocks({

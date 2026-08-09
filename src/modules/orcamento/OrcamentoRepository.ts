@@ -1,6 +1,12 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import OrcamentoFilterBuilder from './OrcamentoFilterBuilder.js';
-import OrcamentoModel, { type OrcamentoDocument, type IItemOrcamento } from './OrcamentoModel.js';
+import OrcamentoModel, {
+  type OrcamentoDocument,
+  type IItemOrcamento,
+} from './OrcamentoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -8,7 +14,9 @@ import type { AuthenticatedRequest } from '../../utils/types.js';
 class OrcamentoRepository {
   private model: mongoose.PaginateModel<OrcamentoDocument>;
 
-  constructor({ orcamentoModel = OrcamentoModel }: { orcamentoModel?: mongoose.PaginateModel<OrcamentoDocument> } = {}) {
+  constructor({
+    orcamentoModel = OrcamentoModel,
+  }: { orcamentoModel?: mongoose.PaginateModel<OrcamentoDocument> } = {}) {
     this.model = orcamentoModel;
   }
 
@@ -44,7 +52,10 @@ class OrcamentoRepository {
 
     const filterBuilder = new OrcamentoFilterBuilder()
       .comNome(nome ?? '')
-      .comValor(valorMin != null ? Number(valorMin) : undefined, valorMax != null ? Number(valorMax) : undefined)
+      .comValor(
+        valorMin != null ? Number(valorMin) : undefined,
+        valorMax != null ? Number(valorMax) : undefined,
+      )
       .comPeriodo(dataInicio, dataFim);
 
     if (typeof filterBuilder.build !== 'function') {
@@ -57,7 +68,10 @@ class OrcamentoRepository {
       });
     }
 
-    const filtros: mongoose.FilterQuery<OrcamentoDocument> = { ...filterBuilder.build(), ativo: true };
+    const filtros: mongoose.FilterQuery<OrcamentoDocument> = {
+      ...filterBuilder.build(),
+      ativo: true,
+    };
     const options = { page: parseInt(page), limit: limite, sort: { nome: 1 } };
 
     const resultado = await this.model.paginate(filtros, options);
@@ -69,8 +83,14 @@ class OrcamentoRepository {
     };
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
-    const orcamento = await this.model.findOneAndUpdate({ _id: id }, parsedData, { new: true }).lean();
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
+    const orcamento = await this.model
+      .findOneAndUpdate({ _id: id }, parsedData, { new: true })
+      .lean();
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -98,8 +118,15 @@ class OrcamentoRepository {
     return orcamento;
   }
 
-  async adicionarItem(orcamentoId: string, novoItem: Record<string, unknown>, _req?: AuthenticatedRequest) {
-    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
+  async adicionarItem(
+    orcamentoId: string,
+    novoItem: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
+    const orcamento = await this.model.findOne({
+      _id: orcamentoId,
+      ativo: true,
+    });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -117,8 +144,16 @@ class OrcamentoRepository {
     return orcamento;
   }
 
-  async atualizarItem(orcamentoId: string, itemId: string, itemAtualizado: Record<string, unknown>, _req?: AuthenticatedRequest) {
-    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
+  async atualizarItem(
+    orcamentoId: string,
+    itemId: string,
+    itemAtualizado: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
+    const orcamento = await this.model.findOne({
+      _id: orcamentoId,
+      ativo: true,
+    });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -130,7 +165,9 @@ class OrcamentoRepository {
     }
 
     const itens = Array.isArray(orcamento.itens) ? [...orcamento.itens] : [];
-    const idx = itens.findIndex((c) => c && c._id && c._id.toString() === itemId);
+    const idx = itens.findIndex(
+      (c) => c && c._id && c._id.toString() === itemId,
+    );
     if (idx === -1) {
       throw new CustomError({
         statusCode: 404,
@@ -152,10 +189,18 @@ class OrcamentoRepository {
       });
     }
 
-    const existingRaw = typeof (existing as unknown as { toObject?: () => Record<string, unknown> }).toObject === 'function'
-      ? (existing as unknown as { toObject: () => Record<string, unknown> }).toObject()
-      : { ...existing };
-    itens[idx] = { ...existingRaw, ...itemAtualizado } as unknown as IItemOrcamento;
+    const existingRaw =
+      typeof (
+        existing as unknown as { toObject?: () => Record<string, unknown> }
+      ).toObject === 'function'
+        ? (
+            existing as unknown as { toObject: () => Record<string, unknown> }
+          ).toObject()
+        : { ...existing };
+    itens[idx] = {
+      ...existingRaw,
+      ...itemAtualizado,
+    } as unknown as IItemOrcamento;
 
     orcamento.itens = itens as OrcamentoDocument['itens'];
     orcamento.total = parseFloat(
@@ -165,8 +210,15 @@ class OrcamentoRepository {
     return orcamento;
   }
 
-  async removerItem(orcamentoId: string, itemId: string, _req?: AuthenticatedRequest) {
-    const orcamento = await this.model.findOne({ _id: orcamentoId, ativo: true });
+  async removerItem(
+    orcamentoId: string,
+    itemId: string,
+    _req?: AuthenticatedRequest,
+  ) {
+    const orcamento = await this.model.findOne({
+      _id: orcamentoId,
+      ativo: true,
+    });
     if (!orcamento) {
       throw new CustomError({
         statusCode: 404,
@@ -186,7 +238,11 @@ class OrcamentoRepository {
     return orcamento;
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const orcamento = await this.model.findOne({ _id: id, ativo: true });
     if (!orcamento) {
       throw new CustomError({

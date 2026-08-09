@@ -20,7 +20,7 @@ const categoriaSchema = new mongoose.Schema<CategoriaDocument>(
 
 categoriaSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<CategoriaDocument, mongoose.PaginateModel<CategoriaDocument>>(
-  'categorias',
-  categoriaSchema,
-);
+export default mongoose.model<
+  CategoriaDocument,
+  mongoose.PaginateModel<CategoriaDocument>
+>('categorias', categoriaSchema);

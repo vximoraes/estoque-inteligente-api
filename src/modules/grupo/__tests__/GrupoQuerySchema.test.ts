@@ -1,7 +1,4 @@
-import {
-  GrupoIdSchema,
-  GrupoQuerySchema,
-} from '../GrupoQuerySchema.js';
+import { GrupoIdSchema, GrupoQuerySchema } from '../GrupoQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('GrupoIdSchema', () => {
