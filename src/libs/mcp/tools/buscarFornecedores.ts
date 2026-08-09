@@ -10,7 +10,9 @@ export async function buscarFornecedores(
 
   if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
 
-  const fornecedores = await FornecedorModel.find(filtros).sort({ nome: 1 }).lean();
+  const fornecedores = await FornecedorModel.find(filtros)
+    .sort({ nome: 1 })
+    .lean();
 
   return fornecedores.map((f) => {
     const fObj = f as Record<string, unknown>;

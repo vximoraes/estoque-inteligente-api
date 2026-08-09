@@ -74,14 +74,11 @@ describe('FornecedorRepository', () => {
 
     it('deve lançar erro se o filterBuilder não tiver método build', async () => {
       jest.resetModules();
-      jest.doMock(
-        '../FornecedorFilterBuilder.js',
-        () => {
-          return jest.fn().mockImplementation(() => ({
-            comNome: jest.fn().mockReturnThis(),
-          }));
-        },
-      );
+      jest.doMock('../FornecedorFilterBuilder.js', () => {
+        return jest.fn().mockImplementation(() => ({
+          comNome: jest.fn().mockReturnThis(),
+        }));
+      });
       const FornecedorRepositoryWithBrokenBuilder = (
         await import('../FornecedorRepository.js')
       ).default;

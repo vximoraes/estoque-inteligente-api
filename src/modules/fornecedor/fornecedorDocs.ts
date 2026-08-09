@@ -1,8 +1,17 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
-import { FornecedorSchema, FornecedorUpdateSchema } from './FornecedorSchema.js';
+import {
+  FornecedorSchema,
+  FornecedorUpdateSchema,
+} from './FornecedorSchema.js';
 
 const FornecedorDetalhes = registry.register(
   'FornecedorDetalhes',
@@ -10,14 +19,23 @@ const FornecedorDetalhes = registry.register(
     _id: objectIdField,
     nome: z.string().openapi({ example: 'TechComponents LTDA' }),
     ativo: z.boolean().openapi({ example: true }),
-    url: z.string().optional().openapi({ example: 'https://www.techcomponents.com.br' }),
+    url: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://www.techcomponents.com.br' }),
     contato: z.string().optional().openapi({ example: '(11) 98765-4321' }),
-    descricao: z.string().optional().openapi({ example: 'Fornecedor especializado em itens eletrônicos' }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({ example: 'Fornecedor especializado em itens eletrônicos' }),
     ...timestampFields,
   }),
 );
 
-registry.register('FornecedorListagem', z.object({ data: z.array(FornecedorDetalhes), ...paginationMetaFields }));
+registry.register(
+  'FornecedorListagem',
+  z.object({ data: z.array(FornecedorDetalhes), ...paginationMetaFields }),
+);
 registry.register('FornecedorPost', FornecedorSchema);
 registry.register('FornecedorPatch', FornecedorUpdateSchema);
 
@@ -42,7 +60,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/FornecedorPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/FornecedorPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/FornecedorDetalhes'),
@@ -68,8 +90,20 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -105,7 +139,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do fornecedor')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/FornecedorPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/FornecedorPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/FornecedorDetalhes'),

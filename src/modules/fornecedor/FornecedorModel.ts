@@ -23,7 +23,7 @@ const fornecedorSchema = new mongoose.Schema<FornecedorDocument>({
 
 fornecedorSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<FornecedorDocument, mongoose.PaginateModel<FornecedorDocument>>(
-  'fornecedores',
-  fornecedorSchema,
-);
+export default mongoose.model<
+  FornecedorDocument,
+  mongoose.PaginateModel<FornecedorDocument>
+>('fornecedores', fornecedorSchema);

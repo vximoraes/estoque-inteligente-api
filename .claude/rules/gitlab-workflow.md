@@ -5,11 +5,13 @@ Gerenciado via `glab` CLI (grupo `estoque-inteligente`, projetos `estoque-inteli
 ## Labels
 
 Toda issue carrega três eixos, sempre:
+
 - `prio::P1|P2|P3` — prioridade
 - `size::XS|S|M|L|XL` — tamanho estimado
 - `type::Bug|Chore|Code|Code Test|Documentation|Feature|Plan Test|Spike` — natureza da tarefa
 
 Mais o eixo de status:
+
 - `workflow::Backlog` → `workflow::Opened` → `workflow::Doing` → `workflow::QA` → (`workflow::Review` quando há MR aberta)
 
 **Issue fechada não carrega nenhuma label `workflow::`** — o estado "closed" do próprio GitLab já basta; não usar `workflow::Closed`.

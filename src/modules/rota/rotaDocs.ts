@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { RotaSchema, RotaUpdateSchema } from './RotaSchema.js';
 
@@ -20,7 +26,10 @@ const RotaDetalhes = registry.register(
   }),
 );
 
-registry.register('RotaListagem', z.object({ data: z.array(RotaDetalhes), ...paginationMetaFields }));
+registry.register(
+  'RotaListagem',
+  z.object({ data: z.array(RotaDetalhes), ...paginationMetaFields }),
+);
 registry.register('RotaPost', RotaSchema);
 registry.register('RotaPatch', RotaUpdateSchema);
 
@@ -43,7 +52,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/RotaDetalhes'),
@@ -69,9 +82,27 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'rota', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por rota' },
-        { name: 'dominio', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por domínio' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'rota',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por rota',
+        },
+        {
+          name: 'dominio',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por domínio',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -117,7 +148,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),
@@ -146,7 +181,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPost' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),

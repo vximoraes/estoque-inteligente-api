@@ -1,5 +1,4 @@
 declare module 'mongoose-schema-jsonschema' {
-  import type mongoose from 'mongoose';
   function mongooseSchemaJsonSchema(mongoose: typeof import('mongoose')): void;
   export = mongooseSchemaJsonSchema;
 }

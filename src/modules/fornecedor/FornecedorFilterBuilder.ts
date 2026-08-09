@@ -31,7 +31,10 @@ class FornecedorFilterBuilder {
 
   comDescricao(descricao: string | null | undefined): this {
     if (descricao !== undefined && descricao !== null && descricao !== '') {
-      this.filtros.descricao = { $regex: escapeRegex(descricao), $options: 'i' };
+      this.filtros.descricao = {
+        $regex: escapeRegex(descricao),
+        $options: 'i',
+      };
     }
     return this;
   }

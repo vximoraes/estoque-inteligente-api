@@ -17,7 +17,9 @@ class EmprestimoFilterBuilder {
       return this;
     }
 
-    const itemEncontrado = await Item.findOne({ nome: { $regex: escapeRegex(item), $options: 'i' } });
+    const itemEncontrado = await Item.findOne({
+      nome: { $regex: escapeRegex(item), $options: 'i' },
+    });
     this.filtros['item'] = itemEncontrado ? itemEncontrado._id : { $in: [] };
     return this;
   }
@@ -27,7 +29,9 @@ class EmprestimoFilterBuilder {
 
     if (Types.ObjectId.isValid(localizacao)) {
       const localizacaoEncontrada = await Localizacao.findById(localizacao);
-      this.filtros['localizacao'] = localizacaoEncontrada ? localizacao : { $in: [] };
+      this.filtros['localizacao'] = localizacaoEncontrada
+        ? localizacao
+        : { $in: [] };
       return this;
     }
 
@@ -42,7 +46,10 @@ class EmprestimoFilterBuilder {
 
   comSolicitanteNome(solicitanteNome: string | null | undefined): this {
     if (solicitanteNome) {
-      this.filtros['solicitante_nome'] = { $regex: escapeRegex(solicitanteNome), $options: 'i' };
+      this.filtros['solicitante_nome'] = {
+        $regex: escapeRegex(solicitanteNome),
+        $options: 'i',
+      };
     }
     return this;
   }

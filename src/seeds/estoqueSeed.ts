@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 import { fakeMappings } from './globalFakeMapping.js';
 import Estoque from '../modules/estoque/EstoqueModel.js';
 import Item from '../modules/item/ItemModel.js';
-import Localizacao, { type LocalizacaoDocument } from '../modules/localizacao/LocalizacaoModel.js';
+import Localizacao, {
+  type LocalizacaoDocument,
+} from '../modules/localizacao/LocalizacaoModel.js';
 import Usuario from '../modules/usuario/UsuarioModel.js';
 
 export default async function estoqueSeed() {

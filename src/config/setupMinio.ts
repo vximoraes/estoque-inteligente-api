@@ -61,9 +61,7 @@ async function setupMinio(): Promise<void> {
       const exists = await bucketExists(bucketName);
 
       if (!exists) {
-        await minioClient.send(
-          new CreateBucketCommand({ Bucket: bucketName }),
-        );
+        await minioClient.send(new CreateBucketCommand({ Bucket: bucketName }));
         console.info(`Bucket "${bucketName}" criado com sucesso no MinIO.`);
       } else {
         console.info(`Bucket "${bucketName}" já existe no MinIO.`);
@@ -86,8 +84,7 @@ async function setupMinio(): Promise<void> {
       Code?: string;
       $metadata?: { httpStatusCode?: number };
     };
-    const detalhe =
-      err.message || err.Code || err.name || JSON.stringify(err);
+    const detalhe = err.message || err.Code || err.name || JSON.stringify(err);
     throw new Error(
       `Erro ao verificar/criar buckets do MinIO: ${detalhe} (status ${err.$metadata?.httpStatusCode ?? '?'})`,
     );

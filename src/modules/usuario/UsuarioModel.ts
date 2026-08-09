@@ -45,7 +45,7 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
 
 usuarioSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<UsuarioDocument, mongoose.PaginateModel<UsuarioDocument>>(
-  'usuarios',
-  usuarioSchema,
-);
+export default mongoose.model<
+  UsuarioDocument,
+  mongoose.PaginateModel<UsuarioDocument>
+>('usuarios', usuarioSchema);

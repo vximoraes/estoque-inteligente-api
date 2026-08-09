@@ -1,6 +1,12 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import MovimentacaoFilterBuilder from './MovimentacaoFilterBuilder.js';
-import MovimentacaoModel, { type MovimentacaoDocument, type IMovimentacaoModel } from './MovimentacaoModel.js';
+import MovimentacaoModel, {
+  type MovimentacaoDocument,
+  type IMovimentacaoModel,
+} from './MovimentacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -86,10 +92,17 @@ class MovimentacaoRepository {
       options,
     );
 
-    return { ...resultado, docs: resultado.docs.map((doc) => ({ ...doc.toObject() })) };
+    return {
+      ...resultado,
+      docs: resultado.docs.map((doc) => ({ ...doc.toObject() })),
+    };
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const movimentacao = await this.model.findOne({ _id: id });
 
     if (!movimentacao) {

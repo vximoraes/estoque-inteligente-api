@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { CategoriaSchema, CategoriaUpdateSchema } from './CategoriaSchema.js';
 
@@ -87,7 +93,13 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
         ...paginationQueryParams,
       ],
       responses: {

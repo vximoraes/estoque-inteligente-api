@@ -1,7 +1,4 @@
-import {
-  CategoriaSchema,
-  CategoriaUpdateSchema,
-} from '../CategoriaSchema.js';
+import { CategoriaSchema, CategoriaUpdateSchema } from '../CategoriaSchema.js';
 
 describe('CategoriaSchema', () => {
   it('deve validar dados válidos corretamente', () => {

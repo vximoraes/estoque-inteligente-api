@@ -1,7 +1,4 @@
-import {
-  ItemSchema,
-  ItemUpdateSchema,
-} from '../ItemSchema.js';
+import { ItemSchema, ItemUpdateSchema } from '../ItemSchema.js';
 import mongoose from 'mongoose';
 
 describe('ItemSchema', () => {

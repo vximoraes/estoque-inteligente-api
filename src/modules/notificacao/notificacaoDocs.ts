@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { NotificacaoSchema } from './NotificacaoSchema.js';
 
@@ -8,18 +13,33 @@ const NotificacaoDetalhes = registry.register(
   'NotificacaoDetalhes',
   z.object({
     _id: objectIdField,
-    mensagem: z.string().openapi({ example: 'Estoque baixo do item Resistor 10k' }),
-    data_hora: z.string().datetime().openapi({ example: '2024-01-15T10:30:00.000Z' }),
+    mensagem: z
+      .string()
+      .openapi({ example: 'Estoque baixo do item Resistor 10k' }),
+    data_hora: z
+      .string()
+      .datetime()
+      .openapi({ example: '2024-01-15T10:30:00.000Z' }),
     visualizada: z.boolean().openapi({ example: false }),
-    dataLeitura: z.string().datetime().optional().openapi({ example: '2024-01-15T11:00:00.000Z' }),
+    dataLeitura: z
+      .string()
+      .datetime()
+      .optional()
+      .openapi({ example: '2024-01-15T11:00:00.000Z' }),
     ativo: z.boolean().openapi({ example: true }),
     usuario: objectIdField,
   }),
 );
 
-registry.register('NotificacaoPost', NotificacaoSchema.pick({ mensagem: true }));
+registry.register(
+  'NotificacaoPost',
+  NotificacaoSchema.pick({ mensagem: true }),
+);
 
-registry.register('NotificacaoListagem', z.object({ data: z.array(NotificacaoDetalhes), ...paginationMetaFields }));
+registry.register(
+  'NotificacaoListagem',
+  z.object({ data: z.array(NotificacaoDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/notificacoes': {
@@ -39,7 +59,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/NotificacaoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/NotificacaoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/NotificacaoDetalhes'),
@@ -65,9 +89,27 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'usuario', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID do usuário' },
-        { name: 'visualizada', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status de visualização' },
-        { name: 'mensagem', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por texto da mensagem' },
+        {
+          name: 'usuario',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por ID do usuário',
+        },
+        {
+          name: 'visualizada',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status de visualização',
+        },
+        {
+          name: 'mensagem',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por texto da mensagem',
+        },
         ...paginationQueryParams,
       ],
       responses: {

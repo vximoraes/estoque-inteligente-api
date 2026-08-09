@@ -1,7 +1,8 @@
 const messages = {
   info: {
     welcome: 'Bem-vindo à nossa aplicação!',
-    userLoggedIn: (username: string) => `Usuário ${username} logado com sucesso.`,
+    userLoggedIn: (username: string) =>
+      `Usuário ${username} logado com sucesso.`,
   },
 
   success: {
@@ -53,7 +54,8 @@ const messages = {
     resourceInUse: (fieldName: string) => `Recurso em uso em ${fieldName}.`,
     authenticationError: (fieldName: string) =>
       `Erro de autenticação em ${fieldName}.`,
-    permissionError: (fieldName: string) => `Erro de permissão em ${fieldName}.`,
+    permissionError: (fieldName: string) =>
+      `Erro de permissão em ${fieldName}.`,
     resourceNotFound: (fieldName: string) => `${fieldName} não encontrado(a).`,
   },
 
@@ -71,7 +73,8 @@ const messages = {
         `Valor informado para o campo ${fieldName} não foi encontrado.`,
       mustBeOneOf: (fieldName: string, values: string[]) =>
         `O campo ${fieldName} deve ser um dos seguintes valores: ${values.join(', ')}.`,
-      resourceCreated: (fieldName: string) => `${fieldName} criado(a) com sucesso.`,
+      resourceCreated: (fieldName: string) =>
+        `${fieldName} criado(a) com sucesso.`,
       resourceUpdated: (fieldName: string) =>
         `${fieldName} atualizado(a) com sucesso.`,
       resourceDeleted: (fieldName: string) =>
@@ -83,18 +86,31 @@ const messages = {
         `${resource} com referência em ${reference}. Exclusão impedida.`,
     },
     custom: {
-      invalidCPF: { message: 'CPF inválido. Verifique o formato e tente novamente.' },
-      invalidCNPJ: { message: 'CNPJ inválido. Verifique o formato e tente novamente.' },
-      invalidCEP: { message: 'CEP inválido. Verifique o formato e tente novamente.' },
+      invalidCPF: {
+        message: 'CPF inválido. Verifique o formato e tente novamente.',
+      },
+      invalidCNPJ: {
+        message: 'CNPJ inválido. Verifique o formato e tente novamente.',
+      },
+      invalidCEP: {
+        message: 'CEP inválido. Verifique o formato e tente novamente.',
+      },
       invalidPhoneNumber: {
-        message: 'Número de telefone inválido. Verifique o formato e tente novamente.',
+        message:
+          'Número de telefone inválido. Verifique o formato e tente novamente.',
       },
       invalidMail: { message: 'Email no formato inválido.' },
-      invalidYear: { message: 'Ano inválido. Verifique o formato e tente novamente.' },
-      invalidDate: { message: 'Data inválida. Verifique o formato e tente novamente.' },
+      invalidYear: {
+        message: 'Ano inválido. Verifique o formato e tente novamente.',
+      },
+      invalidDate: {
+        message: 'Data inválida. Verifique o formato e tente novamente.',
+      },
       invalidKilometerInitial: { message: 'Quilometragem inicial inválida.' },
       invalidKilometer: { message: 'Quilometragem inválida.' },
-      invalidDatePast: { message: 'Data do início deve ser uma data atual ou futura.' },
+      invalidDatePast: {
+        message: 'Data do início deve ser uma data atual ou futura.',
+      },
       invalidDateFuture: {
         message: 'A data de conclusão deve ser maior do que a data de início!',
       },
@@ -106,7 +122,8 @@ const messages = {
           'A data final da vigência não pode ser um período maior que 12 meses após a data de início da vigência.',
       },
       invalidDataNascimento: {
-        message: 'Data de nascimento deve ser uma data passada e maior que 18 anos.',
+        message:
+          'Data de nascimento deve ser uma data passada e maior que 18 anos.',
       },
       invalidDataAdmissao: {
         message: 'Data de admissão deve ser uma data atual ou passada.',
@@ -115,14 +132,16 @@ const messages = {
         message: 'Ano/semestre. Verifique o formato e tente novamente.',
       },
       invalidYearStartSemester: {
-        message: 'Data do início do semestre deve ser menor que a data fim de semestre.',
+        message:
+          'Data do início do semestre deve ser menor que a data fim de semestre.',
       },
     },
   },
 
   auth: {
     authenticationFailed: 'Falha na autenticação. Credenciais inválidas.',
-    userNotFound: (userId: string) => `Usuário com ID ${userId} não encontrado.`,
+    userNotFound: (userId: string) =>
+      `Usuário com ID ${userId} não encontrado.`,
     invalidPermission: 'Permissão insuficiente para executar a operação.',
     duplicateEntry: (fieldName: string) =>
       `Já existe um registro com o mesmo ${fieldName}.`,

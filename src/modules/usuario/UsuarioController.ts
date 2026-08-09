@@ -2,7 +2,11 @@ import type { Response } from 'express';
 import UsuarioService from './UsuarioService.js';
 import { UsuarioQuerySchema, UsuarioIdSchema } from './UsuarioQuerySchema.js';
 import { UsuarioUpdateSchema } from './UsuarioSchema.js';
-import { CommonResponse, CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
+import {
+  CommonResponse,
+  CustomError,
+  HttpStatusCodes,
+} from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class UsuarioController {
@@ -46,23 +50,33 @@ class UsuarioController {
   }
 
   async deletar(req: AuthenticatedRequest, res: Response) {
-    const id = req.params?.['id'] as string | undefined ?? '';
+    const id = (req.params?.['id'] as string | undefined) ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.deletar(id, req);
-    return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Usuário excluído com sucesso.',
+    );
   }
 
   async uploadFoto(req: AuthenticatedRequest, res: Response) {
-    const id = req.params?.['id'] as string | undefined ?? '';
+    const id = (req.params?.['id'] as string | undefined) ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.uploadFoto(req, id);
-    return CommonResponse.success(res, data, 201, 'Foto atualizada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      201,
+      'Foto atualizada com sucesso.',
+    );
   }
 
   async deletarFoto(req: AuthenticatedRequest, res: Response) {
-    const id = req.params?.['id'] as string | undefined ?? '';
+    const id = (req.params?.['id'] as string | undefined) ?? '';
     UsuarioIdSchema.parse(id);
 
     const data = await this.service.deletarFoto(req, id);

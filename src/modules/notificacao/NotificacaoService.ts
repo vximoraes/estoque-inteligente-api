@@ -19,7 +19,9 @@ class NotificacaoService {
 
   async criar(parsedData: Notificacao, req: AuthenticatedRequest) {
     const dataToCreate = { ...parsedData, usuario: req.user_id };
-    return await this.repository.criar(dataToCreate as unknown as Record<string, unknown>);
+    return await this.repository.criar(
+      dataToCreate as unknown as Record<string, unknown>,
+    );
   }
 
   async marcarComoVisualizada(id: string, req: AuthenticatedRequest) {

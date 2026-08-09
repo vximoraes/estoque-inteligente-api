@@ -60,7 +60,9 @@ router
     AuthMiddleware,
     AuthPermission,
     asyncWrapper(
-      notificacaoController.marcarTodasComoVisualizadas.bind(notificacaoController),
+      notificacaoController.marcarTodasComoVisualizadas.bind(
+        notificacaoController,
+      ),
     ),
   )
   .patch(

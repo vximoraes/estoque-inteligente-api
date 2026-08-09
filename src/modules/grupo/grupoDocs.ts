@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { GrupoSchema, GrupoUpdateSchema } from './GrupoSchema.js';
 import { RotaSchema } from '../rota/RotaSchema.js';
@@ -10,14 +16,19 @@ const GrupoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Administradores' }),
-    descricao: z.string().openapi({ example: 'Grupo com acesso total ao sistema' }),
+    descricao: z
+      .string()
+      .openapi({ example: 'Grupo com acesso total ao sistema' }),
     ativo: z.boolean().openapi({ example: true }),
     permissoes: z.array(RotaSchema),
     ...timestampFields,
   }),
 );
 
-registry.register('GrupoListagem', z.object({ data: z.array(GrupoDetalhes), ...paginationMetaFields }));
+registry.register(
+  'GrupoListagem',
+  z.object({ data: z.array(GrupoDetalhes), ...paginationMetaFields }),
+);
 registry.register('GrupoPost', GrupoSchema);
 registry.register('GrupoPatch', GrupoUpdateSchema);
 registry.register('PermissaoSchema', RotaSchema);
@@ -41,7 +52,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/GrupoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/GrupoDetalhes'),
@@ -67,8 +82,20 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -104,7 +131,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/GrupoPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
@@ -123,7 +154,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/GrupoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/GrupoPost' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),
@@ -159,7 +194,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do grupo')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/PermissaoSchema' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/PermissaoSchema' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/GrupoDetalhes'),

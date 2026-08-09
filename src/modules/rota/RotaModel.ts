@@ -38,4 +38,7 @@ rotaSchema.pre('save', function (this: RotaDocument, next) {
   next();
 });
 
-export default mongoose.model<RotaDocument, mongoose.PaginateModel<RotaDocument>>('rotas', rotaSchema);
+export default mongoose.model<
+  RotaDocument,
+  mongoose.PaginateModel<RotaDocument>
+>('rotas', rotaSchema);

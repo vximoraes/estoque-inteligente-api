@@ -27,7 +27,11 @@ class AuthPermission {
     this.handle = this._handle.bind(this);
   }
 
-  async _handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async _handle(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const session = await getAuth().api.getSession({
         headers: fromNodeHeaders(req.headers),
@@ -45,10 +49,14 @@ class AuthPermission {
 
       const userId = session.user.id;
 
-      const rotaReq = req.url.split('/').filter(Boolean)[0]?.split('?')[0] ?? '';
+      const rotaReq =
+        req.url.split('/').filter(Boolean)[0]?.split('?')[0] ?? '';
       const dominioReq = DOMINIO_PADRAO;
 
-      const rotaDB = await this.Rota.findOne({ rota: rotaReq, dominio: dominioReq });
+      const rotaDB = await this.Rota.findOne({
+        rota: rotaReq,
+        dominio: dominioReq,
+      });
       if (!rotaDB) {
         throw new CustomError({
           statusCode: 404,

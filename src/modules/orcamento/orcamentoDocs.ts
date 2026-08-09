@@ -1,8 +1,18 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
-import { OrcamentoSchema, OrcamentoUpdateSchema, ItemOrcamentoSchema, ItemOrcamentoUpdateSchema } from './OrcamentoSchema.js';
+import {
+  OrcamentoSchema,
+  OrcamentoUpdateSchema,
+  ItemOrcamentoSchema,
+} from './OrcamentoSchema.js';
 
 const ItemOrcamentoDetalhes = registry.register(
   'ItemOrcamentoDetalhes',
@@ -22,7 +32,12 @@ const OrcamentoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Orçamento Sistema de Automação' }),
-    descricao: z.string().optional().openapi({ example: 'Orçamento para itens do sistema de automação residencial' }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({
+        example: 'Orçamento para itens do sistema de automação residencial',
+      }),
     total: z.number().openapi({ example: 15.5 }),
     itens: z.array(ItemOrcamentoDetalhes),
     usuario: objectIdField,
@@ -38,13 +53,25 @@ const itemOrcamentoDocsFields = {
   fornecedor: objectIdField,
 };
 
-registry.register('OrcamentoListagem', z.object({ data: z.array(OrcamentoDetalhes), ...paginationMetaFields }));
-registry.register('OrcamentoPost', OrcamentoSchema.extend({
-  itens: z.array(ItemOrcamentoSchema.extend(itemOrcamentoDocsFields)).min(1),
-}));
+registry.register(
+  'OrcamentoListagem',
+  z.object({ data: z.array(OrcamentoDetalhes), ...paginationMetaFields }),
+);
+registry.register(
+  'OrcamentoPost',
+  OrcamentoSchema.extend({
+    itens: z.array(ItemOrcamentoSchema.extend(itemOrcamentoDocsFields)).min(1),
+  }),
+);
 registry.register('OrcamentoPatch', OrcamentoUpdateSchema);
-registry.register('ItemOrcamentoPost', ItemOrcamentoSchema.extend(itemOrcamentoDocsFields));
-registry.register('ItemOrcamentoPatch', ItemOrcamentoSchema.extend(itemOrcamentoDocsFields).partial());
+registry.register(
+  'ItemOrcamentoPost',
+  ItemOrcamentoSchema.extend(itemOrcamentoDocsFields),
+);
+registry.register(
+  'ItemOrcamentoPatch',
+  ItemOrcamentoSchema.extend(itemOrcamentoDocsFields).partial(),
+);
 
 registerPaths({
   '/orcamentos': {
@@ -64,7 +91,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/OrcamentoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/OrcamentoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/OrcamentoDetalhes'),
@@ -90,11 +121,41 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'valorMin', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total mínimo' },
-        { name: 'valorMax', in: 'query', required: false, schema: { type: 'number' }, description: 'Filtro por valor total máximo' },
-        { name: 'dataInicio', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Filtro por data de criação inicial' },
-        { name: 'dataFim', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Filtro por data de criação final' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'valorMin',
+          in: 'query',
+          required: false,
+          schema: { type: 'number' },
+          description: 'Filtro por valor total mínimo',
+        },
+        {
+          name: 'valorMax',
+          in: 'query',
+          required: false,
+          schema: { type: 'number' },
+          description: 'Filtro por valor total máximo',
+        },
+        {
+          name: 'dataInicio',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', format: 'date' },
+          description: 'Filtro por data de criação inicial',
+        },
+        {
+          name: 'dataFim',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', format: 'date' },
+          description: 'Filtro por data de criação final',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -135,7 +196,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do orçamento')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/OrcamentoPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/OrcamentoPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
@@ -173,10 +238,20 @@ registerPaths({
       summary: 'Adiciona item ao orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
+        {
+          name: 'orcamentoId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID do orçamento',
+        },
       ],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemOrcamentoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemOrcamentoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/OrcamentoDetalhes'),
@@ -195,11 +270,21 @@ registerPaths({
       summary: 'Atualiza item do orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
+        {
+          name: 'orcamentoId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID do orçamento',
+        },
         idPathParam('ID do item'),
       ],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemOrcamentoPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemOrcamentoPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/OrcamentoDetalhes'),
@@ -216,7 +301,13 @@ registerPaths({
       summary: 'Remove item do orçamento',
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'orcamentoId', in: 'path', required: true, schema: { type: 'string' }, description: 'ID do orçamento' },
+        {
+          name: 'orcamentoId',
+          in: 'path',
+          required: true,
+          schema: { type: 'string' },
+          description: 'ID do orçamento',
+        },
         idPathParam('ID do item'),
       ],
       responses: {

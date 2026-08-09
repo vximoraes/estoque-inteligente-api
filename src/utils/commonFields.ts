@@ -3,7 +3,9 @@ import mongoose from 'mongoose';
 
 export const objectIdSchema = z
   .string()
-  .refine((id) => mongoose.Types.ObjectId.isValid(id), { message: 'ID inválido' });
+  .refine((id) => mongoose.Types.ObjectId.isValid(id), {
+    message: 'ID inválido',
+  });
 
 export const paginationSchema = z.object({
   page: z

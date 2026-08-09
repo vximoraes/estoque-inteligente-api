@@ -31,8 +31,9 @@ async function autenticarRequisicao(req: Request): Promise<string> {
 function resolverSessao(sessionId: string, usuarioId: string) {
   const session = MCPSessionStore.get(sessionId);
   if (!session) throw mcpError('Sessão MCP não encontrada ou expirada', 404);
-  if (session.usuarioId !== usuarioId)
+  if (session.usuarioId !== usuarioId) {
     throw mcpError('Sessão não pertence a este usuário', 403);
+  }
   return session;
 }
 

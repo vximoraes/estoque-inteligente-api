@@ -18,7 +18,10 @@ class LocalizacaoService {
   async criar(parsedData: Localizacao, req: AuthenticatedRequest) {
     await this.validateNome(parsedData.nome, null, req);
 
-    const data = await this.repository.criar({ ...parsedData, usuario: req.user_id });
+    const data = await this.repository.criar({
+      ...parsedData,
+      usuario: req.user_id,
+    });
 
     return data;
   }
@@ -27,19 +30,29 @@ class LocalizacaoService {
     return await this.repository.listar(req);
   }
 
-  async atualizar(id: string, parsedData: LocalizacaoUpdate, req: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: LocalizacaoUpdate,
+    req: AuthenticatedRequest,
+  ) {
     await this.ensureLocationExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
     }
 
-    return await this.repository.atualizar(id, parsedData as Record<string, unknown>, req);
+    return await this.repository.atualizar(
+      id,
+      parsedData as Record<string, unknown>,
+      req,
+    );
   }
 
   async inativar(id: string, req: AuthenticatedRequest) {
     await this.ensureLocationExists(id, req);
 
-    const estoques = await EstoqueModel.find({ localizacao: id }).populate('item');
+    const estoques = await EstoqueModel.find({ localizacao: id }).populate(
+      'item',
+    );
 
     const temItemAtivo = estoques.some((estoque) => {
       const item = estoque.item as unknown as { ativo?: boolean } | null;
@@ -59,8 +72,16 @@ class LocalizacaoService {
     return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
-  private async validateNome(nome: string, id: string | null = null, req: AuthenticatedRequest) {
-    const localizacaoExistente = await this.repository.buscarPorNome(nome, id, req);
+  private async validateNome(
+    nome: string,
+    id: string | null = null,
+    req: AuthenticatedRequest,
+  ) {
+    const localizacaoExistente = await this.repository.buscarPorNome(
+      nome,
+      id,
+      req,
+    );
     if (localizacaoExistente) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -73,7 +94,11 @@ class LocalizacaoService {
   }
 
   private async ensureLocationExists(id: string, req: AuthenticatedRequest) {
-    const localizacaoExistente = await this.repository.buscarPorId(id, false, req);
+    const localizacaoExistente = await this.repository.buscarPorId(
+      id,
+      false,
+      req,
+    );
     if (!localizacaoExistente) {
       throw new CustomError({
         statusCode: 404,

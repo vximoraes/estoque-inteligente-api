@@ -1,6 +1,9 @@
 import type { Response } from 'express';
 import CategoriaService from './CategoriaService.js';
-import { CategoriaQuerySchema, CategoriaIdSchema } from './CategoriaQuerySchema.js';
+import {
+  CategoriaQuerySchema,
+  CategoriaIdSchema,
+} from './CategoriaQuerySchema.js';
 import { CategoriaSchema, CategoriaUpdateSchema } from './CategoriaSchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -42,7 +45,12 @@ class CategoriaController {
     const parsedData = CategoriaUpdateSchema.parse(req.body);
     const data = await this.service.atualizar(id, parsedData, req);
 
-    return CommonResponse.success(res, data, 200, 'Categoria atualizada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Categoria atualizada com sucesso.',
+    );
   }
 
   async inativar(req: AuthenticatedRequest, res: Response) {
@@ -51,7 +59,12 @@ class CategoriaController {
 
     const data = await this.service.inativar(id, req);
 
-    return CommonResponse.success(res, data, 200, 'Categoria inativada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Categoria inativada com sucesso.',
+    );
   }
 }
 

@@ -17,9 +17,23 @@ export interface IEstoqueModel extends mongoose.PaginateModel<EstoqueDocument> {
 
 const estoqueSchema = new mongoose.Schema<EstoqueDocument>(
   {
-    quantidade: { type: Number, required: true, default: 0, min: 0, max: 999999999 },
-    item: { type: mongoose.Schema.Types.ObjectId, ref: 'itens', required: true },
-    localizacao: { type: mongoose.Schema.Types.ObjectId, ref: 'localizacoes', required: true },
+    quantidade: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+      max: 999999999,
+    },
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'itens',
+      required: true,
+    },
+    localizacao: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'localizacoes',
+      required: true,
+    },
     usuario: { type: String, ref: 'usuarios', required: true },
   },
   { timestamps: true },
@@ -32,21 +46,31 @@ estoqueSchema.post('save', async function (this: EstoqueDocument) {
   await Model.atualizarQuantidadeItem(this.item);
 });
 
-estoqueSchema.post('deleteOne', async function (this: mongoose.Query<unknown, EstoqueDocument>) {
-  const model = this.model as unknown as IEstoqueModel;
-  const doc = await model.findOne(this.getQuery() as mongoose.FilterQuery<EstoqueDocument>);
-  if (doc) {
-    await model.atualizarQuantidadeItem(doc.item);
-  }
-});
+estoqueSchema.post(
+  'deleteOne',
+  async function (this: mongoose.Query<unknown, EstoqueDocument>) {
+    const model = this.model as unknown as IEstoqueModel;
+    const doc = await model.findOne(
+      this.getQuery() as mongoose.FilterQuery<EstoqueDocument>,
+    );
+    if (doc) {
+      await model.atualizarQuantidadeItem(doc.item);
+    }
+  },
+);
 
-estoqueSchema.post(['updateOne', 'findOneAndUpdate'], async function (this: mongoose.Query<unknown, EstoqueDocument>) {
-  const model = this.model as unknown as IEstoqueModel;
-  const doc = await model.findOne(this.getQuery() as mongoose.FilterQuery<EstoqueDocument>);
-  if (doc) {
-    await model.atualizarQuantidadeItem(doc.item);
-  }
-});
+estoqueSchema.post(
+  ['updateOne', 'findOneAndUpdate'],
+  async function (this: mongoose.Query<unknown, EstoqueDocument>) {
+    const model = this.model as unknown as IEstoqueModel;
+    const doc = await model.findOne(
+      this.getQuery() as mongoose.FilterQuery<EstoqueDocument>,
+    );
+    if (doc) {
+      await model.atualizarQuantidadeItem(doc.item);
+    }
+  },
+);
 
 estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
   this: unknown,
@@ -56,14 +80,15 @@ estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
   const Item = mongoose.model('itens');
   const Notificacao = mongoose.model('notificacoes');
 
-  const resultado = await self.aggregate([
+  const resultado = (await self.aggregate([
     { $match: { item: itemId } },
     { $group: { _id: null, quantidadeTotal: { $sum: '$quantidade' } } },
-  ]) as Array<{ quantidadeTotal: number }>;
+  ])) as Array<{ quantidadeTotal: number }>;
 
-  const quantidadeTotal = resultado.length > 0 ? resultado[0]?.quantidadeTotal ?? 0 : 0;
+  const quantidadeTotal =
+    resultado.length > 0 ? (resultado[0]?.quantidadeTotal ?? 0) : 0;
 
-  const item = await Item.findById(itemId) as Record<string, unknown> | null;
+  const item = (await Item.findById(itemId)) as Record<string, unknown> | null;
 
   if (item) {
     const quantidadeAnterior = (item['quantidade'] as number) || 0;
@@ -76,22 +101,33 @@ estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
 
     if (quantidadeTotal === 0 && quantidadeAnterior > 0) {
       mensagem = `${nomeItem} está indisponível (0 unidades)`;
-    } else if (quantidadeTotal >= estoqueMinimo && quantidadeAnterior < estoqueMinimo) {
+    } else if (
+      quantidadeTotal >= estoqueMinimo &&
+      quantidadeAnterior < estoqueMinimo
+    ) {
       mensagem = `${nomeItem} está em estoque (${quantidadeTotal} unidades)`;
-    } else if (quantidadeTotal > 0 && quantidadeTotal < estoqueMinimo && quantidadeAnterior === 0) {
+    } else if (
+      quantidadeTotal > 0 &&
+      quantidadeTotal < estoqueMinimo &&
+      quantidadeAnterior === 0
+    ) {
       mensagem = `${nomeItem} está com estoque baixo (${quantidadeTotal} unidades)`;
-    } else if (quantidadeTotal > 0 && quantidadeTotal < estoqueMinimo && quantidadeAnterior >= estoqueMinimo) {
+    } else if (
+      quantidadeTotal > 0 &&
+      quantidadeTotal < estoqueMinimo &&
+      quantidadeAnterior >= estoqueMinimo
+    ) {
       mensagem = `${nomeItem} está com estoque baixo (${quantidadeTotal} unidades)`;
     }
 
     if (mensagem && item['usuario']) {
-      const novaNotificacao = await Notificacao.create({
+      const novaNotificacao = (await Notificacao.create({
         mensagem,
         data_hora: new Date(),
         visualizada: false,
         ativo: true,
         usuario: item['usuario'],
-      }) as Record<string, unknown>;
+      })) as Record<string, unknown>;
 
       SSEService.sendNotification(item['usuario'], {
         _id: novaNotificacao['_id'],
@@ -105,4 +141,7 @@ estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
 
 estoqueSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<EstoqueDocument, IEstoqueModel>('estoques', estoqueSchema);
+export default mongoose.model<EstoqueDocument, IEstoqueModel>(
+  'estoques',
+  estoqueSchema,
+);

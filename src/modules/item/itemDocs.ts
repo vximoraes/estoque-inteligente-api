@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { ItemSchema } from './ItemSchema.js';
 
@@ -11,24 +17,38 @@ const ItemDetalhes = registry.register(
     nome: z.string().openapi({ example: 'Resistor 10k Ohm' }),
     quantidade: z.number().int().openapi({ example: 150 }),
     estoque_minimo: z.number().int().openapi({ example: 50 }),
-    descricao: z.string().optional().openapi({ example: 'Resistor de precisão 1/4W 5%' }),
-    imagem: z.string().optional().openapi({ example: 'https://storage/resistor.jpg' }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({ example: 'Resistor de precisão 1/4W 5%' }),
+    imagem: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://storage/resistor.jpg' }),
     categoria: objectIdField,
     ativo: z.boolean().openapi({ example: true }),
-    status: z.enum(['Indisponível', 'Baixo Estoque', 'Em Estoque']).openapi({ example: 'Em Estoque' }),
+    status: z
+      .enum(['Indisponível', 'Baixo Estoque', 'Em Estoque'])
+      .openapi({ example: 'Em Estoque' }),
     ...timestampFields,
   }),
 );
 
-registry.register('ItemPost', ItemSchema.extend({
-  estoque_minimo: z.number().int().min(0).openapi({ example: 50 }),
-  categoria: objectIdField,
-}));
+registry.register(
+  'ItemPost',
+  ItemSchema.extend({
+    estoque_minimo: z.number().int().min(0).openapi({ example: 50 }),
+    categoria: objectIdField,
+  }),
+);
 
-registry.register('ItemPatch', ItemSchema.partial().extend({
-  estoque_minimo: z.number().int().min(0).optional().openapi({ example: 75 }),
-  categoria: objectIdField.optional(),
-}));
+registry.register(
+  'ItemPatch',
+  ItemSchema.partial().extend({
+    estoque_minimo: z.number().int().min(0).optional().openapi({ example: 75 }),
+    categoria: objectIdField.optional(),
+  }),
+);
 
 const ItemUploadFotoResposta = registry.register(
   'ItemUploadFotoResposta',
@@ -42,7 +62,10 @@ const ItemUploadFotoResposta = registry.register(
   }),
 );
 
-registry.register('ItemListagem', z.object({ data: z.array(ItemDetalhes), ...paginationMetaFields }));
+registry.register(
+  'ItemListagem',
+  z.object({ data: z.array(ItemDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/itens': {
@@ -66,7 +89,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/ItemDetalhes'),
@@ -93,10 +120,37 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'categoria', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por categoria (ObjectId)' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
-        { name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'] }, description: 'Filtro por status de estoque' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'categoria',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por categoria (ObjectId)',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
+        {
+          name: 'status',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+            enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'],
+          },
+          description: 'Filtro por status de estoque',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -150,7 +204,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do item')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/ItemDetalhes'),
@@ -217,14 +275,25 @@ registerPaths({
               type: 'object',
               required: ['file'],
               properties: {
-                file: { type: 'string', format: 'binary', description: 'Arquivo de imagem do item' },
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Arquivo de imagem do item',
+                },
               },
             },
           },
         },
       },
       responses: {
-        201: { description: 'Foto enviada com sucesso', content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemUploadFotoResposta' } } } },
+        201: {
+          description: 'Foto enviada com sucesso',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ItemUploadFotoResposta' },
+            },
+          },
+        },
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),

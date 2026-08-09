@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { UsuarioSchema, UsuarioUpdateSchema } from './UsuarioSchema.js';
 
@@ -12,7 +18,10 @@ const UsuarioDetalhes = registry.register(
     email: z.string().email().openapi({ example: 'joao@email.com' }),
     ativo: z.boolean().openapi({ example: true }),
     grupos: z.array(objectIdField).openapi({ example: [] }),
-    fotoPerfil: z.string().optional().openapi({ example: 'https://storage/foto.jpg' }),
+    fotoPerfil: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://storage/foto.jpg' }),
     ...timestampFields,
   }),
 );
@@ -29,7 +38,10 @@ const UsuarioUploadFotoResposta = registry.register(
   }),
 );
 
-registry.register('UsuarioListagem', z.object({ data: z.array(UsuarioDetalhes), ...paginationMetaFields }));
+registry.register(
+  'UsuarioListagem',
+  z.object({ data: z.array(UsuarioDetalhes), ...paginationMetaFields }),
+);
 registry.register('UsuarioPost', UsuarioSchema);
 registry.register('UsuarioPatch', UsuarioUpdateSchema);
 
@@ -55,7 +67,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/UsuarioPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/UsuarioPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/UsuarioDetalhes'),
@@ -81,9 +97,27 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'email', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por email' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'email',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por email',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -140,7 +174,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do usuário')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/UsuarioPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/UsuarioPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/UsuarioDetalhes'),
@@ -198,14 +236,28 @@ registerPaths({
               type: 'object',
               required: ['file'],
               properties: {
-                file: { type: 'string', format: 'binary', description: 'Arquivo de imagem para foto de perfil (máx 5 MB)' },
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description:
+                    'Arquivo de imagem para foto de perfil (máx 5 MB)',
+                },
               },
             },
           },
         },
       },
       responses: {
-        201: { description: 'Foto atualizada com sucesso', content: { 'application/json': { schema: { $ref: '#/components/schemas/UsuarioUploadFotoResposta' } } } },
+        201: {
+          description: 'Foto atualizada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/UsuarioUploadFotoResposta',
+              },
+            },
+          },
+        },
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),

@@ -91,15 +91,12 @@ describe('MovimentacaoRepository', () => {
     });
     it('deve aplicar filtros de busca e retornar resultado paginado', async () => {
       jest.resetModules();
-      jest.doMock(
-        '../MovimentacaoFilterBuilder.js',
-        () => {
-          return {
-            __esModule: true,
-            default: jest.fn(() => new FakeFilterBuilder()),
-          };
-        },
-      );
+      jest.doMock('../MovimentacaoFilterBuilder.js', () => {
+        return {
+          __esModule: true,
+          default: jest.fn(() => new FakeFilterBuilder()),
+        };
+      });
       const { default: MovimentacaoRepositoryWithMocks } =
         await import('../MovimentacaoRepository.js');
       const paginateResult = {
@@ -124,9 +121,8 @@ describe('MovimentacaoRepository', () => {
         page: 1,
         pages: 1,
       };
-      const MovimentacaoModelMocked = (
-        await import('../MovimentacaoModel.js')
-      ).default;
+      const MovimentacaoModelMocked = (await import('../MovimentacaoModel.js'))
+        .default;
       MovimentacaoModelMocked.paginate = jest
         .fn()
         .mockResolvedValue(paginateResult);
@@ -143,23 +139,20 @@ describe('MovimentacaoRepository', () => {
     });
     it('deve lançar erro 500 se filterBuilder.build não for função', async () => {
       jest.resetModules();
-      jest.doMock(
-        '../MovimentacaoFilterBuilder.js',
-        () => {
-          return {
-            __esModule: true,
-            default: jest.fn(() => ({
-              comTipo: jest.fn().mockReturnThis(),
-              comData: jest.fn().mockReturnThis(),
-              comQuantidade: jest.fn().mockReturnThis(),
-              comItem: jest.fn().mockResolvedValue(undefined),
-              comLocalizacao: jest.fn().mockResolvedValue(undefined),
-              comFornecedor: jest.fn().mockResolvedValue(undefined),
-              build: undefined,
-            })),
-          };
-        },
-      );
+      jest.doMock('../MovimentacaoFilterBuilder.js', () => {
+        return {
+          __esModule: true,
+          default: jest.fn(() => ({
+            comTipo: jest.fn().mockReturnThis(),
+            comData: jest.fn().mockReturnThis(),
+            comQuantidade: jest.fn().mockReturnThis(),
+            comItem: jest.fn().mockResolvedValue(undefined),
+            comLocalizacao: jest.fn().mockResolvedValue(undefined),
+            comFornecedor: jest.fn().mockResolvedValue(undefined),
+            build: undefined,
+          })),
+        };
+      });
       const { default: MovimentacaoRepositoryWithMocks } =
         await import('../MovimentacaoRepository.js');
       const repo = new MovimentacaoRepositoryWithMocks({

@@ -43,7 +43,9 @@ class MovimentacaoFilterBuilder {
           this.filtros['item'] = { $in: [] };
         }
       } else {
-        const itemEncontrado = await Item.findOne({ nome: { $regex: escapeRegex(item), $options: 'i' } });
+        const itemEncontrado = await Item.findOne({
+          nome: { $regex: escapeRegex(item), $options: 'i' },
+        });
         if (itemEncontrado) {
           this.filtros['item'] = itemEncontrado._id;
         } else {

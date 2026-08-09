@@ -23,11 +23,24 @@ export interface IMovimentacaoModel extends mongoose.PaginateModel<MovimentacaoD
 
 const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
   {
-    tipo: { type: String, index: true, required: true, enum: ['entrada', 'saida'] },
+    tipo: {
+      type: String,
+      index: true,
+      required: true,
+      enum: ['entrada', 'saida'],
+    },
     data_hora: { type: Date, required: true, default: Date.now },
     quantidade: { type: Number, required: true, min: 0, max: 999999999 },
-    item: { type: mongoose.Schema.Types.ObjectId, ref: 'itens', required: true },
-    localizacao: { type: mongoose.Schema.Types.ObjectId, ref: 'localizacoes', required: true },
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'itens',
+      required: true,
+    },
+    localizacao: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'localizacoes',
+      required: true,
+    },
     usuario: { type: String, ref: 'usuarios', required: true },
   },
   { timestamps: true },
@@ -42,7 +55,9 @@ movimentacaoSchema.post(
   'deleteOne',
   async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
     const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>);
+    const doc = await model.findOne(
+      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
+    );
     if (doc) {
       await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
     }
@@ -53,7 +68,9 @@ movimentacaoSchema.post(
   ['updateOne', 'findOneAndUpdate'],
   async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
     const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>);
+    const doc = await model.findOne(
+      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
+    );
     if (doc) {
       await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
     }
@@ -76,14 +93,19 @@ movimentacaoSchema.statics['atualizarEstoque'] = async function (
         _id: null,
         quantidadeTotal: {
           $sum: {
-            $cond: [{ $eq: ['$tipo', 'entrada'] }, '$quantidade', { $multiply: ['$quantidade', -1] }],
+            $cond: [
+              { $eq: ['$tipo', 'entrada'] },
+              '$quantidade',
+              { $multiply: ['$quantidade', -1] },
+            ],
           },
         },
       },
     },
   ])) as Array<{ quantidadeTotal: number }>;
 
-  const quantidadeTotal = resultado.length > 0 ? Math.max(0, resultado[0]?.quantidadeTotal ?? 0) : 0;
+  const quantidadeTotal =
+    resultado.length > 0 ? Math.max(0, resultado[0]?.quantidadeTotal ?? 0) : 0;
 
   await EstoqueModel.findOneAndUpdate(
     { item: itemId, localizacao: localizacaoId },

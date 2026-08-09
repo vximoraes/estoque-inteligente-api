@@ -11,7 +11,9 @@ const requiredMinioVars = [
 
 for (const varName of requiredMinioVars) {
   if (!process.env[varName]) {
-    throw new Error(`Variável de ambiente do MinIO não está definida: ${varName}`);
+    throw new Error(
+      `Variável de ambiente do MinIO não está definida: ${varName}`,
+    );
   }
 }
 
