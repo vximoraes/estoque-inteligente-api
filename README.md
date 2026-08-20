@@ -269,4 +269,4 @@ npx jest -t "nome do teste"                           # por nome
 
 ## Licença
 
-[MIT](LICENSE).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
