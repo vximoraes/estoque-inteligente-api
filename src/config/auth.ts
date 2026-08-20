@@ -40,7 +40,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     },
 
     onAPIError: {
-      errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login?erro=google-nao-convidado`,
+      errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login`,
     },
 
     emailAndPassword: {
@@ -96,6 +96,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       accountLinking: {
         enabled: true,
         trustedProviders: ['google'],
+        requireLocalEmailVerified: false,
       },
     },
 
