@@ -29,6 +29,7 @@ import grupos from './modules/grupo/grupoRoutes.js';
 import rotas from './modules/rota/rotaRoutes.js';
 import iaRoutes from './modules/ia/iaRoutes.js';
 import './modules/usuario/usuarioDocs.js';
+import './modules/usuario/authDocs.js';
 import './modules/categoria/categoriaDocs.js';
 import './modules/localizacao/localizacaoDocs.js';
 import './modules/item/itemDocs.js';
