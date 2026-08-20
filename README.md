@@ -189,9 +189,9 @@ Cada módulo de domínio segue o mesmo padrão em camadas: model, schema de vali
 ```
 estoque-inteligente-api/
 ├── src/
-│   ├── app.ts                    # configuração do Express
-│   ├── config/                   # conexão Mongo, Better Auth, MinIO...
-│   ├── middlewares/               # AuthMiddleware, AuthPermission, LogRoutesMiddleware
+│   ├── app.ts                        # configuração do Express
+│   ├── config/                       # conexão Mongo, Better Auth, MinIO...
+│   ├── middlewares/                  # AuthMiddleware, AuthPermission, LogRoutesMiddleware
 │   ├── modules/
 │   │   ├── usuario/, categoria/, localizacao/, item/, estoque/,
 │   │   │   fornecedor/, movimentacao/, notificacao/, orcamento/,
@@ -205,14 +205,14 @@ estoque-inteligente-api/
 │   │       ├── ConversaModel.ts      # histórico de conversas
 │   │       └── IAController.ts / iaRoutes.ts / iaDocs.ts
 │   ├── libs/mcp/
-│   │   ├── MCPServerFactory.ts   # monta o servidor MCP
-│   │   ├── mcpRoutes.ts          # expõe o servidor em /mcp, autenticado
-│   │   └── tools/                # uma ferramenta por arquivo, somente leitura
-│   └── utils/                    # CommonResponse, CustomError, logger, OpenAPI registry
-├── test/                         # setup/teardown dos testes de rotas
-├── docker-compose.yml            # API, MongoDB, MinIO e (profile) Langfuse
+│   │   ├── MCPServerFactory.ts       # monta o servidor MCP
+│   │   ├── mcpRoutes.ts              # expõe o servidor em /mcp, autenticado
+│   │   └── tools/                    # uma ferramenta por arquivo, somente leitura
+│   └── utils/                        # CommonResponse, CustomError, logger, OpenAPI registry
+├── test/                             # setup/teardown dos testes de rotas
+├── docker-compose.yml                # API, MongoDB, MinIO e (profile) Langfuse
 ├── Dockerfile
-└── server.ts                     # entrypoint
+└── server.ts                         # entrypoint
 ```
 
 ## Endpoints da API
