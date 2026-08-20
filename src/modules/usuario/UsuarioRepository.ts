@@ -6,7 +6,7 @@ import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
 import UsuarioModel, { type UsuarioDocument } from './UsuarioModel.js';
 import NotificacaoModel from '../notificacao/NotificacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
-import type mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class UsuarioRepository {
@@ -122,7 +122,17 @@ class UsuarioRepository {
       });
     }
 
-    return await this.model.findByIdAndDelete(id);
+    const usuarioDeletado = await this.model.findByIdAndDelete(id);
+
+    const userId = new mongoose.Types.ObjectId(id);
+    await mongoose.connection.db!.collection('account').deleteMany({
+      userId,
+    });
+    await mongoose.connection.db!.collection('session').deleteMany({
+      userId,
+    });
+
+    return usuarioDeletado;
   }
 
   async buscarPorEmail(email: string, idIgnorado: string | null = null) {
