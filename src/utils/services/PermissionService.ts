@@ -12,7 +12,6 @@ class PermissionService {
   async hasPermission(
     userId: string,
     rota: string,
-    dominio: string,
     metodo: string,
     params: Record<string, string> = {},
     httpMethod = '',
@@ -53,9 +52,8 @@ class PermissionService {
       const combinacoes = new Set<string>();
 
       permissoes.forEach((permissao) => {
-        const chave = `${permissao.rota}_${permissao.dominio}`;
-        if (!combinacoes.has(chave)) {
-          combinacoes.add(chave);
+        if (!combinacoes.has(permissao.rota)) {
+          combinacoes.add(permissao.rota);
           permissoesUnicas.push(permissao);
         }
       });
@@ -63,7 +61,6 @@ class PermissionService {
       return permissoesUnicas.some((permissao) => {
         return (
           permissao.rota === rota &&
-          permissao.dominio === dominio &&
           permissao.ativo &&
           (permissao as unknown as Record<string, unknown>)[metodo]
         );

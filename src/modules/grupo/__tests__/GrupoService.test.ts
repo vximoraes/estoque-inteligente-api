@@ -41,7 +41,7 @@ describe('GrupoService', () => {
       deletar: jest.fn(),
       buscarPorNome: jest.fn(),
       buscarPorId: jest.fn(),
-      obterParesRotaDominioUnicos: jest.fn().mockResolvedValue([]),
+      obterRotasUnicas: jest.fn().mockResolvedValue([]),
       buscarPorPermissao: jest.fn().mockResolvedValue([]),
     };
 
@@ -92,7 +92,6 @@ describe('GrupoService', () => {
   describe('validarPermissoes', () => {
     const permissao = {
       rota: 'itens',
-      dominio: 'localhost',
       ativo: true,
       buscar: true,
     };
@@ -101,16 +100,12 @@ describe('GrupoService', () => {
       await service.validarPermissoes(undefined);
       await service.validarPermissoes([]);
 
-      expect(repositoryMock.obterParesRotaDominioUnicos).not.toHaveBeenCalled();
+      expect(repositoryMock.obterRotasUnicas).not.toHaveBeenCalled();
     });
 
     it('passa quando toda permissao aponta pra uma rota existente', async () => {
-      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
-        { rota: 'itens', dominio: 'localhost' },
-      ]);
-      repositoryMock.buscarPorPermissao.mockResolvedValue([
-        { rota: 'itens', dominio: 'localhost' },
-      ]);
+      repositoryMock.obterRotasUnicas.mockResolvedValue([{ rota: 'itens' }]);
+      repositoryMock.buscarPorPermissao.mockResolvedValue([{ rota: 'itens' }]);
 
       await expect(
         service.validarPermissoes([permissao]),
@@ -118,9 +113,7 @@ describe('GrupoService', () => {
     });
 
     it('lança erro quando alguma permissao aponta pra rota inexistente', async () => {
-      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
-        { rota: 'itens', dominio: 'localhost' },
-      ]);
+      repositoryMock.obterRotasUnicas.mockResolvedValue([{ rota: 'itens' }]);
       repositoryMock.buscarPorPermissao.mockResolvedValue([]);
 
       await expect(service.validarPermissoes([permissao])).rejects.toThrow(
@@ -136,9 +129,7 @@ describe('GrupoService', () => {
       };
 
       repositoryMock.buscarPorNome.mockResolvedValue(null);
-      repositoryMock.obterParesRotaDominioUnicos.mockResolvedValue([
-        { rota: 'itens', dominio: 'localhost' },
-      ]);
+      repositoryMock.obterRotasUnicas.mockResolvedValue([{ rota: 'itens' }]);
       repositoryMock.buscarPorPermissao.mockResolvedValue([]);
 
       await expect(service.criar(grupoData)).rejects.toThrow(CustomError);

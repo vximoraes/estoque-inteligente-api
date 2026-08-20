@@ -4,7 +4,6 @@ import PermissionService from '../utils/services/PermissionService.js';
 import RotaModel, { type RotaDocument } from '../modules/rota/RotaModel.js';
 import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
 import { getAuth } from '../config/auth.js';
-import { DOMINIO_PADRAO } from '../config/RbacConfig.js';
 import type { AuthenticatedRequest } from '../utils/types.js';
 import type mongoose from 'mongoose';
 
@@ -51,12 +50,8 @@ class AuthPermission {
 
       const rotaReq =
         req.url.split('/').filter(Boolean)[0]?.split('?')[0] ?? '';
-      const dominioReq = DOMINIO_PADRAO;
 
-      const rotaDB = await this.Rota.findOne({
-        rota: rotaReq,
-        dominio: dominioReq,
-      });
+      const rotaDB = await this.Rota.findOne({ rota: rotaReq });
       if (!rotaDB) {
         throw new CustomError({
           statusCode: 404,
@@ -92,7 +87,6 @@ class AuthPermission {
       const hasPermission = await this.permissionService.hasPermission(
         userId,
         rotaReq.toLowerCase(),
-        rotaDB.dominio,
         metodo,
         req.params as Record<string, string>,
         req.method,

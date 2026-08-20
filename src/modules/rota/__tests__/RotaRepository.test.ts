@@ -65,7 +65,6 @@ describe('RotaRepository', () => {
         params: {},
         query: {
           rota: 'itens',
-          dominio: 'localhost',
           ativo: 'true',
           page: '2',
           limite: '5',
@@ -75,7 +74,6 @@ describe('RotaRepository', () => {
       expect(RotaModel.paginate).toHaveBeenCalledWith(
         {
           rota: { $regex: 'itens', $options: 'i' },
-          dominio: { $regex: 'localhost', $options: 'i' },
           ativo: true,
         },
         { page: 2, limit: 5 },
@@ -97,7 +95,6 @@ describe('RotaRepository', () => {
       mockRota.save.mockResolvedValue({ _id: '1', rota: 'itens' });
       const resultado = await repository.criar({
         rota: 'itens',
-        dominio: 'localhost',
       });
       expect(mockRota.save).toHaveBeenCalled();
       expect(resultado).toEqual({ _id: '1', rota: 'itens' });

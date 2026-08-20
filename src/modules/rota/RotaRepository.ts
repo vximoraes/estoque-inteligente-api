@@ -51,7 +51,6 @@ class RotaRepository {
     const query = req.query as Record<string, string | undefined>;
     const {
       rota,
-      dominio,
       ativo,
       buscar,
       enviar,
@@ -68,7 +67,6 @@ class RotaRepository {
 
     const filterBuilder = new RotaFilterBuilder()
       .comRota(rota ?? '')
-      .comDominio(dominio ?? '')
       .comAtivo(ativo ?? '')
       .comGet(buscar ?? '')
       .comPost(enviar ?? '')
