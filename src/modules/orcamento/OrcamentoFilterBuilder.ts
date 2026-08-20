@@ -33,8 +33,9 @@ class OrcamentoFilterBuilder {
   ): this {
     if (dataInicio || dataFim) {
       const createdAt: Record<string, Date> = {};
-      if (dataInicio)
+      if (dataInicio) {
         createdAt['$gte'] = new Date(dataInicio + 'T00:00:00.000Z');
+      }
       if (dataFim) createdAt['$lte'] = new Date(dataFim + 'T23:59:59.999Z');
       this.filtros.createdAt = createdAt;
     }

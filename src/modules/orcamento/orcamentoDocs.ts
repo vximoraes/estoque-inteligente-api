@@ -32,12 +32,9 @@ const OrcamentoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Orçamento Sistema de Automação' }),
-    descricao: z
-      .string()
-      .optional()
-      .openapi({
-        example: 'Orçamento para itens do sistema de automação residencial',
-      }),
+    descricao: z.string().optional().openapi({
+      example: 'Orçamento para itens do sistema de automação residencial',
+    }),
     total: z.number().openapi({ example: 15.5 }),
     itens: z.array(ItemOrcamentoDetalhes),
     usuario: objectIdField,
