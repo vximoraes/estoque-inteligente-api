@@ -13,7 +13,6 @@ export const fakeMappings = {
     categoria: () => new mongoose.Types.ObjectId().toString(),
     localizacao: () => new mongoose.Types.ObjectId().toString(),
     rota: () => fakebr.lorem.word(10),
-    dominio: () => fakebr.internet.url(),
     ativo: () => fakebr.random.boolean(),
     buscar: () => fakebr.random.boolean(),
     enviar: () => fakebr.random.boolean(),
@@ -23,7 +22,6 @@ export const fakeMappings = {
     permissoes: () => [
       {
         rota: fakebr.lorem.word(),
-        dominio: fakebr.internet.url(),
         ativo: fakebr.random.boolean(),
         buscar: fakebr.random.boolean(),
         enviar: fakebr.random.boolean(),
@@ -181,6 +179,8 @@ export const fakeMappings = {
     usuario: () => new mongoose.Types.ObjectId().toString(),
     titulo: () => fakebr.lorem.words(5).slice(0, 60),
     mensagens: () => [],
+    resumo: () => '',
+    resumoAteIndice: () => 0,
     criada_em: () => new Date().toISOString(),
     atualizada_em: () => new Date().toISOString(),
   },
