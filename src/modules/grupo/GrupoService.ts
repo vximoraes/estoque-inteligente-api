@@ -74,21 +74,21 @@ class GrupoService {
     );
   }
 
-  // Evita permissao "orfa" apontando pra rota+dominio que nao existe em Rota.
+  // Evita permissao "orfa" apontando pra rota que nao existe em Rota.
   async validarPermissoes(permissoes: Grupo['permissoes'] | undefined) {
     if (!permissoes || permissoes.length === 0) return;
 
-    const pares = await this.repository.obterParesRotaDominioUnicos(permissoes);
-    const rotasEncontradas = await this.repository.buscarPorPermissao(pares);
+    const rotasUnicas = await this.repository.obterRotasUnicas(permissoes);
+    const rotasEncontradas =
+      await this.repository.buscarPorPermissao(rotasUnicas);
 
-    if (rotasEncontradas.length !== pares.length) {
+    if (rotasEncontradas.length !== rotasUnicas.length) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'validationError',
         field: 'Permissoes',
         details: [],
-        customMessage:
-          'Uma ou mais permissoes referenciam rota/dominio inexistentes.',
+        customMessage: 'Uma ou mais permissoes referenciam rota inexistente.',
       });
     }
   }

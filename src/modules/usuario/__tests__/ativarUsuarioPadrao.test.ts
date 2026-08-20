@@ -27,7 +27,7 @@ describe('ativarUsuarioPadrao', () => {
 
   it('deve ativar usuário com as permissões do grupo "Usuario" quando existir', async () => {
     grupoRepositoryInstance.buscarPorNome.mockResolvedValue({
-      permissoes: [{ rota: 'itens', dominio: 'localhost' }],
+      permissoes: [{ rota: 'itens' }],
     });
     usuarioRepositoryInstance.atualizar.mockResolvedValue({
       _id: '1',
@@ -43,7 +43,7 @@ describe('ativarUsuarioPadrao', () => {
       ativo: true,
       ativadoEm: expect.any(Date),
       convidadoEm: null,
-      permissoes: [{ rota: 'itens', dominio: 'localhost' }],
+      permissoes: [{ rota: 'itens' }],
     });
     expect(resultado).toEqual({ _id: '1', ativo: true });
   });

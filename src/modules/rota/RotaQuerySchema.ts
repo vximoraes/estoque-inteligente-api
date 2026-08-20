@@ -11,12 +11,6 @@ export const RotaQuerySchema = paginationSchema.extend({
       message: 'Rota não pode ser vazia',
     })
     .transform((val) => val?.trim()),
-  dominio: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.trim().length > 0, {
-      message: 'Domínio não pode ser vazio',
-    }),
 });
 
 export type RotaQuery = z.output<typeof RotaQuerySchema>;

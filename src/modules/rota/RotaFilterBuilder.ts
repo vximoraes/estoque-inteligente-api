@@ -14,13 +14,6 @@ class RotaFilterBuilder {
     return this;
   }
 
-  comDominio(dominio: string | null | undefined): this {
-    if (dominio) {
-      this.filtros.dominio = { $regex: escapeRegex(dominio), $options: 'i' };
-    }
-    return this;
-  }
-
   comAtivo(ativo: string | null | undefined): this {
     if (ativo === 'true') {
       this.filtros.ativo = true;

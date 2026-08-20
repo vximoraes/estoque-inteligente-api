@@ -15,7 +15,6 @@ const RotaDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     rota: z.string().openapi({ example: '/itens' }),
-    dominio: z.string().openapi({ example: 'localhost' }),
     ativo: z.boolean().openapi({ example: true }),
     buscar: z.boolean().openapi({ example: true }),
     enviar: z.boolean().openapi({ example: false }),
@@ -43,8 +42,7 @@ registerPaths({
 
             + Regras de Negócio:
                 - Rota é obrigatória e deve ter no mínimo 1 caractere.
-                - Dominio é obrigatório.
-                - Combinação rota + dominio deve ser única no sistema.
+                - Rota deve ser única no sistema.
                 - Campo 'ativo' tem padrão true.
 
             + Resultado Esperado:
@@ -90,13 +88,6 @@ registerPaths({
           description: 'Filtro por rota',
         },
         {
-          name: 'dominio',
-          in: 'query',
-          required: false,
-          schema: { type: 'string' },
-          description: 'Filtro por domínio',
-        },
-        {
           name: 'ativo',
           in: 'query',
           required: false,
@@ -139,7 +130,7 @@ registerPaths({
             + Caso de uso: Atualização parcial de dados da rota.
 
             + Regras de Negócio:
-                - Garantir unicidade da combinação rota + dominio.
+                - Garantir unicidade da rota.
                 - Aplicar imediatamente alterações críticas (ex.: desativação).
 
             + Resultado Esperado:
@@ -172,7 +163,7 @@ registerPaths({
             + Caso de uso: Substituição completa de dados da rota.
 
             + Regras de Negócio:
-                - Garantir unicidade da combinação rota + dominio.
+                - Garantir unicidade da rota.
                 - Campos não informados assumem valores padrão.
 
             + Resultado Esperado:

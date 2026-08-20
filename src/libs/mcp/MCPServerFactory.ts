@@ -13,7 +13,6 @@ import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
 import { formatarResultado } from './formatarResultado.js';
 import PermissionService from '../../utils/services/PermissionService.js';
-import { DOMINIO_PADRAO } from '../../config/RbacConfig.js';
 
 const permissionService = new PermissionService();
 
@@ -25,7 +24,6 @@ async function verificarPermissao(
     const permitido = await permissionService.hasPermission(
       usuarioId,
       rota,
-      DOMINIO_PADRAO,
       'buscar',
     );
     if (!permitido) {

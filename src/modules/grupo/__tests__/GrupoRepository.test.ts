@@ -36,43 +36,30 @@ describe('GrupoRepository', () => {
     });
   });
 
-  describe('obterParesRotaDominioUnicos', () => {
-    it('deve remover combinações duplicadas de rota+dominio', async () => {
-      const resultado = await repository.obterParesRotaDominioUnicos([
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'usuarios', dominio: 'localhost' },
-      ]);
-      expect(resultado).toEqual([
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'usuarios', dominio: 'localhost' },
-      ]);
-    });
-
-    it('deve tratar dominio ausente como null', async () => {
-      const resultado = await repository.obterParesRotaDominioUnicos([
+  describe('obterRotasUnicas', () => {
+    it('deve remover rotas duplicadas', async () => {
+      const resultado = await repository.obterRotasUnicas([
         { rota: 'itens' },
+        { rota: 'itens' },
+        { rota: 'usuarios' },
       ]);
-      expect(resultado).toEqual([{ rota: 'itens', dominio: null }]);
+      expect(resultado).toEqual([{ rota: 'itens' }, { rota: 'usuarios' }]);
     });
   });
 
   describe('obterPermissoesDuplicadas', () => {
-    it('deve retornar permissões cuja combinação rota+dominio se repete', () => {
+    it('deve retornar permissões cuja rota se repete', () => {
       const permissoes = [
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'usuarios', dominio: 'localhost' },
+        { rota: 'itens' },
+        { rota: 'itens' },
+        { rota: 'usuarios' },
       ];
       const resultado = repository.obterPermissoesDuplicadas(permissoes);
-      expect(resultado).toEqual([{ rota: 'itens', dominio: 'localhost' }]);
+      expect(resultado).toEqual([{ rota: 'itens' }]);
     });
 
     it('deve retornar vazio quando não há duplicatas', () => {
-      const permissoes = [
-        { rota: 'itens', dominio: 'localhost' },
-        { rota: 'usuarios', dominio: 'localhost' },
-      ];
+      const permissoes = [{ rota: 'itens' }, { rota: 'usuarios' }];
       expect(repository.obterPermissoesDuplicadas(permissoes)).toEqual([]);
     });
   });
@@ -112,25 +99,15 @@ describe('GrupoRepository', () => {
   });
 
   describe('buscarPorPermissao', () => {
-    it('deve buscar rotas pela combinação rota+dominio', async () => {
-      RotaModel.find.mockResolvedValue([
-        { rota: 'itens', dominio: 'localhost' },
-      ]);
+    it('deve buscar rotas pela lista de nomes', async () => {
+      RotaModel.find.mockResolvedValue([{ rota: 'itens' }]);
       const resultado = await repository.buscarPorPermissao([
-        { rota: 'itens', dominio: 'localhost' },
+        { rota: 'itens' },
       ]);
       expect(RotaModel.find).toHaveBeenCalledWith({
-        $or: [{ rota: 'itens', dominio: 'localhost' }],
+        rota: { $in: ['itens'] },
       });
-      expect(resultado).toEqual([{ rota: 'itens', dominio: 'localhost' }]);
-    });
-
-    it('deve tratar dominio ausente como null', async () => {
-      RotaModel.find.mockResolvedValue([]);
-      await repository.buscarPorPermissao([{ rota: 'itens' }]);
-      expect(RotaModel.find).toHaveBeenCalledWith({
-        $or: [{ rota: 'itens', dominio: null }],
-      });
+      expect(resultado).toEqual([{ rota: 'itens' }]);
     });
   });
 
@@ -301,7 +278,7 @@ describe('GrupoRepository', () => {
     it('deve adicionar rota às permissões do grupo', async () => {
       GrupoModel.findById.mockResolvedValue(mockGrupo);
       mockGrupo.save.mockResolvedValue(mockGrupo);
-      const rota = { rota: 'itens', dominio: 'localhost' };
+      const rota = { rota: 'itens' };
 
       await repository.adiciotarRota('1', rota);
 
