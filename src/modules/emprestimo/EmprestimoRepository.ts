@@ -81,6 +81,7 @@ class EmprestimoRepository {
 
     const query = req.query as Record<string, string | undefined>;
     const {
+      busca,
       item,
       localizacao,
       solicitante_nome,
@@ -108,6 +109,7 @@ class EmprestimoRepository {
 
     await filterBuilder.comItem(item ?? '');
     await filterBuilder.comLocalizacao(localizacao ?? '');
+    await filterBuilder.comBusca(busca ?? '');
 
     const filtros = { ...filterBuilder.build(), ativo: true };
 

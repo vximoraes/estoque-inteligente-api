@@ -8,6 +8,10 @@ export const EmprestimoIdSchema = z
   });
 
 export const EmprestimoQuerySchema = z.object({
+  busca: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim()),
   item: z
     .string()
     .optional()
