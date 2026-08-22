@@ -29,6 +29,15 @@ const EmprestimoDetalhes = registry.register(
     _id: objectIdField,
     item: objectIdField,
     localizacao: objectIdField,
+    patrimonio: objectIdField.nullable().optional().openapi({
+      description:
+        "Preenchido apenas quando 'tipo_controle' é 'unidade' — referencia a unidade patrimonial emprestada.",
+    }),
+    tipo_controle: z.enum(['quantidade', 'unidade']).openapi({
+      example: 'quantidade',
+      description:
+        "'quantidade': empréstimo de item de consumo/almoxarifado. 'unidade': empréstimo de uma unidade patrimonial específica (sempre quantidade 1).",
+    }),
     quantidade_emprestada: quantidadeIntField(1, 5),
     quantidade_devolvida: quantidadeIntField(0, 0),
     quantidade_em_aberto: quantidadeIntField(0, 5),
@@ -62,6 +71,10 @@ registry.register(
   EmprestimoSchema.extend({
     item: objectIdField,
     localizacao: objectIdField,
+    patrimonio: objectIdField.optional().openapi({
+      description:
+        "Obrigatório quando o item é do tipo 'permanente' — id da unidade patrimonial a emprestar (endpoint GET /patrimonios). Ignorado para item de consumo.",
+    }),
     quantidade_emprestada: quantidadeIntField(1, 5),
     data_saida: dateTimeNullableField,
     data_prevista_devolucao: dateTimeNullableField,
@@ -97,9 +110,8 @@ registerPaths({
 
             + Regras de Negocio:
                 - Campos obrigatorios: item, localizacao, quantidade_emprestada, solicitante_nome.
-                - Deve haver saldo de estoque suficiente na localizacao informada.
-                - O sistema gera automaticamente uma movimentacao de saida para reduzir o estoque.
-                - Devolucao parcial e total sao tratadas em endpoint dedicado.
+                - Item de consumo (tipo 'consumo'): deve haver saldo de estoque suficiente na localizacao informada; o sistema gera automaticamente uma movimentacao de saida para reduzir o estoque. Devolucao parcial e total sao tratadas em endpoint dedicado.
+                - Item de patrimônio (tipo 'permanente'): o campo 'patrimonio' é obrigatório (id de uma unidade com status 'Disponível'); 'quantidade_emprestada' e 'localizacao' são ignorados e sobrescritos (sempre 1 unidade, na localização real da unidade). Não gera movimentacao — a unidade transiciona atomicamente para 'Emprestado' (409 se outra requisição já pegou a unidade).
 
             + Resultado Esperado:
                 - HTTP 201 Created com os dados do emprestimo e status calculado.

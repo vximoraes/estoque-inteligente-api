@@ -24,6 +24,23 @@ class MovimentacaoService {
       });
     }
 
+    if (item.tipo === 'permanente') {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'validationError',
+        field: 'item',
+        details: [
+          {
+            path: 'item',
+            message:
+              'Item de patrimônio não movimenta por quantidade; gerencie as unidades em /bens.',
+          },
+        ],
+        customMessage:
+          'Item de patrimônio não movimenta por quantidade; gerencie as unidades em /bens.',
+      });
+    }
+
     const estoqueAtual = await Estoque.findOne({
       item: parsedData.item,
       localizacao: parsedData.localizacao,

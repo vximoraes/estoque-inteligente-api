@@ -26,6 +26,8 @@ export default async function seedRotas() {
     'movimentacoes:id',
     'emprestimos',
     'emprestimos:id',
+    'patrimonios',
+    'patrimonios:id',
     'notificacoes',
     'notificacoes:id',
     'orcamentos',

@@ -24,6 +24,13 @@ class ItemFilterBuilder {
     return this;
   }
 
+  comTipo(tipo: string | null | undefined): this {
+    if (tipo === 'consumo' || tipo === 'permanente') {
+      this.filtros['tipo'] = tipo;
+    }
+    return this;
+  }
+
   comQuantidade(quantidade: string | number | null | undefined): this {
     if (quantidade !== undefined && quantidade !== null && quantidade !== '') {
       const num = Number(quantidade);

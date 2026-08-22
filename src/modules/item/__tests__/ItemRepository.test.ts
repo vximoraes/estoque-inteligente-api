@@ -79,10 +79,15 @@ describe('ItemRepository', () => {
       const mockBuild = jest.fn(() => ({}));
       ItemFilterBuilder.mockImplementation(() => ({
         comNome: () => ({
-          comQuantidade: () => ({
-            comEstoqueMinimo: () => ({
-              comAtivo: () => ({
-                comStatus: () => ({
+          comTipo: () => ({
+            comQuantidade: () => ({
+              comEstoqueMinimo: () => ({
+                comAtivo: () => ({
+                  comStatus: () => ({
+                    build: mockBuild,
+                    comLocalizacao: async () => ({}),
+                    comCategoria: async () => ({}),
+                  }),
                   build: mockBuild,
                   comLocalizacao: async () => ({}),
                   comCategoria: async () => ({}),
@@ -209,10 +214,15 @@ describe('ItemRepository', () => {
       const req = { params: {}, query: {}, user_id: 'user1' };
       ItemFilterBuilder.mockImplementation(() => ({
         comNome: () => ({
-          comQuantidade: () => ({
-            comEstoqueMinimo: () => ({
-              comAtivo: () => ({
-                comStatus: () => ({
+          comTipo: () => ({
+            comQuantidade: () => ({
+              comEstoqueMinimo: () => ({
+                comAtivo: () => ({
+                  comStatus: () => ({
+                    build: undefined,
+                    comLocalizacao: async () => ({}),
+                    comCategoria: async () => ({}),
+                  }),
                   build: undefined,
                   comLocalizacao: async () => ({}),
                   comCategoria: async () => ({}),

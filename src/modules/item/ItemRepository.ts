@@ -46,8 +46,15 @@ class ItemRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { nome, quantidade, estoque_minimo, categoria, ativo, status } =
-      query;
+    const {
+      nome,
+      tipo,
+      quantidade,
+      estoque_minimo,
+      categoria,
+      ativo,
+      status,
+    } = query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
@@ -56,6 +63,7 @@ class ItemRepository {
 
     const filterBuilder = new ItemFilterBuilder()
       .comNome(nome ?? '')
+      .comTipo(tipo ?? '')
       .comQuantidade(quantidade ?? '')
       .comEstoqueMinimo(estoque_minimo ?? '')
       .comAtivo(ativo ?? 'true')
@@ -95,11 +103,12 @@ class ItemRepository {
 
   async stats(req: AuthenticatedRequest) {
     const query = req.query as Record<string, string | undefined>;
-    const { categoria, status, ativo = 'true' } = query;
+    const { tipo, categoria, status, ativo = 'true' } = query;
 
     const filterBuilder = new ItemFilterBuilder()
       .comAtivo(ativo ?? 'true')
       .comNome('')
+      .comTipo(tipo ?? '')
       .comQuantidade('')
       .comEstoqueMinimo('')
       .comStatus(status ?? '');

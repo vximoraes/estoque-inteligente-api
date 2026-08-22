@@ -39,7 +39,8 @@ class EmprestimoRepository {
       .findById(emprestimoSalvo._id)
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email');
+      .populate('usuario_responsavel', 'nome email')
+      .populate('patrimonio', 'numero_patrimonio status');
 
     if (!documento) {
       throw new CustomError({
@@ -63,7 +64,8 @@ class EmprestimoRepository {
         .findOne({ _id: id, ativo: true })
         .populate('item')
         .populate('localizacao')
-        .populate('usuario_responsavel', 'nome email');
+        .populate('usuario_responsavel', 'nome email')
+      .populate('patrimonio', 'numero_patrimonio status');
 
       if (!data) {
         throw new CustomError({
@@ -116,7 +118,7 @@ class EmprestimoRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      populate: ['item', 'localizacao', 'usuario_responsavel'],
+      populate: ['item', 'localizacao', 'usuario_responsavel', 'patrimonio'],
       sort: { data_saida: -1 },
     };
 
@@ -139,7 +141,8 @@ class EmprestimoRepository {
       .findOne({ _id: id, ativo: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email');
+      .populate('usuario_responsavel', 'nome email')
+      .populate('patrimonio', 'numero_patrimonio status');
 
     if (!emprestimo) {
       throw new CustomError({
@@ -162,7 +165,8 @@ class EmprestimoRepository {
       .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email');
+      .populate('usuario_responsavel', 'nome email')
+      .populate('patrimonio', 'numero_patrimonio status');
 
     if (!emprestimoAtualizado) {
       throw new CustomError({
@@ -199,7 +203,8 @@ class EmprestimoRepository {
       .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email');
+      .populate('usuario_responsavel', 'nome email')
+      .populate('patrimonio', 'numero_patrimonio status');
 
     if (!atualizado) {
       throw new CustomError({
