@@ -266,8 +266,9 @@ describe('UsuarioService', () => {
     });
 
     it('deve desfazer o cadastro se o envio do convite falhar', async () => {
+      const userId = new mongoose.Types.ObjectId().toHexString();
       repositoryMock.buscarPorEmail.mockResolvedValue(null);
-      authApiMock.signUpEmail.mockResolvedValue({ user: { id: 'user1' } });
+      authApiMock.signUpEmail.mockResolvedValue({ user: { id: userId } });
       repositoryMock.atualizar.mockResolvedValue({});
       const erroEnvio = new Error('smtp indisponível');
       authApiMock.requestPasswordReset.mockRejectedValue(erroEnvio);
@@ -276,9 +277,9 @@ describe('UsuarioService', () => {
         service.convidarUsuario('Fulano', 'fulano@teste.com'),
       ).rejects.toThrow('smtp indisponível');
 
-      expect(repositoryMock.deletar).toHaveBeenCalledWith('user1');
+      expect(repositoryMock.deletar).toHaveBeenCalledWith(userId);
       expect(mockCollection.deleteMany).toHaveBeenCalledWith({
-        userId: 'user1',
+        userId: new mongoose.Types.ObjectId(userId),
       });
     });
   });

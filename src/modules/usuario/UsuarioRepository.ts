@@ -124,13 +124,15 @@ class UsuarioRepository {
 
     const usuarioDeletado = await this.model.findByIdAndDelete(id);
 
-    const userId = new mongoose.Types.ObjectId(id);
-    await mongoose.connection.db!.collection('account').deleteMany({
-      userId,
-    });
-    await mongoose.connection.db!.collection('session').deleteMany({
-      userId,
-    });
+    if (usuarioDeletado && mongoose.Types.ObjectId.isValid(id)) {
+      const userId = new mongoose.Types.ObjectId(id);
+      await mongoose.connection.db!.collection('account').deleteMany({
+        userId,
+      });
+      await mongoose.connection.db!.collection('session').deleteMany({
+        userId,
+      });
+    }
 
     return usuarioDeletado;
   }
