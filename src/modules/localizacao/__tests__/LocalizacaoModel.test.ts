@@ -70,6 +70,27 @@ describe('Modelo de Localizacao', () => {
     expect(updated.nome).toBe('Estoque E Atualizado');
   });
 
+  it('deve criar uma localizacao com descricao opcional', async () => {
+    const localizacao = new Localizacao({
+      nome: 'Estoque I',
+      usuario: new mongoose.Types.ObjectId(),
+      descricao: 'Próxima à entrada',
+    });
+    await localizacao.save();
+    const saved = await Localizacao.findById(localizacao._id);
+    expect(saved.descricao).toBe('Próxima à entrada');
+  });
+
+  it('deve criar uma localizacao sem descricao', async () => {
+    const localizacao = new Localizacao({
+      nome: 'Estoque J',
+      usuario: new mongoose.Types.ObjectId(),
+    });
+    await localizacao.save();
+    const saved = await Localizacao.findById(localizacao._id);
+    expect(saved.descricao).toBeUndefined();
+  });
+
   it('deve remover uma localizacao existente', async () => {
     const localizacao = new Localizacao({
       nome: 'Estoque H',

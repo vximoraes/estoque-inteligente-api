@@ -36,6 +36,25 @@ describe('LocalizacaoSchema', () => {
     const data = { nome: 'Prateleira C', ativo: 'sim' };
     expect(() => LocalizacaoSchema.parse(data)).toThrow();
   });
+
+  it('aceita descricao opcional', () => {
+    const data = { nome: 'Prateleira E', descricao: 'Próxima à entrada' };
+    const parsed = LocalizacaoSchema.parse(data);
+    expect(parsed.descricao).toBe('Próxima à entrada');
+  });
+
+  it('aceita ausência de descricao', () => {
+    const data = { nome: 'Prateleira F' };
+    const parsed = LocalizacaoSchema.parse(data);
+    expect(parsed.descricao).toBeUndefined();
+  });
+
+  it('retorna erro se descricao exceder 200 caracteres', () => {
+    const data = { nome: 'Prateleira G', descricao: 'a'.repeat(201) };
+    expect(() => LocalizacaoSchema.parse(data)).toThrow(
+      'A descrição deve ter no máximo 200 caracteres.',
+    );
+  });
 });
 
 describe('LocalizacaoUpdateSchema', () => {
@@ -61,5 +80,11 @@ describe('LocalizacaoUpdateSchema', () => {
 
   it('retorna erro se ativo não for boolean', () => {
     expect(() => LocalizacaoUpdateSchema.parse({ ativo: 'não' })).toThrow();
+  });
+
+  it('aceita atualização parcial da descricao', () => {
+    expect(() =>
+      LocalizacaoUpdateSchema.parse({ descricao: 'Nova descrição' }),
+    ).not.toThrow();
   });
 });

@@ -75,12 +75,14 @@ export const fakeMappings = {
       return this.categorias[index];
     },
     usuario: () => new mongoose.Types.ObjectId().toString(),
+    descricao: () => fakebr.lorem.sentence(),
   },
 
   Localizacao: {
     nome: () =>
       `${String.fromCharCode(65 + fakebr.random.number({ min: 0, max: 25 }))}${fakebr.random.number({ min: 1, max: 100 })}`,
     usuario: () => new mongoose.Types.ObjectId().toString(),
+    descricao: () => fakebr.lorem.sentence(),
   },
 
   Item: {

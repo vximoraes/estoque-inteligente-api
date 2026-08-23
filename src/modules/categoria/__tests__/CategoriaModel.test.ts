@@ -69,6 +69,22 @@ describe('Modelo de Categoria', () => {
     expect(cats.length).toBe(2);
   });
 
+  it('deve criar uma categoria com descricao opcional', async () => {
+    const cat = new Categoria({
+      nome: 'Sensores',
+      usuario: usuarioId,
+      descricao: 'Sensores diversos',
+    });
+    await cat.save();
+    expect(cat.descricao).toBe('Sensores diversos');
+  });
+
+  it('deve criar uma categoria sem descricao', async () => {
+    const cat = new Categoria({ nome: 'Cabos', usuario: usuarioId });
+    await cat.save();
+    expect(cat.descricao).toBeUndefined();
+  });
+
   it('deve remover uma categoria', async () => {
     const cat = await Categoria.create({ nome: 'Remover', usuario: usuarioId });
     await Categoria.findByIdAndDelete(cat._id);

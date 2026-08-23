@@ -5,6 +5,7 @@ export interface ILocalizacao {
   nome: string;
   ativo: boolean;
   usuario: mongoose.Types.ObjectId;
+  descricao?: string;
 }
 
 export type LocalizacaoDocument = ILocalizacao & Document;
@@ -18,6 +19,7 @@ const localizacaoSchema = new mongoose.Schema<LocalizacaoDocument>(
       ref: 'usuarios',
       required: true,
     },
+    descricao: { type: String, required: false },
   },
   { timestamps: true },
 );
