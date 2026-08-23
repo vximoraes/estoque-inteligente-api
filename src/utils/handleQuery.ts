@@ -3,7 +3,11 @@ import { escapeRegex } from './helpers/escapeRegex.js';
 export default function handleQuery(
   query: Record<string, string>,
   defaultSort: Record<string, unknown>,
-): { filtros: Record<string, unknown>; pagina: number; ordenar: Record<string, unknown> } {
+): {
+  filtros: Record<string, unknown>;
+  pagina: number;
+  ordenar: Record<string, unknown>;
+} {
   const filtros: Record<string, unknown> = {};
   let pagina = 1;
   let ordenar = defaultSort;

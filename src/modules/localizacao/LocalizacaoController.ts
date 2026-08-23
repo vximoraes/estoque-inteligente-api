@@ -48,7 +48,12 @@ class LocalizacaoController {
     const parsedData = LocalizacaoUpdateSchema.parse(req.body);
     const data = await this.service.atualizar(id, parsedData, req);
 
-    return CommonResponse.success(res, data, 200, 'Localização atualizada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Localização atualizada com sucesso.',
+    );
   }
 
   async inativar(req: AuthenticatedRequest, res: Response) {
@@ -57,7 +62,12 @@ class LocalizacaoController {
 
     const data = await this.service.inativar(id, req);
 
-    return CommonResponse.success(res, data, 200, 'Localização inativada com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Localização inativada com sucesso.',
+    );
   }
 }
 

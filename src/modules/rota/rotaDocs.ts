@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { RotaSchema, RotaUpdateSchema } from './RotaSchema.js';
 
@@ -9,7 +15,6 @@ const RotaDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     rota: z.string().openapi({ example: '/itens' }),
-    dominio: z.string().openapi({ example: 'localhost' }),
     ativo: z.boolean().openapi({ example: true }),
     buscar: z.boolean().openapi({ example: true }),
     enviar: z.boolean().openapi({ example: false }),
@@ -20,7 +25,10 @@ const RotaDetalhes = registry.register(
   }),
 );
 
-registry.register('RotaListagem', z.object({ data: z.array(RotaDetalhes), ...paginationMetaFields }));
+registry.register(
+  'RotaListagem',
+  z.object({ data: z.array(RotaDetalhes), ...paginationMetaFields }),
+);
 registry.register('RotaPost', RotaSchema);
 registry.register('RotaPatch', RotaUpdateSchema);
 
@@ -34,8 +42,7 @@ registerPaths({
 
             + Regras de Negócio:
                 - Rota é obrigatória e deve ter no mínimo 1 caractere.
-                - Dominio é obrigatório.
-                - Combinação rota + dominio deve ser única no sistema.
+                - Rota deve ser única no sistema.
                 - Campo 'ativo' tem padrão true.
 
             + Resultado Esperado:
@@ -43,7 +50,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/RotaDetalhes'),
@@ -69,9 +80,20 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'rota', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por rota' },
-        { name: 'dominio', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por domínio' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'rota',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por rota',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -108,7 +130,7 @@ registerPaths({
             + Caso de uso: Atualização parcial de dados da rota.
 
             + Regras de Negócio:
-                - Garantir unicidade da combinação rota + dominio.
+                - Garantir unicidade da rota.
                 - Aplicar imediatamente alterações críticas (ex.: desativação).
 
             + Resultado Esperado:
@@ -117,7 +139,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),
@@ -137,7 +163,7 @@ registerPaths({
             + Caso de uso: Substituição completa de dados da rota.
 
             + Regras de Negócio:
-                - Garantir unicidade da combinação rota + dominio.
+                - Garantir unicidade da rota.
                 - Campos não informados assumem valores padrão.
 
             + Resultado Esperado:
@@ -146,7 +172,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da rota')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/RotaPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/RotaPost' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/RotaDetalhes'),

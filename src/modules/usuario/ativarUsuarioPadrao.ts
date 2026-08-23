@@ -13,7 +13,10 @@ export async function ativarUsuarioPadrao(userId: string) {
       permissoes = grupoUsuario.permissoes;
     }
   } catch (error) {
-    console.warn('Nao foi possivel buscar o grupo "Usuario" padrao:', (error as Error).message);
+    console.warn(
+      'Nao foi possivel buscar o grupo "Usuario" padrao:',
+      (error as Error).message,
+    );
   }
 
   return usuarioRepository.atualizar(userId, {

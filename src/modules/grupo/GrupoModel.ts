@@ -3,7 +3,6 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IGrupoPermissao {
   rota: string;
-  dominio?: string;
   ativo: boolean;
   buscar: boolean;
   enviar: boolean;
@@ -29,7 +28,6 @@ const grupoSchema = new mongoose.Schema<GrupoDocument>(
     permissoes: [
       {
         rota: { type: String, index: true, required: true },
-        dominio: { type: String },
         ativo: { type: Boolean, default: false },
         buscar: { type: Boolean, default: false },
         enviar: { type: Boolean, default: false },
@@ -47,13 +45,13 @@ const grupoSchema = new mongoose.Schema<GrupoDocument>(
 
 grupoSchema.pre('save', function (this: GrupoDocument, next) {
   const permissoes = this.permissoes;
-  const combinacoes = permissoes.map((p) => `${p.rota}_${p.dominio}`);
-  const setCombinacoes = new Set(combinacoes);
+  const rotas = permissoes.map((p) => p.rota);
+  const setRotas = new Set(rotas);
 
-  if (combinacoes.length !== setCombinacoes.size) {
+  if (rotas.length !== setRotas.size) {
     return next(
       new Error(
-        'Permissoes duplicadas encontradas: rota + dominio devem ser unicos dentro de cada grupo.',
+        'Permissoes duplicadas encontradas: rota deve ser unica dentro de cada grupo.',
       ),
     );
   }
@@ -63,7 +61,7 @@ grupoSchema.pre('save', function (this: GrupoDocument, next) {
 
 grupoSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<GrupoDocument, mongoose.PaginateModel<GrupoDocument>>(
-  'grupos',
-  grupoSchema,
-);
+export default mongoose.model<
+  GrupoDocument,
+  mongoose.PaginateModel<GrupoDocument>
+>('grupos', grupoSchema);

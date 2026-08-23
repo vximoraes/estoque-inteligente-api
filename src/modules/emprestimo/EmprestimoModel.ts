@@ -4,6 +4,8 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 export interface IEmprestimo {
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
+  patrimonio?: mongoose.Types.ObjectId | null;
+  tipo_controle: 'quantidade' | 'unidade';
   quantidade_emprestada: number;
   quantidade_devolvida: number;
   quantidade_aberta: number;
@@ -23,14 +25,37 @@ export type EmprestimoDocument = IEmprestimo & Document;
 
 const emprestimoSchema = new mongoose.Schema<EmprestimoDocument>(
   {
-    item: { type: mongoose.Schema.Types.ObjectId, ref: 'itens', required: true, index: true },
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'itens',
+      required: true,
+      index: true,
+    },
     localizacao: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'localizacoes',
       required: true,
       index: true,
     },
-    quantidade_emprestada: { type: Number, required: true, min: 1, max: 999999999 },
+    patrimonio: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'patrimonios',
+      default: null,
+      index: true,
+      sparse: true,
+    },
+    tipo_controle: {
+      type: String,
+      enum: ['quantidade', 'unidade'],
+      default: 'quantidade',
+      required: true,
+    },
+    quantidade_emprestada: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 999999999,
+    },
     quantidade_devolvida: { type: Number, default: 0, min: 0, max: 999999999 },
     quantidade_aberta: { type: Number, required: true, min: 0, max: 999999999 },
     solicitante_nome: { type: String, required: true, trim: true, index: true },
@@ -55,7 +80,8 @@ emprestimoSchema.index({ item: 1, localizacao: 1, data_saida: -1 });
 
 emprestimoSchema.pre('validate', function (this: EmprestimoDocument) {
   if (this.quantidade_aberta === undefined || this.quantidade_aberta === null) {
-    this.quantidade_aberta = this.quantidade_emprestada - (this.quantidade_devolvida || 0);
+    this.quantidade_aberta =
+      this.quantidade_emprestada - (this.quantidade_devolvida || 0);
   }
   if (this.quantidade_aberta < 0) {
     this.quantidade_aberta = 0;
@@ -64,7 +90,7 @@ emprestimoSchema.pre('validate', function (this: EmprestimoDocument) {
 
 emprestimoSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<EmprestimoDocument, mongoose.PaginateModel<EmprestimoDocument>>(
-  'emprestimos',
-  emprestimoSchema,
-);
+export default mongoose.model<
+  EmprestimoDocument,
+  mongoose.PaginateModel<EmprestimoDocument>
+>('emprestimos', emprestimoSchema);

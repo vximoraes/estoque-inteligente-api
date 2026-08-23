@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 
 const MovimentacaoDetalhes = registry.register(
@@ -8,7 +14,10 @@ const MovimentacaoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     tipo: z.enum(['entrada', 'saida']).openapi({ example: 'entrada' }),
-    data_hora: z.string().datetime().openapi({ example: '2024-01-15T10:30:00.000Z' }),
+    data_hora: z
+      .string()
+      .datetime()
+      .openapi({ example: '2024-01-15T10:30:00.000Z' }),
     quantidade: z.number().int().openapi({ example: 10 }),
     item: objectIdField,
     localizacao: objectIdField,
@@ -24,11 +33,16 @@ const MovimentacaoPost = registry.register(
     quantidade: z.number().int().min(0).openapi({ example: 10 }),
     item: objectIdField,
     localizacao: objectIdField,
-    fornecedor: objectIdField.optional().openapi({ description: 'Obrigatório para tipo entrada' }),
+    fornecedor: objectIdField
+      .optional()
+      .openapi({ description: 'Obrigatório para tipo entrada' }),
   }),
 );
 
-registry.register('MovimentacaoListagem', z.object({ data: z.array(MovimentacaoDetalhes), ...paginationMetaFields }));
+registry.register(
+  'MovimentacaoListagem',
+  z.object({ data: z.array(MovimentacaoDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/movimentacoes': {
@@ -51,7 +65,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/MovimentacaoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/MovimentacaoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/MovimentacaoDetalhes'),
@@ -78,10 +96,34 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'tipo', in: 'query', required: false, schema: { type: 'string', enum: ['entrada', 'saida'] }, description: 'Filtro por tipo' },
-        { name: 'data', in: 'query', required: false, schema: { type: 'string', format: 'date' }, description: 'Filtro por data (YYYY-MM-DD)' },
-        { name: 'item', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID do item' },
-        { name: 'fornecedor', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por ID do fornecedor' },
+        {
+          name: 'tipo',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['entrada', 'saida'] },
+          description: 'Filtro por tipo',
+        },
+        {
+          name: 'data',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', format: 'date' },
+          description: 'Filtro por data (YYYY-MM-DD)',
+        },
+        {
+          name: 'item',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por ID do item',
+        },
+        {
+          name: 'fornecedor',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por ID do fornecedor',
+        },
         ...paginationQueryParams,
       ],
       responses: {

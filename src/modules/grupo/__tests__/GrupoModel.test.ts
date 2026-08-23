@@ -6,7 +6,6 @@ let mongoServer;
 
 const permissao = (overrides = {}) => ({
   rota: 'itens',
-  dominio: 'localhost',
   ativo: true,
   buscar: true,
   enviar: false,
@@ -20,6 +19,7 @@ describe('Modelo de Grupo', () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
+    await Grupo.init();
   });
 
   afterAll(async () => {
@@ -48,7 +48,7 @@ describe('Modelo de Grupo', () => {
     ).rejects.toThrow();
   });
 
-  it('deve aceitar permissoes com rota+dominio unicos', async () => {
+  it('deve aceitar permissoes com rotas unicas', async () => {
     const grupo = await Grupo.create({
       nome: 'Operadores',
       descricao: 'Grupo operacional',
@@ -60,7 +60,7 @@ describe('Modelo de Grupo', () => {
     expect(grupo.permissoes).toHaveLength(2);
   });
 
-  it('não deve aceitar permissoes duplicadas (mesma rota+dominio)', async () => {
+  it('não deve aceitar permissoes duplicadas (mesma rota)', async () => {
     const grupo = new Grupo({
       nome: 'Operadores',
       descricao: 'Grupo operacional',

@@ -24,6 +24,23 @@ class MovimentacaoService {
       });
     }
 
+    if (item.tipo === 'permanente') {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'validationError',
+        field: 'item',
+        details: [
+          {
+            path: 'item',
+            message:
+              'Item de patrimônio não movimenta por quantidade; gerencie as unidades em /bens.',
+          },
+        ],
+        customMessage:
+          'Item de patrimônio não movimenta por quantidade; gerencie as unidades em /bens.',
+      });
+    }
+
     const estoqueAtual = await Estoque.findOne({
       item: parsedData.item,
       localizacao: parsedData.localizacao,
@@ -54,7 +71,12 @@ class MovimentacaoService {
           statusCode: 400,
           errorType: 'validationError',
           field: 'quantidade',
-          details: [{ path: 'quantidade', message: `Limite de estoque excedido (máx: 999.999.999)` }],
+          details: [
+            {
+              path: 'quantidade',
+              message: `Limite de estoque excedido (máx: 999.999.999)`,
+            },
+          ],
           customMessage: `Limite de estoque excedido (máx: 999.999.999)`,
         });
       }

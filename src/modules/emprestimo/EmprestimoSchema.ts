@@ -48,6 +48,10 @@ const dataSaidaSchema = z
 const EmprestimoSchema = z.object({
   item: objectIdSchema,
   localizacao: objectIdSchema,
+  // Só relevante quando o item é do tipo 'permanente' — o Service valida
+  // a obrigatoriedade e sobrescreve `localizacao`/`quantidade_emprestada`
+  // com os valores reais da unidade nesse caso.
+  patrimonio: objectIdSchema.optional(),
   quantidade_emprestada: quantidadeSchema,
   solicitante_nome: z
     .string()

@@ -17,7 +17,9 @@ class EmprestimoFilterBuilder {
       return this;
     }
 
-    const itemEncontrado = await Item.findOne({ nome: { $regex: escapeRegex(item), $options: 'i' } });
+    const itemEncontrado = await Item.findOne({
+      nome: { $regex: escapeRegex(item), $options: 'i' },
+    });
     this.filtros['item'] = itemEncontrado ? itemEncontrado._id : { $in: [] };
     return this;
   }
@@ -27,7 +29,9 @@ class EmprestimoFilterBuilder {
 
     if (Types.ObjectId.isValid(localizacao)) {
       const localizacaoEncontrada = await Localizacao.findById(localizacao);
-      this.filtros['localizacao'] = localizacaoEncontrada ? localizacao : { $in: [] };
+      this.filtros['localizacao'] = localizacaoEncontrada
+        ? localizacao
+        : { $in: [] };
       return this;
     }
 
@@ -40,9 +44,31 @@ class EmprestimoFilterBuilder {
     return this;
   }
 
+  async comBusca(busca: string | null | undefined): Promise<this> {
+    if (!busca) return this;
+
+    const regex = { $regex: escapeRegex(busca), $options: 'i' };
+
+    const itensEncontrados = await Item.find({ nome: regex }).select('_id');
+    const localizacoesEncontradas = await Localizacao.find({
+      nome: regex,
+    }).select('_id');
+
+    this.filtros['$or'] = [
+      { solicitante_nome: regex },
+      { item: { $in: itensEncontrados.map((i) => i._id) } },
+      { localizacao: { $in: localizacoesEncontradas.map((l) => l._id) } },
+    ];
+
+    return this;
+  }
+
   comSolicitanteNome(solicitanteNome: string | null | undefined): this {
     if (solicitanteNome) {
-      this.filtros['solicitante_nome'] = { $regex: escapeRegex(solicitanteNome), $options: 'i' };
+      this.filtros['solicitante_nome'] = {
+        $regex: escapeRegex(solicitanteNome),
+        $options: 'i',
+      };
     }
     return this;
   }

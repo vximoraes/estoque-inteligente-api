@@ -18,7 +18,11 @@ class OrcamentoService {
     return await this.repository.listar(req);
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, req: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    req: AuthenticatedRequest,
+  ) {
     await this.ensureBudgetExists(id, req);
     return await this.repository.atualizar(id, parsedData, req);
   }
@@ -33,27 +37,57 @@ class OrcamentoService {
     return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
-  async adicionarItem(orcamentoId: string, novoItem: Record<string, unknown>, req: AuthenticatedRequest) {
+  async adicionarItem(
+    orcamentoId: string,
+    novoItem: Record<string, unknown>,
+    req: AuthenticatedRequest,
+  ) {
     return await this.repository.adicionarItem(orcamentoId, novoItem, req);
   }
 
-  async atualizarItem(orcamentoId: string, itemId: string, itemAtualizado: Record<string, unknown>, req: AuthenticatedRequest) {
-    return await this.repository.atualizarItem(orcamentoId, itemId, itemAtualizado, req);
+  async atualizarItem(
+    orcamentoId: string,
+    itemId: string,
+    itemAtualizado: Record<string, unknown>,
+    req: AuthenticatedRequest,
+  ) {
+    return await this.repository.atualizarItem(
+      orcamentoId,
+      itemId,
+      itemAtualizado,
+      req,
+    );
   }
 
-  async removerItem(orcamentoId: string, itemId: string, req: AuthenticatedRequest) {
+  async removerItem(
+    orcamentoId: string,
+    itemId: string,
+    req: AuthenticatedRequest,
+  ) {
     return await this.repository.removerItem(orcamentoId, itemId, req);
   }
 
-  async getItemById(orcamentoId: string, itemId: string, req: AuthenticatedRequest) {
-    const orcamento = await this.repository.buscarPorId(orcamentoId, false, req);
+  async getItemById(
+    orcamentoId: string,
+    itemId: string,
+    req: AuthenticatedRequest,
+  ) {
+    const orcamento = await this.repository.buscarPorId(
+      orcamentoId,
+      false,
+      req,
+    );
     if (!orcamento) return null;
     const itens = Array.isArray(orcamento.itens) ? orcamento.itens : [];
     return itens.find((c) => c && c._id && c._id.toString() === itemId) ?? null;
   }
 
   async ensureBudgetExists(id: string, req: AuthenticatedRequest) {
-    const orcamentoExistente = await this.repository.buscarPorId(id, false, req);
+    const orcamentoExistente = await this.repository.buscarPorId(
+      id,
+      false,
+      req,
+    );
     if (!orcamentoExistente) {
       throw new CustomError({
         statusCode: 404,

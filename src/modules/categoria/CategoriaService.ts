@@ -24,18 +24,29 @@ class CategoriaService {
     return await this.repository.listar(req);
   }
 
-  async atualizar(id: string, parsedData: CategoriaUpdate, req: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: CategoriaUpdate,
+    req: AuthenticatedRequest,
+  ) {
     await this.ensureCategoryExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
     }
-    return await this.repository.atualizar(id, parsedData as Record<string, unknown>, req);
+    return await this.repository.atualizar(
+      id,
+      parsedData as Record<string, unknown>,
+      req,
+    );
   }
 
   async inativar(id: string, req: AuthenticatedRequest) {
     await this.ensureCategoryExists(id, req);
 
-    const existeItemAtivo = await ItemModel.exists({ categoria: id, ativo: true });
+    const existeItemAtivo = await ItemModel.exists({
+      categoria: id,
+      ativo: true,
+    });
 
     if (existeItemAtivo) {
       throw new CustomError({
@@ -50,8 +61,16 @@ class CategoriaService {
     return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
-  private async validateNome(nome: string, id: string | null = null, req: AuthenticatedRequest) {
-    const categoriaExistente = await this.repository.buscarPorNome(nome, id, req);
+  private async validateNome(
+    nome: string,
+    id: string | null = null,
+    req: AuthenticatedRequest,
+  ) {
+    const categoriaExistente = await this.repository.buscarPorNome(
+      nome,
+      id,
+      req,
+    );
     if (categoriaExistente) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -64,7 +83,11 @@ class CategoriaService {
   }
 
   private async ensureCategoryExists(id: string, req: AuthenticatedRequest) {
-    const categoriaExistente = await this.repository.buscarPorId(id, false, req);
+    const categoriaExistente = await this.repository.buscarPorId(
+      id,
+      false,
+      req,
+    );
     if (!categoriaExistente) {
       throw new CustomError({
         statusCode: 404,

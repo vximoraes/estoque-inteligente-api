@@ -62,7 +62,12 @@ class ItemController {
 
     const data = await this.service.inativar(id, req);
 
-    return CommonResponse.success(res, data, 200, 'Item inativado com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Item inativado com sucesso.',
+    );
   }
 
   async uploadFoto(req: AuthenticatedRequest, res: Response) {

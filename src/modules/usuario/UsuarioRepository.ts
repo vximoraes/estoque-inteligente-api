@@ -1,9 +1,12 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
 import UsuarioModel, { type UsuarioDocument } from './UsuarioModel.js';
 import NotificacaoModel from '../notificacao/NotificacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
-import type mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
 class UsuarioRepository {
@@ -76,16 +79,24 @@ class UsuarioRepository {
     );
 
     resultado.docs = resultado.docs.map((doc) => {
-      return (typeof doc.toObject === 'function'
-        ? (doc.toObject() as unknown as UsuarioDocument)
-        : doc) as (typeof resultado.docs)[number];
+      return (
+        typeof doc.toObject === 'function'
+          ? (doc.toObject() as unknown as UsuarioDocument)
+          : doc
+      ) as (typeof resultado.docs)[number];
     }) as unknown as typeof resultado.docs;
 
     return resultado;
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _usuarioId?: string) {
-    const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true }).lean();
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _usuarioId?: string,
+  ) {
+    const usuario = await this.model
+      .findByIdAndUpdate(id, parsedData, { new: true })
+      .lean();
     if (!usuario) {
       throw new CustomError({
         statusCode: 404,
@@ -106,11 +117,22 @@ class UsuarioRepository {
         errorType: 'resourceInUse',
         field: 'Usuário',
         details: [],
-        customMessage: 'Não é possível deletar: usuário está vinculado a notificações.',
+        customMessage:
+          'Não é possível deletar: usuário está vinculado a notificações.',
       });
     }
 
-    return await this.model.findByIdAndDelete(id);
+    const usuarioDeletado = await this.model.findByIdAndDelete(id);
+
+    const userId = new mongoose.Types.ObjectId(id);
+    await mongoose.connection.db!.collection('account').deleteMany({
+      userId,
+    });
+    await mongoose.connection.db!.collection('session').deleteMany({
+      userId,
+    });
+
+    return usuarioDeletado;
   }
 
   async buscarPorEmail(email: string, idIgnorado: string | null = null) {

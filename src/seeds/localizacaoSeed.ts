@@ -9,6 +9,7 @@ export default async function localizacaoSeed(adminId: string) {
       nome: fakeMappings.Localizacao.nome(),
       usuario: adminId,
       ativo: true,
+      descricao: fakeMappings.Localizacao.descricao(),
     };
 
     await Localizacao.create(localizacao);

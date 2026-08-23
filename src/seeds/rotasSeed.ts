@@ -1,5 +1,4 @@
 import Rota from '../modules/rota/RotaModel.js';
-import { DOMINIO_PADRAO } from '../config/RbacConfig.js';
 
 export default async function seedRotas() {
   await Rota.deleteMany();
@@ -27,6 +26,8 @@ export default async function seedRotas() {
     'movimentacoes:id',
     'emprestimos',
     'emprestimos:id',
+    'patrimonios',
+    'patrimonios:id',
     'notificacoes',
     'notificacoes:id',
     'orcamentos',
@@ -36,7 +37,6 @@ export default async function seedRotas() {
 
   const rotas = rotas_array.map((rota) => ({
     rota,
-    dominio: DOMINIO_PADRAO,
     ativo: true,
     buscar: true,
     enviar: true,

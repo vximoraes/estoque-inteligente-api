@@ -1,8 +1,12 @@
 import ItemModel from '../../../modules/item/ItemModel.js';
 
-export async function verificarItensAbaixoMinimo(_args: unknown, _usuarioId: string) {
+export async function verificarItensAbaixoMinimo(
+  _args: unknown,
+  _usuarioId: string,
+) {
   const itens = await ItemModel.find({
     ativo: true,
+    tipo: 'consumo',
     status: { $in: ['Baixo Estoque', 'Indisponível'] },
   })
     .populate('categoria', 'nome')

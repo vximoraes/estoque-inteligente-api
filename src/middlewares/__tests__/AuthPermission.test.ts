@@ -108,7 +108,6 @@ describe('AuthPermission', () => {
     mockFindOne.mockResolvedValue({
       ativo: true,
       buscar: true,
-      dominio: 'localhost',
     });
     mockHasPermission.mockResolvedValue(false);
     const req = { url: '/itens', method: 'GET', params: {}, headers: {} };
@@ -125,7 +124,6 @@ describe('AuthPermission', () => {
     mockFindOne.mockResolvedValue({
       ativo: true,
       buscar: true,
-      dominio: 'localhost',
     });
     mockHasPermission.mockResolvedValue(true);
     const req = { url: '/itens', method: 'GET', params: {}, headers: {} };

@@ -3,7 +3,6 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IRota {
   rota: string;
-  dominio: string;
   ativo: boolean;
   buscar: boolean;
   enviar: boolean;
@@ -16,8 +15,7 @@ export type RotaDocument = IRota & Document;
 
 const rotaSchema = new mongoose.Schema<RotaDocument>(
   {
-    rota: { type: String, index: true, trim: true, lowercase: true },
-    dominio: { type: String, required: true },
+    rota: { type: String, trim: true, lowercase: true, unique: true },
     ativo: { type: Boolean, default: false },
     buscar: { type: Boolean, default: false },
     enviar: { type: Boolean, default: false },
@@ -28,7 +26,6 @@ const rotaSchema = new mongoose.Schema<RotaDocument>(
   { timestamps: true },
 );
 
-rotaSchema.index({ rota: 1, dominio: 1 }, { unique: true });
 rotaSchema.plugin(mongoosePaginate);
 
 rotaSchema.pre('save', function (this: RotaDocument, next) {
@@ -38,4 +35,7 @@ rotaSchema.pre('save', function (this: RotaDocument, next) {
   next();
 });
 
-export default mongoose.model<RotaDocument, mongoose.PaginateModel<RotaDocument>>('rotas', rotaSchema);
+export default mongoose.model<
+  RotaDocument,
+  mongoose.PaginateModel<RotaDocument>
+>('rotas', rotaSchema);

@@ -89,7 +89,14 @@ export default [
   },
   // Test files (JS + TS)
   {
-    files: ['**/*.test.js', '**/*.test.ts', '**/*.spec.js', '**/*.spec.ts', '**/tests/**/*.js', '**/tests/**/*.ts'],
+    files: [
+      '**/*.test.js',
+      '**/*.test.ts',
+      '**/*.spec.js',
+      '**/*.spec.ts',
+      '**/tests/**/*.js',
+      '**/tests/**/*.ts',
+    ],
     languageOptions: {
       globals: {
         ...testGlobals,

@@ -162,7 +162,7 @@ class UsuarioService {
       await this.repository.deletar(userId);
       await mongoose.connection
         .db!.collection('account')
-        .deleteMany({ userId });
+        .deleteMany({ userId: new mongoose.Types.ObjectId(userId) });
       throw error;
     }
 

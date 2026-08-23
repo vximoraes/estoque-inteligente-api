@@ -1,7 +1,4 @@
-import {
-  UsuarioSchema,
-  UsuarioUpdateSchema,
-} from '../UsuarioSchema.js';
+import { UsuarioSchema, UsuarioUpdateSchema } from '../UsuarioSchema.js';
 
 describe('UsuarioSchema', () => {
   it('deve validar dados válidos corretamente', () => {

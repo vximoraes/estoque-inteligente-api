@@ -1,4 +1,7 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import FornecedorFilterBuilder from './FornecedorFilterBuilder.js';
 import FornecedorModel, { type FornecedorDocument } from './FornecedorModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
@@ -10,7 +13,9 @@ type FornecedorModel = mongoose.PaginateModel<FornecedorDocument>;
 class FornecedorRepository {
   private model: FornecedorModel;
 
-  constructor({ fornecedorModel = FornecedorModel as unknown as FornecedorModel } = {}) {
+  constructor({
+    fornecedorModel = FornecedorModel as unknown as FornecedorModel,
+  } = {}) {
     this.model = fornecedorModel;
   }
 
@@ -64,13 +69,18 @@ class FornecedorRepository {
     return {
       ...resultado,
       docs: resultado.docs.map((doc) => {
-        const fornecedorObj = typeof doc.toObject === 'function' ? doc.toObject() : doc;
+        const fornecedorObj =
+          typeof doc.toObject === 'function' ? doc.toObject() : doc;
         return { ...fornecedorObj };
       }),
     };
   }
 
-  async atualizar(id: string, parsedData: Record<string, unknown>, _req?: AuthenticatedRequest) {
+  async atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    _req?: AuthenticatedRequest,
+  ) {
     const fornecedor = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
       .lean();
@@ -86,8 +96,15 @@ class FornecedorRepository {
     return fornecedor;
   }
 
-  async buscarPorNome(nome: string, idIgnorado?: string | null, _req?: AuthenticatedRequest) {
-    const filtro: mongoose.FilterQuery<FornecedorDocument> = { nome, ativo: true };
+  async buscarPorNome(
+    nome: string,
+    idIgnorado?: string | null,
+    _req?: AuthenticatedRequest,
+  ) {
+    const filtro: mongoose.FilterQuery<FornecedorDocument> = {
+      nome,
+      ativo: true,
+    };
 
     if (idIgnorado) {
       filtro['_id'] = { $ne: idIgnorado };
@@ -96,7 +113,11 @@ class FornecedorRepository {
     return await this.model.findOne(filtro);
   }
 
-  async buscarPorId(id: string, _includeTokens = false, _req?: AuthenticatedRequest) {
+  async buscarPorId(
+    id: string,
+    _includeTokens = false,
+    _req?: AuthenticatedRequest,
+  ) {
     const fornecedor = await this.model.findOne({ _id: id, ativo: true });
 
     if (!fornecedor) {

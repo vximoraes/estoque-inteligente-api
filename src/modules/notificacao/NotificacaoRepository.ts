@@ -1,6 +1,11 @@
-import { PAGINATION_MAX_LIMIT, PAGINATION_DEFAULT_LIMIT } from '../../config/PaginationConfig.js';
+import {
+  PAGINATION_MAX_LIMIT,
+  PAGINATION_DEFAULT_LIMIT,
+} from '../../config/PaginationConfig.js';
 import NotificacaoFilterBuilder from './NotificacaoFilterBuilder.js';
-import NotificacaoModel, { type NotificacaoDocument } from './NotificacaoModel.js';
+import NotificacaoModel, {
+  type NotificacaoDocument,
+} from './NotificacaoModel.js';
 import UsuarioModel from '../usuario/UsuarioModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type mongoose from 'mongoose';
@@ -9,7 +14,9 @@ import type { AuthenticatedRequest } from '../../utils/types.js';
 class NotificacaoRepository {
   private model: mongoose.PaginateModel<NotificacaoDocument>;
 
-  constructor({ notificacaoModel = NotificacaoModel }: { notificacaoModel?: mongoose.PaginateModel<NotificacaoDocument> } = {}) {
+  constructor({
+    notificacaoModel = NotificacaoModel,
+  }: { notificacaoModel?: mongoose.PaginateModel<NotificacaoDocument> } = {}) {
     this.model = notificacaoModel;
   }
 
@@ -29,7 +36,9 @@ class NotificacaoRepository {
 
   async criar(parsedData: Record<string, unknown>) {
     if (parsedData['usuario']) {
-      const usuarioExiste = await UsuarioModel.exists({ _id: parsedData['usuario'] });
+      const usuarioExiste = await UsuarioModel.exists({
+        _id: parsedData['usuario'],
+      });
       if (!usuarioExiste) {
         throw new CustomError({
           statusCode: 400,
@@ -45,7 +54,10 @@ class NotificacaoRepository {
     return await this.model.findById(saved._id);
   }
 
-  async listar(user_id: string | undefined, req: Partial<AuthenticatedRequest> = {}) {
+  async listar(
+    user_id: string | undefined,
+    req: Partial<AuthenticatedRequest> = {},
+  ) {
     const { params = {}, query = {} } = req;
     const id = (params as Record<string, string | undefined>)['id'] ?? null;
 
@@ -79,7 +91,10 @@ class NotificacaoRepository {
 
     const options = {
       page: parseInt(page, 10),
-      limit: Math.min(parseInt(limite, 10) || PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT),
+      limit: Math.min(
+        parseInt(limite, 10) || PAGINATION_DEFAULT_LIMIT,
+        PAGINATION_MAX_LIMIT,
+      ),
       sort: { data_hora: -1 },
     };
 
@@ -87,7 +102,11 @@ class NotificacaoRepository {
   }
 
   async marcarComoVisualizada(id: string, userId: string | undefined) {
-    return this._atualizar(id, { visualizada: true, dataLeitura: new Date() }, userId);
+    return this._atualizar(
+      id,
+      { visualizada: true, dataLeitura: new Date() },
+      userId,
+    );
   }
 
   async inativar(id: string, userId: string | undefined) {
@@ -102,7 +121,11 @@ class NotificacaoRepository {
     );
   }
 
-  async _atualizar(id: string, parsedData: Record<string, unknown>, userId: string | undefined) {
+  async _atualizar(
+    id: string,
+    parsedData: Record<string, unknown>,
+    userId: string | undefined,
+  ) {
     const notificacao = await this.model.findOneAndUpdate(
       { _id: id, usuario: userId },
       parsedData,

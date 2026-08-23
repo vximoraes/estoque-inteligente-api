@@ -1,9 +1,6 @@
 import CategoriaController from '../CategoriaController.js';
 import CategoriaService from '../CategoriaService.js';
-import {
-  CategoriaSchema,
-  CategoriaUpdateSchema,
-} from '../CategoriaSchema.js';
+import { CategoriaSchema, CategoriaUpdateSchema } from '../CategoriaSchema.js';
 import {
   CategoriaQuerySchema,
   CategoriaIdSchema,

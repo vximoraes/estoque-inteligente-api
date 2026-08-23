@@ -5,6 +5,7 @@ import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { bearer } from 'better-auth/plugins';
 import EmailService from '../utils/services/EmailService.js';
 import { ativarUsuarioPadrao } from '../modules/usuario/ativarUsuarioPadrao.js';
+import logger from '../utils/logger.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _auth: any = null;
@@ -39,26 +40,33 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     },
 
     onAPIError: {
-      errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login?erro=google-nao-convidado`,
+      errorURL: `${process.env['FRONTEND_URL'] ?? 'http://localhost:3000'}/login`,
     },
 
     emailAndPassword: {
       enabled: true,
       resetPasswordTokenExpiresIn: 60 * 60 * 24,
-      async sendResetPassword({ user, token }: { user: Record<string, unknown>; token: string }) {
-        if (user['ativo'] === false) {
-          await EmailService.enviarEmailConvite(
-            user['name'] as string,
-            user['email'] as string,
-            token,
-          );
-        } else {
-          await EmailService.enviarEmailRecuperacaoSenha(
-            user['name'] as string,
-            user['email'] as string,
-            token,
-          );
-        }
+      async sendResetPassword({
+        user,
+        token,
+      }: {
+        user: Record<string, unknown>;
+        token: string;
+      }) {
+        const nome = user['name'] as string;
+        const email = user['email'] as string;
+
+        const envio =
+          user['ativo'] === false
+            ? EmailService.enviarEmailConvite(nome, email, token)
+            : EmailService.enviarEmailRecuperacaoSenha(nome, email, token);
+
+        envio.catch((error: unknown) =>
+          logger.error(
+            error,
+            `Erro ao enviar e-mail de convite/recuperação para ${email}:`,
+          ),
+        );
       },
     },
 
@@ -88,6 +96,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       accountLinking: {
         enabled: true,
         trustedProviders: ['google'],
+        requireLocalEmailVerified: false,
       },
     },
 
@@ -118,6 +127,8 @@ export function initAuth(): ReturnType<typeof betterAuth> {
 }
 
 export function getAuth(): ReturnType<typeof betterAuth> {
-  if (!_auth) throw new Error('Better Auth não inicializado. Chame initAuth() primeiro.');
+  if (!_auth) {
+    throw new Error('Better Auth não inicializado. Chame initAuth() primeiro.');
+  }
   return _auth as ReturnType<typeof betterAuth>;
 }

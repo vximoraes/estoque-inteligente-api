@@ -32,9 +32,7 @@ describe('ListarConversasQuerySchema', () => {
   });
 
   it('deve rejeitar limite acima de 50', () => {
-    expect(() =>
-      ListarConversasQuerySchema.parse({ limite: '51' }),
-    ).toThrow();
+    expect(() => ListarConversasQuerySchema.parse({ limite: '51' })).toThrow();
   });
 
   it('deve rejeitar page menor ou igual a 0', () => {

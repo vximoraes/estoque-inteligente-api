@@ -1,5 +1,7 @@
 import EmprestimoModel from './EmprestimoModel.js';
-import EmailService, { type EmprestimoEmailData } from '../../utils/services/EmailService.js';
+import EmailService, {
+  type EmprestimoEmailData,
+} from '../../utils/services/EmailService.js';
 import logger from '../../utils/logger.js';
 
 const INTERVALO_MS = 60 * 60 * 1000;
@@ -24,7 +26,9 @@ export async function verificarEmprestimosAtrasados() {
 
   if (emprestimosAtrasados.length === 0) return;
 
-  logger.info(`Job de atraso: ${emprestimosAtrasados.length} emprestimo(s) atrasado(s) encontrado(s).`);
+  logger.info(
+    `Job de atraso: ${emprestimosAtrasados.length} emprestimo(s) atrasado(s) encontrado(s).`,
+  );
 
   for (const emp of emprestimosAtrasados) {
     if (emp.solicitante_email) {
@@ -35,11 +39,17 @@ export async function verificarEmprestimosAtrasados() {
           emp as unknown as EmprestimoEmailData,
         );
       } catch (err) {
-        logger.error(err, `Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`);
+        logger.error(
+          err,
+          `Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`,
+        );
       }
     }
 
-    await EmprestimoModel.updateOne({ _id: emp._id }, { email_atraso_enviado: true });
+    await EmprestimoModel.updateOne(
+      { _id: emp._id },
+      { email_atraso_enviado: true },
+    );
   }
 }
 

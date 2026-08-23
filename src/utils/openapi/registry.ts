@@ -23,7 +23,7 @@ export const generateSpec = () => {
       title: 'API Estoque Inteligente',
       version: '1.0.0',
       description:
-        'API para gestão de estoque inteligente.\n\nAutentique com JWT em /login antes de usar as rotas protegidas.',
+        'API para gestão de estoque inteligente.\n\nAutentique em POST /api/auth/sign-in/email e use o token retornado (campo `token` ou header `set-auth-token`) no botão Authorize antes de usar as rotas protegidas.',
       contact: {
         name: 'Equipe de Desenvolvimento',
         email: 'dev@estoque-inteligente.com',

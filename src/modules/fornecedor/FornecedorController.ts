@@ -1,7 +1,13 @@
 import type { Response } from 'express';
 import FornecedorService from './FornecedorService.js';
-import { FornecedorQuerySchema, FornecedorIdSchema } from './FornecedorQuerySchema.js';
-import { FornecedorSchema, FornecedorUpdateSchema } from './FornecedorSchema.js';
+import {
+  FornecedorQuerySchema,
+  FornecedorIdSchema,
+} from './FornecedorQuerySchema.js';
+import {
+  FornecedorSchema,
+  FornecedorUpdateSchema,
+} from './FornecedorSchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -44,7 +50,12 @@ class FornecedorController {
     const parsedData = FornecedorUpdateSchema.parse(req.body);
     const data = await this.service.atualizar(id, parsedData, req);
 
-    return CommonResponse.success(res, data, 200, 'Fornecedor atualizado com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Fornecedor atualizado com sucesso.',
+    );
   }
 
   async inativar(req: AuthenticatedRequest, res: Response) {
@@ -53,7 +64,12 @@ class FornecedorController {
 
     const data = await this.service.inativar(id, req);
 
-    return CommonResponse.success(res, data, 200, 'Fornecedor inativado com sucesso.');
+    return CommonResponse.success(
+      res,
+      data,
+      200,
+      'Fornecedor inativado com sucesso.',
+    );
   }
 }
 

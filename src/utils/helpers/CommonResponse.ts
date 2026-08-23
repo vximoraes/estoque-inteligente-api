@@ -32,7 +32,12 @@ class CommonResponse {
     };
   }
 
-  static success(res: Response, data: unknown, code = 200, message: string | null = null) {
+  static success(
+    res: Response,
+    data: unknown,
+    code = 200,
+    message: string | null = null,
+  ) {
     const statusMessage = message || StatusService.getHttpCodeMessage(code);
     const response = new CommonResponse(false, code, statusMessage, data, []);
     return res.status(code).json(response.toJSON());

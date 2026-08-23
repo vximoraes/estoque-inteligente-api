@@ -25,10 +25,12 @@ import movimentacoes from './modules/movimentacao/movimentacaoRoutes.js';
 import notificacoes from './modules/notificacao/notificacaoRoutes.js';
 import orcamentos from './modules/orcamento/orcamentoRoutes.js';
 import emprestimos from './modules/emprestimo/emprestimoRoutes.js';
+import patrimonios from './modules/patrimonio/patrimonioRoutes.js';
 import grupos from './modules/grupo/grupoRoutes.js';
 import rotas from './modules/rota/rotaRoutes.js';
 import iaRoutes from './modules/ia/iaRoutes.js';
 import './modules/usuario/usuarioDocs.js';
+import './modules/usuario/authDocs.js';
 import './modules/categoria/categoriaDocs.js';
 import './modules/localizacao/localizacaoDocs.js';
 import './modules/item/itemDocs.js';
@@ -38,6 +40,7 @@ import './modules/movimentacao/movimentacaoDocs.js';
 import './modules/notificacao/notificacaoDocs.js';
 import './modules/orcamento/orcamentoDocs.js';
 import './modules/emprestimo/emprestimoDocs.js';
+import './modules/patrimonio/patrimonioDocs.js';
 import './modules/grupo/grupoDocs.js';
 import './modules/rota/rotaDocs.js';
 import './modules/ia/iaDocs.js';
@@ -102,6 +105,7 @@ export async function bootstrap(): Promise<express.Express> {
     notificacoes,
     orcamentos,
     emprestimos,
+    patrimonios,
     grupos,
     rotas,
     iaRoutes,

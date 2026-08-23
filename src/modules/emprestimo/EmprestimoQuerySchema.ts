@@ -8,6 +8,10 @@ export const EmprestimoIdSchema = z
   });
 
 export const EmprestimoQuerySchema = z.object({
+  busca: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim()),
   item: z
     .string()
     .optional()
@@ -38,18 +42,14 @@ export const EmprestimoQuerySchema = z.object({
     .refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
       message: 'data_saida_inicio deve estar no formato YYYY-MM-DD',
     })
-    .transform((val) =>
-      val ? new Date(`${val}T00:00:00.000Z`) : undefined,
-    ),
+    .transform((val) => (val ? new Date(`${val}T00:00:00.000Z`) : undefined)),
   data_saida_fim: z
     .string()
     .optional()
     .refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
       message: 'data_saida_fim deve estar no formato YYYY-MM-DD',
     })
-    .transform((val) =>
-      val ? new Date(`${val}T23:59:59.999Z`) : undefined,
-    ),
+    .transform((val) => (val ? new Date(`${val}T23:59:59.999Z`) : undefined)),
   page: z
     .string()
     .optional()

@@ -20,9 +20,12 @@ export async function suprimirPrecosNativosDoLangfuse(): Promise<void> {
     let pagina = 1;
     let totalPaginas = 1;
     do {
-      const res = await fetch(`${baseUrl}/api/public/models?page=${pagina}&limit=100`, {
-        headers: { Authorization: `Basic ${auth}` },
-      });
+      const res = await fetch(
+        `${baseUrl}/api/public/models?page=${pagina}&limit=100`,
+        {
+          headers: { Authorization: `Basic ${auth}` },
+        },
+      );
       const json = (await res.json()) as {
         data?: Array<{ modelName: string; isLangfuseManaged: boolean }>;
         meta?: { totalPages?: number };
@@ -39,7 +42,10 @@ export async function suprimirPrecosNativosDoLangfuse(): Promise<void> {
 
       await fetch(`${baseUrl}/api/public/models`, {
         method: 'POST',
-        headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           modelName: modelo,
           matchPattern: `(?i)^${modelo.replace(/\./g, '\\.')}$`,

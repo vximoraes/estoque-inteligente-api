@@ -5,7 +5,6 @@ jest.mock('../../../modules/usuario/UsuarioRepository.js');
 
 const permissao = (overrides = {}) => ({
   rota: 'itens',
-  dominio: 'localhost',
   ativo: true,
   buscar: true,
   enviar: false,
@@ -39,7 +38,6 @@ describe('PermissionService', () => {
     const result = await service.hasPermission(
       'user1',
       'usuarios',
-      'localhost',
       'buscar',
       { id: 'user1' },
       'GET',
@@ -57,7 +55,6 @@ describe('PermissionService', () => {
     const result = await service.hasPermission(
       'user1',
       'usuarios',
-      'localhost',
       'buscar',
       { id: 'outroUsuario' },
       'GET',
@@ -72,12 +69,7 @@ describe('PermissionService', () => {
       grupos: [],
     });
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'buscar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'buscar');
 
     expect(result).toBe(true);
   });
@@ -88,12 +80,7 @@ describe('PermissionService', () => {
       grupos: [{ permissoes: [permissao()] }],
     });
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'buscar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'buscar');
 
     expect(result).toBe(true);
   });
@@ -104,12 +91,7 @@ describe('PermissionService', () => {
       grupos: [],
     });
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'enviar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'enviar');
 
     expect(result).toBe(false);
   });
@@ -120,33 +102,23 @@ describe('PermissionService', () => {
       grupos: [],
     });
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'buscar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'buscar');
 
     expect(result).toBe(false);
   });
 
-  it('nega quando rota/dominio nao batem com nenhuma permissao', async () => {
+  it('nega quando a rota nao bate com nenhuma permissao', async () => {
     repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
       permissoes: [permissao({ rota: 'categorias' })],
       grupos: [],
     });
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'buscar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'buscar');
 
     expect(result).toBe(false);
   });
 
-  it('deduplica permissoes repetidas entre usuario e grupos pela combinacao rota+dominio', async () => {
+  it('deduplica permissoes repetidas entre usuario e grupos pela rota', async () => {
     repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
       permissoes: [permissao({ buscar: true, enviar: false })],
       grupos: [{ permissoes: [permissao({ buscar: false, enviar: true })] }],
@@ -155,13 +127,11 @@ describe('PermissionService', () => {
     const resultBuscar = await service.hasPermission(
       'user1',
       'itens',
-      'localhost',
       'buscar',
     );
     const resultEnviar = await service.hasPermission(
       'user1',
       'itens',
-      'localhost',
       'enviar',
     );
 
@@ -175,7 +145,6 @@ describe('PermissionService', () => {
     const result = await service.hasPermission(
       'inexistente',
       'itens',
-      'localhost',
       'buscar',
     );
 
@@ -187,12 +156,7 @@ describe('PermissionService', () => {
       new Error('DB fora do ar'),
     );
 
-    const result = await service.hasPermission(
-      'user1',
-      'itens',
-      'localhost',
-      'buscar',
-    );
+    const result = await service.hasPermission('user1', 'itens', 'buscar');
 
     expect(result).toBe(false);
   });

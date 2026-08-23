@@ -6,8 +6,14 @@ export const objectIdField = z.string().openapi({
 });
 
 export const timestampFields = {
-  createdAt: z.string().datetime().openapi({ example: '2024-01-15T10:30:00.000Z' }),
-  updatedAt: z.string().datetime().openapi({ example: '2024-01-15T10:30:00.000Z' }),
+  createdAt: z
+    .string()
+    .datetime()
+    .openapi({ example: '2024-01-15T10:30:00.000Z' }),
+  updatedAt: z
+    .string()
+    .datetime()
+    .openapi({ example: '2024-01-15T10:30:00.000Z' }),
 };
 
 export const paginationMetaFields = {

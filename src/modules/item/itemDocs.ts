@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import { ItemSchema } from './ItemSchema.js';
 
@@ -9,26 +15,59 @@ const ItemDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Resistor 10k Ohm' }),
+    tipo: z
+      .enum(['consumo', 'permanente'])
+      .openapi({
+        example: 'consumo',
+        description:
+          "'consumo': controlado por quantidade agregada (almoxarifado). 'permanente': controlado por unidade individual em /bens (patrimônio); quantidade aqui reflete a contagem de unidades ativas.",
+      }),
     quantidade: z.number().int().openapi({ example: 150 }),
+    quantidade_disponivel: z.number().int().openapi({
+      example: 150,
+      description:
+        "Para 'consumo', reflete 'quantidade'. Para 'permanente', conta só as unidades com status 'Disponível'.",
+    }),
     estoque_minimo: z.number().int().openapi({ example: 50 }),
-    descricao: z.string().optional().openapi({ example: 'Resistor de precisão 1/4W 5%' }),
-    imagem: z.string().optional().openapi({ example: 'https://storage/resistor.jpg' }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({ example: 'Resistor de precisão 1/4W 5%' }),
+    imagem: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://storage/resistor.jpg' }),
     categoria: objectIdField,
     ativo: z.boolean().openapi({ example: true }),
-    status: z.enum(['Indisponível', 'Baixo Estoque', 'Em Estoque']).openapi({ example: 'Em Estoque' }),
+    status: z
+      .enum(['Indisponível', 'Baixo Estoque', 'Em Estoque'])
+      .openapi({ example: 'Em Estoque' }),
     ...timestampFields,
   }),
 );
 
-registry.register('ItemPost', ItemSchema.extend({
-  estoque_minimo: z.number().int().min(0).openapi({ example: 50 }),
-  categoria: objectIdField,
-}));
+registry.register(
+  'ItemPost',
+  ItemSchema.extend({
+    estoque_minimo: z.number().int().min(0).openapi({ example: 50 }),
+    categoria: objectIdField,
+  }),
+);
 
-registry.register('ItemPatch', ItemSchema.partial().extend({
-  estoque_minimo: z.number().int().min(0).optional().openapi({ example: 75 }),
-  categoria: objectIdField.optional(),
-}));
+registry.register(
+  'ItemPatch',
+  ItemSchema.omit({ tipo: true })
+    .partial()
+    .extend({
+      estoque_minimo: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .openapi({ example: 75 }),
+      categoria: objectIdField.optional(),
+    }),
+);
 
 const ItemUploadFotoResposta = registry.register(
   'ItemUploadFotoResposta',
@@ -42,7 +81,10 @@ const ItemUploadFotoResposta = registry.register(
   }),
 );
 
-registry.register('ItemListagem', z.object({ data: z.array(ItemDetalhes), ...paginationMetaFields }));
+registry.register(
+  'ItemListagem',
+  z.object({ data: z.array(ItemDetalhes), ...paginationMetaFields }),
+);
 
 registerPaths({
   '/itens': {
@@ -53,20 +95,25 @@ registerPaths({
             + Caso de uso: Criação de novo item do estoque no sistema.
 
             + Regras de Negócio:
-                - Campos obrigatórios: nome, estoque_minimo, categoria.
-                - estoque_minimo não pode ser negativo.
+                - Campos obrigatórios: nome, categoria.
+                - Campo 'tipo' define a natureza do item: 'consumo' (padrão) ou 'permanente'. Imutável após a criação.
+                - estoque_minimo é opcional (padrão 0) e não pode ser negativo; não se aplica a item permanente.
                 - Campo 'ativo' tem padrão true.
                 - Campo 'status' é calculado automaticamente baseado na quantidade total e estoque_minimo.
                 - Nome deve ser único no sistema.
                 - Categoria deve existir no sistema.
-                - Quantidade inicial é 0 (atualizada automaticamente baseada no estoque por localização).
+                - Quantidade inicial é 0. Para item de consumo, é atualizada automaticamente pelo estoque por localização; para item permanente, reflete a contagem de unidades cadastradas em /bens.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **ItemDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/ItemDetalhes'),
@@ -93,10 +140,44 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'categoria', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por categoria (ObjectId)' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
-        { name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'] }, description: 'Filtro por status de estoque' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'tipo',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['consumo', 'permanente'] },
+          description: 'Filtro por tipo de item (consumo ou permanente)',
+        },
+        {
+          name: 'categoria',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por categoria (ObjectId)',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
+        {
+          name: 'status',
+          in: 'query',
+          required: false,
+          schema: {
+            type: 'string',
+            enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'],
+          },
+          description: 'Filtro por status de estoque',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -150,7 +231,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do item')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/ItemPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/ItemDetalhes'),
@@ -217,14 +302,25 @@ registerPaths({
               type: 'object',
               required: ['file'],
               properties: {
-                file: { type: 'string', format: 'binary', description: 'Arquivo de imagem do item' },
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Arquivo de imagem do item',
+                },
               },
             },
           },
         },
       },
       responses: {
-        201: { description: 'Foto enviada com sucesso', content: { 'application/json': { schema: { $ref: '#/components/schemas/ItemUploadFotoResposta' } } } },
+        201: {
+          description: 'Foto enviada com sucesso',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ItemUploadFotoResposta' },
+            },
+          },
+        },
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),

@@ -28,7 +28,6 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
     permissoes: [
       {
         rota: { type: String, index: true, required: true },
-        dominio: { type: String },
         ativo: { type: Boolean, default: false },
         buscar: { type: Boolean, default: false },
         enviar: { type: Boolean, default: false },
@@ -45,7 +44,7 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
 
 usuarioSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<UsuarioDocument, mongoose.PaginateModel<UsuarioDocument>>(
-  'usuarios',
-  usuarioSchema,
-);
+export default mongoose.model<
+  UsuarioDocument,
+  mongoose.PaginateModel<UsuarioDocument>
+>('usuarios', usuarioSchema);

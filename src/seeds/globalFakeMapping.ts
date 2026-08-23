@@ -13,7 +13,6 @@ export const fakeMappings = {
     categoria: () => new mongoose.Types.ObjectId().toString(),
     localizacao: () => new mongoose.Types.ObjectId().toString(),
     rota: () => fakebr.lorem.word(10),
-    dominio: () => fakebr.internet.url(),
     ativo: () => fakebr.random.boolean(),
     buscar: () => fakebr.random.boolean(),
     enviar: () => fakebr.random.boolean(),
@@ -23,7 +22,6 @@ export const fakeMappings = {
     permissoes: () => [
       {
         rota: fakebr.lorem.word(),
-        dominio: fakebr.internet.url(),
         ativo: fakebr.random.boolean(),
         buscar: fakebr.random.boolean(),
         enviar: fakebr.random.boolean(),
@@ -77,37 +75,50 @@ export const fakeMappings = {
       return this.categorias[index];
     },
     usuario: () => new mongoose.Types.ObjectId().toString(),
+    descricao: () => fakebr.lorem.sentence(),
   },
 
   Localizacao: {
     nome: () =>
       `${String.fromCharCode(65 + fakebr.random.number({ min: 0, max: 25 }))}${fakebr.random.number({ min: 1, max: 100 })}`,
     usuario: () => new mongoose.Types.ObjectId().toString(),
+    descricao: () => fakebr.lorem.sentence(),
   },
 
   Item: {
-    nomesFixos: [
+    // Bens de maior valor/individualidade — cada um vira patrimônio
+    // (unidade com número próprio), não quantidade agregada.
+    nomesPermanentes: [
       'Notebook Dell Inspiron 15',
       'Notebook Lenovo ThinkPad E14',
       'MacBook Air M2',
       'Desktop HP ProDesk',
       'Monitor LG 24 polegadas',
       'Monitor Samsung 27 polegadas',
+      'Roteador TP-Link Archer C6',
+      'Switch Gigabit 8 portas',
+      'Access Point Ubiquiti U6 Lite',
+      'Nobreak SMS 1200VA',
+      'Projetor Epson PowerLite',
+    ],
+    // Acessórios de baixo valor/fungíveis — controlados por quantidade.
+    nomesConsumo: [
       'Teclado Mecânico Redragon',
       'Mouse Logitech MX Master',
       'Headset HyperX Cloud',
       'Webcam Logitech C920',
       'Dock USB-C Anker',
       'Hub USB 3.0 4 portas',
-      'Roteador TP-Link Archer C6',
-      'Switch Gigabit 8 portas',
-      'Access Point Ubiquiti U6 Lite',
       'SSD NVMe 1TB Kingston',
       'HD Externo Seagate 2TB',
       'Pendrive SanDisk 128GB',
-      'Nobreak SMS 1200VA',
-      'Projetor Epson PowerLite',
     ],
+    get nomesFixos() {
+      return [
+        ...fakeMappings.Item.nomesPermanentes,
+        ...fakeMappings.Item.nomesConsumo,
+      ];
+    },
     nome: () => fakebr.helpers.randomize(fakeMappings.Item.nomesFixos),
     quantidade: () => fakebr.random.number({ min: 0, max: 100 }),
     estoque_minimo: () => fakebr.random.number({ min: 1, max: 20 }),
@@ -117,6 +128,51 @@ export const fakeMappings = {
     ativo: () => true,
     status: () =>
       fakebr.helpers.randomize(['Indisponível', 'Baixo Estoque', 'Em Estoque']),
+    usuario: () => new mongoose.Types.ObjectId().toString(),
+    tipo: () => fakebr.helpers.randomize(['consumo', 'permanente']),
+    quantidade_disponivel: () => fakebr.random.number({ min: 0, max: 100 }),
+  },
+
+  Patrimonio: {
+    numero_patrimonio: () =>
+      `PAT-${fakebr.random.number({ min: 1000, max: 9999 })}`,
+    item: () => new mongoose.Types.ObjectId().toString(),
+    localizacao: () => new mongoose.Types.ObjectId().toString(),
+    status: () =>
+      fakebr.helpers.randomize([
+        'Disponível',
+        'Emprestado',
+        'Manutenção',
+        'Baixado',
+      ]),
+    data_aquisicao: () => new Date().toISOString(),
+    observacoes: () => fakebr.lorem.sentence(),
+    ativo: () => true,
+    usuario: () => new mongoose.Types.ObjectId().toString(),
+  },
+
+  PatrimonioEvento: {
+    patrimonio: () => new mongoose.Types.ObjectId().toString(),
+    item: () => new mongoose.Types.ObjectId().toString(),
+    tipo: () =>
+      fakebr.helpers.randomize([
+        'cadastro',
+        'emprestimo',
+        'devolucao',
+        'manutencao_entrada',
+        'manutencao_saida',
+        'transferencia',
+        'baixa',
+        'reativacao',
+      ]),
+    status_anterior: () =>
+      fakebr.helpers.randomize(['Disponível', 'Emprestado', 'Manutenção']),
+    status_novo: () =>
+      fakebr.helpers.randomize(['Disponível', 'Emprestado', 'Manutenção']),
+    localizacao_anterior: () => new mongoose.Types.ObjectId().toString(),
+    localizacao_nova: () => new mongoose.Types.ObjectId().toString(),
+    emprestimo: () => new mongoose.Types.ObjectId().toString(),
+    observacoes: () => fakebr.lorem.sentence(),
     usuario: () => new mongoose.Types.ObjectId().toString(),
   },
 
@@ -175,12 +231,16 @@ export const fakeMappings = {
     observacoes_devolucao: () => fakebr.lorem.sentence(),
     usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
     email_atraso_enviado: () => false,
+    patrimonio: () => new mongoose.Types.ObjectId().toString(),
+    tipo_controle: () => fakebr.helpers.randomize(['quantidade', 'unidade']),
   },
 
   Conversa: {
     usuario: () => new mongoose.Types.ObjectId().toString(),
     titulo: () => fakebr.lorem.words(5).slice(0, 60),
     mensagens: () => [],
+    resumo: () => '',
+    resumoAteIndice: () => 0,
     criada_em: () => new Date().toISOString(),
     atualizada_em: () => new Date().toISOString(),
   },

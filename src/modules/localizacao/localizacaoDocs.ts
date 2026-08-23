@@ -1,8 +1,17 @@
 import { z } from 'zod';
 import { registry, registerPaths } from '../../utils/openapi/registry.js';
-import { objectIdField, timestampFields, idPathParam, paginationMetaFields, paginationQueryParams } from '../../utils/openapi/commonSchemas.js';
+import {
+  objectIdField,
+  timestampFields,
+  idPathParam,
+  paginationMetaFields,
+  paginationQueryParams,
+} from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
-import { LocalizacaoSchema, LocalizacaoUpdateSchema } from './LocalizacaoSchema.js';
+import {
+  LocalizacaoSchema,
+  LocalizacaoUpdateSchema,
+} from './LocalizacaoSchema.js';
 
 const LocalizacaoDetalhes = registry.register(
   'LocalizacaoDetalhes',
@@ -10,11 +19,18 @@ const LocalizacaoDetalhes = registry.register(
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Estante A - Prateleira 1' }),
     ativo: z.boolean().openapi({ example: true }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({ example: 'Prateleira próxima à entrada do almoxarifado' }),
     ...timestampFields,
   }),
 );
 
-registry.register('LocalizacaoListagem', z.object({ data: z.array(LocalizacaoDetalhes), ...paginationMetaFields }));
+registry.register(
+  'LocalizacaoListagem',
+  z.object({ data: z.array(LocalizacaoDetalhes), ...paginationMetaFields }),
+);
 registry.register('LocalizacaoPost', LocalizacaoSchema);
 registry.register('LocalizacaoPatch', LocalizacaoUpdateSchema);
 
@@ -36,7 +52,11 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/LocalizacaoPost' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/LocalizacaoPost' },
+          },
+        },
       },
       responses: {
         201: commonResponses[201]!('#/components/schemas/LocalizacaoDetalhes'),
@@ -62,8 +82,20 @@ registerPaths({
             `,
       security: [{ bearerAuth: [] }],
       parameters: [
-        { name: 'nome', in: 'query', required: false, schema: { type: 'string' }, description: 'Filtro por nome' },
-        { name: 'ativo', in: 'query', required: false, schema: { type: 'boolean' }, description: 'Filtro por status' },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtro por nome',
+        },
+        {
+          name: 'ativo',
+          in: 'query',
+          required: false,
+          schema: { type: 'boolean' },
+          description: 'Filtro por status',
+        },
         ...paginationQueryParams,
       ],
       responses: {
@@ -104,7 +136,11 @@ registerPaths({
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da localização')],
       requestBody: {
-        content: { 'application/json': { schema: { $ref: '#/components/schemas/LocalizacaoPatch' } } },
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/LocalizacaoPatch' },
+          },
+        },
       },
       responses: {
         200: commonResponses[200]!('#/components/schemas/LocalizacaoDetalhes'),
@@ -117,21 +153,25 @@ registerPaths({
       },
     },
 
-    delete: {
+  },
+
+  '/localizacoes/{id}/inativar': {
+    patch: {
       tags: ['Localização'],
-      summary: 'Deleta uma localização',
+      summary: 'Inativa uma localização (exclusão lógica)',
       description: `
             + Regras de Negócio:
-                - Verificar se a localização existe antes de excluir.
-                - Não permitir exclusão se há itens vinculados à localização.
+                - Verificar se a localização existe antes de inativar.
+                - Não permitir inativação se há itens em estoque vinculados à localização.
             `,
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da localização')],
       responses: {
-        200: commonResponses[200]!(),
+        200: commonResponses[200]!('#/components/schemas/LocalizacaoDetalhes'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
+        409: commonResponses[409]!(),
         498: commonResponses[498]!(),
         500: commonResponses[500]!(),
       },

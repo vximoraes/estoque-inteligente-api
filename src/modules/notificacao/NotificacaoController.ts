@@ -20,7 +20,12 @@ class NotificacaoController {
     const id = req.params['id'] as string;
     const notificacao = await this.service.buscarPorId(id, req);
     if (!notificacao) {
-      return CommonResponse.error(res, HttpStatusCodes.NOT_FOUND.code, 'resourceNotFound', 'Notificação');
+      return CommonResponse.error(
+        res,
+        HttpStatusCodes.NOT_FOUND.code,
+        'resourceNotFound',
+        'Notificação',
+      );
     }
     return CommonResponse.success(res, notificacao);
   }
@@ -35,7 +40,12 @@ class NotificacaoController {
     const id = req.params['id'] as string;
     const notificacao = await this.service.buscarPorId(id, req);
     if (!notificacao) {
-      return CommonResponse.error(res, HttpStatusCodes.NOT_FOUND.code, 'resourceNotFound', 'Notificação');
+      return CommonResponse.error(
+        res,
+        HttpStatusCodes.NOT_FOUND.code,
+        'resourceNotFound',
+        'Notificação',
+      );
     }
     const atualizada = await this.service.marcarComoVisualizada(id, req);
     return CommonResponse.success(res, atualizada);
@@ -50,7 +60,12 @@ class NotificacaoController {
     const id = req.params['id'] as string;
     const notificacao = await this.service.buscarPorId(id, req);
     if (!notificacao) {
-      return CommonResponse.error(res, HttpStatusCodes.NOT_FOUND.code, 'resourceNotFound', 'Notificação');
+      return CommonResponse.error(
+        res,
+        HttpStatusCodes.NOT_FOUND.code,
+        'resourceNotFound',
+        'Notificação',
+      );
     }
     const inativada = await this.service.inativar(id, req);
     return CommonResponse.success(res, inativada);

@@ -25,24 +25,6 @@ describe('RotaFilterBuilder', () => {
     );
   });
 
-  describe('comDominio', () => {
-    it('deve adicionar filtro de domínio quando informado', () => {
-      const resultado = builder.comDominio('localhost');
-      expect(builder.build()).toEqual({
-        dominio: { $regex: 'localhost', $options: 'i' },
-      });
-      expect(resultado).toBe(builder);
-    });
-
-    it.each([null, undefined, ''])(
-      'não deve adicionar filtro de domínio para %p',
-      (valor) => {
-        builder.comDominio(valor);
-        expect(builder.build()).toEqual({});
-      },
-    );
-  });
-
   describe('comAtivo', () => {
     it('deve filtrar ativo=true quando "true"', () => {
       builder.comAtivo('true');
@@ -93,7 +75,6 @@ describe('RotaFilterBuilder', () => {
     it('deve combinar todos os filtros quando encadeado', () => {
       const filtros = builder
         .comRota('itens')
-        .comDominio('localhost')
         .comAtivo('true')
         .comGet('true')
         .comPost('false')
@@ -104,7 +85,6 @@ describe('RotaFilterBuilder', () => {
 
       expect(filtros).toEqual({
         rota: { $regex: 'itens', $options: 'i' },
-        dominio: { $regex: 'localhost', $options: 'i' },
         ativo: true,
         buscar: true,
         enviar: false,

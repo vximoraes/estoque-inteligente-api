@@ -21,7 +21,7 @@ describe('Modelo de Rota', () => {
   });
 
   it('deve criar uma rota com os defaults corretos', async () => {
-    const rota = await Rota.create({ rota: 'itens', dominio: 'localhost' });
+    const rota = await Rota.create({ rota: 'itens' });
     expect(rota._id).toBeDefined();
     expect(rota.ativo).toBe(false);
     expect(rota.buscar).toBe(false);
@@ -32,25 +32,12 @@ describe('Modelo de Rota', () => {
   });
 
   it('deve normalizar rota para minusculo antes de salvar', async () => {
-    const rota = await Rota.create({ rota: 'ITENS', dominio: 'localhost' });
+    const rota = await Rota.create({ rota: 'ITENS' });
     expect(rota.rota).toBe('itens');
   });
 
-  it('não deve criar sem dominio', async () => {
-    const rota = new Rota({ rota: 'itens' });
-    await expect(rota.save()).rejects.toThrow();
-  });
-
-  it('não deve permitir rota+dominio duplicados', async () => {
-    await Rota.create({ rota: 'itens', dominio: 'localhost' });
-    await expect(
-      Rota.create({ rota: 'itens', dominio: 'localhost' }),
-    ).rejects.toThrow();
-  });
-
-  it('permite a mesma rota em dominios diferentes', async () => {
-    await Rota.create({ rota: 'itens', dominio: 'localhost' });
-    const outra = await Rota.create({ rota: 'itens', dominio: 'outrodominio' });
-    expect(outra._id).toBeDefined();
+  it('não deve permitir rota duplicada', async () => {
+    await Rota.create({ rota: 'itens' });
+    await expect(Rota.create({ rota: 'itens' })).rejects.toThrow();
   });
 });

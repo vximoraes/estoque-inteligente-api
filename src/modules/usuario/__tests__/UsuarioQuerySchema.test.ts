@@ -1,7 +1,4 @@
-import {
-  UsuarioIdSchema,
-  UsuarioQuerySchema,
-} from '../UsuarioQuerySchema.js';
+import { UsuarioIdSchema, UsuarioQuerySchema } from '../UsuarioQuerySchema.js';
 import mongoose from 'mongoose';
 
 describe('UsuarioIdSchema', () => {
