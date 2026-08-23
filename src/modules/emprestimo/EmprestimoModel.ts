@@ -4,6 +4,8 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 export interface IEmprestimo {
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
+  patrimonio?: mongoose.Types.ObjectId | null;
+  tipo_controle: 'quantidade' | 'unidade';
   quantidade_emprestada: number;
   quantidade_devolvida: number;
   quantidade_aberta: number;
@@ -34,6 +36,19 @@ const emprestimoSchema = new mongoose.Schema<EmprestimoDocument>(
       ref: 'localizacoes',
       required: true,
       index: true,
+    },
+    patrimonio: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'patrimonios',
+      default: null,
+      index: true,
+      sparse: true,
+    },
+    tipo_controle: {
+      type: String,
+      enum: ['quantidade', 'unidade'],
+      default: 'quantidade',
+      required: true,
     },
     quantidade_emprestada: {
       type: Number,

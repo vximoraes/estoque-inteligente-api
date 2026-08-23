@@ -12,6 +12,7 @@
     "langfuse:up": "docker compose --profile langfuse up -d",
     "langfuse:down": "docker compose --profile langfuse down",
     "seed": "clear && tsx src/seeds/seeds.js",
+    "migrate": "clear && tsx src/scripts/migrations/001-tipo-e-patrimonio.js",
     "start": "clear && tsx server.js",
     "start:render": "tsx server.js",
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",

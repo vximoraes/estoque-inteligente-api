@@ -4,10 +4,14 @@ import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 
 export default async function movimentacaoSeed(adminId: string) {
-  const itemList = await Item.find({});
+  // Item permanente não passa pelo ledger de movimentações — ver
+  // `MovimentacaoService.criar`, que bloqueia esse caso na API.
+  const itemList = await Item.find({ tipo: 'consumo' });
   const localizacaoList = await Localizacao.find({});
 
   await Movimentacao.deleteMany({});
+
+  if (itemList.length === 0) return;
 
   for (let i = 0; i < 20; i++) {
     const tipo = fakeMappings.Movimentacao.tipo();

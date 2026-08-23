@@ -40,6 +40,24 @@ describe('CategoriaSchema', () => {
     };
     expect(() => CategoriaSchema.parse(dadosInvalidos)).toThrow();
   });
+
+  it('deve aceitar descricao opcional', () => {
+    const dadosValidos = { nome: 'Placas', descricao: 'Placas eletrônicas' };
+    const resultado = CategoriaSchema.parse(dadosValidos);
+    expect(resultado.descricao).toBe('Placas eletrônicas');
+  });
+
+  it('deve aceitar ausência de descricao', () => {
+    const resultado = CategoriaSchema.parse({ nome: 'Placas' });
+    expect(resultado.descricao).toBeUndefined();
+  });
+
+  it('deve lançar erro quando descricao excede 200 caracteres', () => {
+    const dadosInvalidos = { nome: 'Placas', descricao: 'a'.repeat(201) };
+    expect(() => CategoriaSchema.parse(dadosInvalidos)).toThrow(
+      'A descrição deve ter no máximo 200 caracteres.',
+    );
+  });
 });
 
 describe('CategoriaUpdateSchema', () => {
@@ -66,5 +84,12 @@ describe('CategoriaUpdateSchema', () => {
   it('deve lançar erro quando "ativo" não é booleano', () => {
     const dadosInvalidos = { ativo: 'sim' };
     expect(() => CategoriaUpdateSchema.parse(dadosInvalidos)).toThrow();
+  });
+
+  it('deve validar atualização parcial da descricao', () => {
+    const resultado = CategoriaUpdateSchema.parse({
+      descricao: 'Nova descrição',
+    });
+    expect(resultado.descricao).toBe('Nova descrição');
   });
 });

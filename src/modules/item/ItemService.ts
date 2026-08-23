@@ -28,6 +28,8 @@ class ItemService {
       ...parsedData,
       usuario: req.user_id,
       quantidade: 0,
+      quantidade_disponivel: 0,
+      estoque_minimo: parsedData.tipo === 'permanente' ? 0 : parsedData.estoque_minimo,
     });
   }
 
@@ -49,8 +51,11 @@ class ItemService {
       await this.validateNome(parsedData.nome, id, req);
     }
 
-    const { quantidade: _quantidade, ...dataWithoutQuantidade } =
-      parsedData as Record<string, unknown>;
+    const {
+      quantidade: _quantidade,
+      quantidade_disponivel: _quantidadeDisponivel,
+      ...dataWithoutQuantidade
+    } = parsedData as Record<string, unknown>;
 
     return await this.repository.atualizar(id, dataWithoutQuantidade, req);
   }

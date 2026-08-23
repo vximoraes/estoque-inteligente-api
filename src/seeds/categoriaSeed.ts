@@ -9,6 +9,7 @@ export default async function categoriaSeed(adminId: string) {
       nome: fakeMappings.Categoria.nome(i),
       usuario: adminId,
       ativo: true,
+      descricao: fakeMappings.Categoria.descricao(),
     };
 
     await Categoria.create(categoria);

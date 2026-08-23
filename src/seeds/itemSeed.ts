@@ -7,23 +7,43 @@ export default async function itemSeed(adminId: string) {
 
   await Item.deleteMany({});
 
-  const nomesFixos = fakeMappings.Item.nomesFixos;
-  for (const nome of nomesFixos) {
+  // Itens de consumo (controle por quantidade agregada): estoque_minimo
+  // aleatório de verdade, como antes.
+  for (const nome of fakeMappings.Item.nomesConsumo) {
     const categoriaRandom =
       categoriaList[Math.floor(Math.random() * categoriaList.length)]!;
 
-    const item = {
+    await Item.create({
       nome,
+      tipo: 'consumo',
       quantidade: 0,
       estoque_minimo: fakeMappings.Item.estoque_minimo(),
       descricao: fakeMappings.Item.descricao(),
-      // imagem: fakeMappings.Item.imagem(),
       categoria: categoriaRandom._id,
       usuario: adminId,
       ativo: fakeMappings.Item.ativo(),
       status: fakeMappings.Item.status(),
-    };
+    });
+  }
 
-    await Item.create(item);
+  // Itens permanentes (controle por unidade): quantidade/estoque_minimo
+  // ficam a cargo de `patrimonioSeed`, que cria as unidades e recalcula
+  // os contadores via `Patrimonio.atualizarContadoresItem`.
+  for (const nome of fakeMappings.Item.nomesPermanentes) {
+    const categoriaRandom =
+      categoriaList[Math.floor(Math.random() * categoriaList.length)]!;
+
+    await Item.create({
+      nome,
+      tipo: 'permanente',
+      quantidade: 0,
+      quantidade_disponivel: 0,
+      estoque_minimo: 0,
+      descricao: fakeMappings.Item.descricao(),
+      categoria: categoriaRandom._id,
+      usuario: adminId,
+      ativo: fakeMappings.Item.ativo(),
+      status: 'Indisponível',
+    });
   }
 }

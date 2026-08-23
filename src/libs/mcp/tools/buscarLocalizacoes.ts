@@ -8,6 +8,6 @@ export async function buscarLocalizacoes(_args: unknown, _usuarioId: string) {
   return localizacoes.map((l) => ({
     id: l._id,
     nome: l.nome,
-    descricao: (l as Record<string, unknown>)['descricao'] ?? null,
+    descricao: l.descricao ?? null,
   }));
 }

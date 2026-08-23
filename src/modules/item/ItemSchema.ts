@@ -8,8 +8,10 @@ const ItemSchema = z.object({
       message: 'Nome não pode ser vazio',
     })
     .transform((val) => val?.trim()),
+  tipo: z.enum(['consumo', 'permanente']).default('consumo'),
   estoque_minimo: z
     .string()
+    .optional()
     .transform((val) => (val ? parseInt(val) : undefined))
     .refine((val) => val === undefined || Number.isInteger(val), {
       message: 'Estoque mínimo deve ser inteiro',
@@ -23,7 +25,7 @@ const ItemSchema = z.object({
   ativo: z.boolean().default(true),
 });
 
-const ItemUpdateSchema = ItemSchema.partial();
+const ItemUpdateSchema = ItemSchema.omit({ tipo: true }).partial();
 
 export type Item = z.infer<typeof ItemSchema>;
 export type ItemUpdate = z.infer<typeof ItemUpdateSchema>;

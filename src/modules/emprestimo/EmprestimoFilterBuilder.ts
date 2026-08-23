@@ -44,6 +44,25 @@ class EmprestimoFilterBuilder {
     return this;
   }
 
+  async comBusca(busca: string | null | undefined): Promise<this> {
+    if (!busca) return this;
+
+    const regex = { $regex: escapeRegex(busca), $options: 'i' };
+
+    const itensEncontrados = await Item.find({ nome: regex }).select('_id');
+    const localizacoesEncontradas = await Localizacao.find({
+      nome: regex,
+    }).select('_id');
+
+    this.filtros['$or'] = [
+      { solicitante_nome: regex },
+      { item: { $in: itensEncontrados.map((i) => i._id) } },
+      { localizacao: { $in: localizacoesEncontradas.map((l) => l._id) } },
+    ];
+
+    return this;
+  }
+
   comSolicitanteNome(solicitanteNome: string | null | undefined): this {
     if (solicitanteNome) {
       this.filtros['solicitante_nome'] = {

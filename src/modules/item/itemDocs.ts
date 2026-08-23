@@ -15,7 +15,19 @@ const ItemDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Resistor 10k Ohm' }),
+    tipo: z
+      .enum(['consumo', 'permanente'])
+      .openapi({
+        example: 'consumo',
+        description:
+          "'consumo': controlado por quantidade agregada (almoxarifado). 'permanente': controlado por unidade individual em /bens (patrimônio); quantidade aqui reflete a contagem de unidades ativas.",
+      }),
     quantidade: z.number().int().openapi({ example: 150 }),
+    quantidade_disponivel: z.number().int().openapi({
+      example: 150,
+      description:
+        "Para 'consumo', reflete 'quantidade'. Para 'permanente', conta só as unidades com status 'Disponível'.",
+    }),
     estoque_minimo: z.number().int().openapi({ example: 50 }),
     descricao: z
       .string()
@@ -44,10 +56,17 @@ registry.register(
 
 registry.register(
   'ItemPatch',
-  ItemSchema.partial().extend({
-    estoque_minimo: z.number().int().min(0).optional().openapi({ example: 75 }),
-    categoria: objectIdField.optional(),
-  }),
+  ItemSchema.omit({ tipo: true })
+    .partial()
+    .extend({
+      estoque_minimo: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .openapi({ example: 75 }),
+      categoria: objectIdField.optional(),
+    }),
 );
 
 const ItemUploadFotoResposta = registry.register(
@@ -76,13 +95,14 @@ registerPaths({
             + Caso de uso: Criação de novo item do estoque no sistema.
 
             + Regras de Negócio:
-                - Campos obrigatórios: nome, estoque_minimo, categoria.
-                - estoque_minimo não pode ser negativo.
+                - Campos obrigatórios: nome, categoria.
+                - Campo 'tipo' define a natureza do item: 'consumo' (padrão) ou 'permanente'. Imutável após a criação.
+                - estoque_minimo é opcional (padrão 0) e não pode ser negativo; não se aplica a item permanente.
                 - Campo 'ativo' tem padrão true.
                 - Campo 'status' é calculado automaticamente baseado na quantidade total e estoque_minimo.
                 - Nome deve ser único no sistema.
                 - Categoria deve existir no sistema.
-                - Quantidade inicial é 0 (atualizada automaticamente baseada no estoque por localização).
+                - Quantidade inicial é 0. Para item de consumo, é atualizada automaticamente pelo estoque por localização; para item permanente, reflete a contagem de unidades cadastradas em /bens.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **ItemDetalhes**.
@@ -126,6 +146,13 @@ registerPaths({
           required: false,
           schema: { type: 'string' },
           description: 'Filtro por nome',
+        },
+        {
+          name: 'tipo',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['consumo', 'permanente'] },
+          description: 'Filtro por tipo de item (consumo ou permanente)',
         },
         {
           name: 'categoria',

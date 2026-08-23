@@ -12,6 +12,7 @@ export async function itensPrioritariosCompra(
 
   const itens = await ItemModel.find({
     ativo: true,
+    tipo: 'consumo',
     status: { $in: ['Baixo Estoque', 'Indisponível'] },
   })
     .populate('categoria', 'nome')

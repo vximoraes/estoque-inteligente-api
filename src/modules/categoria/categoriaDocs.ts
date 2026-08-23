@@ -16,6 +16,10 @@ const CategoriaDetalhes = registry.register(
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Eletrônicos' }),
     ativo: z.boolean().openapi({ example: true }),
+    descricao: z
+      .string()
+      .optional()
+      .openapi({ example: 'Itens eletrônicos e periféricos' }),
     ...timestampFields,
   }),
 );
@@ -172,26 +176,30 @@ registerPaths({
       },
     },
 
-    delete: {
+  },
+
+  '/categorias/{id}/inativar': {
+    patch: {
       tags: ['Categorias'],
-      summary: 'Deleta uma categoria',
+      summary: 'Inativa uma categoria (exclusão lógica)',
       description: `
-            + Caso de uso: Exclusão de categoria.
+            + Caso de uso: Inativação de categoria.
 
             + Regras de Negócio:
-                - Verificar se a categoria existe antes de excluir.
-                - Não permitir exclusão se há itens vinculados à categoria.
+                - Verificar se a categoria existe antes de inativar.
+                - Não permitir inativação se há itens vinculados à categoria.
 
             + Resultado Esperado:
-                - HTTP 200 OK - categoria excluída com sucesso.
+                - HTTP 200 OK com corpo conforme **CategoriaDetalhes**.
             `,
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID da categoria')],
       responses: {
-        200: commonResponses[200]!(),
+        200: commonResponses[200]!('#/components/schemas/CategoriaDetalhes'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
+        409: commonResponses[409]!(),
         498: commonResponses[498]!(),
         500: commonResponses[500]!(),
       },
