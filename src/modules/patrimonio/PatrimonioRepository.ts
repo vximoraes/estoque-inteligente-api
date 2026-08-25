@@ -63,22 +63,33 @@ class PatrimonioRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { item, status, localizacao, numero_patrimonio, busca, ativo } =
-      query;
+    const {
+      item,
+      status,
+      localizacao,
+      numero_patrimonio,
+      busca,
+      categoria,
+      ativo,
+    } = query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
 
-    const filtros = new PatrimonioFilterBuilder()
+    // `comBusca`/`comCategoria` fazem lookup assíncrono em `itens`, então o
+    // encadeamento fluente não serve mais aqui — cada passo precisa do
+    // `await` para não devolver uma Promise em vez do builder.
+    const filterBuilder = new PatrimonioFilterBuilder()
       .comItem(item ?? '')
       .comStatus(status ?? '')
       .comLocalizacao(localizacao ?? '')
       .comNumeroPatrimonio(numero_patrimonio ?? '')
-      .comBusca(busca ?? '')
-      .comAtivo(ativo ?? 'true')
-      .build();
+      .comAtivo(ativo ?? 'true');
+    await filterBuilder.comBusca(busca ?? '');
+    await filterBuilder.comCategoria(categoria ?? '');
+    const filtros = filterBuilder.build();
 
     const options = {
       page: parseInt(page, 10),

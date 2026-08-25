@@ -40,6 +40,10 @@ export const PatrimonioQuerySchema = z.object({
     .string()
     .optional()
     .transform((val) => val?.trim()),
+  categoria: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim()),
   ativo: z
     .string()
     .optional()

@@ -111,6 +111,32 @@ describe('PatrimonioService', () => {
         }),
       );
     });
+
+    it('deve repassar campos_personalizados ao repository', async () => {
+      const itemId = makeId();
+      ItemModel.findById = jest
+        .fn()
+        .mockResolvedValue({ _id: itemId, tipo: 'permanente' });
+      LocalizacaoModel.findById = jest
+        .fn()
+        .mockResolvedValue({ _id: makeId() });
+      repositoryMock.criar.mockResolvedValue({ _id: makeId() });
+
+      const campos = [{ chave: 'Fabricante', valor: 'Dell' }];
+      await service.criar(
+        {
+          item: itemId.toString(),
+          numero_patrimonio: 'NB-0001',
+          localizacao: makeId().toString(),
+          campos_personalizados: campos,
+        },
+        req,
+      );
+
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.objectContaining({ campos_personalizados: campos }),
+      );
+    });
   });
 
   describe('criarLote', () => {

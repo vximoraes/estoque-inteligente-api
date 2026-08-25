@@ -34,6 +34,10 @@ const PatrimonioDetalhes = registry.register(
       .optional()
       .openapi({ example: '2024-01-15T10:30:00.000Z' }),
     observacoes: z.string().optional().openapi({ example: 'Nota fiscal 4521' }),
+    campos_personalizados: z
+      .array(z.object({ chave: z.string(), valor: z.string() }))
+      .optional()
+      .openapi({ example: [{ chave: 'Memória RAM', valor: '16GB' }] }),
     ativo: z.boolean().openapi({ example: true }),
     ...timestampFields,
   }),
@@ -124,6 +128,13 @@ const filtrosListagem = [
     required: false,
     schema: { type: 'string' },
     description: 'Alias de numero_patrimonio para busca livre',
+  },
+  {
+    name: 'categoria',
+    in: 'query',
+    required: false,
+    schema: { type: 'string' },
+    description: 'Filtrar por ID ou nome da categoria do item (modelo)',
   },
   {
     name: 'ativo',

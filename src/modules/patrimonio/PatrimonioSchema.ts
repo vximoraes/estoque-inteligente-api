@@ -14,6 +14,41 @@ const dataAquisicaoSchema = z
     message: 'Data de aquisição inválida',
   });
 
+// Lista ordenada de pares chave/valor, sempre texto — a ordem em si não tem
+// significado de negócio, mas é preservada por refletir a ordem em que o
+// usuário digitou os campos no formulário. Chaves duplicadas (mesma unidade)
+// são rejeitadas para não sobrescrever silenciosamente um campo pelo outro.
+const camposPersonalizadosSchema = z
+  .array(
+    z.object({
+      chave: z
+        .string()
+        .trim()
+        .min(1, 'Nome do campo não pode ser vazio')
+        .max(50, 'Nome do campo deve ter no máximo 50 caracteres'),
+      valor: z
+        .string()
+        .trim()
+        .min(1, 'Valor do campo não pode ser vazio')
+        .max(200, 'Valor do campo deve ter no máximo 200 caracteres'),
+    }),
+  )
+  .max(20, 'Máximo de 20 campos personalizados por patrimônio')
+  .superRefine((campos, ctx) => {
+    const vistas = new Set<string>();
+    campos.forEach((campo, index) => {
+      const chaveNormalizada = campo.chave.toLocaleLowerCase('pt-BR');
+      if (vistas.has(chaveNormalizada)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Campo personalizado duplicado: '${campo.chave}'`,
+          path: [index, 'chave'],
+        });
+      }
+      vistas.add(chaveNormalizada);
+    });
+  });
+
 const PatrimonioSchema = z.object({
   item: objectIdSchema,
   numero_patrimonio: z
@@ -28,6 +63,7 @@ const PatrimonioSchema = z.object({
     .trim()
     .max(500, 'Observações devem ter no máximo 500 caracteres')
     .optional(),
+  campos_personalizados: camposPersonalizadosSchema.optional(),
 });
 
 // Cadastro em lote: gera N unidades do mesmo modelo com numeração
@@ -60,6 +96,7 @@ const PatrimonioLoteSchema = z.object({
     .trim()
     .max(500, 'Observações devem ter no máximo 500 caracteres')
     .optional(),
+  campos_personalizados: camposPersonalizadosSchema.optional(),
 });
 
 // Atualização direta: só metadados de cadastro. `status` e `localizacao`
@@ -78,6 +115,7 @@ const PatrimonioUpdateSchema = z.object({
     .trim()
     .max(500, 'Observações devem ter no máximo 500 caracteres')
     .optional(),
+  campos_personalizados: camposPersonalizadosSchema.optional(),
 });
 
 // 'Emprestado' não é um destino válido aqui de propósito: a transição

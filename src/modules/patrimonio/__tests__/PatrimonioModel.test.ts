@@ -36,6 +36,7 @@ afterEach(async () => {
 async function criarItemPermanente(overrides = {}) {
   const categoria = await Categoria.create({
     nome: 'Informática',
+    tipo: 'permanente',
     usuario: new mongoose.Types.ObjectId().toString(),
   });
   return Item.create({
@@ -71,6 +72,43 @@ describe('Modelo de Patrimonio', () => {
     expect(patrimonio.ativo).toBe(true);
     // uppercase:true no schema
     expect(patrimonio.numero_patrimonio).toBe('NB-0001');
+  });
+
+  it('deve persistir campos_personalizados preservando a ordem', async () => {
+    const item = await criarItemPermanente();
+    const localizacao = await criarLocalizacao();
+    const usuario = new mongoose.Types.ObjectId().toString();
+
+    const patrimonio = await Patrimonio.create({
+      item: item._id,
+      numero_patrimonio: 'NB-0003',
+      localizacao: localizacao._id,
+      usuario,
+      campos_personalizados: [
+        { chave: 'Memória RAM', valor: '16GB' },
+        { chave: 'Número de série', valor: 'SN12345' },
+      ],
+    });
+
+    expect(patrimonio.campos_personalizados.map((c) => c.chave)).toEqual([
+      'Memória RAM',
+      'Número de série',
+    ]);
+  });
+
+  it('deve assumir lista vazia quando campos_personalizados não é informado', async () => {
+    const item = await criarItemPermanente();
+    const localizacao = await criarLocalizacao();
+    const usuario = new mongoose.Types.ObjectId().toString();
+
+    const patrimonio = await Patrimonio.create({
+      item: item._id,
+      numero_patrimonio: 'NB-0004',
+      localizacao: localizacao._id,
+      usuario,
+    });
+
+    expect(patrimonio.campos_personalizados).toEqual([]);
   });
 
   it('não deve permitir dois patrimônios ativos com o mesmo número', async () => {

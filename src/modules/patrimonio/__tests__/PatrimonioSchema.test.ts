@@ -46,6 +46,74 @@ describe('PatrimonioSchema', () => {
       }),
     ).toThrow('Data de aquisição inválida');
   });
+
+  describe('campos_personalizados', () => {
+    const base = { item, numero_patrimonio: 'NB-0001', localizacao };
+
+    it('deve aceitar ausência de campos_personalizados', () => {
+      const resultado = PatrimonioSchema.parse(base);
+      expect(resultado.campos_personalizados).toBeUndefined();
+    });
+
+    it('deve aceitar lista vazia e campos válidos preservando a ordem', () => {
+      const campos = [
+        { chave: 'Memória RAM', valor: '16GB' },
+        { chave: 'Número de série', valor: 'SN12345' },
+      ];
+      const resultado = PatrimonioSchema.parse({
+        ...base,
+        campos_personalizados: campos,
+      });
+      expect(resultado.campos_personalizados).toEqual(campos);
+    });
+
+    it('deve rejeitar mais de 20 campos', () => {
+      const campos = Array.from({ length: 21 }, (_, i) => ({
+        chave: `Campo ${i}`,
+        valor: 'valor',
+      }));
+      expect(() =>
+        PatrimonioSchema.parse({ ...base, campos_personalizados: campos }),
+      ).toThrow(/Máximo de 20/);
+    });
+
+    it('deve rejeitar chave duplicada (case-insensitive)', () => {
+      const campos = [
+        { chave: 'Memória RAM', valor: '16GB' },
+        { chave: 'memória ram', valor: '32GB' },
+      ];
+      expect(() =>
+        PatrimonioSchema.parse({ ...base, campos_personalizados: campos }),
+      ).toThrow(/duplicado/);
+    });
+
+    it('deve rejeitar chave ou valor vazios', () => {
+      expect(() =>
+        PatrimonioSchema.parse({
+          ...base,
+          campos_personalizados: [{ chave: '', valor: 'algo' }],
+        }),
+      ).toThrow();
+      expect(() =>
+        PatrimonioSchema.parse({
+          ...base,
+          campos_personalizados: [{ chave: 'Fabricante', valor: '' }],
+        }),
+      ).toThrow();
+    });
+
+    it('deve aparar espaços de chave e valor', () => {
+      const resultado = PatrimonioSchema.parse({
+        ...base,
+        campos_personalizados: [
+          { chave: '  Fabricante  ', valor: '  Dell  ' },
+        ],
+      });
+      expect(resultado.campos_personalizados).toEqual([
+        { chave: 'Fabricante', valor: 'Dell' },
+      ]);
+    });
+  });
 });
 
 describe('PatrimonioLoteSchema', () => {
@@ -109,6 +177,26 @@ describe('PatrimonioUpdateSchema', () => {
 
   it('deve aceitar objeto vazio', () => {
     expect(() => PatrimonioUpdateSchema.parse({})).not.toThrow();
+  });
+
+  it('deve aceitar atualização só de campos_personalizados', () => {
+    const resultado = PatrimonioUpdateSchema.parse({
+      campos_personalizados: [{ chave: 'Fabricante', valor: 'Lenovo' }],
+    });
+    expect(resultado.campos_personalizados).toEqual([
+      { chave: 'Fabricante', valor: 'Lenovo' },
+    ]);
+  });
+
+  it('deve rejeitar chave duplicada também na atualização', () => {
+    expect(() =>
+      PatrimonioUpdateSchema.parse({
+        campos_personalizados: [
+          { chave: 'Fabricante', valor: 'Lenovo' },
+          { chave: 'Fabricante', valor: 'Dell' },
+        ],
+      }),
+    ).toThrow(/duplicado/);
   });
 });
 

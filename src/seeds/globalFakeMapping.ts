@@ -155,6 +155,12 @@ export const fakeMappings = {
       ]),
     data_aquisicao: () => new Date().toISOString(),
     observacoes: () => fakebr.lorem.sentence(),
+    campos_personalizados: () => [
+      {
+        chave: 'Número de série',
+        valor: `SN${fakebr.random.number({ min: 100000, max: 999999 })}`,
+      },
+    ],
     ativo: () => true,
     usuario: () => new mongoose.Types.ObjectId().toString(),
   },

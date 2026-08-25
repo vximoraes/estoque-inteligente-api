@@ -44,4 +44,9 @@ describe('PatrimonioQuerySchema', () => {
   it('deve rejeitar limite acima de 100', () => {
     expect(() => PatrimonioQuerySchema.parse({ limite: '101' })).toThrow();
   });
+
+  it('deve aceitar categoria como texto livre (ID ou nome)', () => {
+    const resultado = PatrimonioQuerySchema.parse({ categoria: 'Rede' });
+    expect(resultado.categoria).toBe('Rede');
+  });
 });

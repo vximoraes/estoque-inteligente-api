@@ -2,6 +2,11 @@ import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import SSEService from '../../utils/services/SSEService.js';
 
+export interface ICampoPersonalizado {
+  chave: string;
+  valor: string;
+}
+
 export interface IPatrimonio {
   item: mongoose.Types.ObjectId;
   numero_patrimonio: string;
@@ -9,6 +14,7 @@ export interface IPatrimonio {
   status: 'Disponível' | 'Emprestado' | 'Manutenção' | 'Baixado';
   data_aquisicao?: Date;
   observacoes?: string;
+  campos_personalizados: ICampoPersonalizado[];
   ativo: boolean;
   usuario: string;
 }
@@ -19,6 +25,17 @@ export interface IPatrimonioModel
   extends mongoose.PaginateModel<PatrimonioDocument> {
   atualizarContadoresItem(itemId: mongoose.Types.ObjectId): Promise<void>;
 }
+
+// `_id: false`: a ordem do array é a identidade do campo — o editor da UI
+// sempre reescreve a lista inteira, então subdocumentos com id próprio só
+// gerariam churn sem servir a nenhuma consulta.
+const campoPersonalizadoSchema = new mongoose.Schema<ICampoPersonalizado>(
+  {
+    chave: { type: String, required: true, trim: true, maxlength: 50 },
+    valor: { type: String, required: true, trim: true, maxlength: 200 },
+  },
+  { _id: false },
+);
 
 const patrimonioSchema = new mongoose.Schema<PatrimonioDocument>(
   {
@@ -48,6 +65,7 @@ const patrimonioSchema = new mongoose.Schema<PatrimonioDocument>(
     },
     data_aquisicao: { type: Date, required: false },
     observacoes: { type: String, required: false },
+    campos_personalizados: { type: [campoPersonalizadoSchema], default: [] },
     ativo: { type: Boolean, default: true },
     usuario: { type: String, ref: 'usuarios', required: true },
   },
