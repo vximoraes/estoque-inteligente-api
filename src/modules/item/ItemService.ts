@@ -22,7 +22,7 @@ class ItemService {
 
   async criar(parsedData: Item, req: AuthenticatedRequest) {
     await this.validateNome(parsedData.nome, null, req);
-    await this.validateCategoria(parsedData.categoria, req);
+    await this.validateCategoria(parsedData.categoria, parsedData.tipo, req);
 
     return await this.repository.criar({
       ...parsedData,
@@ -46,9 +46,12 @@ class ItemService {
     parsedData: ItemUpdate,
     req: AuthenticatedRequest,
   ) {
-    await this.ensureItemExists(id, req);
+    const itemExistente = await this.ensureItemExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
+    }
+    if (parsedData.categoria) {
+      await this.validateCategoria(parsedData.categoria, itemExistente.tipo, req);
     }
 
     const {
@@ -99,6 +102,7 @@ class ItemService {
 
   private async validateCategoria(
     categoriaId: string,
+    tipo: 'consumo' | 'permanente',
     _req: AuthenticatedRequest,
   ) {
     const categoria = await CategoriaModel.findOne({ _id: categoriaId });
@@ -109,6 +113,19 @@ class ItemService {
         field: 'categoria',
         details: [{ path: 'categoria', message: 'Categoria não encontrada.' }],
         customMessage: 'Categoria não encontrada.',
+      });
+    }
+    if (categoria.tipo !== tipo) {
+      const mensagem =
+        tipo === 'permanente'
+          ? 'Categoria de almoxarifado não pode ser usada em bem permanente.'
+          : 'Categoria de patrimônio não pode ser usada em item de almoxarifado.';
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'categoria',
+        details: [{ path: 'categoria', message: mensagem }],
+        customMessage: mensagem,
       });
     }
   }

@@ -266,10 +266,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
   server.tool(
     'buscarCategorias',
     'Lista todas as categorias de itens cadastradas no sistema',
-    {},
-    async () => {
+    {
+      tipo: z
+        .enum(['consumo', 'permanente'])
+        .optional()
+        .describe(
+          '"consumo": categorias de itens de almoxarifado. "permanente": categorias de bens de patrimônio.',
+        ),
+    },
+    async ({ tipo }) => {
       await verificarPermissao(usuarioId, 'categorias');
-      const resultado = await buscarCategorias({}, usuarioId);
+      const resultado = await buscarCategorias({ tipo }, usuarioId);
       return formatarResultado('buscarCategorias', resultado);
     },
   );

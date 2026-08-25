@@ -15,6 +15,13 @@ const CategoriaDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Eletrônicos' }),
+    tipo: z
+      .enum(['consumo', 'permanente'])
+      .openapi({
+        example: 'permanente',
+        description:
+          "'consumo': categoria de item de almoxarifado. 'permanente': categoria de bem de patrimônio.",
+      }),
     ativo: z.boolean().openapi({ example: true }),
     descricao: z
       .string()
@@ -103,6 +110,14 @@ registerPaths({
           required: false,
           schema: { type: 'string' },
           description: 'Filtro por nome',
+        },
+        {
+          name: 'tipo',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['consumo', 'permanente'] },
+          description:
+            "Filtro por tipo: 'consumo' (almoxarifado) ou 'permanente' (patrimônio)",
         },
         ...paginationQueryParams,
       ],

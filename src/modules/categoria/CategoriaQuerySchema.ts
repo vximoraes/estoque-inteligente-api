@@ -15,6 +15,12 @@ export const CategoriaQuerySchema = z.object({
       message: 'Nome não pode ser vazio',
     })
     .transform((val) => val?.trim()),
+  tipo: z
+    .string()
+    .optional()
+    .refine((value) => !value || ['consumo', 'permanente'].includes(value), {
+      message: "Tipo deve ser 'consumo' ou 'permanente'",
+    }),
   page: z
     .string()
     .optional()

@@ -16,7 +16,7 @@ class CategoriaService {
   }
 
   async criar(parsedData: Categoria, req: AuthenticatedRequest) {
-    await this.validateNome(parsedData.nome, null, req);
+    await this.validateNome(parsedData.nome, parsedData.tipo, null, req);
     return await this.repository.criar({ ...parsedData, usuario: req.user_id });
   }
 
@@ -29,9 +29,9 @@ class CategoriaService {
     parsedData: CategoriaUpdate,
     req: AuthenticatedRequest,
   ) {
-    await this.ensureCategoryExists(id, req);
+    const categoriaExistente = await this.ensureCategoryExists(id, req);
     if (parsedData.nome) {
-      await this.validateNome(parsedData.nome, id, req);
+      await this.validateNome(parsedData.nome, categoriaExistente.tipo, id, req);
     }
     return await this.repository.atualizar(
       id,
@@ -63,11 +63,13 @@ class CategoriaService {
 
   private async validateNome(
     nome: string,
+    tipo: string,
     id: string | null = null,
     req: AuthenticatedRequest,
   ) {
     const categoriaExistente = await this.repository.buscarPorNome(
       nome,
+      tipo,
       id,
       req,
     );

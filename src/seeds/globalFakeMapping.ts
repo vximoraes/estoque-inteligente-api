@@ -63,16 +63,24 @@ export const fakeMappings = {
   },
 
   Categoria: {
+    // Categorias de itens de almoxarifado (consumo) e de bens de
+    // patrimônio (permanente) precisam ficar em pools separados — é essa
+    // separação que `categoriaSeed`/`itemSeed` usam para nunca sortear,
+    // por exemplo, "Encanamento" para um notebook.
     categorias: [
-      'Computadores',
-      'Periféricos',
-      'Monitores',
-      'Acessórios',
-      'Rede',
-      'Armazenamento',
-    ],
+      { nome: 'Periféricos', tipo: 'consumo' },
+      { nome: 'Armazenamento', tipo: 'consumo' },
+      { nome: 'Acessórios', tipo: 'consumo' },
+      { nome: 'Computadores', tipo: 'permanente' },
+      { nome: 'Monitores', tipo: 'permanente' },
+      { nome: 'Rede', tipo: 'permanente' },
+      { nome: 'Projeção e Energia', tipo: 'permanente' },
+    ] as { nome: string; tipo: 'consumo' | 'permanente' }[],
     nome(index: number) {
-      return this.categorias[index];
+      return this.categorias[index]!.nome;
+    },
+    tipo(index: number) {
+      return this.categorias[index]!.tipo;
     },
     usuario: () => new mongoose.Types.ObjectId().toString(),
     descricao: () => fakebr.lorem.sentence(),

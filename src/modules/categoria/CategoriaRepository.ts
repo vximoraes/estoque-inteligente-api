@@ -43,13 +43,16 @@ class CategoriaRepository {
 
     const query = req.query as Record<string, string | undefined>;
     const nome = query['nome'];
+    const tipo = query['tipo'];
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
 
-    const filterBuilder = new CategoriaFilterBuilder().comNome(nome ?? '');
+    const filterBuilder = new CategoriaFilterBuilder()
+      .comNome(nome ?? '')
+      .comTipo(tipo);
 
     if (typeof filterBuilder.build !== 'function') {
       throw new CustomError({
@@ -104,11 +107,13 @@ class CategoriaRepository {
 
   async buscarPorNome(
     nome: string,
+    tipo: string,
     idIgnorado?: string | null,
     _req?: AuthenticatedRequest,
   ) {
     const filtro: mongoose.FilterQuery<CategoriaDocument> = {
       nome,
+      tipo,
       ativo: true,
     };
 

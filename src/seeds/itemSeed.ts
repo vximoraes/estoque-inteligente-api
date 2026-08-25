@@ -4,6 +4,10 @@ import Categoria from '../modules/categoria/CategoriaModel.js';
 
 export default async function itemSeed(adminId: string) {
   const categoriaList = await Categoria.find({});
+  const categoriasConsumo = categoriaList.filter((c) => c.tipo === 'consumo');
+  const categoriasPermanentes = categoriaList.filter(
+    (c) => c.tipo === 'permanente',
+  );
 
   await Item.deleteMany({});
 
@@ -11,7 +15,7 @@ export default async function itemSeed(adminId: string) {
   // aleatório de verdade, como antes.
   for (const nome of fakeMappings.Item.nomesConsumo) {
     const categoriaRandom =
-      categoriaList[Math.floor(Math.random() * categoriaList.length)]!;
+      categoriasConsumo[Math.floor(Math.random() * categoriasConsumo.length)]!;
 
     await Item.create({
       nome,
@@ -31,7 +35,9 @@ export default async function itemSeed(adminId: string) {
   // os contadores via `Patrimonio.atualizarContadoresItem`.
   for (const nome of fakeMappings.Item.nomesPermanentes) {
     const categoriaRandom =
-      categoriaList[Math.floor(Math.random() * categoriaList.length)]!;
+      categoriasPermanentes[
+        Math.floor(Math.random() * categoriasPermanentes.length)
+      ]!;
 
     await Item.create({
       nome,
