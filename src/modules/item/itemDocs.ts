@@ -15,18 +15,15 @@ const ItemDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Resistor 10k Ohm' }),
-    tipo: z
-      .enum(['consumo', 'permanente'])
-      .openapi({
-        example: 'consumo',
-        description:
-          "'consumo': controlado por quantidade agregada (almoxarifado). 'permanente': controlado por unidade individual em /bens (patrimônio); quantidade aqui reflete a contagem de unidades ativas.",
-      }),
+    tipo: z.enum(['consumo']).openapi({
+      example: 'consumo',
+      description:
+        'Item de almoxarifado, controlado por quantidade agregada. Bens permanentes (patrimônio) são cadastrados direto em /patrimonios, sem passar por Item.',
+    }),
     quantidade: z.number().int().openapi({ example: 150 }),
     quantidade_disponivel: z.number().int().openapi({
       example: 150,
-      description:
-        "Para 'consumo', reflete 'quantidade'. Para 'permanente', conta só as unidades com status 'Disponível'.",
+      description: "Reflete 'quantidade' agregada por localização.",
     }),
     estoque_minimo: z.number().int().openapi({ example: 50 }),
     descricao: z
@@ -96,13 +93,13 @@ registerPaths({
 
             + Regras de Negócio:
                 - Campos obrigatórios: nome, categoria.
-                - Campo 'tipo' define a natureza do item: 'consumo' (padrão) ou 'permanente'. Imutável após a criação.
-                - estoque_minimo é opcional (padrão 0) e não pode ser negativo; não se aplica a item permanente.
+                - Campo 'tipo' é sempre 'consumo'. Imutável após a criação.
+                - estoque_minimo é opcional (padrão 0) e não pode ser negativo.
                 - Campo 'ativo' tem padrão true.
                 - Campo 'status' é calculado automaticamente baseado na quantidade total e estoque_minimo.
                 - Nome deve ser único no sistema.
                 - Categoria deve existir no sistema.
-                - Quantidade inicial é 0. Para item de consumo, é atualizada automaticamente pelo estoque por localização; para item permanente, reflete a contagem de unidades cadastradas em /bens.
+                - Quantidade inicial é 0, atualizada automaticamente pelo estoque por localização.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **ItemDetalhes**.
@@ -151,8 +148,8 @@ registerPaths({
           name: 'tipo',
           in: 'query',
           required: false,
-          schema: { type: 'string', enum: ['consumo', 'permanente'] },
-          description: 'Filtro por tipo de item (consumo ou permanente)',
+          schema: { type: 'string', enum: ['consumo'] },
+          description: 'Filtro por tipo de item',
         },
         {
           name: 'categoria',

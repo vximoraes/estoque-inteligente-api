@@ -137,14 +137,26 @@ export const fakeMappings = {
     status: () =>
       fakebr.helpers.randomize(['Indisponível', 'Baixo Estoque', 'Em Estoque']),
     usuario: () => new mongoose.Types.ObjectId().toString(),
-    tipo: () => fakebr.helpers.randomize(['consumo', 'permanente']),
+    tipo: () => 'consumo' as const,
     quantidade_disponivel: () => fakebr.random.number({ min: 0, max: 100 }),
   },
 
   Patrimonio: {
     numero_patrimonio: () =>
       `PAT-${fakebr.random.number({ min: 1000, max: 9999 })}`,
-    item: () => new mongoose.Types.ObjectId().toString(),
+    modelo: () => fakebr.helpers.randomize(fakeMappings.Item.nomesPermanentes),
+    fabricante: () =>
+      fakebr.helpers.randomize([
+        'Dell',
+        'Lenovo',
+        'HP',
+        'Ubiquiti',
+        'TP-Link',
+        'Samsung',
+        'LG',
+        'Epson',
+      ]),
+    categoria: () => new mongoose.Types.ObjectId().toString(),
     localizacao: () => new mongoose.Types.ObjectId().toString(),
     status: () =>
       fakebr.helpers.randomize([
@@ -167,7 +179,6 @@ export const fakeMappings = {
 
   PatrimonioEvento: {
     patrimonio: () => new mongoose.Types.ObjectId().toString(),
-    item: () => new mongoose.Types.ObjectId().toString(),
     tipo: () =>
       fakebr.helpers.randomize([
         'cadastro',

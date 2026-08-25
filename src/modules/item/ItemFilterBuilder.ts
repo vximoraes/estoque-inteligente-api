@@ -25,7 +25,7 @@ class ItemFilterBuilder {
   }
 
   comTipo(tipo: string | null | undefined): this {
-    if (tipo === 'consumo' || tipo === 'permanente') {
+    if (tipo === 'consumo') {
       this.filtros['tipo'] = tipo;
     }
     return this;

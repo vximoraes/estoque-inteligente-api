@@ -8,7 +8,7 @@ const ItemSchema = z.object({
       message: 'Nome não pode ser vazio',
     })
     .transform((val) => val?.trim()),
-  tipo: z.enum(['consumo', 'permanente']).default('consumo'),
+  tipo: z.enum(['consumo']).default('consumo'),
   estoque_minimo: z
     .string()
     .optional()

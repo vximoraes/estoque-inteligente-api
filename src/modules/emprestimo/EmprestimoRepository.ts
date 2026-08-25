@@ -65,7 +65,7 @@ class EmprestimoRepository {
         .populate('item')
         .populate('localizacao')
         .populate('usuario_responsavel', 'nome email')
-      .populate('patrimonio', 'numero_patrimonio status');
+        .populate('patrimonio', 'numero_patrimonio status');
 
       if (!data) {
         throw new CustomError({

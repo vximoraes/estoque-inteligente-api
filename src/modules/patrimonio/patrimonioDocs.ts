@@ -22,8 +22,10 @@ const PatrimonioDetalhes = registry.register(
   'PatrimonioDetalhes',
   z.object({
     _id: objectIdField,
-    item: objectIdField,
     numero_patrimonio: z.string().openapi({ example: 'NB-0001' }),
+    modelo: z.string().optional().openapi({ example: 'ThinkPad T14' }),
+    fabricante: z.string().optional().openapi({ example: 'Lenovo' }),
+    categoria: objectIdField,
     localizacao: objectIdField,
     status: z.enum(STATUS_ENUM as [string, ...string[]]).openapi({
       example: 'Disponível',
@@ -48,7 +50,6 @@ const PatrimonioEventoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     patrimonio: objectIdField,
-    item: objectIdField,
     tipo: z
       .enum([
         'cadastro',
@@ -95,11 +96,12 @@ registry.register(
 
 const filtrosListagem = [
   {
-    name: 'item',
+    name: 'modelo',
     in: 'query',
     required: false,
     schema: { type: 'string' },
-    description: 'Filtrar por ID do item (modelo)',
+    description:
+      'Filtrar por modelo (correspondência exata, sem diferenciar maiúsculas/minúsculas)',
   },
   {
     name: 'status',
@@ -134,7 +136,7 @@ const filtrosListagem = [
     in: 'query',
     required: false,
     schema: { type: 'string' },
-    description: 'Filtrar por ID ou nome da categoria do item (modelo)',
+    description: 'Filtrar por ID ou nome da categoria',
   },
   {
     name: 'ativo',
@@ -152,15 +154,14 @@ registerPaths({
       tags: ['Patrimônio'],
       summary: 'Cadastra uma unidade de patrimônio',
       description: `
-            + Caso de uso: Cadastro individual de um bem permanente (ex.: um notebook específico), vinculado a um item do tipo 'permanente'.
+            + Caso de uso: Cadastro individual de um bem permanente (ex.: um notebook específico) — cada unidade é autocontida, sem depender de um catálogo de itens compartilhado.
 
             + Regras de Negócio:
-                - O item referenciado deve existir e ter 'tipo' igual a 'permanente'.
+                - A categoria referenciada deve existir e ter 'tipo' igual a 'permanente'.
                 - A localização referenciada deve existir.
                 - Número de patrimônio deve ser único entre unidades ativas.
-                - Status inicial é sempre 'Disponível'.
+                - Status inicial: 'Disponível' (padrão), 'Manutenção' ou 'Baixado'. 'Emprestado' não é aceito no cadastro.
                 - Gera um PatrimonioEvento do tipo 'cadastro'.
-                - Recalcula 'quantidade' e 'quantidade_disponivel' do Item associado.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **PatrimonioDetalhes**.
@@ -192,7 +193,7 @@ registerPaths({
 
         + Regras de Negócio:
             - Aplicar paginação. Limite máximo de 100 itens por página.
-            - Retorna unidades populadas com item e localização.
+            - Retorna unidades populadas com categoria e localização.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **PatrimonioListagem**.
@@ -217,7 +218,7 @@ registerPaths({
             + Caso de uso: Cadastro em lote de N unidades do mesmo modelo (ex.: 10 notebooks recém-comprados), evitando o cadastro unidade a unidade.
 
             + Regras de Negócio:
-                - Mesmas validações de item/localização do cadastro individual.
+                - Mesmas validações de categoria/localização do cadastro individual.
                 - Numeração sequencial: \`{prefixo}-{numero_inicial..numero_inicial+quantidade-1}\`, com 4 dígitos (ex.: NB-0001, NB-0002).
                 - Quantidade entre 1 e 500 por chamada.
                 - Gera um PatrimonioEvento 'cadastro' por unidade criada.
@@ -266,7 +267,7 @@ registerPaths({
       summary: 'Atualiza metadados de uma unidade de patrimônio',
       description: `
             + Regras de Negócio:
-                - Só altera 'numero_patrimonio', 'observacoes' e 'data_aquisicao'.
+                - Só altera 'numero_patrimonio', 'modelo', 'fabricante', 'categoria', 'observacoes' e 'data_aquisicao'.
                 - 'status' e 'localizacao' NÃO podem ser alterados por esta rota — use /patrimonios/{id}/status e /patrimonios/{id}/localizacao.
 
             + Resultado Esperado:

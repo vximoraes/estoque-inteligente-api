@@ -3,7 +3,7 @@ import PatrimonioModel, { type PatrimonioDocument } from './PatrimonioModel.js';
 import PatrimonioEventoModel, {
   type PatrimonioEventoTipo,
 } from './PatrimonioEventoModel.js';
-import ItemModel from '../item/ItemModel.js';
+import CategoriaModel from '../categoria/CategoriaModel.js';
 import LocalizacaoModel from '../localizacao/LocalizacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -35,12 +35,14 @@ class PatrimonioService {
   }
 
   async criar(parsedData: Patrimonio, req: AuthenticatedRequest) {
-    const item = await this.validarItemPermanente(parsedData.item);
+    await this.validarCategoriaPermanente(parsedData.categoria);
     await this.validarLocalizacao(parsedData.localizacao);
+
+    const status = parsedData.status ?? 'Disponível';
 
     const criado = await this.repository.criar({
       ...parsedData,
-      status: 'Disponível',
+      status,
       ativo: true,
       usuario: req.user_id,
     });
@@ -57,10 +59,9 @@ class PatrimonioService {
 
     await PatrimonioEventoModel.create({
       patrimonio: criado._id,
-      item: item._id,
       tipo: 'cadastro',
       status_anterior: null,
-      status_novo: 'Disponível',
+      status_novo: status,
       localizacao_nova: parsedData.localizacao,
       observacoes: parsedData.observacoes,
       usuario: req.user_id,
@@ -76,13 +77,15 @@ class PatrimonioService {
   // anteriores já gravadas. Aceitável para o volume esperado (dezenas de
   // unidades por lote, não milhares).
   async criarLote(parsedData: PatrimonioLote, req: AuthenticatedRequest) {
-    const item = await this.validarItemPermanente(parsedData.item);
+    await this.validarCategoriaPermanente(parsedData.categoria);
     await this.validarLocalizacao(parsedData.localizacao);
 
     const unidades = Array.from(
       { length: parsedData.quantidade },
       (_, indice) => ({
-        item: parsedData.item,
+        modelo: parsedData.modelo,
+        fabricante: parsedData.fabricante,
+        categoria: parsedData.categoria,
         localizacao: parsedData.localizacao,
         numero_patrimonio: `${parsedData.prefixo}-${String(
           parsedData.numero_inicial + indice,
@@ -100,7 +103,6 @@ class PatrimonioService {
     await PatrimonioEventoModel.insertMany(
       criados.map((patrimonio) => ({
         patrimonio: patrimonio._id,
-        item: item._id,
         tipo: 'cadastro' as const,
         status_anterior: null,
         status_novo: 'Disponível',
@@ -200,13 +202,10 @@ class PatrimonioService {
       { _id: id },
       { status: parsedData.status },
       { new: true },
-    )
-      .populate('item')
-      .populate('localizacao');
+    ).populate('localizacao');
 
     await PatrimonioEventoModel.create({
       patrimonio: id,
-      item: patrimonio.item,
       tipo: tipoEvento,
       status_anterior: statusAnterior,
       status_novo: parsedData.status,
@@ -243,13 +242,10 @@ class PatrimonioService {
       { _id: id },
       { localizacao: parsedData.localizacao },
       { new: true },
-    )
-      .populate('item')
-      .populate('localizacao');
+    ).populate('localizacao');
 
     await PatrimonioEventoModel.create({
       patrimonio: id,
-      item: patrimonio.item,
       tipo: 'transferencia',
       status_anterior: patrimonio.status,
       status_novo: patrimonio.status,
@@ -309,7 +305,6 @@ class PatrimonioService {
 
     await PatrimonioEventoModel.create({
       patrimonio: patrimonioId,
-      item: atualizado.item,
       tipo: 'emprestimo',
       status_anterior: 'Disponível',
       status_novo: 'Emprestado',
@@ -348,7 +343,6 @@ class PatrimonioService {
 
     await PatrimonioEventoModel.create({
       patrimonio: patrimonioId,
-      item: atualizado.item,
       tipo: 'devolucao',
       status_anterior: 'Emprestado',
       status_novo: 'Disponível',
@@ -360,28 +354,28 @@ class PatrimonioService {
     return atualizado;
   }
 
-  private async validarItemPermanente(itemId: string) {
-    const item = await ItemModel.findById(itemId);
-    if (!item) {
+  private async validarCategoriaPermanente(categoriaId: string) {
+    const categoria = await CategoriaModel.findById(categoriaId);
+    if (!categoria) {
       throw new CustomError({
         statusCode: 404,
         errorType: 'resourceNotFound',
-        field: 'Item',
+        field: 'Categoria',
         details: [],
-        customMessage: messages.error.resourceNotFound('Item'),
+        customMessage: messages.error.resourceNotFound('Categoria'),
       });
     }
-    if (item.tipo !== 'permanente') {
+    if (categoria.tipo !== 'permanente') {
       throw new CustomError({
         statusCode: 400,
         errorType: 'validationError',
-        field: 'item',
+        field: 'categoria',
         details: [],
         customMessage:
-          'Só é possível cadastrar unidade de patrimônio para item do tipo "permanente".',
+          'Só é possível cadastrar unidade de patrimônio para categoria do tipo "permanente".',
       });
     }
-    return item;
+    return categoria;
   }
 
   private async validarLocalizacao(localizacaoId: string) {

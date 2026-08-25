@@ -46,15 +46,8 @@ class ItemRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const {
-      nome,
-      tipo,
-      quantidade,
-      estoque_minimo,
-      categoria,
-      ativo,
-      status,
-    } = query;
+    const { nome, tipo, quantidade, estoque_minimo, categoria, ativo, status } =
+      query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,

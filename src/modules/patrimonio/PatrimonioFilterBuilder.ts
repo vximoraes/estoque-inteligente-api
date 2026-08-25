@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import ItemModel from '../item/ItemModel.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
@@ -7,18 +6,9 @@ const { Types } = mongoose;
 
 class PatrimonioFilterBuilder {
   filtros: Record<string, unknown> = {};
-  itemModel: typeof ItemModel;
 
   constructor() {
     this.filtros = {};
-    this.itemModel = ItemModel;
-  }
-
-  comItem(item: string | null | undefined): this {
-    if (item && Types.ObjectId.isValid(item)) {
-      this.filtros['item'] = new Types.ObjectId(item);
-    }
-    return this;
   }
 
   comStatus(status: string | null | undefined): this {
@@ -48,23 +38,13 @@ class PatrimonioFilterBuilder {
     return this;
   }
 
-  // Busca por número de patrimônio OU pelo nome do modelo (`Item`) a que a
-  // unidade pertence — a tela lista unidades soltas, então o nome do modelo
-  // é o que o usuário de fato reconhece e busca.
-  async comBusca(busca: string | null | undefined): Promise<this> {
+  // Busca por número de patrimônio OU pelo modelo (texto livre) da unidade.
+  comBusca(busca: string | null | undefined): this {
     if (!busca) return this;
-
-    const itensEncontrados = await this.itemModel
-      .find({
-        nome: { $regex: escapeRegex(busca), $options: 'i' },
-        tipo: 'permanente',
-      })
-      .select('_id');
-    const itemIds = itensEncontrados.map((item) => item._id);
 
     this.filtros['$or'] = [
       { numero_patrimonio: { $regex: escapeRegex(busca), $options: 'i' } },
-      { item: { $in: itemIds } },
+      { modelo: { $regex: escapeRegex(busca), $options: 'i' } },
     ];
     return this;
   }
@@ -83,15 +63,17 @@ class PatrimonioFilterBuilder {
       categoriaId = categoriaEncontrada ? categoriaEncontrada._id : null;
     }
 
-    if (!categoriaId) {
-      this.filtros['item'] = { $in: [] };
-      return this;
-    }
+    this.filtros['categoria'] = categoriaId ?? { $in: [] };
+    return this;
+  }
 
-    const itensEncontrados = await this.itemModel
-      .find({ categoria: categoriaId })
-      .select('_id');
-    this.filtros['item'] = { $in: itensEncontrados.map((item) => item._id) };
+  comModelo(modelo: string | null | undefined): this {
+    if (modelo) {
+      this.filtros['modelo'] = {
+        $regex: `^${escapeRegex(modelo)}$`,
+        $options: 'i',
+      };
+    }
     return this;
   }
 

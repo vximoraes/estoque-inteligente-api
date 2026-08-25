@@ -25,9 +25,7 @@ router
     '/patrimonios/:id/eventos',
     AuthMiddleware,
     AuthPermission,
-    asyncWrapper(
-      patrimonioController.buscarEventos.bind(patrimonioController),
-    ),
+    asyncWrapper(patrimonioController.buscarEventos.bind(patrimonioController)),
   )
   .post(
     '/patrimonios',

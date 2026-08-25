@@ -31,7 +31,12 @@ class CategoriaService {
   ) {
     const categoriaExistente = await this.ensureCategoryExists(id, req);
     if (parsedData.nome) {
-      await this.validateNome(parsedData.nome, categoriaExistente.tipo, id, req);
+      await this.validateNome(
+        parsedData.nome,
+        categoriaExistente.tipo,
+        id,
+        req,
+      );
     }
     return await this.repository.atualizar(
       id,

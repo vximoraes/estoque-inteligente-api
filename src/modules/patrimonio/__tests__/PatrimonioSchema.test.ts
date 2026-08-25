@@ -8,12 +8,12 @@ import {
 } from '../PatrimonioSchema.js';
 
 describe('PatrimonioSchema', () => {
-  const item = new mongoose.Types.ObjectId().toString();
+  const categoria = new mongoose.Types.ObjectId().toString();
   const localizacao = new mongoose.Types.ObjectId().toString();
 
   it('deve validar dados válidos', () => {
     const resultado = PatrimonioSchema.parse({
-      item,
+      categoria,
       numero_patrimonio: 'NB-0001',
       localizacao,
     });
@@ -22,14 +22,14 @@ describe('PatrimonioSchema', () => {
 
   it('deve lançar erro quando numero_patrimonio está vazio', () => {
     expect(() =>
-      PatrimonioSchema.parse({ item, numero_patrimonio: '', localizacao }),
+      PatrimonioSchema.parse({ categoria, numero_patrimonio: '', localizacao }),
     ).toThrow();
   });
 
-  it('deve lançar erro quando item não é ObjectId válido', () => {
+  it('deve lançar erro quando categoria não é ObjectId válido', () => {
     expect(() =>
       PatrimonioSchema.parse({
-        item: '123',
+        categoria: '123',
         numero_patrimonio: 'NB-0001',
         localizacao,
       }),
@@ -39,7 +39,7 @@ describe('PatrimonioSchema', () => {
   it('deve lançar erro quando data_aquisicao é inválida', () => {
     expect(() =>
       PatrimonioSchema.parse({
-        item,
+        categoria,
         numero_patrimonio: 'NB-0001',
         localizacao,
         data_aquisicao: 'não-é-uma-data',
@@ -47,8 +47,37 @@ describe('PatrimonioSchema', () => {
     ).toThrow('Data de aquisição inválida');
   });
 
+  describe('modelo, fabricante e status', () => {
+    const base = { categoria, numero_patrimonio: 'NB-0001', localizacao };
+
+    it('deve aceitar modelo, fabricante e status opcionais', () => {
+      const resultado = PatrimonioSchema.parse({
+        ...base,
+        modelo: 'ThinkPad T14',
+        fabricante: 'Lenovo',
+        status: 'Manutenção',
+      });
+      expect(resultado.modelo).toBe('ThinkPad T14');
+      expect(resultado.fabricante).toBe('Lenovo');
+      expect(resultado.status).toBe('Manutenção');
+    });
+
+    it('deve aceitar ausência de modelo, fabricante e status', () => {
+      const resultado = PatrimonioSchema.parse(base);
+      expect(resultado.modelo).toBeUndefined();
+      expect(resultado.fabricante).toBeUndefined();
+      expect(resultado.status).toBeUndefined();
+    });
+
+    it('não deve aceitar status "Emprestado" no cadastro', () => {
+      expect(() =>
+        PatrimonioSchema.parse({ ...base, status: 'Emprestado' }),
+      ).toThrow();
+    });
+  });
+
   describe('campos_personalizados', () => {
-    const base = { item, numero_patrimonio: 'NB-0001', localizacao };
+    const base = { categoria, numero_patrimonio: 'NB-0001', localizacao };
 
     it('deve aceitar ausência de campos_personalizados', () => {
       const resultado = PatrimonioSchema.parse(base);
@@ -105,9 +134,7 @@ describe('PatrimonioSchema', () => {
     it('deve aparar espaços de chave e valor', () => {
       const resultado = PatrimonioSchema.parse({
         ...base,
-        campos_personalizados: [
-          { chave: '  Fabricante  ', valor: '  Dell  ' },
-        ],
+        campos_personalizados: [{ chave: '  Fabricante  ', valor: '  Dell  ' }],
       });
       expect(resultado.campos_personalizados).toEqual([
         { chave: 'Fabricante', valor: 'Dell' },
@@ -117,12 +144,12 @@ describe('PatrimonioSchema', () => {
 });
 
 describe('PatrimonioLoteSchema', () => {
-  const item = new mongoose.Types.ObjectId().toString();
+  const categoria = new mongoose.Types.ObjectId().toString();
   const localizacao = new mongoose.Types.ObjectId().toString();
 
   it('deve validar lote válido e aplicar numero_inicial padrão', () => {
     const resultado = PatrimonioLoteSchema.parse({
-      item,
+      categoria,
       localizacao,
       quantidade: '5',
       prefixo: 'NB',
@@ -134,7 +161,7 @@ describe('PatrimonioLoteSchema', () => {
   it('deve rejeitar quantidade fora do intervalo permitido', () => {
     expect(() =>
       PatrimonioLoteSchema.parse({
-        item,
+        categoria,
         localizacao,
         quantidade: '0',
         prefixo: 'NB',
@@ -143,7 +170,7 @@ describe('PatrimonioLoteSchema', () => {
 
     expect(() =>
       PatrimonioLoteSchema.parse({
-        item,
+        categoria,
         localizacao,
         quantidade: '501',
         prefixo: 'NB',
@@ -154,7 +181,7 @@ describe('PatrimonioLoteSchema', () => {
   it('deve rejeitar prefixo vazio', () => {
     expect(() =>
       PatrimonioLoteSchema.parse({
-        item,
+        categoria,
         localizacao,
         quantidade: '5',
         prefixo: '',
@@ -214,9 +241,7 @@ describe('PatrimonioStatusSchema', () => {
   });
 
   it('não deve aceitar status desconhecido', () => {
-    expect(() =>
-      PatrimonioStatusSchema.parse({ status: 'Perdido' }),
-    ).toThrow();
+    expect(() => PatrimonioStatusSchema.parse({ status: 'Perdido' })).toThrow();
   });
 });
 

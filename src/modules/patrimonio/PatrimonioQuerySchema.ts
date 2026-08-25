@@ -8,12 +8,10 @@ export const PatrimonioIdSchema = z
   });
 
 export const PatrimonioQuerySchema = z.object({
-  item: z
+  modelo: z
     .string()
     .optional()
-    .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
-      message: 'Item inválido',
-    }),
+    .transform((val) => val?.trim()),
   status: z
     .string()
     .optional()

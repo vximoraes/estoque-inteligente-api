@@ -49,14 +49,36 @@ const camposPersonalizadosSchema = z
     });
   });
 
+const modeloSchema = z
+  .string()
+  .trim()
+  .max(100, 'Modelo deve ter no máximo 100 caracteres')
+  .optional();
+
+const fabricanteSchema = z
+  .string()
+  .trim()
+  .max(100, 'Fabricante deve ter no máximo 100 caracteres')
+  .optional();
+
+// Status inicial aceita os mesmos 3 destinos livres de `PatrimonioStatusSchema`
+// ('Emprestado' de propósito fora — só entra pelo fluxo de empréstimo).
+// Omitido, o Service assume 'Disponível'.
+const statusInicialSchema = z
+  .enum(['Disponível', 'Manutenção', 'Baixado'])
+  .optional();
+
 const PatrimonioSchema = z.object({
-  item: objectIdSchema,
   numero_patrimonio: z
     .string()
     .trim()
     .min(1, 'Número de patrimônio não pode ser vazio')
     .max(60, 'Número de patrimônio deve ter no máximo 60 caracteres'),
+  modelo: modeloSchema,
+  fabricante: fabricanteSchema,
+  categoria: objectIdSchema,
   localizacao: objectIdSchema,
+  status: statusInicialSchema,
   data_aquisicao: dataAquisicaoSchema.optional(),
   observacoes: z
     .string()
@@ -70,7 +92,9 @@ const PatrimonioSchema = z.object({
 // sequencial `${prefixo}-${numero_inicial..numero_inicial+quantidade-1}`,
 // preenchido com zeros à esquerda até 4 dígitos.
 const PatrimonioLoteSchema = z.object({
-  item: objectIdSchema,
+  modelo: modeloSchema,
+  fabricante: fabricanteSchema,
+  categoria: objectIdSchema,
   localizacao: objectIdSchema,
   quantidade: z
     .union([z.string(), z.number()])
@@ -109,6 +133,9 @@ const PatrimonioUpdateSchema = z.object({
     .min(1, 'Número de patrimônio não pode ser vazio')
     .max(60, 'Número de patrimônio deve ter no máximo 60 caracteres')
     .optional(),
+  modelo: modeloSchema,
+  fabricante: fabricanteSchema,
+  categoria: objectIdSchema.optional(),
   data_aquisicao: dataAquisicaoSchema.optional(),
   observacoes: z
     .string()

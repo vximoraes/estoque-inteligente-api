@@ -15,13 +15,11 @@ const CategoriaDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     nome: z.string().openapi({ example: 'Eletrônicos' }),
-    tipo: z
-      .enum(['consumo', 'permanente'])
-      .openapi({
-        example: 'permanente',
-        description:
-          "'consumo': categoria de item de almoxarifado. 'permanente': categoria de bem de patrimônio.",
-      }),
+    tipo: z.enum(['consumo', 'permanente']).openapi({
+      example: 'permanente',
+      description:
+        "'consumo': categoria de item de almoxarifado. 'permanente': categoria de bem de patrimônio.",
+    }),
     ativo: z.boolean().openapi({ example: true }),
     descricao: z
       .string()
@@ -190,7 +188,6 @@ registerPaths({
         500: commonResponses[500]!(),
       },
     },
-
   },
 
   '/categorias/{id}/inativar': {

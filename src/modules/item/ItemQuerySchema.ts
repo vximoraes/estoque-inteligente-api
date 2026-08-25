@@ -18,8 +18,8 @@ export const ItemQuerySchema = z.object({
   tipo: z
     .string()
     .optional()
-    .refine((value) => !value || ['consumo', 'permanente'].includes(value), {
-      message: "Tipo deve ser 'consumo' ou 'permanente'",
+    .refine((value) => !value || value === 'consumo', {
+      message: "Tipo deve ser 'consumo'",
     }),
   quantidade: z
     .string()

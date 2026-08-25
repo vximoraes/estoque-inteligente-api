@@ -3,7 +3,7 @@ import PatrimonioService from '../PatrimonioService.js';
 import PatrimonioRepository from '../PatrimonioRepository.js';
 import PatrimonioModel from '../PatrimonioModel.js';
 import PatrimonioEventoModel from '../PatrimonioEventoModel.js';
-import ItemModel from '../../item/ItemModel.js';
+import CategoriaModel from '../../categoria/CategoriaModel.js';
 import LocalizacaoModel from '../../localizacao/LocalizacaoModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
@@ -12,11 +12,7 @@ jest.mock('../PatrimonioRepository.js');
 const makeId = () => new mongoose.Types.ObjectId();
 
 function mockPopulateChain(finalValue) {
-  const chain = { populate: jest.fn() };
-  chain.populate
-    .mockReturnValueOnce(chain)
-    .mockReturnValueOnce(finalValue);
-  return chain;
+  return { populate: jest.fn().mockResolvedValue(finalValue) };
 }
 
 describe('PatrimonioService', () => {
@@ -43,44 +39,58 @@ describe('PatrimonioService', () => {
   });
 
   describe('criar', () => {
-    it('deve rejeitar item que não existe', async () => {
-      ItemModel.findById = jest.fn().mockResolvedValue(null);
+    it('deve rejeitar categoria que não existe', async () => {
+      CategoriaModel.findById = jest.fn().mockResolvedValue(null);
       await expect(
         service.criar(
-          { item: makeId().toString(), numero_patrimonio: 'NB-0001', localizacao: makeId().toString() },
+          {
+            categoria: makeId().toString(),
+            numero_patrimonio: 'NB-0001',
+            localizacao: makeId().toString(),
+          },
           req,
         ),
       ).rejects.toThrow(CustomError);
     });
 
-    it('deve rejeitar item do tipo consumo', async () => {
-      ItemModel.findById = jest.fn().mockResolvedValue({ tipo: 'consumo' });
+    it('deve rejeitar categoria do tipo consumo', async () => {
+      CategoriaModel.findById = jest
+        .fn()
+        .mockResolvedValue({ tipo: 'consumo' });
       await expect(
         service.criar(
-          { item: makeId().toString(), numero_patrimonio: 'NB-0001', localizacao: makeId().toString() },
+          {
+            categoria: makeId().toString(),
+            numero_patrimonio: 'NB-0001',
+            localizacao: makeId().toString(),
+          },
           req,
         ),
       ).rejects.toThrow('permanente');
     });
 
     it('deve rejeitar localizacao inexistente', async () => {
-      ItemModel.findById = jest
+      CategoriaModel.findById = jest
         .fn()
         .mockResolvedValue({ _id: makeId(), tipo: 'permanente' });
       LocalizacaoModel.findById = jest.fn().mockResolvedValue(null);
       await expect(
         service.criar(
-          { item: makeId().toString(), numero_patrimonio: 'NB-0001', localizacao: makeId().toString() },
+          {
+            categoria: makeId().toString(),
+            numero_patrimonio: 'NB-0001',
+            localizacao: makeId().toString(),
+          },
           req,
         ),
       ).rejects.toThrow(CustomError);
     });
 
     it('deve criar a unidade e gravar evento de cadastro', async () => {
-      const itemId = makeId();
-      ItemModel.findById = jest
+      const categoriaId = makeId();
+      CategoriaModel.findById = jest
         .fn()
-        .mockResolvedValue({ _id: itemId, tipo: 'permanente' });
+        .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
       LocalizacaoModel.findById = jest
         .fn()
         .mockResolvedValue({ _id: makeId() });
@@ -91,7 +101,7 @@ describe('PatrimonioService', () => {
       const localizacaoId = makeId().toString();
       const resultado = await service.criar(
         {
-          item: itemId.toString(),
+          categoria: categoriaId.toString(),
           numero_patrimonio: 'NB-0001',
           localizacao: localizacaoId,
         },
@@ -100,7 +110,11 @@ describe('PatrimonioService', () => {
 
       expect(resultado).toBe(criado);
       expect(repositoryMock.criar).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'Disponível', ativo: true, usuario: 'user1' }),
+        expect.objectContaining({
+          status: 'Disponível',
+          ativo: true,
+          usuario: 'user1',
+        }),
       );
       expect(PatrimonioEventoModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -112,21 +126,53 @@ describe('PatrimonioService', () => {
       );
     });
 
-    it('deve repassar campos_personalizados ao repository', async () => {
-      const itemId = makeId();
-      ItemModel.findById = jest
+    it('deve honrar status explícito no cadastro', async () => {
+      const categoriaId = makeId();
+      CategoriaModel.findById = jest
         .fn()
-        .mockResolvedValue({ _id: itemId, tipo: 'permanente' });
+        .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
+      LocalizacaoModel.findById = jest
+        .fn()
+        .mockResolvedValue({ _id: makeId() });
+
+      const criado = { _id: makeId(), numero_patrimonio: 'NB-0002' };
+      repositoryMock.criar.mockResolvedValue(criado);
+
+      await service.criar(
+        {
+          categoria: categoriaId.toString(),
+          numero_patrimonio: 'NB-0002',
+          localizacao: makeId().toString(),
+          status: 'Baixado',
+        },
+        req,
+      );
+
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'Baixado' }),
+      );
+      expect(PatrimonioEventoModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({ status_novo: 'Baixado' }),
+      );
+    });
+
+    it('deve repassar modelo, fabricante e campos_personalizados ao repository', async () => {
+      const categoriaId = makeId();
+      CategoriaModel.findById = jest
+        .fn()
+        .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
       LocalizacaoModel.findById = jest
         .fn()
         .mockResolvedValue({ _id: makeId() });
       repositoryMock.criar.mockResolvedValue({ _id: makeId() });
 
-      const campos = [{ chave: 'Fabricante', valor: 'Dell' }];
+      const campos = [{ chave: 'Número de série', valor: 'SN123456' }];
       await service.criar(
         {
-          item: itemId.toString(),
+          categoria: categoriaId.toString(),
           numero_patrimonio: 'NB-0001',
+          modelo: 'ThinkPad T14',
+          fabricante: 'Lenovo',
           localizacao: makeId().toString(),
           campos_personalizados: campos,
         },
@@ -134,17 +180,21 @@ describe('PatrimonioService', () => {
       );
 
       expect(repositoryMock.criar).toHaveBeenCalledWith(
-        expect.objectContaining({ campos_personalizados: campos }),
+        expect.objectContaining({
+          modelo: 'ThinkPad T14',
+          fabricante: 'Lenovo',
+          campos_personalizados: campos,
+        }),
       );
     });
   });
 
   describe('criarLote', () => {
     it('deve gerar numeração sequencial e criar N unidades', async () => {
-      const itemId = makeId();
-      ItemModel.findById = jest
+      const categoriaId = makeId();
+      CategoriaModel.findById = jest
         .fn()
-        .mockResolvedValue({ _id: itemId, tipo: 'permanente' });
+        .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
       LocalizacaoModel.findById = jest
         .fn()
         .mockResolvedValue({ _id: makeId() });
@@ -158,7 +208,7 @@ describe('PatrimonioService', () => {
 
       const resultado = await service.criarLote(
         {
-          item: itemId.toString(),
+          categoria: categoriaId.toString(),
           localizacao: makeId().toString(),
           quantidade: 3,
           prefixo: 'NB',
@@ -176,17 +226,17 @@ describe('PatrimonioService', () => {
         'NB-0007',
       ]);
       expect(PatrimonioEventoModel.insertMany).toHaveBeenCalledTimes(1);
-      expect(PatrimonioEventoModel.insertMany.mock.calls[0][0]).toHaveLength(
-        3,
-      );
+      expect(PatrimonioEventoModel.insertMany.mock.calls[0][0]).toHaveLength(3);
     });
 
-    it('deve rejeitar item do tipo consumo antes de gerar qualquer unidade', async () => {
-      ItemModel.findById = jest.fn().mockResolvedValue({ tipo: 'consumo' });
+    it('deve rejeitar categoria do tipo consumo antes de gerar qualquer unidade', async () => {
+      CategoriaModel.findById = jest
+        .fn()
+        .mockResolvedValue({ tipo: 'consumo' });
       await expect(
         service.criarLote(
           {
-            item: makeId().toString(),
+            categoria: makeId().toString(),
             localizacao: makeId().toString(),
             quantidade: 3,
             prefixo: 'NB',
@@ -238,10 +288,9 @@ describe('PatrimonioService', () => {
 
     it('deve transicionar Disponível -> Manutenção e gravar evento manutencao_entrada', async () => {
       const patrimonioId = makeId().toString();
-      const itemId = makeId();
       PatrimonioModel.findById = jest
         .fn()
-        .mockResolvedValue({ status: 'Disponível', item: itemId });
+        .mockResolvedValue({ status: 'Disponível' });
 
       const atualizado = { _id: patrimonioId, status: 'Manutenção' };
       PatrimonioModel.findOneAndUpdate = jest
@@ -268,7 +317,7 @@ describe('PatrimonioService', () => {
       const patrimonioId = makeId().toString();
       PatrimonioModel.findById = jest
         .fn()
-        .mockResolvedValue({ status: 'Baixado', item: makeId() });
+        .mockResolvedValue({ status: 'Baixado' });
       PatrimonioModel.findOneAndUpdate = jest
         .fn()
         .mockReturnValue(mockPopulateChain({ status: 'Disponível' }));
@@ -287,11 +336,7 @@ describe('PatrimonioService', () => {
         .fn()
         .mockResolvedValue({ status: 'Emprestado' });
       await expect(
-        service.transferir(
-          'id1',
-          { localizacao: makeId().toString() },
-          req,
-        ),
+        service.transferir('id1', { localizacao: makeId().toString() }, req),
       ).rejects.toThrow('empréstimo/devolução');
     });
 
@@ -299,7 +344,6 @@ describe('PatrimonioService', () => {
       const localizacaoAnterior = makeId();
       PatrimonioModel.findById = jest.fn().mockResolvedValue({
         status: 'Disponível',
-        item: makeId(),
         localizacao: localizacaoAnterior,
       });
       LocalizacaoModel.findById = jest
@@ -374,7 +418,7 @@ describe('PatrimonioService', () => {
 
     it('deve transicionar para Emprestado atomicamente e gravar evento', async () => {
       PatrimonioModel.exists = jest.fn().mockResolvedValue(true);
-      const atualizado = { _id: 'id1', item: makeId(), status: 'Emprestado' };
+      const atualizado = { _id: 'id1', status: 'Emprestado' };
       PatrimonioModel.findOneAndUpdate = jest
         .fn()
         .mockResolvedValue(atualizado);
@@ -388,7 +432,10 @@ describe('PatrimonioService', () => {
         { new: true },
       );
       expect(PatrimonioEventoModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({ tipo: 'emprestimo', status_novo: 'Emprestado' }),
+        expect.objectContaining({
+          tipo: 'emprestimo',
+          status_novo: 'Emprestado',
+        }),
       );
     });
   });
@@ -398,12 +445,15 @@ describe('PatrimonioService', () => {
       const localizacaoAtual = makeId();
       PatrimonioModel.findById = jest
         .fn()
-        .mockResolvedValue({ status: 'Disponível', localizacao: localizacaoAtual });
+        .mockResolvedValue({
+          status: 'Disponível',
+          localizacao: localizacaoAtual,
+        });
       PatrimonioModel.findOneAndUpdate = jest.fn().mockResolvedValue(null);
 
-      await expect(
-        service.devolverUnidade('id1', {}, req),
-      ).rejects.toThrow('não está emprestada');
+      await expect(service.devolverUnidade('id1', {}, req)).rejects.toThrow(
+        'não está emprestada',
+      );
     });
 
     it('deve devolver para a localização original quando nenhuma é informada', async () => {
@@ -412,7 +462,7 @@ describe('PatrimonioService', () => {
         status: 'Emprestado',
         localizacao: localizacaoAtual,
       });
-      const atualizado = { item: makeId(), status: 'Disponível' };
+      const atualizado = { status: 'Disponível' };
       PatrimonioModel.findOneAndUpdate = jest
         .fn()
         .mockResolvedValue(atualizado);
@@ -439,7 +489,7 @@ describe('PatrimonioService', () => {
       });
       PatrimonioModel.findOneAndUpdate = jest
         .fn()
-        .mockResolvedValue({ item: makeId(), status: 'Disponível' });
+        .mockResolvedValue({ status: 'Disponível' });
 
       await service.devolverUnidade('id1', { localizacaoRetorno }, req);
 

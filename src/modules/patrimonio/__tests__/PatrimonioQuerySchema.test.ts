@@ -26,15 +26,12 @@ describe('PatrimonioQuerySchema', () => {
     expect(() =>
       PatrimonioQuerySchema.parse({ status: 'Disponível' }),
     ).not.toThrow();
-    expect(() =>
-      PatrimonioQuerySchema.parse({ status: 'Perdido' }),
-    ).toThrow();
+    expect(() => PatrimonioQuerySchema.parse({ status: 'Perdido' })).toThrow();
   });
 
-  it('deve rejeitar item com formato inválido', () => {
-    expect(() => PatrimonioQuerySchema.parse({ item: '123' })).toThrow(
-      'Item inválido',
-    );
+  it('deve aceitar modelo como texto livre', () => {
+    const resultado = PatrimonioQuerySchema.parse({ modelo: 'ThinkPad T14' });
+    expect(resultado.modelo).toBe('ThinkPad T14');
   });
 
   it('deve rejeitar ativo fora de true/false', () => {

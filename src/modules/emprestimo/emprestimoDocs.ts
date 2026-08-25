@@ -9,7 +9,6 @@ import {
 } from '../../utils/openapi/commonSchemas.js';
 import commonResponses from '../../utils/openapi/commonResponses.js';
 import {
-  EmprestimoSchema,
   DevolucaoEmprestimoSchema,
   AtualizarEmprestimoSchema,
 } from './EmprestimoSchema.js';
@@ -27,7 +26,10 @@ const EmprestimoDetalhes = registry.register(
   'EmprestimoDetalhes',
   z.object({
     _id: objectIdField,
-    item: objectIdField,
+    item: objectIdField.nullable().optional().openapi({
+      description:
+        "Preenchido apenas quando 'tipo_controle' é 'quantidade' — referencia o item de consumo/almoxarifado emprestado.",
+    }),
     localizacao: objectIdField,
     patrimonio: objectIdField.nullable().optional().openapi({
       description:
@@ -66,18 +68,43 @@ const EmprestimoDetalhes = registry.register(
   }),
 );
 
+// Não deriva de `EmprestimoSchema` via `.extend` porque o Zod exige uma
+// obrigatoriedade condicional (`item`/`localizacao`/`quantidade_emprestada`
+// só quando `patrimonio` não é enviado) via `.superRefine`, que devolve um
+// `ZodEffects` sem `.extend`. O shape documentado aqui precisa ficar em
+// sincronia manual com `EmprestimoSchema.ts` — a obrigatoriedade real de cada
+// campo é decidida em runtime pelo schema real, não por este documento.
 registry.register(
   'EmprestimoPost',
-  EmprestimoSchema.extend({
-    item: objectIdField,
-    localizacao: objectIdField,
+  z.object({
+    item: objectIdField.optional().openapi({
+      description:
+        "Obrigatório para empréstimo por quantidade (quando 'patrimonio' não é enviado). Ignorado para empréstimo de unidade patrimonial.",
+    }),
+    localizacao: objectIdField.optional().openapi({
+      description:
+        'Obrigatório para empréstimo por quantidade. Para empréstimo de unidade, a localização real da unidade é usada, e este campo é ignorado.',
+    }),
     patrimonio: objectIdField.optional().openapi({
       description:
-        "Obrigatório quando o item é do tipo 'permanente' — id da unidade patrimonial a emprestar (endpoint GET /patrimonios). Ignorado para item de consumo.",
+        'Id da unidade patrimonial a emprestar (endpoint GET /patrimonios). Presente = empréstimo de unidade; ausente = empréstimo por quantidade (requer item/localizacao/quantidade_emprestada).',
     }),
-    quantidade_emprestada: quantidadeIntField(1, 5),
+    quantidade_emprestada: quantidadeIntField(1, 5).optional().openapi({
+      description:
+        'Obrigatório para empréstimo por quantidade. Para empréstimo de unidade é sempre 1, decidido pelo Service.',
+    }),
+    solicitante_nome: z.string().openapi({ example: 'João Silva' }),
+    solicitante_email: z
+      .string()
+      .email()
+      .optional()
+      .openapi({ example: 'joao@exemplo.com' }),
     data_saida: dateTimeNullableField,
     data_prevista_devolucao: dateTimeNullableField,
+    observacoes_emprestimo: z
+      .string()
+      .optional()
+      .openapi({ example: 'Empréstimo para laboratório' }),
   }),
 );
 
@@ -109,9 +136,9 @@ registerPaths({
             + Caso de uso: Registrar emprestimo de um item de uma localizacao especifica.
 
             + Regras de Negocio:
-                - Campos obrigatorios: item, localizacao, quantidade_emprestada, solicitante_nome.
-                - Item de consumo (tipo 'consumo'): deve haver saldo de estoque suficiente na localizacao informada; o sistema gera automaticamente uma movimentacao de saida para reduzir o estoque. Devolucao parcial e total sao tratadas em endpoint dedicado.
-                - Item de patrimônio (tipo 'permanente'): o campo 'patrimonio' é obrigatório (id de uma unidade com status 'Disponível'); 'quantidade_emprestada' e 'localizacao' são ignorados e sobrescritos (sempre 1 unidade, na localização real da unidade). Não gera movimentacao — a unidade transiciona atomicamente para 'Emprestado' (409 se outra requisição já pegou a unidade).
+                - Campo sempre obrigatorio: solicitante_nome.
+                - Empréstimo por quantidade (item de consumo): sem 'patrimonio' no payload. Exige item, localizacao e quantidade_emprestada. Deve haver saldo de estoque suficiente na localizacao informada; o sistema gera automaticamente uma movimentacao de saida para reduzir o estoque. Devolucao parcial e total sao tratadas em endpoint dedicado.
+                - Empréstimo de unidade patrimonial: o campo 'patrimonio' é obrigatório (id de uma unidade com status 'Disponível'); 'item', 'quantidade_emprestada' e 'localizacao' são ignorados e sobrescritos (sempre 1 unidade, na localização real da unidade). Não gera movimentacao — a unidade transiciona atomicamente para 'Emprestado' (409 se outra requisição já pegou a unidade).
 
             + Resultado Esperado:
                 - HTTP 201 Created com os dados do emprestimo e status calculado.

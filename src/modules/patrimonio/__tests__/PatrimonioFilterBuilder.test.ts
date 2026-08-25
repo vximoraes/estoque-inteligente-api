@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import PatrimonioFilterBuilder from '../PatrimonioFilterBuilder.js';
-import ItemModel from '../../item/ItemModel.js';
 import CategoriaModel from '../../categoria/CategoriaModel.js';
 
 describe('PatrimonioFilterBuilder', () => {
@@ -9,16 +8,19 @@ describe('PatrimonioFilterBuilder', () => {
     expect(filtros).toEqual({});
   });
 
-  it('comItem deve filtrar por ObjectId válido', () => {
-    const id = new mongoose.Types.ObjectId().toString();
-    const filtros = new PatrimonioFilterBuilder().comItem(id).build();
-    expect(filtros['item']).toBeInstanceOf(mongoose.Types.ObjectId);
-    expect((filtros['item'] as mongoose.Types.ObjectId).toString()).toBe(id);
+  it('comModelo deve montar regex case-insensitive de correspondência exata', () => {
+    const filtros = new PatrimonioFilterBuilder()
+      .comModelo('ThinkPad T14')
+      .build();
+    expect(filtros['modelo']).toEqual({
+      $regex: '^ThinkPad\\ T14$',
+      $options: 'i',
+    });
   });
 
-  it('comItem deve ignorar ObjectId inválido', () => {
-    const filtros = new PatrimonioFilterBuilder().comItem('invalido').build();
-    expect(filtros['item']).toBeUndefined();
+  it('comModelo deve ignorar valor vazio', () => {
+    const filtros = new PatrimonioFilterBuilder().comModelo('').build();
+    expect(filtros['modelo']).toBeUndefined();
   });
 
   it('comStatus deve aceitar apenas valores do enum', () => {
@@ -52,35 +54,17 @@ describe('PatrimonioFilterBuilder', () => {
   });
 
   describe('comBusca', () => {
-    afterEach(() => {
-      jest.restoreAllMocks();
+    it('não deve alterar filtros quando busca está vazia', () => {
+      const filtros = new PatrimonioFilterBuilder().comBusca('').build();
+      expect(filtros).toEqual({});
     });
 
-    it('não deve alterar filtros quando busca está vazia', async () => {
-      const builder = new PatrimonioFilterBuilder();
-      await builder.comBusca('');
-      expect(builder.build()).toEqual({});
-    });
+    it('deve montar $or casando número de patrimônio OU modelo', () => {
+      const filtros = new PatrimonioFilterBuilder().comBusca('NB-002').build();
 
-    it('deve montar $or casando número de patrimônio OU item cujo nome bate', async () => {
-      const itemId = new mongoose.Types.ObjectId();
-      jest.spyOn(ItemModel, 'find').mockReturnValue({
-        select: jest.fn().mockResolvedValue([{ _id: itemId }]),
-      });
-
-      const builder = new PatrimonioFilterBuilder();
-      await builder.comBusca('NB-002');
-      const filtros = builder.build();
-
-      expect(ItemModel.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          nome: { $regex: 'NB\\-002', $options: 'i' },
-          tipo: 'permanente',
-        }),
-      );
       expect(filtros['$or']).toEqual([
         { numero_patrimonio: { $regex: 'NB\\-002', $options: 'i' } },
-        { item: { $in: [itemId] } },
+        { modelo: { $regex: 'NB\\-002', $options: 'i' } },
       ]);
     });
   });
@@ -96,30 +80,23 @@ describe('PatrimonioFilterBuilder', () => {
       expect(builder.build()).toEqual({});
     });
 
-    it('deve filtrar por ID de categoria válido, resolvendo os itens dela', async () => {
-      const categoriaId = new mongoose.Types.ObjectId().toString();
-      const itemId = new mongoose.Types.ObjectId();
+    it('deve filtrar por ID de categoria válido', async () => {
+      const categoriaId = new mongoose.Types.ObjectId();
       jest
         .spyOn(CategoriaModel, 'findById')
         .mockResolvedValue({ _id: categoriaId });
-      jest.spyOn(ItemModel, 'find').mockReturnValue({
-        select: jest.fn().mockResolvedValue([{ _id: itemId }]),
-      });
 
       const builder = new PatrimonioFilterBuilder();
-      await builder.comCategoria(categoriaId);
+      await builder.comCategoria(categoriaId.toString());
 
-      expect(builder.build()).toEqual({ item: { $in: [itemId] } });
+      expect(builder.build()).toEqual({ categoria: categoriaId });
     });
 
     it('deve filtrar por nome de categoria', async () => {
-      const itemId = new mongoose.Types.ObjectId();
+      const categoriaId = new mongoose.Types.ObjectId();
       jest
         .spyOn(CategoriaModel, 'findOne')
-        .mockResolvedValue({ _id: 'cat1' });
-      jest.spyOn(ItemModel, 'find').mockReturnValue({
-        select: jest.fn().mockResolvedValue([{ _id: itemId }]),
-      });
+        .mockResolvedValue({ _id: categoriaId });
 
       const builder = new PatrimonioFilterBuilder();
       await builder.comCategoria('Rede');
@@ -127,7 +104,7 @@ describe('PatrimonioFilterBuilder', () => {
       expect(CategoriaModel.findOne).toHaveBeenCalledWith({
         nome: { $regex: 'Rede', $options: 'i' },
       });
-      expect(builder.build()).toEqual({ item: { $in: [itemId] } });
+      expect(builder.build()).toEqual({ categoria: categoriaId });
     });
 
     it('deve devolver $in vazio quando a categoria não existe (não a coleção toda)', async () => {
@@ -136,7 +113,7 @@ describe('PatrimonioFilterBuilder', () => {
       const builder = new PatrimonioFilterBuilder();
       await builder.comCategoria('Inexistente');
 
-      expect(builder.build()).toEqual({ item: { $in: [] } });
+      expect(builder.build()).toEqual({ categoria: { $in: [] } });
     });
   });
 
@@ -150,14 +127,13 @@ describe('PatrimonioFilterBuilder', () => {
   });
 
   it('deve encadear múltiplos filtros', () => {
-    const itemId = new mongoose.Types.ObjectId().toString();
     const filtros = new PatrimonioFilterBuilder()
-      .comItem(itemId)
+      .comModelo('Notebook')
       .comStatus('Manutenção')
       .comAtivo('true')
       .build();
     expect(filtros['status']).toBe('Manutenção');
     expect(filtros['ativo']).toBe(true);
-    expect(filtros['item']).toBeDefined();
+    expect(filtros['modelo']).toBeDefined();
   });
 });
