@@ -16,6 +16,7 @@ export const EmprestimoQuerySchema = z.object({
     .string()
     .optional()
     .transform((val) => val?.trim()),
+  tipo_controle: z.enum(['quantidade', 'unidade']).optional(),
   localizacao: z
     .string()
     .optional()

@@ -182,6 +182,14 @@ registerPaths({
           description: 'Filtro por ID do item',
         },
         {
+          name: 'tipo_controle',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', enum: ['quantidade', 'unidade'] },
+          description:
+            'Filtro por tipo de controle: quantidade (empréstimo de item de almoxarifado) ou unidade (empréstimo de unidade patrimonial)',
+        },
+        {
           name: 'localizacao',
           in: 'query',
           required: false,

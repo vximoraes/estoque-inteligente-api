@@ -85,6 +85,7 @@ class EmprestimoRepository {
     const {
       busca,
       item,
+      tipo_controle,
       localizacao,
       solicitante_nome,
       apenas_abertos,
@@ -106,6 +107,7 @@ class EmprestimoRepository {
       .comSolicitanteNome(solicitante_nome ?? '')
       .comApenasAbertos(apenas_abertos === 'true')
       .comAtrasados(atrasados === 'true')
+      .comTipoControle(tipo_controle ?? '')
       .comDataSaidaInicio(dataSaidaInicio)
       .comDataSaidaFim(dataSaidaFim);
 

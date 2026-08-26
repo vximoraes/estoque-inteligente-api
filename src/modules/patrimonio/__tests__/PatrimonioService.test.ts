@@ -443,12 +443,10 @@ describe('PatrimonioService', () => {
   describe('devolverUnidade', () => {
     it('deve lançar 400 se a unidade não estava emprestada', async () => {
       const localizacaoAtual = makeId();
-      PatrimonioModel.findById = jest
-        .fn()
-        .mockResolvedValue({
-          status: 'Disponível',
-          localizacao: localizacaoAtual,
-        });
+      PatrimonioModel.findById = jest.fn().mockResolvedValue({
+        status: 'Disponível',
+        localizacao: localizacaoAtual,
+      });
       PatrimonioModel.findOneAndUpdate = jest.fn().mockResolvedValue(null);
 
       await expect(service.devolverUnidade('id1', {}, req)).rejects.toThrow(
