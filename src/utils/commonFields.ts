@@ -26,3 +26,23 @@ export const paginationSchema = z.object({
 
 export type ObjectIdInput = z.input<typeof objectIdSchema>;
 export type PaginationQuery = z.output<typeof paginationSchema>;
+
+// Formato aceito: "<campo>:asc" ou "<campo>:desc", com `campo` restrito à
+// whitelist do módulo — nunca ordenar por um campo arbitrário vindo da query.
+export function createOrdenarSchema(camposPermitidos: readonly string[]) {
+  return z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const [campo, direcao] = val.split(':');
+        return (
+          !!campo &&
+          camposPermitidos.includes(campo) &&
+          (direcao === 'asc' || direcao === 'desc')
+        );
+      },
+      { message: 'Ordenação inválida' },
+    );
+}

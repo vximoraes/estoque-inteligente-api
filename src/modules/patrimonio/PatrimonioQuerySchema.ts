@@ -1,11 +1,20 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { createOrdenarSchema } from '../../utils/commonFields.js';
 
 export const PatrimonioIdSchema = z
   .string()
   .refine((id) => mongoose.Types.ObjectId.isValid(id), {
     message: 'ID inválido',
   });
+
+export const PATRIMONIO_SORT_FIELDS = {
+  numero_patrimonio: 'numero_patrimonio',
+  modelo: 'modelo',
+  status: 'status',
+  data_aquisicao: 'data_aquisicao',
+  createdAt: 'createdAt',
+} as const;
 
 export const PatrimonioQuerySchema = z.object({
   modelo: z
@@ -62,4 +71,5 @@ export const PatrimonioQuerySchema = z.object({
     .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
       message: 'Limite deve ser um número inteiro entre 1 e 100',
     }),
+  ordenar: createOrdenarSchema(Object.keys(PATRIMONIO_SORT_FIELDS)),
 });

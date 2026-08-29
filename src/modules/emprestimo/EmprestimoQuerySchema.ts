@@ -1,11 +1,19 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { createOrdenarSchema } from '../../utils/commonFields.js';
 
 export const EmprestimoIdSchema = z
   .string()
   .refine((id) => mongoose.Types.ObjectId.isValid(id), {
     message: 'ID invalido',
   });
+
+export const EMPRESTIMO_SORT_FIELDS = {
+  solicitante_nome: 'solicitante_nome',
+  data_saida: 'data_saida',
+  data_prevista_devolucao: 'data_prevista_devolucao',
+  createdAt: 'createdAt',
+} as const;
 
 export const EmprestimoQuerySchema = z.object({
   busca: z
@@ -65,4 +73,5 @@ export const EmprestimoQuerySchema = z.object({
     .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
       message: 'limite deve ser inteiro entre 1 e 100',
     }),
+  ordenar: createOrdenarSchema(Object.keys(EMPRESTIMO_SORT_FIELDS)),
 });

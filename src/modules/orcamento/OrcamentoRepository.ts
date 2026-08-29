@@ -8,6 +8,8 @@ import OrcamentoModel, {
   type IItemOrcamento,
 } from './OrcamentoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { ORCAMENTO_SORT_FIELDS } from './OrcamentoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -72,7 +74,11 @@ class OrcamentoRepository {
       ...filterBuilder.build(),
       ativo: true,
     };
-    const options = { page: parseInt(page), limit: limite, sort: { nome: 1 } };
+    const options = {
+      page: parseInt(page),
+      limit: limite,
+      sort: resolveSort(query['ordenar'], ORCAMENTO_SORT_FIELDS, { nome: 1 }),
+    };
 
     const resultado = await this.model.paginate(filtros, options);
     return {

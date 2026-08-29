@@ -5,6 +5,8 @@ import {
 import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
 import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { EMPRESTIMO_SORT_FIELDS } from './EmprestimoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -121,7 +123,9 @@ class EmprestimoRepository {
       page: parseInt(page, 10),
       limit: limite,
       populate: ['item', 'localizacao', 'usuario_responsavel', 'patrimonio'],
-      sort: { data_saida: -1 },
+      sort: resolveSort(query['ordenar'], EMPRESTIMO_SORT_FIELDS, {
+        data_saida: -1,
+      }),
     };
 
     const resultado = await this.model.paginate(

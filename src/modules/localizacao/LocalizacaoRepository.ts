@@ -7,6 +7,8 @@ import LocalizacaoModel, {
   type LocalizacaoDocument,
 } from './LocalizacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { LOCALIZACAO_SORT_FIELDS } from './LocalizacaoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -68,7 +70,7 @@ class LocalizacaoRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      sort: { nome: 1 },
+      sort: resolveSort(query['ordenar'], LOCALIZACAO_SORT_FIELDS, { nome: 1 }),
     };
 
     const resultado = await this.model.paginate(

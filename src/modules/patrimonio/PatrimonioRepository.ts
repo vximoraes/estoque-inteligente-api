@@ -9,6 +9,8 @@ import PatrimonioModel, {
 } from './PatrimonioModel.js';
 import PatrimonioEventoModel from './PatrimonioEventoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { PATRIMONIO_SORT_FIELDS } from './PatrimonioQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -95,7 +97,9 @@ class PatrimonioRepository {
       page: parseInt(page, 10),
       limit: limite,
       populate: ['categoria', 'localizacao'],
-      sort: { numero_patrimonio: 1 },
+      sort: resolveSort(query['ordenar'], PATRIMONIO_SORT_FIELDS, {
+        numero_patrimonio: 1,
+      }),
     };
 
     const resultado = await this.model.paginate(
