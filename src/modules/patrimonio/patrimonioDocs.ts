@@ -36,6 +36,10 @@ const PatrimonioDetalhes = registry.register(
       .optional()
       .openapi({ example: '2024-01-15T10:30:00.000Z' }),
     observacoes: z.string().optional().openapi({ example: 'Nota fiscal 4521' }),
+    imagem: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://storage/notebook.jpg' }),
     campos_personalizados: z
       .array(z.object({ chave: z.string(), valor: z.string() }))
       .optional()
@@ -81,6 +85,18 @@ registry.register('PatrimonioLotePost', PatrimonioLoteSchema);
 registry.register('PatrimonioPatch', PatrimonioUpdateSchema);
 registry.register('PatrimonioStatusPatch', PatrimonioStatusSchema);
 registry.register('PatrimonioLocalizacaoPatch', PatrimonioLocalizacaoSchema);
+
+const PatrimonioUploadFotoResposta = registry.register(
+  'PatrimonioUploadFotoResposta',
+  z.object({
+    data: z.object({
+      etag: z.string().openapi({ example: '3e73f59102c83ab67c509a414c22279e' }),
+      versionId: z.string().nullable().openapi({ example: null }),
+    }),
+    message: z.string().openapi({ example: 'Foto enviada com sucesso.' }),
+    errors: z.array(z.unknown()).openapi({ example: [] }),
+  }),
+);
 
 registry.register(
   'PatrimonioListagem',
@@ -408,6 +424,80 @@ registerPaths({
       responses: {
         200: commonResponses[200]!('#/components/schemas/PatrimonioDetalhes'),
         400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/patrimonios/{id}/foto': {
+    post: {
+      tags: ['Patrimônio'],
+      summary: 'Faz upload da foto de uma unidade de patrimônio',
+      description: `
+            + Caso de uso: Upload de foto do bem físico (ex.: foto do notebook).
+
+            + Regras de Negócio:
+                - Unidade deve existir.
+                - Arquivo deve ser uma imagem válida, até 5 MB.
+                - Usuário deve ter permissão para alterar patrimônio.
+
+            + Resultado Esperado:
+                - HTTP 201 Created com dados da unidade atualizada incluindo caminho da foto.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do patrimônio')],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['file'],
+              properties: {
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Arquivo de imagem da unidade',
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Foto enviada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PatrimonioUploadFotoResposta',
+              },
+            },
+          },
+        },
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+
+    delete: {
+      tags: ['Patrimônio'],
+      summary: 'Deleta a foto de uma unidade de patrimônio',
+      description: `
+            + Regras de Negócio:
+                - Unidade deve existir.
+                - Remove o arquivo de imagem do MinIO/S3. Operação é irreversível.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do patrimônio')],
+      responses: {
+        200: commonResponses[200]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
         498: commonResponses[498]!(),

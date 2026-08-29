@@ -3,6 +3,7 @@ import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
 import AuthPermission from '../../middlewares/AuthPermission.js';
 import PatrimonioController from './PatrimonioController.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
+import upload from '../../config/MulterConfig.js';
 
 const router = express.Router();
 
@@ -66,6 +67,19 @@ router
     AuthMiddleware,
     AuthPermission,
     asyncWrapper(patrimonioController.inativar.bind(patrimonioController)),
+  )
+  .post(
+    '/patrimonios/:id/foto',
+    AuthMiddleware,
+    AuthPermission,
+    upload.single('file'),
+    asyncWrapper(patrimonioController.uploadFoto.bind(patrimonioController)),
+  )
+  .delete(
+    '/patrimonios/:id/foto',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(patrimonioController.deletarFoto.bind(patrimonioController)),
   );
 
 export default router;

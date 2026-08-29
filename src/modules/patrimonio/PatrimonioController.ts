@@ -128,6 +128,23 @@ class PatrimonioController {
       'Patrimônio inativado com sucesso.',
     );
   }
+
+  async uploadFoto(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    PatrimonioIdSchema.parse(id);
+
+    const data = await this.service.uploadFoto(req, id);
+    return CommonResponse.success(res, data, 201, 'Foto enviada com sucesso.');
+  }
+
+  async deletarFoto(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    PatrimonioIdSchema.parse(id);
+
+    const data = await this.service.deletarFoto(req, id);
+
+    return CommonResponse.success(res, data, 200, 'Foto deletada com sucesso.');
+  }
 }
 
 export default PatrimonioController;

@@ -46,6 +46,7 @@ async function setupMinio(): Promise<void> {
   const bucketNames = [
     process.env['MINIO_BUCKET'],
     process.env['MINIO_BUCKET_2'],
+    process.env['MINIO_BUCKET_3'],
   ]
     .filter((b): b is string => Boolean(b))
     .filter((bucket, index, buckets) => buckets.indexOf(bucket) === index);

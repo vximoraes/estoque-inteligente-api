@@ -1,3 +1,4 @@
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import PatrimonioRepository from './PatrimonioRepository.js';
 import PatrimonioModel, { type PatrimonioDocument } from './PatrimonioModel.js';
 import PatrimonioEventoModel, {
@@ -5,7 +6,15 @@ import PatrimonioEventoModel, {
 } from './PatrimonioEventoModel.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import LocalizacaoModel from '../localizacao/LocalizacaoModel.js';
-import { CustomError, messages } from '../../utils/helpers/index.js';
+import minioClient from '../../config/MinIO.js';
+import compress from '../../config/SharpConfig.js';
+import {
+  CustomError,
+  HttpStatusCodes,
+  messages,
+  urlPublicaPatrimonio,
+  describirErro,
+} from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type {
   Patrimonio,
@@ -352,6 +361,73 @@ class PatrimonioService {
     });
 
     return atualizado;
+  }
+
+  async uploadFoto(req: AuthenticatedRequest, id: string) {
+    await this.buscarDocumentoOuFalhar(id);
+
+    const file = req.file;
+    if (!file) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'badRequest',
+        field: 'Foto',
+        details: [
+          {
+            path: 'Foto',
+            message: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
+          },
+        ],
+        customMessage: 'Nenhum arquivo foi enviado ou o arquivo está vazio.',
+      });
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.PAYLOAD_TOO_LARGE.code,
+        errorType: 'payloadTooLarge',
+        field: 'Imagem',
+        details: [{ path: 'Imagem', message: 'Arquivo é superior a 5 MB' }],
+        customMessage: 'O arquivo é maior do que 5 MB.',
+      });
+    }
+    try {
+      const data = await this.repository.atualizar(
+        id,
+        {
+          imagem: urlPublicaPatrimonio(id),
+        },
+        req,
+      );
+      const newFile = await compress(file.buffer);
+      const objectName = `${id}.jpeg`;
+      await minioClient.send(
+        new PutObjectCommand({
+          Bucket: process.env['MINIO_BUCKET_3']!,
+          Key: objectName,
+          Body: newFile,
+          ContentType: 'image/jpeg',
+        }),
+      );
+
+      return { imagem: (data as PatrimonioDocument).imagem };
+    } catch (err) {
+      throw new Error(describirErro(err));
+    }
+  }
+
+  async deletarFoto(req: AuthenticatedRequest, id: string) {
+    await this.buscarDocumentoOuFalhar(id);
+
+    const objectName = `${id}.jpeg`;
+    await minioClient.send(
+      new DeleteObjectCommand({
+        Bucket: process.env['MINIO_BUCKET_3']!,
+        Key: objectName,
+      }),
+    );
+    const data = await this.repository.atualizar(id, { imagem: '' }, req);
+
+    return { imagem: (data as PatrimonioDocument).imagem };
   }
 
   private async validarCategoriaPermanente(categoriaId: string) {

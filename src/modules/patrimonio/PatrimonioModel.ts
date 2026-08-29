@@ -15,6 +15,7 @@ export interface IPatrimonio {
   status: 'Disponível' | 'Emprestado' | 'Manutenção' | 'Baixado';
   data_aquisicao?: Date;
   observacoes?: string;
+  imagem?: string;
   campos_personalizados: ICampoPersonalizado[];
   ativo: boolean;
   usuario: string;
@@ -65,6 +66,7 @@ const patrimonioSchema = new mongoose.Schema<PatrimonioDocument>(
     },
     data_aquisicao: { type: Date, required: false },
     observacoes: { type: String, required: false },
+    imagem: { type: String, required: false },
     campos_personalizados: { type: [campoPersonalizadoSchema], default: [] },
     ativo: { type: Boolean, default: true },
     usuario: { type: String, ref: 'usuarios', required: true },
