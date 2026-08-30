@@ -34,6 +34,8 @@ class UsuarioService {
     const data = parsedData as Record<string, unknown>;
     delete data['senha'];
     delete data['email'];
+    // ativo só muda via ativarConta/ativarUsuarioPadrao (token de convite), nunca por PATCH direto.
+    delete data['ativo'];
 
     await this.ensureUserExists(id);
 
@@ -160,9 +162,11 @@ class UsuarioService {
     } catch (error) {
       // Limpa o usuário criado se o envio do convite falhar
       await this.repository.deletar(userId);
-      await mongoose.connection
-        .db!.collection('account')
-        .deleteMany({ userId: new mongoose.Types.ObjectId(userId) });
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        await mongoose.connection
+          .db!.collection('account')
+          .deleteMany({ userId: new mongoose.Types.ObjectId(userId) });
+      }
       throw error;
     }
 

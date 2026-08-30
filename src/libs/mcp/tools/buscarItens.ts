@@ -9,7 +9,7 @@ export async function buscarItens(
   }: {
     nome?: string;
     status?: string;
-    tipo?: 'consumo' | 'permanente';
+    tipo?: 'consumo';
     limite?: number;
   },
   _usuarioId: string,

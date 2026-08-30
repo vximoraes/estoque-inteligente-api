@@ -5,6 +5,8 @@ import {
 import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
 import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { EMPRESTIMO_SORT_FIELDS } from './EmprestimoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -65,7 +67,7 @@ class EmprestimoRepository {
         .populate('item')
         .populate('localizacao')
         .populate('usuario_responsavel', 'nome email')
-      .populate('patrimonio', 'numero_patrimonio status');
+        .populate('patrimonio', 'numero_patrimonio status');
 
       if (!data) {
         throw new CustomError({
@@ -85,6 +87,7 @@ class EmprestimoRepository {
     const {
       busca,
       item,
+      tipo_controle,
       localizacao,
       solicitante_nome,
       apenas_abertos,
@@ -106,6 +109,7 @@ class EmprestimoRepository {
       .comSolicitanteNome(solicitante_nome ?? '')
       .comApenasAbertos(apenas_abertos === 'true')
       .comAtrasados(atrasados === 'true')
+      .comTipoControle(tipo_controle ?? '')
       .comDataSaidaInicio(dataSaidaInicio)
       .comDataSaidaFim(dataSaidaFim);
 
@@ -119,7 +123,9 @@ class EmprestimoRepository {
       page: parseInt(page, 10),
       limit: limite,
       populate: ['item', 'localizacao', 'usuario_responsavel', 'patrimonio'],
-      sort: { data_saida: -1 },
+      sort: resolveSort(query['ordenar'], EMPRESTIMO_SORT_FIELDS, {
+        data_saida: -1,
+      }),
     };
 
     const resultado = await this.model.paginate(

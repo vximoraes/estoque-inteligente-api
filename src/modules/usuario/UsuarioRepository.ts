@@ -6,6 +6,8 @@ import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
 import UsuarioModel, { type UsuarioDocument } from './UsuarioModel.js';
 import NotificacaoModel from '../notificacao/NotificacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { USUARIO_SORT_FIELDS } from './UsuarioQuerySchema.js';
 import mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -70,7 +72,7 @@ class UsuarioRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      sort: { nome: 1 },
+      sort: resolveSort(query['ordenar'], USUARIO_SORT_FIELDS, { nome: 1 }),
     };
 
     const resultado = await this.model.paginate(
@@ -124,13 +126,15 @@ class UsuarioRepository {
 
     const usuarioDeletado = await this.model.findByIdAndDelete(id);
 
-    const userId = new mongoose.Types.ObjectId(id);
-    await mongoose.connection.db!.collection('account').deleteMany({
-      userId,
-    });
-    await mongoose.connection.db!.collection('session').deleteMany({
-      userId,
-    });
+    if (usuarioDeletado && mongoose.Types.ObjectId.isValid(id)) {
+      const userId = new mongoose.Types.ObjectId(id);
+      await mongoose.connection.db!.collection('account').deleteMany({
+        userId,
+      });
+      await mongoose.connection.db!.collection('session').deleteMany({
+        userId,
+      });
+    }
 
     return usuarioDeletado;
   }

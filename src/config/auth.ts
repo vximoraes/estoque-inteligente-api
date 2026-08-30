@@ -3,8 +3,10 @@ import mongoose from 'mongoose';
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { bearer } from 'better-auth/plugins';
+import { createAuthMiddleware, APIError } from 'better-auth/api';
 import EmailService from '../utils/services/EmailService.js';
 import { ativarUsuarioPadrao } from '../modules/usuario/ativarUsuarioPadrao.js';
+import mensagemSenhaInvalida from '../modules/usuario/validarNovaSenhaAuth.js';
 import logger from '../utils/logger.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,6 +123,18 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     },
 
     plugins: [bearer()],
+
+    // Better Auth só valida minPasswordLength; a mesma regra de complexidade do UsuarioSchema
+    // (maiúscula, minúscula, número, especial) precisa ser reforçada aqui, senão /reset-password
+    // e /change-password (chamados direto pelo front, sem passar pelo Zod da API) aceitam senha fraca.
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        const erro = mensagemSenhaInvalida(ctx.path, ctx.body);
+        if (erro) {
+          throw new APIError('BAD_REQUEST', { message: erro });
+        }
+      }),
+    },
   });
 
   return _auth as ReturnType<typeof betterAuth>;

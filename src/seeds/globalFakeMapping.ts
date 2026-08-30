@@ -63,16 +63,24 @@ export const fakeMappings = {
   },
 
   Categoria: {
+    // Categorias de itens de almoxarifado (consumo) e de bens de
+    // patrimônio (permanente) precisam ficar em pools separados — é essa
+    // separação que `categoriaSeed`/`itemSeed` usam para nunca sortear,
+    // por exemplo, "Encanamento" para um notebook.
     categorias: [
-      'Computadores',
-      'Periféricos',
-      'Monitores',
-      'Acessórios',
-      'Rede',
-      'Armazenamento',
-    ],
+      { nome: 'Periféricos', tipo: 'consumo' },
+      { nome: 'Armazenamento', tipo: 'consumo' },
+      { nome: 'Acessórios', tipo: 'consumo' },
+      { nome: 'Computadores', tipo: 'permanente' },
+      { nome: 'Monitores', tipo: 'permanente' },
+      { nome: 'Rede', tipo: 'permanente' },
+      { nome: 'Projeção e Energia', tipo: 'permanente' },
+    ] as { nome: string; tipo: 'consumo' | 'permanente' }[],
     nome(index: number) {
-      return this.categorias[index];
+      return this.categorias[index]!.nome;
+    },
+    tipo(index: number) {
+      return this.categorias[index]!.tipo;
     },
     usuario: () => new mongoose.Types.ObjectId().toString(),
     descricao: () => fakebr.lorem.sentence(),
@@ -129,14 +137,26 @@ export const fakeMappings = {
     status: () =>
       fakebr.helpers.randomize(['Indisponível', 'Baixo Estoque', 'Em Estoque']),
     usuario: () => new mongoose.Types.ObjectId().toString(),
-    tipo: () => fakebr.helpers.randomize(['consumo', 'permanente']),
+    tipo: () => 'consumo' as const,
     quantidade_disponivel: () => fakebr.random.number({ min: 0, max: 100 }),
   },
 
   Patrimonio: {
     numero_patrimonio: () =>
       `PAT-${fakebr.random.number({ min: 1000, max: 9999 })}`,
-    item: () => new mongoose.Types.ObjectId().toString(),
+    modelo: () => fakebr.helpers.randomize(fakeMappings.Item.nomesPermanentes),
+    fabricante: () =>
+      fakebr.helpers.randomize([
+        'Dell',
+        'Lenovo',
+        'HP',
+        'Ubiquiti',
+        'TP-Link',
+        'Samsung',
+        'LG',
+        'Epson',
+      ]),
+    categoria: () => new mongoose.Types.ObjectId().toString(),
     localizacao: () => new mongoose.Types.ObjectId().toString(),
     status: () =>
       fakebr.helpers.randomize([
@@ -147,13 +167,18 @@ export const fakeMappings = {
       ]),
     data_aquisicao: () => new Date().toISOString(),
     observacoes: () => fakebr.lorem.sentence(),
+    campos_personalizados: () => [
+      {
+        chave: 'Número de série',
+        valor: `SN${fakebr.random.number({ min: 100000, max: 999999 })}`,
+      },
+    ],
     ativo: () => true,
     usuario: () => new mongoose.Types.ObjectId().toString(),
   },
 
   PatrimonioEvento: {
     patrimonio: () => new mongoose.Types.ObjectId().toString(),
-    item: () => new mongoose.Types.ObjectId().toString(),
     tipo: () =>
       fakebr.helpers.randomize([
         'cadastro',

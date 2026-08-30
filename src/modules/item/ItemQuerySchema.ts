@@ -1,11 +1,18 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { createOrdenarSchema } from '../../utils/commonFields.js';
 
 export const ItemIdSchema = z
   .string()
   .refine((id) => mongoose.Types.ObjectId.isValid(id), {
     message: 'ID inválido',
   });
+
+export const ITEM_SORT_FIELDS = {
+  nome: 'nome',
+  quantidade: 'quantidade',
+  createdAt: 'createdAt',
+} as const;
 
 export const ItemQuerySchema = z.object({
   nome: z
@@ -18,8 +25,8 @@ export const ItemQuerySchema = z.object({
   tipo: z
     .string()
     .optional()
-    .refine((value) => !value || ['consumo', 'permanente'].includes(value), {
-      message: "Tipo deve ser 'consumo' ou 'permanente'",
+    .refine((value) => !value || value === 'consumo', {
+      message: "Tipo deve ser 'consumo'",
     }),
   quantidade: z
     .string()
@@ -74,4 +81,5 @@ export const ItemQuerySchema = z.object({
     .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
       message: 'Limite deve ser um número inteiro entre 1 e 100',
     }),
+  ordenar: createOrdenarSchema(Object.keys(ITEM_SORT_FIELDS)),
 });

@@ -41,7 +41,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarItens',
-    'Busca itens do inventário com filtros opcionais de nome, status e tipo. Itens de tipo "permanente" (patrimônio/bens duráveis, ex: notebooks) não têm noção de estoque mínimo — use "quantidade_disponivel" para saber quantas unidades estão livres, não "quantidade". Para detalhes por unidade (número de patrimônio, localização de cada unidade), use buscarPatrimonios.',
+    'Busca itens de consumo do almoxarifado com filtros opcionais de nome, status e tipo. Para bens permanentes (patrimônio, ex: notebooks) — número de patrimônio, modelo, localização de cada unidade — use buscarPatrimonios.',
     {
       nome: z
         .string()
@@ -52,11 +52,9 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .optional()
         .describe('Filtrar pelo status do item'),
       tipo: z
-        .enum(['consumo', 'permanente'])
+        .enum(['consumo'])
         .optional()
-        .describe(
-          '"consumo": material que se esgota com o uso (almoxarifado). "permanente": bem durável controlado por unidade individual (patrimônio).',
-        ),
+        .describe('Item de almoxarifado, material que se esgota com o uso.'),
       limite: z
         .number()
         .int()
@@ -78,17 +76,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarPatrimonios',
-    'Busca unidades individuais de bens permanentes (patrimônio) por número de patrimônio, nome do item/modelo, status ou localização. Use esta tool para perguntas sobre uma unidade específica, como "onde está o patrimônio X" ou "quais notebooks estão emprestados/em manutenção".',
+    'Busca unidades individuais de bens permanentes (patrimônio) por número de patrimônio, modelo, status ou localização. Use esta tool para perguntas sobre uma unidade específica, como "onde está o patrimônio X" ou "quais notebooks estão emprestados/em manutenção".',
     {
       numeroPatrimonio: z
         .string()
         .optional()
         .describe('Filtrar por número de patrimônio (busca parcial)'),
-      item: z
+      modelo: z
         .string()
         .optional()
         .describe(
-          'Filtrar pelo nome do item/modelo ao qual a unidade pertence (busca parcial, ex: "notebook")',
+          'Filtrar pelo modelo da unidade (busca parcial, ex: "notebook")',
         ),
       status: z
         .enum(['Disponível', 'Emprestado', 'Manutenção', 'Baixado'])
@@ -107,10 +105,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ numeroPatrimonio, item, status, localizacao, limite }) => {
+    async ({ numeroPatrimonio, modelo, status, localizacao, limite }) => {
       await verificarPermissao(usuarioId, 'patrimonios');
       const resultado = await buscarPatrimonios(
-        { numeroPatrimonio, item, status, localizacao, limite },
+        { numeroPatrimonio, modelo, status, localizacao, limite },
         usuarioId,
       );
       return formatarResultado('buscarPatrimonios', resultado);
@@ -243,7 +241,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'verificarItensAbaixoMinimo',
-    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit. Não se aplica a itens de patrimônio (bens permanentes), que não têm estoque mínimo.',
+    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit.',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens');
@@ -254,7 +252,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'itensPrioritariosCompra',
-    'Retorna itens de consumo (almoxarifado) abaixo do estoque mínimo ou indisponíveis, cruzados com a quantidade de saídas nos últimos 30 dias, ranqueados por prioridade de compra (déficit de estoque × frequência de saída). Não se aplica a itens de patrimônio.',
+    'Retorna itens de consumo (almoxarifado) abaixo do estoque mínimo ou indisponíveis, cruzados com a quantidade de saídas nos últimos 30 dias, ranqueados por prioridade de compra (déficit de estoque × frequência de saída).',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'movimentacoes');
@@ -266,10 +264,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
   server.tool(
     'buscarCategorias',
     'Lista todas as categorias de itens cadastradas no sistema',
-    {},
-    async () => {
+    {
+      tipo: z
+        .enum(['consumo', 'permanente'])
+        .optional()
+        .describe(
+          '"consumo": categorias de itens de almoxarifado. "permanente": categorias de bens de patrimônio.',
+        ),
+    },
+    async ({ tipo }) => {
       await verificarPermissao(usuarioId, 'categorias');
-      const resultado = await buscarCategorias({}, usuarioId);
+      const resultado = await buscarCategorias({ tipo }, usuarioId);
       return formatarResultado('buscarCategorias', resultado);
     },
   );

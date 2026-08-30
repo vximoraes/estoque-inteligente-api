@@ -63,6 +63,13 @@ class EmprestimoFilterBuilder {
     return this;
   }
 
+  comTipoControle(tipoControle: string | null | undefined): this {
+    if (tipoControle === 'quantidade' || tipoControle === 'unidade') {
+      this.filtros['tipo_controle'] = tipoControle;
+    }
+    return this;
+  }
+
   comSolicitanteNome(solicitanteNome: string | null | undefined): this {
     if (solicitanteNome) {
       this.filtros['solicitante_nome'] = {

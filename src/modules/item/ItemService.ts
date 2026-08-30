@@ -29,7 +29,7 @@ class ItemService {
       usuario: req.user_id,
       quantidade: 0,
       quantidade_disponivel: 0,
-      estoque_minimo: parsedData.tipo === 'permanente' ? 0 : parsedData.estoque_minimo,
+      estoque_minimo: parsedData.estoque_minimo,
     });
   }
 
@@ -49,6 +49,9 @@ class ItemService {
     await this.ensureItemExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
+    }
+    if (parsedData.categoria) {
+      await this.validateCategoria(parsedData.categoria, req);
     }
 
     const {
@@ -109,6 +112,17 @@ class ItemService {
         field: 'categoria',
         details: [{ path: 'categoria', message: 'Categoria não encontrada.' }],
         customMessage: 'Categoria não encontrada.',
+      });
+    }
+    if (categoria.tipo !== 'consumo') {
+      const mensagem =
+        'Categoria de patrimônio não pode ser usada em item de almoxarifado.';
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'categoria',
+        details: [{ path: 'categoria', message: mensagem }],
+        customMessage: mensagem,
       });
     }
   }

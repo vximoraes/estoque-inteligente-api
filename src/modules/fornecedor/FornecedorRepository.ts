@@ -5,6 +5,8 @@ import {
 import FornecedorFilterBuilder from './FornecedorFilterBuilder.js';
 import FornecedorModel, { type FornecedorDocument } from './FornecedorModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { FORNECEDOR_SORT_FIELDS } from './FornecedorQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -61,7 +63,7 @@ class FornecedorRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      sort: { nome: 1 },
+      sort: resolveSort(query['ordenar'], FORNECEDOR_SORT_FIELDS, { nome: 1 }),
     };
 
     const resultado = await this.model.paginate(filtros, options);

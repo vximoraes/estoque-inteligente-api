@@ -1,17 +1,16 @@
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
-import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 
 export async function buscarPatrimonios(
   {
     numeroPatrimonio,
-    item,
+    modelo,
     status,
     localizacao,
     limite = 20,
   }: {
     numeroPatrimonio?: string;
-    item?: string;
+    modelo?: string;
     status?: string;
     localizacao?: string;
     limite?: number;
@@ -24,15 +23,8 @@ export async function buscarPatrimonios(
     filtros['numero_patrimonio'] = { $regex: numeroPatrimonio, $options: 'i' };
   }
   if (status) filtros['status'] = status;
-
-  if (item) {
-    const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: item, $options: 'i' },
-      tipo: 'permanente',
-    })
-      .select('_id')
-      .lean();
-    filtros['item'] = { $in: itensCorrespondentes.map((i) => i._id) };
+  if (modelo) {
+    filtros['modelo'] = { $regex: modelo, $options: 'i' };
   }
 
   if (localizacao) {
@@ -47,7 +39,7 @@ export async function buscarPatrimonios(
   }
 
   const patrimonios = await PatrimonioModel.find(filtros)
-    .populate('item', 'nome')
+    .populate('categoria', 'nome')
     .populate('localizacao', 'nome')
     .sort({ numero_patrimonio: 1 })
     .limit(Math.min(Number(limite), 50))
@@ -55,14 +47,19 @@ export async function buscarPatrimonios(
 
   return patrimonios.map((p) => {
     const pObj = p as Record<string, unknown>;
-    const itemPopulado = pObj['item'] as Record<string, unknown> | null;
+    const categoriaPopulada = pObj['categoria'] as Record<
+      string,
+      unknown
+    > | null;
     const localizacaoPopulada = pObj['localizacao'] as Record<
       string,
       unknown
     > | null;
     return {
       numero_patrimonio: pObj['numero_patrimonio'],
-      item: itemPopulado?.['nome'] ?? null,
+      modelo: pObj['modelo'] ?? null,
+      fabricante: pObj['fabricante'] ?? null,
+      categoria: categoriaPopulada?.['nome'] ?? null,
       status: pObj['status'],
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       data_aquisicao: pObj['data_aquisicao'] ?? null,

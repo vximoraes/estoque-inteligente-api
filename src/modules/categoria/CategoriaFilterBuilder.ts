@@ -20,6 +20,13 @@ class CategoriaFilterBuilder {
     return this;
   }
 
+  comTipo(tipo: string | null | undefined): this {
+    if (tipo === 'consumo' || tipo === 'permanente') {
+      this.filtros['tipo'] = tipo;
+    }
+    return this;
+  }
+
   build(): Record<string, unknown> {
     return this.filtros;
   }

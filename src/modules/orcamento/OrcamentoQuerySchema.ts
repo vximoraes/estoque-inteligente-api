@@ -1,7 +1,17 @@
 import { z } from 'zod';
-import { objectIdSchema, paginationSchema } from '../../utils/commonFields.js';
+import {
+  objectIdSchema,
+  paginationSchema,
+  createOrdenarSchema,
+} from '../../utils/commonFields.js';
 
 export const OrcamentoIdSchema = objectIdSchema;
+
+export const ORCAMENTO_SORT_FIELDS = {
+  nome: 'nome',
+  total: 'total',
+  createdAt: 'createdAt',
+} as const;
 
 const valorSchema = z
   .string()
@@ -30,6 +40,7 @@ export const OrcamentoQuerySchema = paginationSchema.extend({
   valorMax: valorSchema,
   dataInicio: dataSchema,
   dataFim: dataSchema,
+  ordenar: createOrdenarSchema(Object.keys(ORCAMENTO_SORT_FIELDS)),
 });
 
 export type OrcamentoQuery = z.output<typeof OrcamentoQuerySchema>;
