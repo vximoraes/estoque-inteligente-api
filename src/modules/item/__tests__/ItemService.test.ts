@@ -22,6 +22,7 @@ const makeItem = (props = {}) => ({
 const makeCategoria = (props = {}) => ({
   _id: 'cat1',
   nome: 'Passivo',
+  tipo: 'consumo',
   ...props,
 });
 const makeLocalizacao = (props = {}) => ({

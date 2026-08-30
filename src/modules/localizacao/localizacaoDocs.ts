@@ -152,7 +152,6 @@ registerPaths({
         500: commonResponses[500]!(),
       },
     },
-
   },
 
   '/localizacoes/{id}/inativar': {

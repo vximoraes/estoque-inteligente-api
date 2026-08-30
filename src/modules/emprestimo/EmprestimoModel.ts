@@ -2,7 +2,7 @@ import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IEmprestimo {
-  item: mongoose.Types.ObjectId;
+  item?: mongoose.Types.ObjectId | null;
   localizacao: mongoose.Types.ObjectId;
   patrimonio?: mongoose.Types.ObjectId | null;
   tipo_controle: 'quantidade' | 'unidade';
@@ -25,11 +25,17 @@ export type EmprestimoDocument = IEmprestimo & Document;
 
 const emprestimoSchema = new mongoose.Schema<EmprestimoDocument>(
   {
+    // Obrigatório só pra empréstimo por quantidade ('tipo_controle: quantidade')
+    // — empréstimo de unidade patrimonial não tem mais item de catálogo.
     item: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'itens',
-      required: true,
+      required(this: EmprestimoDocument) {
+        return this.tipo_controle === 'quantidade';
+      },
+      default: null,
       index: true,
+      sparse: true,
     },
     localizacao: {
       type: mongoose.Schema.Types.ObjectId,

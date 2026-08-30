@@ -22,8 +22,10 @@ const PatrimonioDetalhes = registry.register(
   'PatrimonioDetalhes',
   z.object({
     _id: objectIdField,
-    item: objectIdField,
     numero_patrimonio: z.string().openapi({ example: 'NB-0001' }),
+    modelo: z.string().optional().openapi({ example: 'ThinkPad T14' }),
+    fabricante: z.string().optional().openapi({ example: 'Lenovo' }),
+    categoria: objectIdField,
     localizacao: objectIdField,
     status: z.enum(STATUS_ENUM as [string, ...string[]]).openapi({
       example: 'Disponível',
@@ -34,6 +36,14 @@ const PatrimonioDetalhes = registry.register(
       .optional()
       .openapi({ example: '2024-01-15T10:30:00.000Z' }),
     observacoes: z.string().optional().openapi({ example: 'Nota fiscal 4521' }),
+    imagem: z
+      .string()
+      .optional()
+      .openapi({ example: 'https://storage/notebook.jpg' }),
+    campos_personalizados: z
+      .array(z.object({ chave: z.string(), valor: z.string() }))
+      .optional()
+      .openapi({ example: [{ chave: 'Memória RAM', valor: '16GB' }] }),
     ativo: z.boolean().openapi({ example: true }),
     ...timestampFields,
   }),
@@ -44,7 +54,6 @@ const PatrimonioEventoDetalhes = registry.register(
   z.object({
     _id: objectIdField,
     patrimonio: objectIdField,
-    item: objectIdField,
     tipo: z
       .enum([
         'cadastro',
@@ -77,6 +86,18 @@ registry.register('PatrimonioPatch', PatrimonioUpdateSchema);
 registry.register('PatrimonioStatusPatch', PatrimonioStatusSchema);
 registry.register('PatrimonioLocalizacaoPatch', PatrimonioLocalizacaoSchema);
 
+const PatrimonioUploadFotoResposta = registry.register(
+  'PatrimonioUploadFotoResposta',
+  z.object({
+    data: z.object({
+      etag: z.string().openapi({ example: '3e73f59102c83ab67c509a414c22279e' }),
+      versionId: z.string().nullable().openapi({ example: null }),
+    }),
+    message: z.string().openapi({ example: 'Foto enviada com sucesso.' }),
+    errors: z.array(z.unknown()).openapi({ example: [] }),
+  }),
+);
+
 registry.register(
   'PatrimonioListagem',
   z.object({ data: z.array(PatrimonioDetalhes), ...paginationMetaFields }),
@@ -91,11 +112,12 @@ registry.register(
 
 const filtrosListagem = [
   {
-    name: 'item',
+    name: 'modelo',
     in: 'query',
     required: false,
     schema: { type: 'string' },
-    description: 'Filtrar por ID do item (modelo)',
+    description:
+      'Filtrar por modelo (correspondência exata, sem diferenciar maiúsculas/minúsculas)',
   },
   {
     name: 'status',
@@ -126,6 +148,13 @@ const filtrosListagem = [
     description: 'Alias de numero_patrimonio para busca livre',
   },
   {
+    name: 'categoria',
+    in: 'query',
+    required: false,
+    schema: { type: 'string' },
+    description: 'Filtrar por ID ou nome da categoria',
+  },
+  {
     name: 'ativo',
     in: 'query',
     required: false,
@@ -141,15 +170,14 @@ registerPaths({
       tags: ['Patrimônio'],
       summary: 'Cadastra uma unidade de patrimônio',
       description: `
-            + Caso de uso: Cadastro individual de um bem permanente (ex.: um notebook específico), vinculado a um item do tipo 'permanente'.
+            + Caso de uso: Cadastro individual de um bem permanente (ex.: um notebook específico) — cada unidade é autocontida, sem depender de um catálogo de itens compartilhado.
 
             + Regras de Negócio:
-                - O item referenciado deve existir e ter 'tipo' igual a 'permanente'.
+                - A categoria referenciada deve existir e ter 'tipo' igual a 'permanente'.
                 - A localização referenciada deve existir.
                 - Número de patrimônio deve ser único entre unidades ativas.
-                - Status inicial é sempre 'Disponível'.
+                - Status inicial: 'Disponível' (padrão), 'Manutenção' ou 'Baixado'. 'Emprestado' não é aceito no cadastro.
                 - Gera um PatrimonioEvento do tipo 'cadastro'.
-                - Recalcula 'quantidade' e 'quantidade_disponivel' do Item associado.
 
             + Resultado Esperado:
                 - HTTP 201 Created com corpo conforme **PatrimonioDetalhes**.
@@ -181,7 +209,7 @@ registerPaths({
 
         + Regras de Negócio:
             - Aplicar paginação. Limite máximo de 100 itens por página.
-            - Retorna unidades populadas com item e localização.
+            - Retorna unidades populadas com categoria e localização.
 
         + Resultado Esperado:
             - 200 OK com corpo conforme schema **PatrimonioListagem**.
@@ -206,7 +234,7 @@ registerPaths({
             + Caso de uso: Cadastro em lote de N unidades do mesmo modelo (ex.: 10 notebooks recém-comprados), evitando o cadastro unidade a unidade.
 
             + Regras de Negócio:
-                - Mesmas validações de item/localização do cadastro individual.
+                - Mesmas validações de categoria/localização do cadastro individual.
                 - Numeração sequencial: \`{prefixo}-{numero_inicial..numero_inicial+quantidade-1}\`, com 4 dígitos (ex.: NB-0001, NB-0002).
                 - Quantidade entre 1 e 500 por chamada.
                 - Gera um PatrimonioEvento 'cadastro' por unidade criada.
@@ -255,7 +283,7 @@ registerPaths({
       summary: 'Atualiza metadados de uma unidade de patrimônio',
       description: `
             + Regras de Negócio:
-                - Só altera 'numero_patrimonio', 'observacoes' e 'data_aquisicao'.
+                - Só altera 'numero_patrimonio', 'modelo', 'fabricante', 'categoria', 'observacoes' e 'data_aquisicao'.
                 - 'status' e 'localizacao' NÃO podem ser alterados por esta rota — use /patrimonios/{id}/status e /patrimonios/{id}/localizacao.
 
             + Resultado Esperado:
@@ -396,6 +424,80 @@ registerPaths({
       responses: {
         200: commonResponses[200]!('#/components/schemas/PatrimonioDetalhes'),
         400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/patrimonios/{id}/foto': {
+    post: {
+      tags: ['Patrimônio'],
+      summary: 'Faz upload da foto de uma unidade de patrimônio',
+      description: `
+            + Caso de uso: Upload de foto do bem físico (ex.: foto do notebook).
+
+            + Regras de Negócio:
+                - Unidade deve existir.
+                - Arquivo deve ser uma imagem válida, até 5 MB.
+                - Usuário deve ter permissão para alterar patrimônio.
+
+            + Resultado Esperado:
+                - HTTP 201 Created com dados da unidade atualizada incluindo caminho da foto.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do patrimônio')],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['file'],
+              properties: {
+                file: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Arquivo de imagem da unidade',
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'Foto enviada com sucesso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PatrimonioUploadFotoResposta',
+              },
+            },
+          },
+        },
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+
+    delete: {
+      tags: ['Patrimônio'],
+      summary: 'Deleta a foto de uma unidade de patrimônio',
+      description: `
+            + Regras de Negócio:
+                - Unidade deve existir.
+                - Remove o arquivo de imagem do MinIO/S3. Operação é irreversível.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do patrimônio')],
+      responses: {
+        200: commonResponses[200]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
         498: commonResponses[498]!(),

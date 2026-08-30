@@ -22,14 +22,14 @@ class ItemService {
 
   async criar(parsedData: Item, req: AuthenticatedRequest) {
     await this.validateNome(parsedData.nome, null, req);
-    await this.validateCategoria(parsedData.categoria, parsedData.tipo, req);
+    await this.validateCategoria(parsedData.categoria, req);
 
     return await this.repository.criar({
       ...parsedData,
       usuario: req.user_id,
       quantidade: 0,
       quantidade_disponivel: 0,
-      estoque_minimo: parsedData.tipo === 'permanente' ? 0 : parsedData.estoque_minimo,
+      estoque_minimo: parsedData.estoque_minimo,
     });
   }
 
@@ -46,12 +46,12 @@ class ItemService {
     parsedData: ItemUpdate,
     req: AuthenticatedRequest,
   ) {
-    const itemExistente = await this.ensureItemExists(id, req);
+    await this.ensureItemExists(id, req);
     if (parsedData.nome) {
       await this.validateNome(parsedData.nome, id, req);
     }
     if (parsedData.categoria) {
-      await this.validateCategoria(parsedData.categoria, itemExistente.tipo, req);
+      await this.validateCategoria(parsedData.categoria, req);
     }
 
     const {
@@ -102,7 +102,6 @@ class ItemService {
 
   private async validateCategoria(
     categoriaId: string,
-    tipo: 'consumo' | 'permanente',
     _req: AuthenticatedRequest,
   ) {
     const categoria = await CategoriaModel.findOne({ _id: categoriaId });
@@ -115,11 +114,9 @@ class ItemService {
         customMessage: 'Categoria não encontrada.',
       });
     }
-    if (categoria.tipo !== tipo) {
+    if (categoria.tipo !== 'consumo') {
       const mensagem =
-        tipo === 'permanente'
-          ? 'Categoria de almoxarifado não pode ser usada em bem permanente.'
-          : 'Categoria de patrimônio não pode ser usada em item de almoxarifado.';
+        'Categoria de patrimônio não pode ser usada em item de almoxarifado.';
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'validationError',

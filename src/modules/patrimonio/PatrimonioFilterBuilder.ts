@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import CategoriaModel from '../categoria/CategoriaModel.js';
 import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
 
 const { Types } = mongoose;
@@ -8,13 +9,6 @@ class PatrimonioFilterBuilder {
 
   constructor() {
     this.filtros = {};
-  }
-
-  comItem(item: string | null | undefined): this {
-    if (item && Types.ObjectId.isValid(item)) {
-      this.filtros['item'] = new Types.ObjectId(item);
-    }
-    return this;
   }
 
   comStatus(status: string | null | undefined): this {
@@ -44,13 +38,43 @@ class PatrimonioFilterBuilder {
     return this;
   }
 
-  // Busca só por número de patrimônio. Buscar também pelo nome do item
-  // populado exigiria um lookup contra `itens` antes de montar o filtro
-  // (como `ItemFilterBuilder.comCategoria` faz para categoria) — deixado de
-  // fora para não sobre-engenhar um filtro que a tela ainda não pede; o
-  // nome do modelo já filtra por `item` diretamente.
+  // Busca por número de patrimônio OU pelo modelo (texto livre) da unidade.
   comBusca(busca: string | null | undefined): this {
-    return this.comNumeroPatrimonio(busca);
+    if (!busca) return this;
+
+    this.filtros['$or'] = [
+      { numero_patrimonio: { $regex: escapeRegex(busca), $options: 'i' } },
+      { modelo: { $regex: escapeRegex(busca), $options: 'i' } },
+    ];
+    return this;
+  }
+
+  async comCategoria(categoria: string | null | undefined): Promise<this> {
+    if (!categoria) return this;
+
+    let categoriaId: mongoose.Types.ObjectId | null = null;
+    if (Types.ObjectId.isValid(categoria)) {
+      const categoriaEncontrada = await CategoriaModel.findById(categoria);
+      categoriaId = categoriaEncontrada ? categoriaEncontrada._id : null;
+    } else {
+      const categoriaEncontrada = await CategoriaModel.findOne({
+        nome: { $regex: escapeRegex(categoria), $options: 'i' },
+      });
+      categoriaId = categoriaEncontrada ? categoriaEncontrada._id : null;
+    }
+
+    this.filtros['categoria'] = categoriaId ?? { $in: [] };
+    return this;
+  }
+
+  comModelo(modelo: string | null | undefined): this {
+    if (modelo) {
+      this.filtros['modelo'] = {
+        $regex: `^${escapeRegex(modelo)}$`,
+        $options: 'i',
+      };
+    }
+    return this;
   }
 
   comAtivo(ativo = 'true'): this {

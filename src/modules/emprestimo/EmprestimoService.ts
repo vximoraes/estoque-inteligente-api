@@ -29,18 +29,7 @@ class EmprestimoService {
   }
 
   async criar(parsedData: Emprestimo, req: AuthenticatedRequest) {
-    const item = await Item.findById(parsedData.item);
-    if (!item) {
-      throw new CustomError({
-        statusCode: 404,
-        errorType: 'resourceNotFound',
-        field: 'Item',
-        details: [],
-        customMessage: messages.error.resourceNotFound('Item'),
-      });
-    }
-
-    if (item.tipo === 'permanente') {
+    if (parsedData.patrimonio) {
       const dadosPatrimonio = await this.prepararEmprestimoDeUnidade(
         parsedData,
         req,
@@ -66,6 +55,36 @@ class EmprestimoService {
         );
         throw erro;
       }
+    }
+
+    // Empréstimo por quantidade (consumo): `item`/`localizacao`/
+    // `quantidade_emprestada` já são garantidos pelo `EmprestimoSchema`
+    // quando `patrimonio` não foi enviado — a checagem abaixo é defesa
+    // redundante (e também estreita os tipos pro TypeScript).
+    if (
+      !parsedData.item ||
+      !parsedData.localizacao ||
+      parsedData.quantidade_emprestada === undefined
+    ) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'validationError',
+        field: 'item',
+        details: [],
+        customMessage:
+          'Item, localização e quantidade emprestada são obrigatórios para empréstimo por quantidade.',
+      });
+    }
+
+    const item = await Item.findById(parsedData.item);
+    if (!item) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Item',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Item'),
+      });
     }
 
     const localizacao = await Localizacao.findById(parsedData.localizacao);
@@ -151,15 +170,6 @@ class EmprestimoService {
         field: 'Patrimonio',
         details: [],
         customMessage: messages.error.resourceNotFound('Patrimônio'),
-      });
-    }
-    if (patrimonio.item.toString() !== parsedData.item) {
-      throw new CustomError({
-        statusCode: 400,
-        errorType: 'validationError',
-        field: 'patrimonio',
-        details: [],
-        customMessage: 'Esta unidade não pertence ao item informado.',
       });
     }
     if (!patrimonio.ativo) {

@@ -13,7 +13,6 @@ export type PatrimonioEventoTipo =
 
 export interface IPatrimonioEvento {
   patrimonio: mongoose.Types.ObjectId;
-  item: mongoose.Types.ObjectId;
   tipo: PatrimonioEventoTipo;
   status_anterior?: string | null;
   status_novo: string;
@@ -34,12 +33,6 @@ const patrimonioEventoSchema = new mongoose.Schema<PatrimonioEventoDocument>({
   patrimonio: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'patrimonios',
-    required: true,
-    index: true,
-  },
-  item: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'itens',
     required: true,
     index: true,
   },
@@ -80,7 +73,6 @@ const patrimonioEventoSchema = new mongoose.Schema<PatrimonioEventoDocument>({
 });
 
 patrimonioEventoSchema.index({ patrimonio: 1, data_hora: -1 });
-patrimonioEventoSchema.index({ item: 1, data_hora: -1 });
 
 patrimonioEventoSchema.plugin(mongoosePaginate);
 

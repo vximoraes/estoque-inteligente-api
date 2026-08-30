@@ -9,6 +9,8 @@ import PatrimonioModel, {
 } from './PatrimonioModel.js';
 import PatrimonioEventoModel from './PatrimonioEventoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { resolveSort } from '../../utils/resolveSort.js';
+import { PATRIMONIO_SORT_FIELDS } from './PatrimonioQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -26,7 +28,7 @@ class PatrimonioRepository {
     const salvo = await patrimonio.save();
     return await this.model
       .findById(salvo._id)
-      .populate('item')
+      .populate('categoria')
       .populate('localizacao');
   }
 
@@ -35,7 +37,7 @@ class PatrimonioRepository {
     const ids = salvos.map((doc) => doc._id);
     return await this.model
       .find({ _id: { $in: ids } })
-      .populate('item')
+      .populate('categoria')
       .populate('localizacao')
       .sort({ numero_patrimonio: 1 });
   }
@@ -46,7 +48,7 @@ class PatrimonioRepository {
     if (id) {
       const data = await this.model
         .findOne({ _id: id, ativo: true })
-        .populate('item')
+        .populate('categoria')
         .populate('localizacao');
 
       if (!data) {
@@ -63,28 +65,41 @@ class PatrimonioRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const { item, status, localizacao, numero_patrimonio, busca, ativo } =
-      query;
+    const {
+      modelo,
+      status,
+      localizacao,
+      numero_patrimonio,
+      busca,
+      categoria,
+      ativo,
+    } = query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
 
-    const filtros = new PatrimonioFilterBuilder()
-      .comItem(item ?? '')
+    // `comCategoria` faz lookup assíncrono em `categorias`, então o
+    // encadeamento fluente não serve pra esse passo — precisa do `await`
+    // pra não devolver uma Promise em vez do builder.
+    const filterBuilder = new PatrimonioFilterBuilder()
+      .comModelo(modelo ?? '')
       .comStatus(status ?? '')
       .comLocalizacao(localizacao ?? '')
       .comNumeroPatrimonio(numero_patrimonio ?? '')
       .comBusca(busca ?? '')
-      .comAtivo(ativo ?? 'true')
-      .build();
+      .comAtivo(ativo ?? 'true');
+    await filterBuilder.comCategoria(categoria ?? '');
+    const filtros = filterBuilder.build();
 
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      populate: ['item', 'localizacao'],
-      sort: { numero_patrimonio: 1 },
+      populate: ['categoria', 'localizacao'],
+      sort: resolveSort(query['ordenar'], PATRIMONIO_SORT_FIELDS, {
+        numero_patrimonio: 1,
+      }),
     };
 
     const resultado = await this.model.paginate(
@@ -101,7 +116,7 @@ class PatrimonioRepository {
   async buscarPorId(id: string, _req?: AuthenticatedRequest) {
     const patrimonio = await this.model
       .findOne({ _id: id })
-      .populate('item')
+      .populate('categoria')
       .populate('localizacao');
 
     if (!patrimonio) {
@@ -124,7 +139,7 @@ class PatrimonioRepository {
   ) {
     const patrimonio = await this.model
       .findOneAndUpdate({ _id: id }, parsedData, { new: true })
-      .populate('item')
+      .populate('categoria')
       .populate('localizacao');
 
     if (!patrimonio) {

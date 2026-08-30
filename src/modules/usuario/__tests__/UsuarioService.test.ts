@@ -96,6 +96,16 @@ describe('UsuarioService', () => {
         service.atualizar('1', { nome: 'Novo' }, req),
       ).rejects.toThrow('Usuário não encontrado(a).');
     });
+
+    it('não permite ativar a própria conta via PATCH (ativo só muda por ativarConta)', async () => {
+      const req = { user_id: 'user123' };
+      repositoryMock.buscarPorId.mockResolvedValue({ _id: '1', ativo: false });
+      repositoryMock.atualizar.mockResolvedValue({ _id: '1', ativo: false });
+
+      await service.atualizar('1', { ativo: true }, req);
+
+      expect(repositoryMock.atualizar).toHaveBeenCalledWith('1', {}, 'user123');
+    });
   });
 
   describe('deletar', () => {

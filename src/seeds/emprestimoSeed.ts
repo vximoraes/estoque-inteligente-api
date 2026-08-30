@@ -6,9 +6,9 @@ import Usuario from '../modules/usuario/UsuarioModel.js';
 import Patrimonio from '../modules/patrimonio/PatrimonioModel.js';
 
 export default async function emprestimoSeed(adminId: string) {
-  // Item permanente empresta por unidade, não por quantidade — ver bloco
-  // abaixo que gera esses empréstimos a partir das unidades já marcadas
-  // como 'Emprestado' em `patrimonioSeed`.
+  // Unidade patrimonial empresta por unidade, não por quantidade — ver
+  // bloco abaixo que gera esses empréstimos a partir das unidades já
+  // marcadas como 'Emprestado' em `patrimonioSeed`.
   const itemList = await Item.find({ tipo: 'consumo' });
   const localizacaoList = await Localizacao.find({});
   const usuarioList = await Usuario.find({});
@@ -63,7 +63,6 @@ export default async function emprestimoSeed(adminId: string) {
       usuarioList[Math.floor(Math.random() * usuarioList.length)]!;
 
     await Emprestimo.create({
-      item: unidade.item,
       patrimonio: unidade._id,
       tipo_controle: 'unidade',
       localizacao: unidade.localizacao,

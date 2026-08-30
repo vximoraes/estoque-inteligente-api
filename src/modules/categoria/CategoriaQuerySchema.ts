@@ -1,11 +1,17 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { createOrdenarSchema } from '../../utils/commonFields.js';
 
 export const CategoriaIdSchema = z
   .string()
   .refine((id) => mongoose.Types.ObjectId.isValid(id), {
     message: 'ID inválido',
   });
+
+export const CATEGORIA_SORT_FIELDS = {
+  nome: 'nome',
+  createdAt: 'createdAt',
+} as const;
 
 export const CategoriaQuerySchema = z.object({
   nome: z
@@ -35,4 +41,5 @@ export const CategoriaQuerySchema = z.object({
     .refine((val) => Number.isInteger(val) && val > 0 && val <= 100, {
       message: 'Limite deve ser um número inteiro entre 1 e 100',
     }),
+  ordenar: createOrdenarSchema(Object.keys(CATEGORIA_SORT_FIELDS)),
 });

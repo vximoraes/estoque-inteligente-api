@@ -91,10 +91,6 @@ estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
   const item = (await Item.findById(itemId)) as Record<string, unknown> | null;
 
   if (item) {
-    if (item['tipo'] === 'permanente') {
-      return;
-    }
-
     const quantidadeAnterior = (item['quantidade'] as number) || 0;
     const estoqueMinimo = (item['estoque_minimo'] as number) || 0;
     const nomeItem = item['nome'] as string;

@@ -3,7 +3,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 
 export interface IItem {
   nome: string;
-  tipo: 'consumo' | 'permanente';
+  tipo: 'consumo';
   quantidade: number;
   quantidade_disponivel: number;
   estoque_minimo: number;
@@ -22,7 +22,7 @@ const itemSchema = new mongoose.Schema<ItemDocument>(
     nome: { type: String, required: true },
     tipo: {
       type: String,
-      enum: ['consumo', 'permanente'],
+      enum: ['consumo'],
       default: 'consumo',
       required: true,
       immutable: true,
@@ -72,17 +72,6 @@ itemSchema.index(
   { unique: true, partialFilterExpression: { ativo: true } },
 );
 
-// Item permanente não tem "estoque mínimo" (a quantidade total inclui
-// unidades em Manutenção, que não emprestam) — o status precisa refletir
-// `quantidade_disponivel`, não `quantidade`, senão um item com todas as
-// unidades em manutenção/baixadas aparece como "Em Estoque" mesmo sem
-// nenhuma unidade emprestável.
-function statusDePermanente(
-  quantidadeDisponivel: number,
-): ItemDocument['status'] {
-  return quantidadeDisponivel === 0 ? 'Indisponível' : 'Em Estoque';
-}
-
 function statusDeConsumo(
   quantidade: number,
   estoqueMinimo: number,
@@ -93,10 +82,7 @@ function statusDeConsumo(
 }
 
 itemSchema.pre('save', function (this: ItemDocument) {
-  this.status =
-    this.tipo === 'permanente'
-      ? statusDePermanente(this.quantidade_disponivel)
-      : statusDeConsumo(this.quantidade, this.estoque_minimo);
+  this.status = statusDeConsumo(this.quantidade, this.estoque_minimo);
 });
 
 itemSchema.pre(
@@ -114,15 +100,6 @@ itemSchema.pre(
       ).findOne(this.getQuery() as mongoose.FilterQuery<ItemDocument>);
 
       if (docAtual) {
-        if (docAtual.tipo === 'permanente') {
-          const quantidadeDisponivel =
-            update['quantidade_disponivel'] !== undefined
-              ? (update['quantidade_disponivel'] as number)
-              : docAtual.quantidade_disponivel;
-          this.set({ status: statusDePermanente(quantidadeDisponivel) });
-          return;
-        }
-
         const quantidade =
           update['quantidade'] !== undefined
             ? (update['quantidade'] as number)

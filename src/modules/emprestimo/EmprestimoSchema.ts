@@ -45,32 +45,60 @@ const dataSaidaSchema = z
     message: 'Data do emprestimo nao pode ser futura',
   });
 
-const EmprestimoSchema = z.object({
-  item: objectIdSchema,
-  localizacao: objectIdSchema,
-  // Só relevante quando o item é do tipo 'permanente' — o Service valida
-  // a obrigatoriedade e sobrescreve `localizacao`/`quantidade_emprestada`
-  // com os valores reais da unidade nesse caso.
-  patrimonio: objectIdSchema.optional(),
-  quantidade_emprestada: quantidadeSchema,
-  solicitante_nome: z
-    .string()
-    .trim()
-    .min(3, 'Solicitante deve ter no minimo 3 caracteres')
-    .max(120, 'Solicitante deve ter no maximo 120 caracteres'),
-  solicitante_email: z
-    .string()
-    .trim()
-    .email('E-mail do solicitante invalido')
-    .optional(),
-  data_saida: dataSaidaSchema,
-  data_prevista_devolucao: dataFuturaSchema,
-  observacoes_emprestimo: z
-    .string()
-    .trim()
-    .max(500, 'Observacoes devem ter no maximo 500 caracteres')
-    .optional(),
-});
+// `patrimonio` presente = empréstimo de unidade patrimonial: o Service deriva
+// `localizacao`/`quantidade_emprestada` da própria unidade e ignora os valores
+// enviados aqui, então só `item`/`localizacao`/`quantidade_emprestada` viram
+// obrigatórios no outro caminho (empréstimo por quantidade/consumo).
+const EmprestimoSchema = z
+  .object({
+    item: objectIdSchema.optional(),
+    localizacao: objectIdSchema.optional(),
+    patrimonio: objectIdSchema.optional(),
+    quantidade_emprestada: quantidadeSchema.optional(),
+    solicitante_nome: z
+      .string()
+      .trim()
+      .min(3, 'Solicitante deve ter no minimo 3 caracteres')
+      .max(120, 'Solicitante deve ter no maximo 120 caracteres'),
+    solicitante_email: z
+      .string()
+      .trim()
+      .email('E-mail do solicitante invalido')
+      .optional(),
+    data_saida: dataSaidaSchema,
+    data_prevista_devolucao: dataFuturaSchema,
+    observacoes_emprestimo: z
+      .string()
+      .trim()
+      .max(500, 'Observacoes devem ter no maximo 500 caracteres')
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.patrimonio) return;
+
+    if (!data.item) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Item é obrigatório para empréstimo por quantidade.',
+        path: ['item'],
+      });
+    }
+    if (!data.localizacao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Localização é obrigatória para empréstimo por quantidade.',
+        path: ['localizacao'],
+      });
+    }
+    if (data.quantidade_emprestada === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Quantidade emprestada é obrigatória para empréstimo por quantidade.',
+        path: ['quantidade_emprestada'],
+      });
+    }
+  });
 
 const DevolucaoEmprestimoSchema = z.object({
   quantidade_devolvida: quantidadeSchema,

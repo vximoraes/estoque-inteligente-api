@@ -12,14 +12,17 @@ export interface IFornecedor {
 
 export type FornecedorDocument = IFornecedor & Document;
 
-const fornecedorSchema = new mongoose.Schema<FornecedorDocument>({
-  nome: { type: String, required: true },
-  ativo: { type: Boolean, default: true },
-  usuario: { type: String, ref: 'usuarios', required: true },
-  url: { type: String, required: false },
-  contato: { type: String, required: false },
-  descricao: { type: String, required: false },
-});
+const fornecedorSchema = new mongoose.Schema<FornecedorDocument>(
+  {
+    nome: { type: String, required: true },
+    ativo: { type: Boolean, default: true },
+    usuario: { type: String, ref: 'usuarios', required: true },
+    url: { type: String, required: false },
+    contato: { type: String, required: false },
+    descricao: { type: String, required: false },
+  },
+  { timestamps: true },
+);
 
 fornecedorSchema.plugin(mongoosePaginate);
 
