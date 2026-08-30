@@ -167,6 +167,7 @@ export const fakeMappings = {
       ]),
     data_aquisicao: () => new Date().toISOString(),
     observacoes: () => fakebr.lorem.sentence(),
+    imagem: () => '',
     campos_personalizados: () => [
       {
         chave: 'Número de série',
