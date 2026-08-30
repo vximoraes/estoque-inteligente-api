@@ -34,4 +34,4 @@ const UsuarioUpdateSchema = UsuarioSchema.omit({ email: true }).partial();
 export type Usuario = z.infer<typeof UsuarioSchema>;
 export type UsuarioUpdate = z.infer<typeof UsuarioUpdateSchema>;
 
-export { UsuarioSchema, UsuarioUpdateSchema };
+export { UsuarioSchema, UsuarioUpdateSchema, senhaRegex };

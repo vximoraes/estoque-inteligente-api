@@ -34,6 +34,8 @@ class UsuarioService {
     const data = parsedData as Record<string, unknown>;
     delete data['senha'];
     delete data['email'];
+    // ativo só muda via ativarConta/ativarUsuarioPadrao (token de convite), nunca por PATCH direto.
+    delete data['ativo'];
 
     await this.ensureUserExists(id);
 

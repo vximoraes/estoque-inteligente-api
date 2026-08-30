@@ -9,6 +9,7 @@ import setupMinio from './config/setupMinio.js';
 import errorHandler from './utils/helpers/errorHandler.js';
 import logger from './utils/logger.js';
 import CommonResponse from './utils/helpers/CommonResponse.js';
+import bloquearAutocadastroMiddleware from './middlewares/BloquearAutocadastroMiddleware.js';
 import DbConnect from './config/DbConnect.js';
 import { initAuth } from './config/auth.js';
 import { generateSpec } from './utils/openapi/registry.js';
@@ -83,6 +84,9 @@ export async function bootstrap(): Promise<express.Express> {
     req.headers['x-real-ip'] = req.ip;
     next();
   });
+  // Sem autocadastro público: usuário só existe via convite do admin (UsuarioService.convidarUsuario,
+  // que chama getAuth().api.signUpEmail direto, sem passar por essa rota HTTP).
+  app.post('/api/auth/sign-up/email', bloquearAutocadastroMiddleware);
   app.all('/api/auth/*splat', toNodeHandler(auth));
 
   app.use(express.json());
