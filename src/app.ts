@@ -24,7 +24,6 @@ import estoques from './modules/estoque/estoqueRoutes.js';
 import fornecedores from './modules/fornecedor/fornecedorRoutes.js';
 import movimentacoes from './modules/movimentacao/movimentacaoRoutes.js';
 import notificacoes from './modules/notificacao/notificacaoRoutes.js';
-import orcamentos from './modules/orcamento/orcamentoRoutes.js';
 import emprestimos from './modules/emprestimo/emprestimoRoutes.js';
 import patrimonios from './modules/patrimonio/patrimonioRoutes.js';
 import grupos from './modules/grupo/grupoRoutes.js';
@@ -39,7 +38,6 @@ import './modules/estoque/estoqueDocs.js';
 import './modules/fornecedor/fornecedorDocs.js';
 import './modules/movimentacao/movimentacaoDocs.js';
 import './modules/notificacao/notificacaoDocs.js';
-import './modules/orcamento/orcamentoDocs.js';
 import './modules/emprestimo/emprestimoDocs.js';
 import './modules/patrimonio/patrimonioDocs.js';
 import './modules/grupo/grupoDocs.js';
@@ -107,7 +105,6 @@ export async function bootstrap(): Promise<express.Express> {
     fornecedores,
     movimentacoes,
     notificacoes,
-    orcamentos,
     emprestimos,
     patrimonios,
     grupos,

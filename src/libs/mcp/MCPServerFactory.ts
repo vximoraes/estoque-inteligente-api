@@ -5,7 +5,6 @@ import { buscarPatrimonios } from './tools/buscarPatrimonios.js';
 import { buscarEstoque } from './tools/buscarEstoque.js';
 import { buscarMovimentacoes } from './tools/buscarMovimentacoes.js';
 import { buscarEmprestimos } from './tools/buscarEmprestimos.js';
-import { buscarOrcamentos } from './tools/buscarOrcamentos.js';
 import { verificarItensAbaixoMinimo } from './tools/verificarItensAbaixoMinimo.js';
 import { itensPrioritariosCompra } from './tools/itensPrioritariosCompra.js';
 import { buscarCategorias } from './tools/buscarCategorias.js';
@@ -212,30 +211,6 @@ export function criarMCPServer(usuarioId: string): McpServer {
         usuarioId,
       );
       return formatarResultado('buscarEmprestimos', resultado);
-    },
-  );
-
-  server.tool(
-    'buscarOrcamentos',
-    'Busca orçamentos com itens e fornecedores associados',
-    {
-      nome: z
-        .string()
-        .optional()
-        .describe('Filtrar por nome do orçamento (busca parcial)'),
-      limite: z
-        .number()
-        .int()
-        .min(1)
-        .max(50)
-        .optional()
-        .default(20)
-        .describe('Máximo de resultados'),
-    },
-    async ({ nome, limite }) => {
-      await verificarPermissao(usuarioId, 'orcamentos');
-      const resultado = await buscarOrcamentos({ nome, limite }, usuarioId);
-      return formatarResultado('buscarOrcamentos', resultado);
     },
   );
 

@@ -276,7 +276,7 @@ class IAController {
               'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
             );
             respostaCompleta =
-              '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações, empréstimos ou orçamentos?';
+              '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações ou empréstimos?';
           }
 
           conversa.mensagens.push({

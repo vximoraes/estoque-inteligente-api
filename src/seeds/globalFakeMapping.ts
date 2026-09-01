@@ -227,17 +227,6 @@ export const fakeMappings = {
     usuario: () => new mongoose.Types.ObjectId().toString(),
   },
 
-  Orcamento: {
-    produtoNome: () => fakebr.commerce.productName(),
-    adjetivoNome: () => fakebr.lorem.word(),
-    nome: () =>
-      `Projeto ${fakeMappings.Orcamento.adjetivoNome()} - ${fakeMappings.Orcamento.produtoNome()}`,
-    descricao: () => fakebr.lorem.sentence(),
-    total: () => 0, // Será calculado automaticamente pelo middleware
-    itens: () => [], // Será preenchido no seed
-    usuario: () => new mongoose.Types.ObjectId().toString(),
-  },
-
   Emprestimo: {
     item: () => new mongoose.Types.ObjectId().toString(),
     quantidade_emprestada: () => fakebr.random.number({ min: 1, max: 20 }),
@@ -293,7 +282,6 @@ export const fakeMappings = {
           'buscarItens',
           'buscarLocalizacoes',
           'buscarMovimentacoes',
-          'buscarOrcamentos',
           'itensPrioritariosCompra',
           'resumoEstoque',
           'verificarItensAbaixoMinimo',
