@@ -4,6 +4,7 @@ import Item from '../modules/item/ItemModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 import Usuario from '../modules/usuario/UsuarioModel.js';
 import Patrimonio from '../modules/patrimonio/PatrimonioModel.js';
+import PatrimonioEvento from '../modules/patrimonio/PatrimonioEventoModel.js';
 
 // Status é sempre calculado (`EmprestimoRepository.calcularStatus`), nunca
 // gravado — reproduzimos aqui as mesmas três combinações de
@@ -109,6 +110,8 @@ export default async function emprestimoSeed(adminId: string) {
       usuarioList[Math.floor(Math.random() * usuarioList.length)]!;
     const atrasado = Math.random() < 0.4;
 
+    const data_saida = diasAtras(Math.floor(Math.random() * 15) + 2);
+
     await Emprestimo.create({
       patrimonio: unidade._id,
       tipo_controle: 'unidade',
@@ -118,7 +121,7 @@ export default async function emprestimoSeed(adminId: string) {
       quantidade_aberta: 1,
       solicitante_nome: fakeMappings.Emprestimo.solicitante_nome(),
       solicitante_email: fakeMappings.Emprestimo.solicitante_email(),
-      data_saida: diasAtras(Math.floor(Math.random() * 15) + 2),
+      data_saida,
       data_prevista_devolucao: atrasado
         ? diasAtras(Math.floor(Math.random() * 8) + 1)
         : diasNoFuturo(Math.floor(Math.random() * 10) + 1),
@@ -126,6 +129,15 @@ export default async function emprestimoSeed(adminId: string) {
       observacoes_emprestimo: fakeMappings.Emprestimo.observacoes_emprestimo(),
       usuario_responsavel: String(usuarioRandom._id),
       ativo: true,
+    });
+
+    await PatrimonioEvento.create({
+      patrimonio: unidade._id,
+      tipo: 'emprestimo',
+      status_anterior: 'Disponível',
+      status_novo: 'Emprestado',
+      data_hora: data_saida,
+      usuario: adminId,
     });
   }
 
@@ -164,6 +176,26 @@ export default async function emprestimoSeed(adminId: string) {
       observacoes_devolucao: fakeMappings.Emprestimo.observacoes_devolucao(),
       usuario_responsavel: String(usuarioRandom._id),
       ativo: true,
+    });
+
+    await PatrimonioEvento.create({
+      patrimonio: unidade._id,
+      tipo: 'emprestimo',
+      status_anterior: 'Disponível',
+      status_novo: 'Emprestado',
+      data_hora: data_saida,
+      usuario: adminId,
+    });
+
+    await PatrimonioEvento.create({
+      patrimonio: unidade._id,
+      tipo: 'devolucao',
+      status_anterior: 'Emprestado',
+      status_novo: 'Disponível',
+      localizacao_anterior: unidade.localizacao,
+      localizacao_nova: unidade.localizacao,
+      data_hora: data_devolucao_total,
+      usuario: adminId,
     });
   }
 }
