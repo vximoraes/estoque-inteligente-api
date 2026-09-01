@@ -54,7 +54,6 @@ export const generateSpec = () => {
         name: 'Movimentação',
         description: 'Rotas para gestão de movimentações',
       },
-      { name: 'Orçamentos', description: 'Rotas para gestão de orçamentos' },
       {
         name: 'Notificações',
         description: 'Rotas para gestão de notificações',
