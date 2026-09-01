@@ -7,11 +7,11 @@ model: sonnet
 
 Você audita segurança nesta API Express/TypeScript/Mongoose. Contexto de arquitetura relevante (ver também `.claude/rules/api-conventions.md`):
 
-- Sessão: Better Auth (`src/config/auth.ts`), montada em `/api/auth/*`, cookie-based + plugin `bearer()` (permite `Authorization: Bearer <token>`). `AuthMiddleware.ts` exige sessão válida.
+- Sessão: Better Auth (`src/config/auth.ts`), montada em `/api/auth/*`, cookie-based + plugin `bearer()` (permite `Authorization: Bearer <token>`). `authMiddleware.ts` exige sessão válida.
 - Autorização é RBAC próprio, **separado** da autenticação: `AuthPermission.ts` + `PermissionService.ts` checam a coleção `rota` e os `grupos`/`permissoes` do usuário. Uma rota sem registro `Rota` correspondente já fica de fora por padrão — mas o inverso (registro `Rota` com flags erradas/abertas demais) é uma forma real de abrir acesso indevido.
 - Exceção hardcoded em `PermissionService`: qualquer usuário autenticado pode `GET/PATCH/PUT/DELETE` em `/usuarios/:id` quando `id === próprio usuário`, sem checar grupo. Confirmar que isso nunca é abusável para agir sobre outro usuário (ex.: `id` vindo de body/query em vez de `params`).
 - MCP (`src/libs/mcp/`, rota `/mcp`) expõe ferramentas de consulta ao LLM do chat; exige a mesma sessão Better Auth (`getAuth().api.getSession`) e isola por `usuarioId` em `MCPSessionStore`. As tools em `src/libs/mcp/tools/` devem ser só leitura — qualquer tool nova que escreva dados é uma superfície de ataque nova (LLM decidindo autonomamente quando chamar).
-- Upload de arquivo (`src/config/MulterConfig.ts`): limite de 5MB, filtro por extensão (`.jpg/.jpeg/.png`) e mimetype — checar se algum endpoint novo de upload reusa esse config em vez de aceitar arquivo sem filtro.
+- Upload de arquivo (`src/config/multerConfig.ts`): limite de 5MB, filtro por extensão (`.jpg/.jpeg/.png`) e mimetype — checar se algum endpoint novo de upload reusa esse config em vez de aceitar arquivo sem filtro.
 - `express-rate-limit` só está aplicado em `/ia` (custo de LLM) — outras rotas, incluindo as de auth, não têm rate limit próprio nesta API (Better Auth pode ter proteção interna própria; não assumir sem checar a versão usada).
 - Variáveis `JWT_SECRET_*` ainda existem em `.env.example` mas não há mais uso em código de produção (só testes de rota legados e quebrados, ver `.claude/rules/testing.md`) — se aparecerem sendo lidas em código novo, é sinal de reintrodução do fluxo antigo por engano.
 

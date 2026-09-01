@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
 import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';

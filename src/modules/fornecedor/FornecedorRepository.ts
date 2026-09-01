@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import FornecedorFilterBuilder from './FornecedorFilterBuilder.js';
 import FornecedorModel, { type FornecedorDocument } from './FornecedorModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';

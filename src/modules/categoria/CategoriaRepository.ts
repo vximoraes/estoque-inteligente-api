@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import CategoriaFilterBuilder from './CategoriaFilterBuilder.js';
 import CategoriaModel, { type CategoriaDocument } from './CategoriaModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';

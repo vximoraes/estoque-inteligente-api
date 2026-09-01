@@ -8,8 +8,8 @@ import {
   describirErro,
 } from '../../utils/helpers/index.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
-import minioClient from '../../config/MinIO.js';
-import compress from '../../config/SharpConfig.js';
+import minioClient from '../../config/minioClient.js';
+import compress from '../../config/sharpConfig.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type { Item, ItemUpdate } from './ItemSchema.js';
 
