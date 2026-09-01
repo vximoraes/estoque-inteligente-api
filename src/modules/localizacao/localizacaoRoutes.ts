@@ -1,5 +1,5 @@
 import express from 'express';
-import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthMiddleware from '../../middlewares/authMiddleware.js';
 import AuthPermission from '../../middlewares/AuthPermission.js';
 import LocalizacaoController from './LocalizacaoController.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';

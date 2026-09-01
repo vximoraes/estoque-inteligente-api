@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import PatrimonioFilterBuilder from './PatrimonioFilterBuilder.js';
 import PatrimonioModel, {
   type PatrimonioDocument,
