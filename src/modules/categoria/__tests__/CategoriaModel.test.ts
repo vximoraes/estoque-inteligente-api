@@ -22,7 +22,11 @@ describe('Modelo de Categoria', () => {
   });
 
   it('deve criar uma categoria válida', async () => {
-    const cat = new Categoria({ nome: 'Resistores', usuario: usuarioId });
+    const cat = new Categoria({
+      nome: 'Resistores',
+      tipo: 'consumo',
+      usuario: usuarioId,
+    });
     await cat.save();
     expect(cat._id).toBeDefined();
     expect(cat.nome).toBe('Resistores');
@@ -30,14 +34,19 @@ describe('Modelo de Categoria', () => {
   });
 
   it('não deve criar categoria sem nome', async () => {
-    const cat = new Categoria({ usuario: usuarioId });
+    const cat = new Categoria({ tipo: 'consumo', usuario: usuarioId });
+    await expect(cat.save()).rejects.toThrow();
+  });
+
+  it('não deve criar categoria sem tipo', async () => {
+    const cat = new Categoria({ nome: 'Sem Tipo', usuario: usuarioId });
     await expect(cat.save()).rejects.toThrow();
   });
 
   it('deve retornar todas as categorias cadastradas', async () => {
     await Categoria.create([
-      { nome: 'A', usuario: usuarioId },
-      { nome: 'B', usuario: usuarioId },
+      { nome: 'A', tipo: 'consumo', usuario: usuarioId },
+      { nome: 'B', tipo: 'consumo', usuario: usuarioId },
     ]);
     const cats = await Categoria.find();
     expect(cats.length).toBe(2);
@@ -47,6 +56,7 @@ describe('Modelo de Categoria', () => {
   it('deve buscar categoria por id', async () => {
     const cat = await Categoria.create({
       nome: 'Indutores',
+      tipo: 'consumo',
       usuario: usuarioId,
     });
     const found = await Categoria.findById(cat._id);
@@ -54,7 +64,11 @@ describe('Modelo de Categoria', () => {
   });
 
   it('deve atualizar o nome da categoria', async () => {
-    const cat = await Categoria.create({ nome: 'Antigo', usuario: usuarioId });
+    const cat = await Categoria.create({
+      nome: 'Antigo',
+      tipo: 'consumo',
+      usuario: usuarioId,
+    });
     await Categoria.findByIdAndUpdate(cat._id, { nome: 'Novo' });
     const updated = await Categoria.findById(cat._id);
     expect(updated.nome).toBe('Novo');
@@ -62,8 +76,8 @@ describe('Modelo de Categoria', () => {
 
   it('deve filtrar categorias por nome', async () => {
     await Categoria.create([
-      { nome: 'Filtro1', usuario: usuarioId },
-      { nome: 'Filtro2', usuario: usuarioId },
+      { nome: 'Filtro1', tipo: 'consumo', usuario: usuarioId },
+      { nome: 'Filtro2', tipo: 'consumo', usuario: usuarioId },
     ]);
     const cats = await Categoria.find({ nome: /Filtro/ });
     expect(cats.length).toBe(2);
@@ -72,6 +86,7 @@ describe('Modelo de Categoria', () => {
   it('deve criar uma categoria com descricao opcional', async () => {
     const cat = new Categoria({
       nome: 'Sensores',
+      tipo: 'consumo',
       usuario: usuarioId,
       descricao: 'Sensores diversos',
     });
@@ -80,13 +95,21 @@ describe('Modelo de Categoria', () => {
   });
 
   it('deve criar uma categoria sem descricao', async () => {
-    const cat = new Categoria({ nome: 'Cabos', usuario: usuarioId });
+    const cat = new Categoria({
+      nome: 'Cabos',
+      tipo: 'consumo',
+      usuario: usuarioId,
+    });
     await cat.save();
     expect(cat.descricao).toBeUndefined();
   });
 
   it('deve remover uma categoria', async () => {
-    const cat = await Categoria.create({ nome: 'Remover', usuario: usuarioId });
+    const cat = await Categoria.create({
+      nome: 'Remover',
+      tipo: 'consumo',
+      usuario: usuarioId,
+    });
     await Categoria.findByIdAndDelete(cat._id);
     const found = await Categoria.findById(cat._id);
     expect(found).toBeNull();

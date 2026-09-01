@@ -64,7 +64,7 @@ describe('CategoriaRepository', () => {
       const req = { params: {}, query: { nome: 'Cat1', page: 1, limite: 10 } };
       const mockBuild = jest.fn(() => ({}));
       CategoriaFilterBuilder.mockImplementation(() => ({
-        comNome: () => ({ build: mockBuild }),
+        comNome: () => ({ comTipo: () => ({ build: mockBuild }) }),
         build: mockBuild,
       }));
       mockPaginate.mockResolvedValueOnce({
@@ -78,7 +78,7 @@ describe('CategoriaRepository', () => {
     it('deve lançar erro 500 se build não for função', async () => {
       const req = { params: {}, query: {} };
       CategoriaFilterBuilder.mockImplementation(() => ({
-        comNome: () => ({}),
+        comNome: () => ({ comTipo: () => ({ build: undefined }) }),
         build: undefined,
       }));
       await expect(repository.listar(req)).rejects.toThrow(CustomError);
