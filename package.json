@@ -12,7 +12,6 @@
     "langfuse:up": "docker compose --profile langfuse up -d",
     "langfuse:down": "docker compose --profile langfuse down",
     "seed": "clear && tsx src/seeds/seeds.js",
-    "migrate": "clear && tsx src/scripts/migrations/001-tipo-e-patrimonio.js",
     "start": "clear && tsx server.js",
     "start:render": "tsx server.js",
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
@@ -132,7 +131,7 @@
       "/utils/helpers/index.js",
       "/utils/logger.js",
       "/src/services/AuthService.js",
-      "/src/middlewares/AuthMiddleware.js",
+      "/src/middlewares/authMiddleware.js",
       "/src/middlewares/AuthPermission.js",
       "/src/utils/TokenUtil.js",
       "/src/utils/AuthHelper.js",
@@ -141,9 +140,9 @@
       "/src/repositories/filters/GrupoFilterBuilder.js",
       "/src/models/Grupo.js",
       "/src/models/Rota.js",
-      "/src/config/MinIO.js",
-      "/src/config/MulterConfig.js",
-      "/src/config/SharpConfig.js"
+      "/src/config/minioClient.js",
+      "/src/config/multerConfig.js",
+      "/src/config/sharpConfig.js"
     ]
   }
 }

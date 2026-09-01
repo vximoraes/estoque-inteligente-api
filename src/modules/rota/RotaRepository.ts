@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import RotaModel, { type RotaDocument } from './RotaModel.js';
 import RotaFilterBuilder from './RotaFilterBuilder.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';

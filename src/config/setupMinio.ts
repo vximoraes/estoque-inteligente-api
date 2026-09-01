@@ -3,7 +3,7 @@ import {
   CreateBucketCommand,
   PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
-import minioClient from './MinIO.js';
+import minioClient from './minioClient.js';
 
 function buildPublicReadPolicy(bucketName: string): string {
   return JSON.stringify({

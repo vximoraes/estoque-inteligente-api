@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthMiddleware from '../../middlewares/authMiddleware.js';
 import AuthPermission from '../../middlewares/AuthPermission.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
 import IAController from './IAController.js';

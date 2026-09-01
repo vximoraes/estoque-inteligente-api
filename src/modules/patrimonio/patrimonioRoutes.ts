@@ -1,9 +1,9 @@
 import express from 'express';
-import AuthMiddleware from '../../middlewares/AuthMiddleware.js';
+import AuthMiddleware from '../../middlewares/authMiddleware.js';
 import AuthPermission from '../../middlewares/AuthPermission.js';
 import PatrimonioController from './PatrimonioController.js';
 import { asyncWrapper } from '../../utils/helpers/index.js';
-import upload from '../../config/MulterConfig.js';
+import upload from '../../config/multerConfig.js';
 
 const router = express.Router();
 

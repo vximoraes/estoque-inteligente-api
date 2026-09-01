@@ -6,8 +6,8 @@ import PatrimonioEventoModel, {
 } from './PatrimonioEventoModel.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
 import LocalizacaoModel from '../localizacao/LocalizacaoModel.js';
-import minioClient from '../../config/MinIO.js';
-import compress from '../../config/SharpConfig.js';
+import minioClient from '../../config/minioClient.js';
+import compress from '../../config/sharpConfig.js';
 import {
   CustomError,
   HttpStatusCodes,

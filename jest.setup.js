@@ -1,7 +1,7 @@
 process.env.NODE_ENV = 'test';
 
 // Mock do client S3 (MinIO) para evitar problemas nos testes
-jest.mock('./src/config/MinIO.js', () => ({
+jest.mock('./src/config/minioClient.js', () => ({
   __esModule: true,
   default: {
     send: jest.fn().mockResolvedValue({}),
@@ -9,7 +9,7 @@ jest.mock('./src/config/MinIO.js', () => ({
 }));
 
 // Mock do SharpConfig para evitar problemas nos testes
-jest.mock('./src/config/SharpConfig.js', () => ({
+jest.mock('./src/config/sharpConfig.js', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation((buffer) => Promise.resolve(buffer)),
 }));

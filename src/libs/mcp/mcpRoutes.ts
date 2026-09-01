@@ -4,7 +4,7 @@ import { fromNodeHeaders } from 'better-auth/node';
 import type { Request, Response } from 'express';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { getAuth } from '../../config/auth.js';
-import { criarMCPServer } from './MCPServerFactory.js';
+import { criarMCPServer } from './mcpServerFactory.js';
 import MCPSessionStore from './MCPSessionStore.js';
 
 interface MCPError extends Error {

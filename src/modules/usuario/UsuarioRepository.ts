@@ -1,7 +1,7 @@
 import {
   PAGINATION_MAX_LIMIT,
   PAGINATION_DEFAULT_LIMIT,
-} from '../../config/PaginationConfig.js';
+} from '../../config/paginationConfig.js';
 import UsuarioFilterBuilder from './UsuarioFilterBuilder.js';
 import UsuarioModel, { type UsuarioDocument } from './UsuarioModel.js';
 import NotificacaoModel from '../notificacao/NotificacaoModel.js';
