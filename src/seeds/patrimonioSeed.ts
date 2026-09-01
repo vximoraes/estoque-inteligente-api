@@ -19,17 +19,6 @@ const STATUS_POOL: Array<
   'Baixado',
 ];
 
-const FABRICANTES_POOL = [
-  'Dell',
-  'Lenovo',
-  'HP',
-  'Ubiquiti',
-  'TP-Link',
-  'Samsung',
-  'LG',
-  'Epson',
-];
-
 // Pool de campos plausíveis para popular `campos_personalizados` — cada
 // unidade sorteia 1 a 3, sem repetir chave, só para a tela nascer com dado
 // real em vez de um array sempre vazio. `Fabricante`/`Modelo` já são campos
@@ -69,13 +58,21 @@ function camposPersonalizadosAleatorios() {
     .map(({ chave, valor }) => ({ chave, valor: valor() }));
 }
 
+// Prefixo de 3 letras pro numero_patrimonio (`numero_patrimonio` tem \u00edndice
+// \u00fanico entre unidades ativas). Usar s\u00f3 as 3 primeiras letras da primeira
+// palavra colide f\u00e1cil ("Notebook Dell..." e "Notebook Lenovo..." dariam os
+// dois "NOT") \u2014 por isso pega 2 letras da primeira palavra + 1 da segunda.
 function prefixoDoNome(nome: string) {
-  return nome
-    .split(' ')[0]!
+  const palavras = nome
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .slice(0, 3)
-    .toUpperCase();
+    .split(' ')
+    .filter(Boolean);
+  const [primeira, segunda] = palavras;
+
+  if (!segunda) return primeira!.slice(0, 3).toUpperCase();
+
+  return `${primeira!.slice(0, 2)}${segunda[0]}`.toUpperCase();
 }
 
 export default async function patrimonioSeed(adminId: string) {
@@ -84,15 +81,16 @@ export default async function patrimonioSeed(adminId: string) {
 
   await Patrimonio.deleteMany({});
 
-  for (const modelo of fakeMappings.Item.nomesPermanentes) {
+  for (const {
+    nome: modelo,
+    categoria: categoriaNome,
+    fabricante,
+  } of fakeMappings.Item.nomesPermanentes) {
     const prefixo = prefixoDoNome(modelo);
     const numUnidades = Math.floor(Math.random() * 4) + 2; // 2 a 5 unidades
-    const categoriaRandom =
-      categoriasPermanentes[
-        Math.floor(Math.random() * categoriasPermanentes.length)
-      ]!;
-    const fabricante =
-      FABRICANTES_POOL[Math.floor(Math.random() * FABRICANTES_POOL.length)]!;
+    const categoria = categoriasPermanentes.find(
+      (c) => c.nome === categoriaNome,
+    )!;
 
     for (let i = 1; i <= numUnidades; i++) {
       const localizacaoRandom =
@@ -103,7 +101,7 @@ export default async function patrimonioSeed(adminId: string) {
       await Patrimonio.create({
         modelo,
         fabricante,
-        categoria: categoriaRandom._id,
+        categoria: categoria._id,
         numero_patrimonio: `${prefixo}-${String(i).padStart(4, '0')}`,
         localizacao: localizacaoRandom._id,
         status,
@@ -111,6 +109,7 @@ export default async function patrimonioSeed(adminId: string) {
           Date.now() - Math.floor(Math.random() * 365) * 86400000,
         ),
         campos_personalizados: camposPersonalizadosAleatorios(),
+        observacoes: fakeMappings.Patrimonio.observacoes(),
         ativo: true,
         usuario: adminId,
       });

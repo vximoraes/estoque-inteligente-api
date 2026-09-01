@@ -68,69 +68,432 @@ export const fakeMappings = {
     // separação que `categoriaSeed`/`itemSeed` usam para nunca sortear,
     // por exemplo, "Encanamento" para um notebook.
     categorias: [
-      { nome: 'Periféricos', tipo: 'consumo' },
-      { nome: 'Armazenamento', tipo: 'consumo' },
-      { nome: 'Acessórios', tipo: 'consumo' },
-      { nome: 'Computadores', tipo: 'permanente' },
-      { nome: 'Monitores', tipo: 'permanente' },
-      { nome: 'Rede', tipo: 'permanente' },
-      { nome: 'Projeção e Energia', tipo: 'permanente' },
-    ] as { nome: string; tipo: 'consumo' | 'permanente' }[],
+      {
+        nome: 'Periféricos',
+        tipo: 'consumo',
+        descricao:
+          'Equipamentos de apoio conectados a computadores, como teclados, mouses e headsets.',
+      },
+      {
+        nome: 'Armazenamento',
+        tipo: 'consumo',
+        descricao:
+          'Dispositivos e mídias para armazenamento e backup de dados.',
+      },
+      {
+        nome: 'Cabos e Conectores',
+        tipo: 'consumo',
+        descricao:
+          'Cabos, adaptadores e carregadores usados nos equipamentos do dia a dia.',
+      },
+      {
+        nome: 'Papelaria',
+        tipo: 'consumo',
+        descricao:
+          'Materiais de escritório para uso administrativo e didático.',
+      },
+      {
+        nome: 'Limpeza e Higiene',
+        tipo: 'consumo',
+        descricao:
+          'Produtos de limpeza e higiene para manutenção dos ambientes.',
+      },
+      {
+        nome: 'Copa e Cozinha',
+        tipo: 'consumo',
+        descricao: 'Itens de consumo para a copa e áreas de convivência.',
+      },
+      {
+        nome: 'Computadores',
+        tipo: 'permanente',
+        descricao:
+          'Notebooks e desktops utilizados nos setores e laboratórios da instituição.',
+      },
+      {
+        nome: 'Monitores',
+        tipo: 'permanente',
+        descricao:
+          'Monitores de vídeo utilizados em estações de trabalho e laboratórios.',
+      },
+      {
+        nome: 'Rede',
+        tipo: 'permanente',
+        descricao:
+          'Equipamentos de infraestrutura de rede, como roteadores e switches.',
+      },
+      {
+        nome: 'Projeção e Energia',
+        tipo: 'permanente',
+        descricao: 'Projetores, nobreaks e equipamentos de apoio elétrico.',
+      },
+      {
+        nome: 'Impressoras',
+        tipo: 'permanente',
+        descricao:
+          'Impressoras e multifuncionais utilizadas nos setores administrativos.',
+      },
+      {
+        nome: 'Mobiliário',
+        tipo: 'permanente',
+        descricao:
+          'Mesas, cadeiras e armários utilizados nos setores e laboratórios.',
+      },
+    ] as { nome: string; tipo: 'consumo' | 'permanente'; descricao: string }[],
     nome(index: number) {
       return this.categorias[index]!.nome;
     },
     tipo(index: number) {
       return this.categorias[index]!.tipo;
     },
+    descricao(index: number) {
+      return this.categorias[index]!.descricao;
+    },
     usuario: () => new mongoose.Types.ObjectId().toString(),
-    descricao: () => fakebr.lorem.sentence(),
   },
 
   Localizacao: {
-    nome: () =>
-      `${String.fromCharCode(65 + fakebr.random.number({ min: 0, max: 25 }))}${fakebr.random.number({ min: 1, max: 100 })}`,
+    // Salas e armários de um campus real — cada descrição é escrita para
+    // a própria sala, então nome/descricao andam pareados por índice em
+    // vez de sorteados de pools independentes.
+    salas: [
+      {
+        nome: 'Laboratório de Informática 1',
+        descricao:
+          'Sala de aula com estações de trabalho para aulas práticas de informática.',
+      },
+      {
+        nome: 'Laboratório de Informática 2 - Armário 1',
+        descricao:
+          'Armário de equipamentos reserva do segundo laboratório de informática.',
+      },
+      {
+        nome: 'Laboratório de Redes',
+        descricao:
+          'Sala equipada para práticas de configuração de redes e servidores.',
+      },
+      {
+        nome: 'Sala de Coordenação de TI',
+        descricao:
+          'Sala da coordenação responsável pela gestão dos equipamentos de TI.',
+      },
+      {
+        nome: 'Almoxarifado Central',
+        descricao:
+          'Depósito principal de materiais de consumo e equipamentos aguardando distribuição.',
+      },
+      {
+        nome: 'Almoxarifado Central - Armário 2',
+        descricao:
+          'Armário do almoxarifado destinado a periféricos e acessórios diversos.',
+      },
+      {
+        nome: 'Secretaria Acadêmica',
+        descricao:
+          'Sala administrativa responsável pelo atendimento e registros acadêmicos.',
+      },
+      {
+        nome: 'Secretaria Acadêmica - Armário 1',
+        descricao:
+          'Armário com equipamentos de reserva da secretaria acadêmica.',
+      },
+      {
+        nome: 'Sala dos Professores',
+        descricao:
+          'Espaço de uso coletivo dos docentes para preparo de aulas e reuniões.',
+      },
+      {
+        nome: 'Biblioteca - Sala Multimídia',
+        descricao:
+          'Sala da biblioteca equipada para exibição de conteúdo multimídia.',
+      },
+      {
+        nome: 'Auditório Principal',
+        descricao:
+          'Espaço para eventos, palestras e apresentações institucionais.',
+      },
+      {
+        nome: 'Diretoria - Armário 1',
+        descricao:
+          'Armário de equipamentos de apoio administrativo da diretoria.',
+      },
+    ],
+    nome(index: number) {
+      return this.salas[index]!.nome;
+    },
+    descricao(index: number) {
+      return this.salas[index]!.descricao;
+    },
     usuario: () => new mongoose.Types.ObjectId().toString(),
-    descricao: () => fakebr.lorem.sentence(),
   },
 
   Item: {
     // Bens de maior valor/individualidade — cada um vira patrimônio
-    // (unidade com número próprio), não quantidade agregada.
+    // (unidade com número próprio), não quantidade agregada. `categoria` e
+    // `fabricante` andam junto do nome (em vez de sorteados à parte) pra
+    // não sortear, por exemplo, "Dell" como fabricante de uma cadeira.
     nomesPermanentes: [
-      'Notebook Dell Inspiron 15',
-      'Notebook Lenovo ThinkPad E14',
-      'MacBook Air M2',
-      'Desktop HP ProDesk',
-      'Monitor LG 24 polegadas',
-      'Monitor Samsung 27 polegadas',
-      'Roteador TP-Link Archer C6',
-      'Switch Gigabit 8 portas',
-      'Access Point Ubiquiti U6 Lite',
-      'Nobreak SMS 1200VA',
-      'Projetor Epson PowerLite',
-    ],
-    // Acessórios de baixo valor/fungíveis — controlados por quantidade.
+      {
+        nome: 'Notebook Dell Inspiron 15',
+        categoria: 'Computadores',
+        fabricante: 'Dell',
+      },
+      {
+        nome: 'Notebook Lenovo ThinkPad E14',
+        categoria: 'Computadores',
+        fabricante: 'Lenovo',
+      },
+      {
+        nome: 'MacBook Air M2',
+        categoria: 'Computadores',
+        fabricante: 'Apple',
+      },
+      {
+        nome: 'Desktop HP ProDesk',
+        categoria: 'Computadores',
+        fabricante: 'HP',
+      },
+      {
+        nome: 'Monitor LG 24 polegadas',
+        categoria: 'Monitores',
+        fabricante: 'LG',
+      },
+      {
+        nome: 'Monitor Samsung 27 polegadas',
+        categoria: 'Monitores',
+        fabricante: 'Samsung',
+      },
+      {
+        nome: 'Roteador TP-Link Archer C6',
+        categoria: 'Rede',
+        fabricante: 'TP-Link',
+      },
+      {
+        nome: 'Switch Gigabit 8 portas',
+        categoria: 'Rede',
+        fabricante: 'Intelbras',
+      },
+      {
+        nome: 'Access Point Ubiquiti U6 Lite',
+        categoria: 'Rede',
+        fabricante: 'Ubiquiti',
+      },
+      {
+        nome: 'Nobreak SMS 1200VA',
+        categoria: 'Projeção e Energia',
+        fabricante: 'SMS',
+      },
+      {
+        nome: 'Projetor Epson PowerLite',
+        categoria: 'Projeção e Energia',
+        fabricante: 'Epson',
+      },
+      {
+        nome: 'Impressora HP LaserJet Pro',
+        categoria: 'Impressoras',
+        fabricante: 'HP',
+      },
+      {
+        nome: 'Multifuncional Epson EcoTank',
+        categoria: 'Impressoras',
+        fabricante: 'Epson',
+      },
+      {
+        nome: 'Mesa para Escritório',
+        categoria: 'Mobiliário',
+        fabricante: 'Cimol',
+      },
+      {
+        nome: 'Cadeira Giratória Ergonômica',
+        categoria: 'Mobiliário',
+        fabricante: 'Flexform',
+      },
+      {
+        nome: 'Armário de Aço 2 Portas',
+        categoria: 'Mobiliário',
+        fabricante: 'Pandin',
+      },
+    ] as { nome: string; categoria: string; fabricante: string }[],
+    // Itens de almoxarifado (baixo valor/fungíveis, controlados por
+    // quantidade) — `categoria`/`descricao` andam junto do nome pela mesma
+    // razão do pool acima.
     nomesConsumo: [
-      'Teclado Mecânico Redragon',
-      'Mouse Logitech MX Master',
-      'Headset HyperX Cloud',
-      'Webcam Logitech C920',
-      'Dock USB-C Anker',
-      'Hub USB 3.0 4 portas',
-      'SSD NVMe 1TB Kingston',
-      'HD Externo Seagate 2TB',
-      'Pendrive SanDisk 128GB',
-    ],
-    get nomesFixos() {
-      return [
-        ...fakeMappings.Item.nomesPermanentes,
-        ...fakeMappings.Item.nomesConsumo,
-      ];
-    },
-    nome: () => fakebr.helpers.randomize(fakeMappings.Item.nomesFixos),
+      {
+        nome: 'Teclado Mecânico Redragon',
+        categoria: 'Periféricos',
+        descricao:
+          'Teclado mecânico com switches azuis, usado nos laboratórios de informática.',
+      },
+      {
+        nome: 'Mouse Logitech MX Master',
+        categoria: 'Periféricos',
+        descricao:
+          'Mouse sem fio de alta precisão para estações de trabalho administrativas.',
+      },
+      {
+        nome: 'Headset HyperX Cloud',
+        categoria: 'Periféricos',
+        descricao:
+          'Headset com microfone para videochamadas e reuniões remotas.',
+      },
+      {
+        nome: 'Webcam Logitech C920',
+        categoria: 'Periféricos',
+        descricao:
+          'Webcam full HD utilizada em salas de aula híbridas e reuniões online.',
+      },
+      {
+        nome: 'Mousepad Gamer Grande',
+        categoria: 'Periféricos',
+        descricao: 'Mousepad de mesa inteira para estações de trabalho.',
+      },
+      {
+        nome: 'SSD NVMe 1TB Kingston',
+        categoria: 'Armazenamento',
+        descricao:
+          'Unidade de armazenamento sólido usada em upgrades de desktops e notebooks.',
+      },
+      {
+        nome: 'HD Externo Seagate 2TB',
+        categoria: 'Armazenamento',
+        descricao:
+          'HD externo utilizado para backup de arquivos institucionais.',
+      },
+      {
+        nome: 'Pendrive SanDisk 128GB',
+        categoria: 'Armazenamento',
+        descricao:
+          'Pendrive para transporte e backup de arquivos entre setores.',
+      },
+      {
+        nome: 'Cartão de Memória SD 64GB',
+        categoria: 'Armazenamento',
+        descricao:
+          'Cartão de memória usado em câmeras e dispositivos móveis do setor.',
+      },
+      {
+        nome: 'Dock USB-C Anker',
+        categoria: 'Cabos e Conectores',
+        descricao: 'Estação de acoplamento USB-C para notebooks corporativos.',
+      },
+      {
+        nome: 'Hub USB 3.0 4 portas',
+        categoria: 'Cabos e Conectores',
+        descricao: 'Hub USB para expansão de portas em notebooks e desktops.',
+      },
+      {
+        nome: 'Cabo HDMI 2 metros',
+        categoria: 'Cabos e Conectores',
+        descricao:
+          'Cabo HDMI usado para conectar notebooks a monitores e projetores.',
+      },
+      {
+        nome: 'Cabo de Rede Cat6 5 metros',
+        categoria: 'Cabos e Conectores',
+        descricao: 'Cabo de rede para conexões cabeadas nos laboratórios.',
+      },
+      {
+        nome: 'Carregador Universal para Notebook',
+        categoria: 'Cabos e Conectores',
+        descricao:
+          'Carregador de reposição compatível com as principais marcas de notebook.',
+      },
+      {
+        nome: 'Adaptador USB-C para HDMI',
+        categoria: 'Cabos e Conectores',
+        descricao:
+          'Adaptador para projeção de tela a partir de notebooks com USB-C.',
+      },
+      {
+        nome: 'Resma de Papel A4',
+        categoria: 'Papelaria',
+        descricao: 'Papel sulfite para impressoras e uso administrativo geral.',
+      },
+      {
+        nome: 'Caneta Esferográfica Azul (caixa)',
+        categoria: 'Papelaria',
+        descricao: 'Caixa de canetas para uso administrativo e didático.',
+      },
+      {
+        nome: 'Grampeador de Mesa',
+        categoria: 'Papelaria',
+        descricao: 'Grampeador de uso administrativo para documentos.',
+      },
+      {
+        nome: 'Pasta Suspensa Kraft',
+        categoria: 'Papelaria',
+        descricao: 'Pasta para arquivamento de documentos em arquivos de aço.',
+      },
+      {
+        nome: 'Bloco de Post-it',
+        categoria: 'Papelaria',
+        descricao: 'Bloco de notas adesivas para uso administrativo.',
+      },
+      {
+        nome: 'Marcador para Quadro Branco',
+        categoria: 'Papelaria',
+        descricao: 'Marcador usado em quadros brancos das salas de aula.',
+      },
+      {
+        nome: 'Álcool em Gel 500ml',
+        categoria: 'Limpeza e Higiene',
+        descricao:
+          'Álcool em gel para higienização das mãos nos ambientes comuns.',
+      },
+      {
+        nome: 'Papel Toalha Interfolhas',
+        categoria: 'Limpeza e Higiene',
+        descricao: 'Papel toalha para banheiros e copas da instituição.',
+      },
+      {
+        nome: 'Detergente Multiuso 500ml',
+        categoria: 'Limpeza e Higiene',
+        descricao: 'Detergente usado na limpeza geral dos ambientes.',
+      },
+      {
+        nome: 'Pano de Limpeza Microfibra',
+        categoria: 'Limpeza e Higiene',
+        descricao: 'Pano de microfibra para limpeza de telas e superfícies.',
+      },
+      {
+        nome: 'Sabonete Líquido Refil',
+        categoria: 'Limpeza e Higiene',
+        descricao:
+          'Refil de sabonete líquido para os banheiros da instituição.',
+      },
+      {
+        nome: 'Copo Descartável 200ml (pacote)',
+        categoria: 'Copa e Cozinha',
+        descricao:
+          'Pacote de copos descartáveis para a copa e eventos internos.',
+      },
+      {
+        nome: 'Café em Pó 500g',
+        categoria: 'Copa e Cozinha',
+        descricao: 'Café para consumo na copa dos setores administrativos.',
+      },
+      {
+        nome: 'Açúcar Refinado 1kg',
+        categoria: 'Copa e Cozinha',
+        descricao: 'Açúcar de uso comum na copa dos setores.',
+      },
+      {
+        nome: 'Filtro de Papel para Café',
+        categoria: 'Copa e Cozinha',
+        descricao: 'Filtro de papel para as cafeteiras da copa.',
+      },
+    ] as { nome: string; categoria: string; descricao: string }[],
+    nome: () =>
+      fakebr.helpers.randomize(
+        fakeMappings.Item.nomesConsumo.map((item) => item.nome),
+      ),
     quantidade: () => fakebr.random.number({ min: 0, max: 100 }),
     estoque_minimo: () => fakebr.random.number({ min: 1, max: 20 }),
-    descricao: () => fakebr.lorem.sentence(),
+    descricao(nome: string) {
+      return (
+        this.nomesConsumo.find((item) => item.nome === nome)?.descricao ??
+        fakebr.lorem.sentence()
+      );
+    },
     imagem: () => fakebr.image.imageUrl(),
     categoria: () => new mongoose.Types.ObjectId().toString(),
     ativo: () => true,
@@ -144,18 +507,14 @@ export const fakeMappings = {
   Patrimonio: {
     numero_patrimonio: () =>
       `PAT-${fakebr.random.number({ min: 1000, max: 9999 })}`,
-    modelo: () => fakebr.helpers.randomize(fakeMappings.Item.nomesPermanentes),
+    modelo: () =>
+      fakebr.helpers.randomize(
+        fakeMappings.Item.nomesPermanentes.map((item) => item.nome),
+      ),
     fabricante: () =>
-      fakebr.helpers.randomize([
-        'Dell',
-        'Lenovo',
-        'HP',
-        'Ubiquiti',
-        'TP-Link',
-        'Samsung',
-        'LG',
-        'Epson',
-      ]),
+      fakebr.helpers.randomize(
+        fakeMappings.Item.nomesPermanentes.map((item) => item.fabricante),
+      ),
     categoria: () => new mongoose.Types.ObjectId().toString(),
     localizacao: () => new mongoose.Types.ObjectId().toString(),
     status: () =>
@@ -166,7 +525,17 @@ export const fakeMappings = {
         'Baixado',
       ]),
     data_aquisicao: () => new Date().toISOString(),
-    observacoes: () => fakebr.lorem.sentence(),
+    observacoesPool: [
+      'Equipamento adquirido para uso no laboratório de informática.',
+      'Substituiu unidade anterior danificada por queda de energia.',
+      'Recebido como doação de projeto de renovação tecnológica.',
+      'Adquirido via processo de licitação para expansão do parque de máquinas.',
+      'Unidade de reserva para eventuais manutenções emergenciais.',
+      'Equipamento revisado antes da entrada em operação.',
+    ],
+    observacoes(): string {
+      return fakebr.helpers.randomize(this.observacoesPool);
+    },
     imagem: () => '',
     campos_personalizados: () => [
       {
@@ -210,11 +579,25 @@ export const fakeMappings = {
   },
 
   Fornecedor: {
+    descricoes: [
+      'Fornecedor de computadores, notebooks e periféricos de informática.',
+      'Distribuidora de equipamentos de rede e infraestrutura de TI.',
+      'Fornecedor de monitores e equipamentos de vídeo corporativo.',
+      'Loja especializada em suprimentos e acessórios de escritório.',
+      'Fornecedor de nobreaks, estabilizadores e equipamentos de energia.',
+      'Distribuidora de mídias de armazenamento e backup.',
+      'Fornecedor de projetores e equipamentos audiovisuais.',
+      'Assistência técnica autorizada para manutenção de equipamentos de TI.',
+      'Fornecedor de mobiliário e materiais para laboratórios de informática.',
+      'Distribuidora de licenças de software e suporte técnico.',
+    ],
     nome: () => fakebr.company.companyName(),
     usuario: () => new mongoose.Types.ObjectId().toString(),
     url: () => fakebr.internet.url(),
     contato: () => fakebr.phone.phoneNumber(),
-    descricao: () => fakebr.lorem.sentence(),
+    descricao(): string {
+      return fakebr.helpers.randomize(this.descricoes);
+    },
   },
 
   Movimentacao: {
@@ -242,8 +625,26 @@ export const fakeMappings = {
       ).toISOString(),
     data_devolucao_total: () =>
       fakebr.random.boolean() ? new Date().toISOString() : null,
-    observacoes_emprestimo: () => fakebr.lorem.sentence(),
-    observacoes_devolucao: () => fakebr.lorem.sentence(),
+    motivosPool: [
+      'Necessário para aula prática de laboratório.',
+      'Uso em apresentação de trabalho de conclusão de curso.',
+      'Solicitado para reunião com equipamentos audiovisuais.',
+      'Uso temporário durante manutenção do equipamento fixo do setor.',
+      'Necessário para atividade externa da coordenação.',
+    ],
+    devolucoesPool: [
+      'Devolvido em bom estado de conservação.',
+      'Apresentou pequeno desgaste no uso, sem danos.',
+      'Devolvido com atraso justificado pelo solicitante.',
+      'Equipamento testado e aprovado no recebimento.',
+      'Devolução parcial, restante ainda em uso.',
+    ],
+    observacoes_emprestimo(): string {
+      return fakebr.helpers.randomize(this.motivosPool);
+    },
+    observacoes_devolucao(): string {
+      return fakebr.helpers.randomize(this.devolucoesPool);
+    },
     usuario_responsavel: () => new mongoose.Types.ObjectId().toString(),
     email_atraso_enviado: () => false,
     patrimonio: () => new mongoose.Types.ObjectId().toString(),

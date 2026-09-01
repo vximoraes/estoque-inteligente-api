@@ -10,7 +10,7 @@ export default async function categoriaSeed(adminId: string) {
       tipo: fakeMappings.Categoria.tipo(i),
       usuario: adminId,
       ativo: true,
-      descricao: fakeMappings.Categoria.descricao(),
+      descricao: fakeMappings.Categoria.descricao(i),
     };
 
     await Categoria.create(categoria);
