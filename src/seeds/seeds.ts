@@ -9,7 +9,6 @@ import fornecedorSeed from './fornecedorSeed.js';
 import movimentacaoSeed from './movimentacaoSeed.js';
 import usuarioSeed from './usuarioSeed.js';
 import notificacaoSeed from './notificacaoSeed.js';
-import orcamentoSeed from './orcamentoSeed.js';
 import emprestimoSeed from './emprestimoSeed.js';
 import rotasSeed from './rotasSeed.js';
 
@@ -30,7 +29,6 @@ try {
   await fornecedorSeed(adminId);
   await movimentacaoSeed(adminId);
   await notificacaoSeed(adminId);
-  await orcamentoSeed(adminId);
   await emprestimoSeed(adminId);
 
   console.log(`[${new Date().toLocaleString()}] - Seeds criadas com sucesso!`);

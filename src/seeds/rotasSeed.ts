@@ -31,8 +31,6 @@ export default async function seedRotas() {
     'patrimonios:id/foto',
     'notificacoes',
     'notificacoes:id',
-    'orcamentos',
-    'orcamentos:id',
     'ia',
   ];
 
