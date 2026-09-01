@@ -1,4 +1,5 @@
 import Patrimonio from '../modules/patrimonio/PatrimonioModel.js';
+import PatrimonioEvento from '../modules/patrimonio/PatrimonioEventoModel.js';
 import Categoria from '../modules/categoria/CategoriaModel.js';
 import Localizacao from '../modules/localizacao/LocalizacaoModel.js';
 import { fakeMappings } from './globalFakeMapping.js';
@@ -75,11 +76,23 @@ function prefixoDoNome(nome: string) {
   return `${primeira!.slice(0, 2)}${segunda[0]}`.toUpperCase();
 }
 
+// Data aleatória entre dois pontos no tempo — usada pro evento de
+// manutenção/baixa acontecer sempre depois da aquisição da unidade.
+function dataEntre(inicio: Date, fim: Date) {
+  return new Date(
+    inicio.getTime() + Math.random() * (fim.getTime() - inicio.getTime()),
+  );
+}
+
 export default async function patrimonioSeed(adminId: string) {
   const categoriasPermanentes = await Categoria.find({ tipo: 'permanente' });
   const localizacaoList = await Localizacao.find({});
 
   await Patrimonio.deleteMany({});
+  // Eventos de empréstimo/devolução são adicionados depois por
+  // `emprestimoSeed` (que roda em seguida) — limpar aqui cobre os dois,
+  // desde que só este arquivo faça deleteMany em PatrimonioEvento.
+  await PatrimonioEvento.deleteMany({});
 
   for (const {
     nome: modelo,
@@ -97,22 +110,50 @@ export default async function patrimonioSeed(adminId: string) {
         localizacaoList[Math.floor(Math.random() * localizacaoList.length)]!;
       const status =
         STATUS_POOL[Math.floor(Math.random() * STATUS_POOL.length)]!;
+      const observacoes = fakeMappings.Patrimonio.observacoes();
+      const dataAquisicao = new Date(
+        Date.now() - Math.floor(Math.random() * 365) * 86400000,
+      );
 
-      await Patrimonio.create({
+      const unidade = await Patrimonio.create({
         modelo,
         fabricante,
         categoria: categoria._id,
         numero_patrimonio: `${prefixo}-${String(i).padStart(4, '0')}`,
         localizacao: localizacaoRandom._id,
         status,
-        data_aquisicao: new Date(
-          Date.now() - Math.floor(Math.random() * 365) * 86400000,
-        ),
+        data_aquisicao: dataAquisicao,
         campos_personalizados: camposPersonalizadosAleatorios(),
-        observacoes: fakeMappings.Patrimonio.observacoes(),
+        observacoes,
         ativo: true,
         usuario: adminId,
       });
+
+      // Toda unidade nasce Disponível e passa por "cadastro" — igual ao que
+      // `PatrimonioService.criar` registra de verdade. Manutenção/baixa (se
+      // for o status sorteado) viram um segundo evento depois da aquisição;
+      // empréstimo/devolução ficam a cargo de `emprestimoSeed`.
+      await PatrimonioEvento.create({
+        patrimonio: unidade._id,
+        tipo: 'cadastro',
+        status_anterior: null,
+        status_novo: 'Disponível',
+        localizacao_nova: localizacaoRandom._id,
+        data_hora: dataAquisicao,
+        observacoes,
+        usuario: adminId,
+      });
+
+      if (status === 'Manutenção' || status === 'Baixado') {
+        await PatrimonioEvento.create({
+          patrimonio: unidade._id,
+          tipo: status === 'Manutenção' ? 'manutencao_entrada' : 'baixa',
+          status_anterior: 'Disponível',
+          status_novo: status,
+          data_hora: dataEntre(dataAquisicao, new Date()),
+          usuario: adminId,
+        });
+      }
     }
   }
 }
