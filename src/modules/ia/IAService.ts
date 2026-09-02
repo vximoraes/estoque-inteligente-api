@@ -247,20 +247,23 @@ export async function processarMensagem(
     });
 
     const historicoLangChain = prepararHistorico(conversa.mensagens);
+    const mensagens = [...historicoLangChain, new HumanMessage(novaMensagem)];
 
-    const stream = agent.streamEvents(
-      {
-        messages: [...historicoLangChain, new HumanMessage(novaMensagem)],
-      },
-      {
-        version: 'v2',
-        recursionLimit: RECURSION_LIMIT,
-        signal,
-        callbacks: criarCallbacks(),
-      },
-    ) as AsyncIterable<unknown>;
+    const criarStream = () =>
+      agent.streamEvents(
+        { messages: mensagens },
+        {
+          version: 'v2',
+          recursionLimit: RECURSION_LIMIT,
+          signal,
+          callbacks: criarCallbacks(),
+        },
+      ) as AsyncIterable<unknown>;
 
-    return wrapStreamWithCleanup(stream, mcpClient);
+    return wrapStreamWithCleanup(
+      executarComRetryDeStreamTruncado(criarStream),
+      mcpClient,
+    );
   } catch (err) {
     await mcpClient.close().catch(() => {});
     throw err;
@@ -277,5 +280,66 @@ async function* wrapStreamWithCleanup(
     }
   } finally {
     await mcpClient.close().catch(() => {});
+  }
+}
+
+// Bug conhecido, sem correção prevista, do SDK deprecated @google/generative-ai
+// (usado por @langchain/google-genai): o stream SSE às vezes é cortado pelo
+// provider a meio de um GenerateContentResponse, gerando exatamente essa mensagem
+// (ver node_modules/@google/generative-ai/dist/index.mjs, getResponseStream).
+const MENSAGEM_ERRO_STREAM_TRUNCADO = 'Failed to parse stream';
+
+function ehErroStreamTruncado(err: unknown): boolean {
+  return (
+    err instanceof Error && err.message.includes(MENSAGEM_ERRO_STREAM_TRUNCADO)
+  );
+}
+
+function eventoTemConteudoDeTexto(evt: unknown): boolean {
+  const e = evt as { event?: string; data?: Record<string, unknown> };
+  if (e?.event !== 'on_chat_model_stream') return false;
+
+  const chunk = e.data?.['chunk'] as Record<string, unknown> | undefined;
+  const raw = chunk?.['content'];
+  if (typeof raw === 'string') return raw.length > 0;
+  if (Array.isArray(raw)) {
+    return raw.some(
+      (parte) =>
+        typeof parte === 'object' &&
+        parte !== null &&
+        (parte as Record<string, unknown>)['type'] === 'text' &&
+        String((parte as Record<string, unknown>)['text'] ?? '').length > 0,
+    );
+  }
+  return false;
+}
+
+async function* executarComRetryDeStreamTruncado(
+  criarStream: () => AsyncIterable<unknown>,
+): AsyncGenerator<unknown> {
+  let jaTentouNovamente = false;
+
+  while (true) {
+    let algumConteudoEmitido = false;
+    try {
+      for await (const event of criarStream()) {
+        if (eventoTemConteudoDeTexto(event)) algumConteudoEmitido = true;
+        yield event;
+      }
+      return;
+    } catch (err) {
+      const podeTentarNovamente =
+        !jaTentouNovamente &&
+        !algumConteudoEmitido &&
+        ehErroStreamTruncado(err);
+
+      if (!podeTentarNovamente) throw err;
+
+      jaTentouNovamente = true;
+      logger.warn(
+        { message: (err as Error).message },
+        'IA: stream truncado pelo provider antes de qualquer conteúdo, tentando novamente',
+      );
+    }
   }
 }
