@@ -6,11 +6,23 @@ import EmprestimoFilterBuilder from './EmprestimoFilterBuilder.js';
 import EmprestimoModel, { type EmprestimoDocument } from './EmprestimoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import { resolveSort } from '../../utils/resolveSort.js';
+import { resolverJanelaMensal } from '../../utils/janelaMensal.js';
 import { EMPRESTIMO_SORT_FIELDS } from './EmprestimoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
 type EmprestimoPlain = Record<string, unknown>;
+
+export interface EmprestimoTendenciaPonto {
+  mes: string;
+  emprestimos: number;
+  devolucoes: number;
+}
+
+interface FacetGrupo {
+  _id: string;
+  count: number;
+}
 
 class EmprestimoRepository {
   private model: mongoose.PaginateModel<EmprestimoDocument>;
@@ -241,6 +253,78 @@ class EmprestimoRepository {
 
     await this.model.findOneAndUpdate({ _id: id }, { ativo: false });
     return { message: 'Emprestimo excluido com sucesso.' };
+  }
+
+  async tendencia(
+    req: AuthenticatedRequest,
+  ): Promise<EmprestimoTendenciaPonto[]> {
+    const query = req.query as Record<string, string | undefined>;
+    const { dataInicio, dataFim, chavesMes } = resolverJanelaMensal({
+      meses: query['meses'] ? parseInt(query['meses'], 10) : undefined,
+      data_inicio: query['data_inicio']
+        ? new Date(query['data_inicio'])
+        : undefined,
+      data_fim: query['data_fim'] ? new Date(query['data_fim']) : undefined,
+    });
+
+    const resultado = (await this.model.aggregate([
+      { $match: { ativo: true } },
+      {
+        $facet: {
+          emprestados: [
+            { $match: { data_saida: { $gte: dataInicio, $lte: dataFim } } },
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: '%Y-%m', date: '$data_saida' },
+                },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          devolvidos: [
+            {
+              $match: {
+                data_devolucao_total: {
+                  $ne: null,
+                  $gte: dataInicio,
+                  $lte: dataFim,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: '%Y-%m',
+                    date: '$data_devolucao_total',
+                  },
+                },
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+    ])) as Array<{ emprestados: FacetGrupo[]; devolvidos: FacetGrupo[] }>;
+
+    const { emprestados = [], devolvidos = [] } = resultado[0] ?? {};
+
+    const porMes = new Map<string, EmprestimoTendenciaPonto>();
+    for (const chave of chavesMes) {
+      porMes.set(chave, { mes: chave, emprestimos: 0, devolucoes: 0 });
+    }
+
+    for (const grupo of emprestados) {
+      const ponto = porMes.get(grupo._id);
+      if (ponto) ponto.emprestimos = grupo.count;
+    }
+    for (const grupo of devolvidos) {
+      const ponto = porMes.get(grupo._id);
+      if (ponto) ponto.devolucoes = grupo.count;
+    }
+
+    return Array.from(porMes.values());
   }
 }
 

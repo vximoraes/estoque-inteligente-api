@@ -10,6 +10,18 @@ const movimentacaoController = new MovimentacaoController();
 
 router
   .get(
+    '/movimentacoes/resumo',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(movimentacaoController.resumo.bind(movimentacaoController)),
+  )
+  .get(
+    '/movimentacoes/tendencia',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(movimentacaoController.tendencia.bind(movimentacaoController)),
+  )
+  .get(
     '/movimentacoes',
     AuthMiddleware,
     AuthPermission,

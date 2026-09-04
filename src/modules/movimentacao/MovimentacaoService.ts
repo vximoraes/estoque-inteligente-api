@@ -80,6 +80,14 @@ class MovimentacaoService {
   async listar(req: AuthenticatedRequest) {
     return await this.repository.listar(req);
   }
+
+  async resumo(req: AuthenticatedRequest) {
+    return await this.repository.resumo(req);
+  }
+
+  async tendencia(req: AuthenticatedRequest) {
+    return await this.repository.tendencia(req);
+  }
 }
 
 export default MovimentacaoService;
