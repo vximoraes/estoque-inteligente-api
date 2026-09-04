@@ -82,6 +82,21 @@ registerPaths({
           },
           description: 'Filtrar por status do item',
         },
+        {
+          name: 'nome',
+          in: 'query',
+          required: false,
+          schema: { type: 'string' },
+          description: 'Filtrar por nome do item (busca parcial)',
+        },
+        {
+          name: 'ordenar',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', example: 'quantidade:desc' },
+          description:
+            "Ordenação no formato 'campo:asc' ou 'campo:desc'. Campos aceitos: quantidade, createdAt.",
+        },
         ...paginationQueryParams,
       ],
       responses: {

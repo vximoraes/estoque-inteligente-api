@@ -8,6 +8,7 @@ import {
 import {
   EmprestimoIdSchema,
   EmprestimoQuerySchema,
+  EmprestimoTendenciaQuerySchema,
 } from './EmprestimoQuerySchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -37,6 +38,12 @@ class EmprestimoController {
     }
 
     const data = await this.service.listar(req);
+    return CommonResponse.success(res, data);
+  }
+
+  async tendencia(req: AuthenticatedRequest, res: Response) {
+    await EmprestimoTendenciaQuerySchema.parseAsync(req.query ?? {});
+    const data = await this.service.tendencia(req);
     return CommonResponse.success(res, data);
   }
 

@@ -93,15 +93,10 @@ export const fakeMappings = {
           'Materiais de escritório para uso administrativo e didático.',
       },
       {
-        nome: 'Limpeza e Higiene',
+        nome: 'Peças e Componentes',
         tipo: 'consumo',
         descricao:
-          'Produtos de limpeza e higiene para manutenção dos ambientes.',
-      },
-      {
-        nome: 'Copa e Cozinha',
-        tipo: 'consumo',
-        descricao: 'Itens de consumo para a copa e áreas de convivência.',
+          'Componentes eletrônicos e peças de reposição para manutenção de equipamentos.',
       },
       {
         nome: 'Computadores',
@@ -434,52 +429,33 @@ export const fakeMappings = {
         descricao: 'Marcador usado em quadros brancos das salas de aula.',
       },
       {
-        nome: 'Álcool em Gel 500ml',
-        categoria: 'Limpeza e Higiene',
+        nome: 'Memória RAM DDR4 8GB',
+        categoria: 'Peças e Componentes',
         descricao:
-          'Álcool em gel para higienização das mãos nos ambientes comuns.',
+          'Módulo de memória para upgrade e reposição em desktops e notebooks.',
       },
       {
-        nome: 'Papel Toalha Interfolhas',
-        categoria: 'Limpeza e Higiene',
-        descricao: 'Papel toalha para banheiros e copas da instituição.',
+        nome: 'Fonte ATX 500W',
+        categoria: 'Peças e Componentes',
+        descricao: 'Fonte de alimentação de reposição para desktops.',
       },
       {
-        nome: 'Detergente Multiuso 500ml',
-        categoria: 'Limpeza e Higiene',
-        descricao: 'Detergente usado na limpeza geral dos ambientes.',
-      },
-      {
-        nome: 'Pano de Limpeza Microfibra',
-        categoria: 'Limpeza e Higiene',
-        descricao: 'Pano de microfibra para limpeza de telas e superfícies.',
-      },
-      {
-        nome: 'Sabonete Líquido Refil',
-        categoria: 'Limpeza e Higiene',
+        nome: 'Cooler para Processador',
+        categoria: 'Peças e Componentes',
         descricao:
-          'Refil de sabonete líquido para os banheiros da instituição.',
+          'Cooler de reposição para manutenção de desktops nos laboratórios.',
       },
       {
-        nome: 'Copo Descartável 200ml (pacote)',
-        categoria: 'Copa e Cozinha',
+        nome: 'Pasta Térmica para Processador',
+        categoria: 'Peças e Componentes',
         descricao:
-          'Pacote de copos descartáveis para a copa e eventos internos.',
+          'Pasta térmica usada na manutenção e troca de coolers de processadores.',
       },
       {
-        nome: 'Café em Pó 500g',
-        categoria: 'Copa e Cozinha',
-        descricao: 'Café para consumo na copa dos setores administrativos.',
-      },
-      {
-        nome: 'Açúcar Refinado 1kg',
-        categoria: 'Copa e Cozinha',
-        descricao: 'Açúcar de uso comum na copa dos setores.',
-      },
-      {
-        nome: 'Filtro de Papel para Café',
-        categoria: 'Copa e Cozinha',
-        descricao: 'Filtro de papel para as cafeteiras da copa.',
+        nome: 'Bateria CMOS CR2032',
+        categoria: 'Peças e Componentes',
+        descricao:
+          'Bateria de reposição para a placa-mãe de desktops e notebooks.',
       },
     ] as { nome: string; categoria: string; descricao: string }[],
     nome: () =>

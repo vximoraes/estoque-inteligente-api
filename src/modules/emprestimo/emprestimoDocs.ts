@@ -127,6 +127,20 @@ registry.register(
   z.object({ data: z.array(EmprestimoDetalhes), ...paginationMetaFields }),
 );
 
+const EmprestimoTendenciaPonto = registry.register(
+  'EmprestimoTendenciaPonto',
+  z.object({
+    mes: z.string().openapi({ example: '2026-04' }),
+    emprestimos: z.number().int().openapi({ example: 8 }),
+    devolucoes: z.number().int().openapi({ example: 5 }),
+  }),
+);
+
+registry.register(
+  'EmprestimoTendenciaListagem',
+  z.object({ data: z.array(EmprestimoTendenciaPonto) }),
+);
+
 registerPaths({
   '/emprestimos': {
     post: {
@@ -217,6 +231,59 @@ registerPaths({
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/emprestimos/tendencia': {
+    get: {
+      tags: ['Emprestimos'],
+      summary:
+        'Série mensal de empréstimos/devoluções (relatório de Tendência)',
+      description: `
+        + Caso de uso: Gráfico de tendência do relatório de Empréstimos.
+
+        + Regras de Negócio:
+            - \`data_inicio\`/\`data_fim\` (período personalizado) têm prioridade sobre \`meses\` quando ambos são enviados.
+            - Sem \`data_inicio\`/\`data_fim\`: \`meses\` aceita 6, 12 ou 24 (default 12), contados a partir de hoje.
+            - Meses sem empréstimo/devolução vêm preenchidos com zero.
+
+        + Resultado Esperado:
+            - 200 OK com corpo conforme schema **EmprestimoTendenciaListagem**.
+            `,
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: 'meses',
+          in: 'query',
+          required: false,
+          schema: { type: 'integer', enum: [6, 12, 24], default: 12 },
+          description:
+            'Tamanho da janela em meses (ignorado se data_inicio/data_fim forem enviados)',
+        },
+        {
+          name: 'data_inicio',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', format: 'date' },
+          description: 'Início do período personalizado (YYYY-MM-DD)',
+        },
+        {
+          name: 'data_fim',
+          in: 'query',
+          required: false,
+          schema: { type: 'string', format: 'date' },
+          description: 'Fim do período personalizado (YYYY-MM-DD)',
+        },
+      ],
+      responses: {
+        200: commonResponses[200]!(
+          '#/components/schemas/EmprestimoTendenciaListagem',
+        ),
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
         498: commonResponses[498]!(),
         500: commonResponses[500]!(),
       },

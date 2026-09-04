@@ -1,6 +1,7 @@
 import {
   MovimentacaoQuerySchema,
   MovimentacaoIdSchema,
+  MovimentacaoTendenciaQuerySchema,
 } from '../MovimentacaoQuerySchema.js';
 import { ZodError } from 'zod';
 import mongoose from 'mongoose';
@@ -134,6 +135,57 @@ describe('MovimentacaoQuerySchema', () => {
     });
   });
 
+  describe('Validação de período (data_inicio/data_fim)', () => {
+    it('deve aceitar e transformar data_inicio no início do dia UTC', () => {
+      const query = { data_inicio: '2025-05-01' };
+      const result = MovimentacaoQuerySchema.parse(query);
+      expect(result.data_inicio.toISOString()).toBe('2025-05-01T00:00:00.000Z');
+    });
+
+    it('deve aceitar e transformar data_fim no fim do dia UTC', () => {
+      const query = { data_fim: '2025-05-31' };
+      const result = MovimentacaoQuerySchema.parse(query);
+      expect(result.data_fim.toISOString()).toBe('2025-05-31T23:59:59.999Z');
+    });
+
+    it('deve rejeitar data_inicio em formato inválido', () => {
+      const query = { data_inicio: '01/05/2025' };
+      expect(() => MovimentacaoQuerySchema.parse(query)).toThrow(ZodError);
+    });
+
+    it('deve aceitar quando período não é fornecido', () => {
+      const result = MovimentacaoQuerySchema.parse({});
+      expect(result.data_inicio).toBeUndefined();
+      expect(result.data_fim).toBeUndefined();
+    });
+  });
+
+  describe('Validação de localizacao', () => {
+    it('deve aceitar e fazer trim em uma localizacao válida', () => {
+      const query = { localizacao: '  64f234a0c781a7b30c2fe447  ' };
+      const result = MovimentacaoQuerySchema.parse(query);
+      expect(result.localizacao).toBe('64f234a0c781a7b30c2fe447');
+    });
+  });
+
+  describe('Validação de ordenar', () => {
+    it('deve aceitar campo:direcao dentro da whitelist', () => {
+      const query = { ordenar: 'data_hora:asc' };
+      const result = MovimentacaoQuerySchema.parse(query);
+      expect(result.ordenar).toBe('data_hora:asc');
+    });
+
+    it('deve rejeitar campo fora da whitelist', () => {
+      const query = { ordenar: 'usuario:asc' };
+      expect(() => MovimentacaoQuerySchema.parse(query)).toThrow(ZodError);
+    });
+
+    it('deve rejeitar direção inválida', () => {
+      const query = { ordenar: 'data_hora:cima' };
+      expect(() => MovimentacaoQuerySchema.parse(query)).toThrow(ZodError);
+    });
+  });
+
   describe('Cenários completos', () => {
     it('deve validar um query completo com todos os campos', () => {
       const query = {
@@ -179,5 +231,41 @@ describe('MovimentacaoQuerySchema', () => {
       };
       expect(() => MovimentacaoQuerySchema.parse(query)).toThrow(ZodError);
     });
+  });
+});
+
+describe('MovimentacaoTendenciaQuerySchema', () => {
+  it('aceita query vazio (meses fica undefined, resolvido depois no Repository)', () => {
+    const result = MovimentacaoTendenciaQuerySchema.parse({});
+    expect(result.meses).toBeUndefined();
+    expect(result.data_inicio).toBeUndefined();
+    expect(result.data_fim).toBeUndefined();
+  });
+
+  it('aceita meses dentro da whitelist', () => {
+    const result = MovimentacaoTendenciaQuerySchema.parse({ meses: '24' });
+    expect(result.meses).toBe(24);
+  });
+
+  it('rejeita meses fora da whitelist', () => {
+    expect(() =>
+      MovimentacaoTendenciaQuerySchema.parse({ meses: '18' }),
+    ).toThrow(ZodError);
+  });
+
+  it('aceita e transforma data_inicio/data_fim, junto com meses (prioridade decidida no Repository)', () => {
+    const result = MovimentacaoTendenciaQuerySchema.parse({
+      meses: '6',
+      data_inicio: '2026-01-01',
+      data_fim: '2026-03-31',
+    });
+    expect(result.data_inicio?.toISOString()).toBe('2026-01-01T00:00:00.000Z');
+    expect(result.data_fim?.toISOString()).toBe('2026-03-31T23:59:59.999Z');
+  });
+
+  it('rejeita data_inicio em formato inválido', () => {
+    expect(() =>
+      MovimentacaoTendenciaQuerySchema.parse({ data_inicio: '01/01/2026' }),
+    ).toThrow(ZodError);
   });
 });

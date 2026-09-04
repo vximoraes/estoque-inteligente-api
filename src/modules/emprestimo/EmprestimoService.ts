@@ -248,6 +248,10 @@ class EmprestimoService {
     return this.repository.listar(req);
   }
 
+  async tendencia(req: AuthenticatedRequest) {
+    return this.repository.tendencia(req);
+  }
+
   async desfazerDevolucao(id: string, req: AuthenticatedRequest) {
     const emprestimo = await this.repository.buscarPorId(id);
 
