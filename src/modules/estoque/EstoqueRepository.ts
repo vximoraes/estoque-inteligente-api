@@ -6,8 +6,11 @@ import EstoqueModel, {
   type EstoqueDocument,
   type IEstoqueModel,
 } from './EstoqueModel.js';
+import { ESTOQUE_SORT_FIELDS } from './EstoqueQuerySchema.js';
 import ItemModel from '../item/ItemModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
+import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
+import { resolveSort } from '../../utils/resolveSort.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 
@@ -37,6 +40,7 @@ class EstoqueRepository {
       quantidade,
       categoria,
       status,
+      nome,
       page = '1',
     } = query;
     const limite = Math.min(
@@ -48,10 +52,13 @@ class EstoqueRepository {
 
     if (item) {
       filtros['item'] = item;
-    } else if (categoria || status) {
+    } else if (categoria || status || nome) {
       const filtrosItem: Record<string, unknown> = { ativo: true };
       if (categoria) filtrosItem['categoria'] = categoria;
       if (status) filtrosItem['status'] = status;
+      if (nome) {
+        filtrosItem['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
+      }
       const itemIds = await ItemModel.find(filtrosItem).distinct('_id');
       filtros['item'] = { $in: itemIds };
     }
@@ -65,7 +72,9 @@ class EstoqueRepository {
       page: parseInt(page),
       limit: limite,
       populate: ['item', 'localizacao'],
-      sort: { createdAt: -1 },
+      sort: resolveSort(query['ordenar'], ESTOQUE_SORT_FIELDS, {
+        createdAt: -1,
+      }),
     };
 
     return await this.model.paginate(

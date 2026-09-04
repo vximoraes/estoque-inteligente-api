@@ -3,6 +3,8 @@ import MovimentacaoService from './MovimentacaoService.js';
 import {
   MovimentacaoQuerySchema,
   MovimentacaoIdSchema,
+  MovimentacaoResumoQuerySchema,
+  MovimentacaoTendenciaQuerySchema,
 } from './MovimentacaoQuerySchema.js';
 import { MovimentacaoSchema } from './MovimentacaoSchema.js';
 import { CommonResponse } from '../../utils/helpers/index.js';
@@ -34,6 +36,20 @@ class MovimentacaoController {
     }
 
     const data = await this.service.listar(req);
+
+    return CommonResponse.success(res, data);
+  }
+
+  async resumo(req: AuthenticatedRequest, res: Response) {
+    await MovimentacaoResumoQuerySchema.parseAsync(req.query ?? {});
+    const data = await this.service.resumo(req);
+
+    return CommonResponse.success(res, data);
+  }
+
+  async tendencia(req: AuthenticatedRequest, res: Response) {
+    await MovimentacaoTendenciaQuerySchema.parseAsync(req.query ?? {});
+    const data = await this.service.tendencia(req);
 
     return CommonResponse.success(res, data);
   }

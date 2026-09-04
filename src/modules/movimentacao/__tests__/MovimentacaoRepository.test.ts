@@ -8,6 +8,8 @@ class FakeFilterBuilder {
   constructor() {
     this.comTipo = jest.fn(() => this);
     this.comData = jest.fn(() => this);
+    this.comDataInicio = jest.fn(() => this);
+    this.comDataFim = jest.fn(() => this);
     this.comQuantidade = jest.fn(() => this);
     this.comItem = jest.fn(() => this);
     this.comLocalizacao = jest.fn(() => this);
@@ -145,6 +147,8 @@ describe('MovimentacaoRepository', () => {
           default: jest.fn(() => ({
             comTipo: jest.fn().mockReturnThis(),
             comData: jest.fn().mockReturnThis(),
+            comDataInicio: jest.fn().mockReturnThis(),
+            comDataFim: jest.fn().mockReturnThis(),
             comQuantidade: jest.fn().mockReturnThis(),
             comItem: jest.fn().mockResolvedValue(undefined),
             comLocalizacao: jest.fn().mockResolvedValue(undefined),

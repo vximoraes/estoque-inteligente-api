@@ -24,6 +24,24 @@ class MovimentacaoFilterBuilder {
     return this;
   }
 
+  comDataInicio(dataInicio: Date | null | undefined): this {
+    if (!dataInicio) return this;
+    this.filtros['data_hora'] = {
+      ...(this.filtros['data_hora'] as Record<string, unknown>),
+      $gte: dataInicio,
+    };
+    return this;
+  }
+
+  comDataFim(dataFim: Date | null | undefined): this {
+    if (!dataFim) return this;
+    this.filtros['data_hora'] = {
+      ...(this.filtros['data_hora'] as Record<string, unknown>),
+      $lte: dataFim,
+    };
+    return this;
+  }
+
   comQuantidade(quantidade: string | number | null | undefined): this {
     if (quantidade !== undefined && quantidade !== null && quantidade !== '') {
       const num = Number(quantidade);

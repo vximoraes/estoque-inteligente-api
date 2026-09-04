@@ -75,3 +75,32 @@ export const EmprestimoQuerySchema = z.object({
     }),
   ordenar: createOrdenarSchema(Object.keys(EMPRESTIMO_SORT_FIELDS)),
 });
+
+export const EMPRESTIMO_TENDENCIA_MESES = [6, 12, 24] as const;
+
+// `data_inicio`/`data_fim` (período personalizado) têm prioridade sobre
+// `meses` (atalho) quando ambos vêm na query — ver EmprestimoRepository.tendencia.
+export const EmprestimoTendenciaQuerySchema = z.object({
+  meses: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .refine(
+      (val) =>
+        val === undefined ||
+        (EMPRESTIMO_TENDENCIA_MESES as readonly number[]).includes(val),
+      { message: 'meses deve ser 6, 12 ou 24' },
+    ),
+  data_inicio: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
+      message: 'data_inicio deve estar no formato YYYY-MM-DD',
+    }),
+  data_fim: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
+      message: 'data_fim deve estar no formato YYYY-MM-DD',
+    }),
+});

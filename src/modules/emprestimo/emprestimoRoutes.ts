@@ -10,6 +10,12 @@ const emprestimoController = new EmprestimoController();
 
 router
   .get(
+    '/emprestimos/tendencia',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(emprestimoController.tendencia.bind(emprestimoController)),
+  )
+  .get(
     '/emprestimos',
     AuthMiddleware,
     AuthPermission,
