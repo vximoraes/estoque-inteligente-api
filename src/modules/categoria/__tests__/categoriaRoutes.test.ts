@@ -14,6 +14,7 @@ const criarCategoriaValida = async (override = {}) => {
   const nome = `Categoria Teste ${unique}`;
   return {
     nome,
+    tipo: 'consumo',
     ...override,
   };
 };

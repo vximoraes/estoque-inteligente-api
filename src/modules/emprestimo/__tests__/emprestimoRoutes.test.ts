@@ -15,7 +15,7 @@ const criarDependenciasEmprestimo = async () => {
   const categoriaRes = await request(BASE_URL)
     .post('/categorias')
     .set('Authorization', `Bearer ${token}`)
-    .send({ nome: `Categoria Emprestimo ${unique}` });
+    .send({ nome: `Categoria Emprestimo ${unique}`, tipo: 'consumo' });
   const categoria = categoriaRes.body?.data?._id;
   expect(categoria).toBeTruthy();
 

@@ -15,7 +15,7 @@ const criarCategoriaELocalizacao = async () => {
   const catRes = await request(BASE_URL)
     .post('/categorias')
     .set('Authorization', `Bearer ${token}`)
-    .send({ nome: `Categoria Teste ${unique}` });
+    .send({ nome: `Categoria Teste ${unique}`, tipo: 'consumo' });
   expect(catRes.body?.data).toBeTruthy();
   const categoria = catRes.body.data._id;
 
@@ -64,7 +64,7 @@ describe('Rotas de Item', () => {
       const catRes = await request(BASE_URL)
         .post('/categorias')
         .set('Authorization', `Bearer ${token}`)
-        .send({ nome: `Categoria Teste ${unique}` });
+        .send({ nome: `Categoria Teste ${unique}`, tipo: 'consumo' });
       expect(catRes.body.data).toBeTruthy();
       const categoria = catRes.body.data._id;
 
@@ -101,7 +101,7 @@ describe('Rotas de Item', () => {
       const catRes = await request(BASE_URL)
         .post('/categorias')
         .set('Authorization', `Bearer ${token}`)
-        .send({ nome: `Categoria Teste ${unique}` });
+        .send({ nome: `Categoria Teste ${unique}`, tipo: 'consumo' });
       expect(catRes.body.data).toBeTruthy();
       const categoria = catRes.body.data._id;
 
