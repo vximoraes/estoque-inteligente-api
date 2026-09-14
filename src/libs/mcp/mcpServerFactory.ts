@@ -11,6 +11,8 @@ import { buscarCategorias } from './tools/buscarCategorias.js';
 import { buscarLocalizacoes } from './tools/buscarLocalizacoes.js';
 import { buscarFornecedores } from './tools/buscarFornecedores.js';
 import { resumoEstoque } from './tools/resumoEstoque.js';
+import { historicoPatrimonio } from './tools/historicoPatrimonio.js';
+import { buscarUsuarios } from './tools/buscarUsuarios.js';
 import { formatarResultado } from './formatarResultado.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 
@@ -50,10 +52,16 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .enum(['Em Estoque', 'Baixo Estoque', 'Indisponível'])
         .optional()
         .describe('Filtrar pelo status do item'),
-      tipo: z
-        .enum(['consumo'])
+      categoria: z
+        .string()
         .optional()
-        .describe('Item de almoxarifado, material que se esgota com o uso.'),
+        .describe('Filtrar pelo nome da categoria (busca parcial)'),
+      localizacao: z
+        .string()
+        .optional()
+        .describe(
+          'Filtrar por itens com estoque na localização informada (busca parcial pelo nome)',
+        ),
       limite: z
         .number()
         .int()
@@ -63,10 +71,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ nome, status, tipo, limite }) => {
+    async ({ nome, status, categoria, localizacao, limite }) => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens(
-        { nome, status, tipo, limite },
+        { nome, status, categoria, localizacao, limite },
         usuarioId,
       );
       return formatarResultado('buscarItens', resultado);
@@ -95,6 +103,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .string()
         .optional()
         .describe('Filtrar pelo nome da localização (busca parcial)'),
+      categoria: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da categoria (busca parcial)'),
       limite: z
         .number()
         .int()
@@ -104,10 +116,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ numeroPatrimonio, modelo, status, localizacao, limite }) => {
+    async ({
+      numeroPatrimonio,
+      modelo,
+      status,
+      localizacao,
+      categoria,
+      limite,
+    }) => {
       await verificarPermissao(usuarioId, 'patrimonios');
       const resultado = await buscarPatrimonios(
-        { numeroPatrimonio, modelo, status, localizacao, limite },
+        { numeroPatrimonio, modelo, status, localizacao, categoria, limite },
         usuarioId,
       );
       return formatarResultado('buscarPatrimonios', resultado);
@@ -119,10 +138,18 @@ export function criarMCPServer(usuarioId: string): McpServer {
     'Busca registros de quantidade em estoque por item ou localização',
     {
       itemId: z.string().optional().describe('ID do item para filtrar'),
+      itemNome: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome do item (busca parcial)'),
       localizacaoId: z
         .string()
         .optional()
         .describe('ID da localização para filtrar'),
+      localizacaoNome: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da localização (busca parcial)'),
       limite: z
         .number()
         .int()
@@ -132,10 +159,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ itemId, localizacaoId, limite }) => {
+    async ({ itemId, itemNome, localizacaoId, localizacaoNome, limite }) => {
       await verificarPermissao(usuarioId, 'estoques');
       const resultado = await buscarEstoque(
-        { itemId, localizacaoId, limite },
+        { itemId, itemNome, localizacaoId, localizacaoNome, limite },
         usuarioId,
       );
       return formatarResultado('buscarEstoque', resultado);
@@ -164,6 +191,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .string()
         .optional()
         .describe('Filtrar por nome do item (busca parcial)'),
+      localizacao: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da localização (busca parcial)'),
       limite: z
         .number()
         .int()
@@ -173,10 +204,10 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ tipo, dataInicio, dataFim, itemNome, limite }) => {
+    async ({ tipo, dataInicio, dataFim, itemNome, localizacao, limite }) => {
       await verificarPermissao(usuarioId, 'movimentacoes');
       const resultado = await buscarMovimentacoes(
-        { tipo, dataInicio, dataFim, itemNome, limite },
+        { tipo, dataInicio, dataFim, itemNome, localizacao, limite },
         usuarioId,
       );
       return formatarResultado('buscarMovimentacoes', resultado);
@@ -185,7 +216,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarEmprestimos',
-    'Busca empréstimos de itens com status calculado (Ativo, Devolvido, Atrasado)',
+    'Busca empréstimos com status calculado (Ativo, Devolvido, Atrasado). Um empréstimo é de item de consumo do almoxarifado (campo "item" preenchido) OU de uma unidade de patrimônio (campo "tipo_controle" = "unidade", identificada por número de patrimônio) — o campo "item" no retorno já vem resolvido para os dois casos, nunca use "Não informado" ou similar se ele vier nulo.',
     {
       status: z
         .enum(['Ativo', 'Devolvido', 'Atrasado'])
@@ -195,6 +226,22 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .string()
         .optional()
         .describe('Filtrar pelo nome do solicitante (busca parcial)'),
+      itemNome: z
+        .string()
+        .optional()
+        .describe(
+          'Filtrar por nome do item de consumo emprestado (busca parcial)',
+        ),
+      numeroPatrimonio: z
+        .string()
+        .optional()
+        .describe(
+          'Filtrar por número da unidade de patrimônio emprestada (busca parcial)',
+        ),
+      localizacao: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da localização (busca parcial)'),
       limite: z
         .number()
         .int()
@@ -204,10 +251,24 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ status, solicitanteNome, limite }) => {
+    async ({
+      status,
+      solicitanteNome,
+      itemNome,
+      numeroPatrimonio,
+      localizacao,
+      limite,
+    }) => {
       await verificarPermissao(usuarioId, 'emprestimos');
       const resultado = await buscarEmprestimos(
-        { status, solicitanteNome, limite },
+        {
+          status,
+          solicitanteNome,
+          itemNome,
+          numeroPatrimonio,
+          localizacao,
+          limite,
+        },
         usuarioId,
       );
       return formatarResultado('buscarEmprestimos', resultado);
@@ -246,21 +307,30 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           '"consumo": categorias de itens de almoxarifado. "permanente": categorias de bens de patrimônio.',
         ),
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da categoria (busca parcial)'),
     },
-    async ({ tipo }) => {
+    async ({ tipo, nome }) => {
       await verificarPermissao(usuarioId, 'categorias');
-      const resultado = await buscarCategorias({ tipo }, usuarioId);
+      const resultado = await buscarCategorias({ tipo, nome }, usuarioId);
       return formatarResultado('buscarCategorias', resultado);
     },
   );
 
   server.tool(
     'buscarLocalizacoes',
-    'Lista todos os locais de armazenamento (prateleiras, depósitos, laboratórios, etc.)',
-    {},
-    async () => {
+    'Lista locais de armazenamento (prateleiras, depósitos, laboratórios, etc.)',
+    {
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome da localização (busca parcial)'),
+    },
+    async ({ nome }) => {
       await verificarPermissao(usuarioId, 'localizacoes');
-      const resultado = await buscarLocalizacoes({}, usuarioId);
+      const resultado = await buscarLocalizacoes({ nome }, usuarioId);
       return formatarResultado('buscarLocalizacoes', resultado);
     },
   );
@@ -289,6 +359,67 @@ export function criarMCPServer(usuarioId: string): McpServer {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');
       const resultado = await resumoEstoque({}, usuarioId);
       return formatarResultado('resumoEstoque', resultado);
+    },
+  );
+
+  server.tool(
+    'historicoPatrimonio',
+    'Retorna o histórico de eventos (cadastro, empréstimo, devolução, manutenção, transferência, baixa, reativação) de uma unidade de patrimônio pelo número de patrimônio.',
+    {
+      numeroPatrimonio: z
+        .string()
+        .describe('Número da unidade de patrimônio (busca exata)'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
+    },
+    async ({ numeroPatrimonio, limite }) => {
+      await verificarPermissao(usuarioId, 'patrimonios');
+      const resultado = await historicoPatrimonio(
+        { numeroPatrimonio, limite },
+        usuarioId,
+      );
+      return formatarResultado('historicoPatrimonio', resultado);
+    },
+  );
+
+  server.tool(
+    'buscarUsuarios',
+    'Lista usuários cadastrados no sistema (nome, e-mail, status, grupos). Só acessível a quem tem permissão de administração de usuários.',
+    {
+      nome: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo nome do usuário (busca parcial)'),
+      email: z
+        .string()
+        .optional()
+        .describe('Filtrar pelo e-mail do usuário (busca parcial)'),
+      ativo: z
+        .boolean()
+        .optional()
+        .describe('Filtrar por usuários ativos/inativos'),
+      limite: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .default(20)
+        .describe('Máximo de resultados'),
+    },
+    async ({ nome, email, ativo, limite }) => {
+      await verificarPermissao(usuarioId, 'usuarios');
+      const resultado = await buscarUsuarios(
+        { nome, email, ativo, limite },
+        usuarioId,
+      );
+      return formatarResultado('buscarUsuarios', resultado);
     },
   );
 

@@ -1,15 +1,20 @@
 import ItemModel from '../../../modules/item/ItemModel.js';
+import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
+import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
+import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 
 export async function buscarItens(
   {
     nome,
     status,
-    tipo,
+    categoria,
+    localizacao,
     limite = 20,
   }: {
     nome?: string;
     status?: string;
-    tipo?: 'consumo';
+    categoria?: string;
+    localizacao?: string;
     limite?: number;
   },
   _usuarioId: string,
@@ -18,7 +23,31 @@ export async function buscarItens(
 
   if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
   if (status) filtros['status'] = status;
-  if (tipo) filtros['tipo'] = tipo;
+
+  if (categoria) {
+    const categoriasCorrespondentes = await CategoriaModel.find({
+      nome: { $regex: categoria, $options: 'i' },
+    })
+      .select('_id')
+      .lean();
+    filtros['categoria'] = {
+      $in: categoriasCorrespondentes.map((c) => c._id),
+    };
+  }
+
+  if (localizacao) {
+    const localizacoesCorrespondentes = await LocalizacaoModel.find({
+      nome: { $regex: localizacao, $options: 'i' },
+    })
+      .select('_id')
+      .lean();
+    const estoquesCorrespondentes = await EstoqueModel.find({
+      localizacao: { $in: localizacoesCorrespondentes.map((l) => l._id) },
+    })
+      .select('item')
+      .lean();
+    filtros['_id'] = { $in: estoquesCorrespondentes.map((e) => e.item) };
+  }
 
   const itens = await ItemModel.find(filtros)
     .populate('categoria', 'nome')
