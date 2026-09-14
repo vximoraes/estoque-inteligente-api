@@ -19,6 +19,7 @@ export async function verificarItensAbaixoMinimo(
     const quantidade = Number(item.quantidade);
     const estoqueMinimo = Number(item.estoque_minimo);
     return {
+      id: item._id,
       nome: item.nome,
       quantidade_atual: quantidade,
       estoque_minimo: estoqueMinimo,

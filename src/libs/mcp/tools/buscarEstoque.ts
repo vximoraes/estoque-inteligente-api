@@ -1,17 +1,47 @@
 import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
+import ItemModel from '../../../modules/item/ItemModel.js';
+import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 
 export async function buscarEstoque(
   {
     itemId,
+    itemNome,
     localizacaoId,
+    localizacaoNome,
     limite = 20,
-  }: { itemId?: string; localizacaoId?: string; limite?: number },
+  }: {
+    itemId?: string;
+    itemNome?: string;
+    localizacaoId?: string;
+    localizacaoNome?: string;
+    limite?: number;
+  },
   _usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = {};
 
   if (itemId) filtros['item'] = itemId;
   if (localizacaoId) filtros['localizacao'] = localizacaoId;
+
+  if (itemNome) {
+    const itensCorrespondentes = await ItemModel.find({
+      nome: { $regex: itemNome, $options: 'i' },
+    })
+      .select('_id')
+      .lean();
+    filtros['item'] = { $in: itensCorrespondentes.map((i) => i._id) };
+  }
+
+  if (localizacaoNome) {
+    const localizacoesCorrespondentes = await LocalizacaoModel.find({
+      nome: { $regex: localizacaoNome, $options: 'i' },
+    })
+      .select('_id')
+      .lean();
+    filtros['localizacao'] = {
+      $in: localizacoesCorrespondentes.map((l) => l._id),
+    };
+  }
 
   const registros = await EstoqueModel.find(filtros)
     .populate('item', 'nome status')

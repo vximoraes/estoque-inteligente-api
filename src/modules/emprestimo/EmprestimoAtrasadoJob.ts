@@ -18,7 +18,8 @@ export async function verificarEmprestimosAtrasados() {
       email_atraso_enviado: { $ne: true },
     })
       .populate('item', 'nome')
-      .populate('localizacao', 'nome');
+      .populate('localizacao', 'nome')
+      .populate('patrimonio', 'numero_patrimonio modelo');
   } catch (err) {
     logger.error(err, 'Erro ao buscar emprestimos atrasados:');
     return;

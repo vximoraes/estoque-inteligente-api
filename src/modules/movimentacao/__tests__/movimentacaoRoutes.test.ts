@@ -16,7 +16,7 @@ const criarMovimentacaoValida = async (tipo = 'entrada', override = {}) => {
   const catRes = await request(BASE_URL)
     .post('/categorias')
     .set('Authorization', `Bearer ${token}`)
-    .send({ nome: categoriaNome });
+    .send({ nome: categoriaNome, tipo: 'consumo' });
   const categoria = catRes.body?.data?._id;
   expect(categoria).toBeTruthy();
 

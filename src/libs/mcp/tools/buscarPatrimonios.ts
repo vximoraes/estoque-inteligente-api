@@ -1,5 +1,6 @@
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
+import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 
 export async function buscarPatrimonios(
   {
@@ -7,12 +8,14 @@ export async function buscarPatrimonios(
     modelo,
     status,
     localizacao,
+    categoria,
     limite = 20,
   }: {
     numeroPatrimonio?: string;
     modelo?: string;
     status?: string;
     localizacao?: string;
+    categoria?: string;
     limite?: number;
   },
   _usuarioId: string,
@@ -25,6 +28,17 @@ export async function buscarPatrimonios(
   if (status) filtros['status'] = status;
   if (modelo) {
     filtros['modelo'] = { $regex: modelo, $options: 'i' };
+  }
+
+  if (categoria) {
+    const categoriasCorrespondentes = await CategoriaModel.find({
+      nome: { $regex: categoria, $options: 'i' },
+    })
+      .select('_id')
+      .lean();
+    filtros['categoria'] = {
+      $in: categoriasCorrespondentes.map((c) => c._id),
+    };
   }
 
   if (localizacao) {
@@ -64,6 +78,7 @@ export async function buscarPatrimonios(
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       data_aquisicao: pObj['data_aquisicao'] ?? null,
       observacoes: pObj['observacoes'] ?? null,
+      campos_personalizados: pObj['campos_personalizados'] ?? [],
     };
   });
 }

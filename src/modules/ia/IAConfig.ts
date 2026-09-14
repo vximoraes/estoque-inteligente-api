@@ -9,7 +9,7 @@ export const MAX_OUTPUT_TOKENS = Number(
 // 512 é o menor valor testado que a API aceita sem erro para esse modelo.
 export const THINKING_BUDGET = Number(process.env['IA_THINKING_BUDGET'] ?? 512);
 
-export const RECURSION_LIMIT = Number(process.env['IA_RECURSION_LIMIT'] ?? 8);
+export const RECURSION_LIMIT = Number(process.env['IA_RECURSION_LIMIT'] ?? 12);
 
 export const RESUMO_MAX_OUTPUT_TOKENS = Number(
   process.env['IA_RESUMO_MAX_OUTPUT_TOKENS'] ?? 400,
