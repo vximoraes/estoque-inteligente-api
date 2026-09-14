@@ -20,7 +20,8 @@ export async function buscarFornecedores(
       id: f._id,
       nome: f.nome,
       contato: fObj['contato'] ?? null,
-      email: fObj['email'] ?? null,
+      url: fObj['url'] ?? null,
+      descricao: fObj['descricao'] ?? null,
     };
   });
 }

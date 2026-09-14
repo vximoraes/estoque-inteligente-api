@@ -50,6 +50,7 @@ export async function itensPrioritariosCompra(
       const saidas30dias = saidasPorItem.get(String(item._id)) ?? 0;
 
       return {
+        id: item._id,
         nome: item.nome,
         quantidade_atual: quantidade,
         estoque_minimo: estoqueMinimo,

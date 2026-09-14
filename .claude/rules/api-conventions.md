@@ -26,9 +26,9 @@ Toda resposta passa por `CommonResponse` (`src/utils/helpers/CommonResponse.ts`)
 ## Autenticação & RBAC
 
 - Sessão: Better Auth (`src/config/auth.ts`), montado em `/api/auth/*`. `AuthMiddleware.ts` exige sessão válida (cookie ou, via plugin `bearer()`, header `Authorization: Bearer <token>`).
-- Autorização: `AuthPermission.ts` resolve a rota chamada na coleção `rota` (`rota`, `dominio`, flags `buscar/enviar/substituir/modificar/excluir` por método HTTP — ver `RotaModel.ts`) e chama `PermissionService.hasPermission(usuarioId, rota, dominio, metodo, params, httpMethod)`. Permissão vem da união dos `grupos` do usuário (mais permissões diretas nele, se houver campo `permissoes`).
+- Autorização: `AuthPermission.ts` resolve a rota chamada na coleção `rota` (`rota`, flags `buscar/enviar/substituir/modificar/excluir` por método HTTP — ver `RotaModel.ts`) e chama `PermissionService.hasPermission(usuarioId, rota, metodo, params, httpMethod)`. Permissão vem da união dos `grupos` do usuário (mais permissões diretas nele, se houver campo `permissoes`).
 - Exceção hardcoded em `PermissionService`: usuário sempre pode `GET/PATCH/PUT/DELETE` no próprio registro em `/usuarios/:id` (comparação `params.id === userId`), independente de grupo.
-- **Toda rota nova precisa de um registro `Rota` correspondente** (seed ou criado via `/rotas`) com o domínio/flags certos — sem isso, `AuthPermission` nega mesmo com o código e o `Router` corretos.
+- **Toda rota nova precisa de um registro `Rota` correspondente** (seed ou criado via `/rotas`) com as flags certas — sem isso, `AuthPermission` nega mesmo com o código e o `Router` corretos.
 
 ## Tipos de entidade / módulo novo
 

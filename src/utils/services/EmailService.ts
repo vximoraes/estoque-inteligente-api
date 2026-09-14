@@ -76,6 +76,8 @@ function renderEmailHtml(params: {
 
 export interface EmprestimoEmailData {
   item?: { nome?: string };
+  tipo_controle?: string;
+  patrimonio?: { numero_patrimonio?: string; modelo?: string };
   localizacao?: { nome?: string };
   solicitante_nome?: string;
   quantidade_emprestada?: number;
@@ -84,6 +86,17 @@ export interface EmprestimoEmailData {
   observacoes_emprestimo?: string;
   quantidade_aberta?: number;
   observacoes_devolucao?: string;
+}
+
+function resolverItemNome(emprestimo: EmprestimoEmailData): string {
+  if (emprestimo.tipo_controle === 'unidade') {
+    const numero = emprestimo.patrimonio?.numero_patrimonio;
+    if (!numero) return 'Item desconhecido';
+    return emprestimo.patrimonio?.modelo
+      ? `${emprestimo.patrimonio.modelo} (patrimônio ${numero})`
+      : `patrimônio ${numero}`;
+  }
+  return emprestimo.item?.nome || 'Item desconhecido';
 }
 
 class EmailService {
@@ -233,7 +246,7 @@ Equipe Estoque Inteligente
     emailResponsavel: string,
     emprestimo: EmprestimoEmailData,
   ): Promise<{ success: boolean; messageId: string }> {
-    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
       emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
@@ -291,7 +304,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     emprestimo: EmprestimoEmailData,
     quantidadeDevolvida: number,
   ): Promise<{ success: boolean; messageId: string }> {
-    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
       emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
@@ -355,7 +368,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     emailResponsavel: string,
     emprestimo: EmprestimoEmailData,
   ): Promise<{ success: boolean; messageId: string }> {
-    const itemNome = emprestimo.item?.nome || 'Item desconhecido';
+    const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
       emprestimo.localizacao?.nome || 'Localização desconhecida';
     const solicitante = emprestimo.solicitante_nome;
