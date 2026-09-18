@@ -1,130 +1,117 @@
-import request from 'supertest';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const PORT = process.env.PORT || 3010;
-const BASE_URL = `http://localhost:${PORT}`;
-
-let token;
-const criarMovimentacaoValida = async (tipo = 'entrada', override = {}) => {
-  const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
-  const categoriaNome = `Categoria Teste ${unique}`;
-  const localizacaoNome = `Localizacao Teste ${unique}`;
-
-  const catRes = await request(BASE_URL)
-    .post('/categorias')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ nome: categoriaNome, tipo: 'consumo' });
-  const categoria = catRes.body?.data?._id;
-  expect(categoria).toBeTruthy();
-
-  const locRes = await request(BASE_URL)
-    .post('/localizacoes')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ nome: localizacaoNome });
-  const localizacao = locRes.body?.data?._id;
-  expect(localizacao).toBeTruthy();
-
-  await new Promise((r) => setTimeout(r, 200));
-
-  const itemNome = `Resistor ${unique}`;
-  const compRes = await request(BASE_URL)
-    .post('/itens')
-    .set('Authorization', `Bearer ${token}`)
-    .send({
-      nome: itemNome,
-      categoria,
-      quantidade: 100,
-      estoque_minimo: '10',
-      valor_unitario: '0.5',
-    });
-  const item = compRes.body?.data?._id;
-  expect(item).toBeTruthy();
-
-  await new Promise((r) => setTimeout(r, 150));
-
-  return {
-    item,
-    tipo,
-    quantidade: '10',
-    localizacao,
-    ...override,
-  };
-};
+import {
+  req,
+  logarAdmin,
+  logarUsuarioPadrao,
+  criarItem,
+  criarLocalizacao,
+  criarMovimentacao,
+  esperarEnvelopeSucesso,
+  esperarEnvelopeErro,
+  esperarPaginado,
+  ID_INVALIDO,
+  ID_INEXISTENTE,
+} from '../../../../test/helpers/rotasTestHelper.js';
 
 describe('Rotas de Movimentação', () => {
-  let movimentacaoId;
+  let token;
+  let tokenUsuarioPadrao;
 
   beforeAll(async () => {
-    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
-    const loginRes = await request(BASE_URL)
-      .post('/api/auth/sign-in/email')
-      .send({
-        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-        password: process.env.ADMIN_PASSWORD || 'Senha@123',
-      });
-    token = loginRes.body?.token;
-    expect(token).toBeTruthy();
+    token = await logarAdmin();
+    tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
   describe('POST /movimentacoes', () => {
-    it('deve cadastrar movimentação válida', async () => {
-      const dados = await criarMovimentacaoValida();
-      const res = await request(BASE_URL)
-        .post('/movimentacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([200, 201]).toContain(res.status);
+    it('deve cadastrar movimentação de entrada válida', async () => {
+      const item = await criarItem(token);
+      const localizacao = await criarLocalizacao(token);
+      const res = await req(token).post('/movimentacoes').send({
+        tipo: 'entrada',
+        quantidade: '10',
+        item: item._id,
+        localizacao: localizacao._id,
+      });
+      esperarEnvelopeSucesso(res, 201);
       expect(res.body.data).toHaveProperty('_id');
-      expect(res.body.data._id).toBeTruthy();
-      movimentacaoId = res.body.data._id;
-    }, 15000);
+    });
+
     it('deve falhar ao cadastrar sem campos obrigatórios', async () => {
-      const res = await request(BASE_URL)
-        .post('/movimentacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send({});
-      expect([400, 422]).toContain(res.status);
+      const res = await req(token).post('/movimentacoes').send({});
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve falhar ao cadastrar com item inexistente', async () => {
+      const localizacao = await criarLocalizacao(token);
+      const res = await req(token).post('/movimentacoes').send({
+        tipo: 'entrada',
+        quantidade: '10',
+        item: ID_INEXISTENTE,
+        localizacao: localizacao._id,
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('deve permitir cadastro para usuário sem permissão administrativa', async () => {
+      const item = await criarItem(tokenUsuarioPadrao);
+      const localizacao = await criarLocalizacao(tokenUsuarioPadrao);
+      const res = await req(tokenUsuarioPadrao).post('/movimentacoes').send({
+        tipo: 'entrada',
+        quantidade: '10',
+        item: item._id,
+        localizacao: localizacao._id,
+      });
+      esperarEnvelopeSucesso(res, 201);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').post('/movimentacoes').send({});
+      expect(res.status).toBe(498);
     });
   });
 
   describe('GET /movimentacoes', () => {
-    it('deve listar todas as movimentações', async () => {
-      const dados = await criarMovimentacaoValida();
-      await request(BASE_URL)
-        .post('/movimentacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      const res = await request(BASE_URL)
-        .get('/movimentacoes')
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      expect(res.body.data).toHaveProperty('docs');
-      expect(Array.isArray(res.body.data.docs)).toBe(true);
-    }, 10000);
+    it('deve listar movimentações paginadas', async () => {
+      await criarMovimentacao(token);
+      const res = await req(token).get('/movimentacoes');
+      esperarEnvelopeSucesso(res, 200);
+      esperarPaginado(res);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').get('/movimentacoes');
+      expect(res.status).toBe(498);
+    });
   });
+
+  describe('GET /movimentacoes/resumo', () => {
+    it('deve retornar resumo de movimentações', async () => {
+      const res = await req(token).get('/movimentacoes/resumo');
+      esperarEnvelopeSucesso(res, 200);
+    });
+  });
+
+  describe('GET /movimentacoes/tendencia', () => {
+    it('deve retornar tendência de movimentações', async () => {
+      const res = await req(token).get('/movimentacoes/tendencia');
+      esperarEnvelopeSucesso(res, 200);
+    });
+  });
+
   describe('GET /movimentacoes/:id', () => {
     it('deve retornar movimentação por id', async () => {
-      const dados = await criarMovimentacaoValida();
-      const movRes = await request(BASE_URL)
-        .post('/movimentacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect(movRes.body.data).toBeTruthy();
-      const id = movRes.body.data._id;
-      const res = await request(BASE_URL)
-        .get(`/movimentacoes/${id}`)
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      expect(res.body.data).toHaveProperty('_id', id);
-    }, 15000);
+      const movimentacao = await criarMovimentacao(token);
+      const res = await req(token).get(`/movimentacoes/${movimentacao._id}`);
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data).toHaveProperty('_id', movimentacao._id);
+    });
+
+    it('deve retornar 400 para id malformado', async () => {
+      const res = await req(token).get(`/movimentacoes/${ID_INVALIDO}`);
+      esperarEnvelopeErro(res, 400);
+    });
+
     it('deve retornar 404 para movimentação inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .get(`/movimentacoes/${id}`)
-        .set('Authorization', `Bearer ${token}`);
+      const res = await req(token).get(`/movimentacoes/${ID_INEXISTENTE}`);
       expect(res.status).toBe(404);
     });
   });

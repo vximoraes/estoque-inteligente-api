@@ -1,301 +1,173 @@
-import request from 'supertest';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import faker from 'faker-br';
-dotenv.config();
+import {
+  req,
+  logarAdmin,
+  logarUsuarioPadrao,
+  esperarEnvelopeSucesso,
+  esperarEnvelopeErro,
+  esperarPaginado,
+  ID_INEXISTENTE,
+} from '../../../../test/helpers/rotasTestHelper.js';
 
-const PORT = process.env.PORT || 3010;
-const BASE_URL = `http://localhost:${PORT}`;
-
-let token;
-let usuarioId;
-
-// Não há mais auto-cadastro público: usa o fluxo de convite (admin-only), que
-// dispara um e-mail de verdade via EmailService (requer MAIL_API_KEY/MAIL_API_URL
-// configurados no ambiente em que os testes rodam).
-const criarUsuarioValido = async () => {
-  const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
-  const email = `user${unique}@test.com`;
-  const nomeBruto = await faker.name.findName();
-  const nome = nomeBruto.replace(/-/g, ' ');
-  const res = await request(BASE_URL)
-    .post('/usuarios/convidar')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ nome, email });
-  return res.body?.data?.usuario?._id;
-};
-
-const criarNotificacaoValida = async (override = {}) => {
-  if (!usuarioId) usuarioId = await criarUsuarioValido();
-  return {
-    mensagem: 'Mensagem de teste',
-    usuario: usuarioId,
-    ...override,
-  };
-};
+async function criarNotificacao(token, override = {}) {
+  const res = await req(token)
+    .post('/notificacoes')
+    .send({ mensagem: 'Mensagem de teste', ...override });
+  esperarEnvelopeSucesso(res, 201);
+  return res.body.data;
+}
 
 describe('Rotas de Notificação', () => {
-  let notificacaoId;
+  let token;
+  let tokenUsuarioPadrao;
 
   beforeAll(async () => {
-    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
-    const loginRes = await request(BASE_URL)
-      .post('/api/auth/sign-in/email')
-      .send({
-        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-        password: process.env.ADMIN_PASSWORD || 'Senha@123',
-      });
-    token = loginRes.body?.token;
-    expect(token).toBeTruthy();
-    usuarioId = await criarUsuarioValido();
+    token = await logarAdmin();
+    tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
   describe('POST /notificacoes', () => {
-    it('deve cadastrar notificação válida', async () => {
-      const dados = await criarNotificacaoValida();
-      const res = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([200, 201]).toContain(res.status);
-      if (res.body.data) {
-        expect(res.body.data).toHaveProperty('_id');
-        expect(res.body.data.visualizada).toBe(false);
-        notificacaoId = res.body.data._id;
-      }
+    it('deve cadastrar notificação válida, sempre para o autor', async () => {
+      const notificacao = await criarNotificacao(token);
+      expect(notificacao).toHaveProperty('_id');
+      expect(notificacao.visualizada).toBe(false);
     });
-    it('deve falhar ao cadastrar sem campos obrigatórios', async () => {
-      const res = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send({});
-      expect([400, 422]).toContain(res.status);
-    });
-    it('deve falhar ao cadastrar com usuário inexistente', async () => {
-      const dados = await criarNotificacaoValida({
-        usuario: new mongoose.Types.ObjectId().toString(),
+
+    it('deve ignorar o campo usuario do payload e usar o autor autenticado', async () => {
+      const notificacao = await criarNotificacao(tokenUsuarioPadrao, {
+        usuario: ID_INEXISTENTE,
       });
-      const res = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([201, 400, 404, 422]).toContain(res.status);
+      expect(notificacao).toHaveProperty('_id');
     });
-    it('deve falhar ao cadastrar com tipos errados', async () => {
-      const dados = await criarNotificacaoValida({ mensagem: 12345 });
-      const res = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([400, 422]).toContain(res.status);
+
+    it('deve falhar ao cadastrar sem mensagem', async () => {
+      const res = await req(token).post('/notificacoes').send({});
+      esperarEnvelopeErro(res, 400);
     });
-    it('visualizada deve ser false por padrão', async () => {
-      const dados = await criarNotificacaoValida();
-      delete dados.visualizada;
-      const res = await request(BASE_URL)
+
+    it('deve falhar ao cadastrar com mensagem de tipo errado', async () => {
+      const res = await req(token)
         .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      if (res.body.data) {
-        expect(res.body.data.visualizada).toBe(false);
-      }
+        .send({ mensagem: 12345 });
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').post('/notificacoes').send({});
+      expect(res.status).toBe(498);
     });
   });
 
   describe('GET /notificacoes', () => {
-    it('deve listar todas as notificações', async () => {
-      const res = await request(BASE_URL)
-        .get('/notificacoes')
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      let lista = res.body.data;
-      if (!Array.isArray(lista)) {
-        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens)) {
-          lista = res.body.data.itens;
-        } else if (Array.isArray(res.body.data?.results)) {
-          lista = res.body.data.results;
-        }
-      }
-      expect(Array.isArray(lista)).toBe(true);
+    it('deve listar apenas notificações do autor autenticado, paginadas', async () => {
+      await criarNotificacao(tokenUsuarioPadrao);
+      const res = await req(tokenUsuarioPadrao).get('/notificacoes');
+      esperarEnvelopeSucesso(res, 200);
+      esperarPaginado(res);
     });
-    it('deve filtrar por usuario', async () => {
-      // Garante que existe pelo menos uma notificação para o usuarioId
-      await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(await criarNotificacaoValida());
-      const res = await request(BASE_URL)
-        .get(`/notificacoes?usuario=${usuarioId}`)
-        .set('Authorization', `Bearer ${token}`);
-      let lista = res.body.data;
-      if (!Array.isArray(lista)) {
-        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens)) {
-          lista = res.body.data.itens;
-        } else if (Array.isArray(res.body.data?.results)) {
-          lista = res.body.data.results;
-        }
-      }
-      const apenasDoUsuario = lista.filter((n) => {
-        if (!usuarioId) return false;
-        if (typeof n.usuario === 'object' && n.usuario !== null) {
-          return n.usuario._id?.toString() === usuarioId.toString();
-        }
-        return (n.usuario?.toString?.() || n.usuario) === usuarioId.toString();
-      });
-      expect([200, 201]).toContain(res.status);
-      expect(apenasDoUsuario.length).toBeGreaterThanOrEqual(0);
-    });
+
     it('deve filtrar por visualizada=false', async () => {
-      // Cria notificações não visualizadas para garantir o filtro
-      const n1 = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(await criarNotificacaoValida());
-      const n2 = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(await criarNotificacaoValida());
-      const res = await request(BASE_URL)
-        .get('/notificacoes?visualizada=false')
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      let lista = res.body.data;
-      if (!Array.isArray(lista)) {
-        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens)) {
-          lista = res.body.data.itens;
-        } else if (Array.isArray(res.body.data?.results)) {
-          lista = res.body.data.results;
-        }
-      }
-      const naoVisualizadas = lista.filter(
-        (n) => n.visualizada === false || n.visualizada === 'false',
+      await criarNotificacao(tokenUsuarioPadrao);
+      const res = await req(tokenUsuarioPadrao).get(
+        '/notificacoes?visualizada=false',
       );
-      expect(naoVisualizadas.length).toBeGreaterThanOrEqual(2);
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.docs.every((n) => n.visualizada === false)).toBe(
+        true,
+      );
     });
-    it('deve paginar notificações', async () => {
-      const res = await request(BASE_URL)
-        .get('/notificacoes?page=1&limit=2')
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      expect(res.body.data).toHaveProperty('docs');
-      expect(res.body.data).toHaveProperty('totalDocs');
-      expect(res.body.data).toHaveProperty('page');
-    });
-    it('deve retornar erro 400 para filtro inválido', async () => {
-      const res = await request(BASE_URL)
-        .get('/notificacoes?visualizada=talvez')
-        .set('Authorization', `Bearer ${token}`);
-      let lista = res.body.data;
-      if (!Array.isArray(lista)) {
-        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens)) {
-          lista = res.body.data.itens;
-        } else if (Array.isArray(res.body.data?.results)) {
-          lista = res.body.data.results;
-        }
-      }
-      expect([200, 400, 422]).toContain(res.status);
-      if (res.status === 200) {
-        expect(Array.isArray(lista) && lista.length === 0).toBe(false);
-      }
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').get('/notificacoes');
+      expect(res.status).toBe(498);
     });
   });
 
   describe('GET /notificacoes/:id', () => {
     it('deve retornar notificação por id', async () => {
-      const dados = await criarNotificacaoValida();
-      const notRes = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      if (notRes.body.data && notRes.body.data._id) {
-        const id = notRes.body.data._id;
-        const res = await request(BASE_URL)
-          .get(`/notificacoes/${id}`)
-          .set('Authorization', `Bearer ${token}`);
-        expect([200, 201]).toContain(res.status);
-        expect(res.body.data).toHaveProperty('_id', id);
-      } else {
-        // Se não conseguiu criar a notificação, pula o teste
-        expect(notRes.status).toBe(201);
-      }
+      const notificacao = await criarNotificacao(token);
+      const res = await req(token).get(`/notificacoes/${notificacao._id}`);
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data).toHaveProperty('_id', notificacao._id);
     });
+
     it('deve retornar 404 para notificação inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .get(`/notificacoes/${id}`)
-        .set('Authorization', `Bearer ${token}`);
+      const res = await req(token).get(`/notificacoes/${ID_INEXISTENTE}`);
+      expect(res.status).toBe(404);
+    });
+
+    it('deve retornar 404 para notificação de outro usuário', async () => {
+      const notificacao = await criarNotificacao(tokenUsuarioPadrao);
+      const res = await req(token).get(`/notificacoes/${notificacao._id}`);
       expect(res.status).toBe(404);
     });
   });
 
   describe('PATCH /notificacoes/:id/visualizar', () => {
     it('deve marcar notificação como visualizada', async () => {
-      const dados = await criarNotificacaoValida();
-      const notRes = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      if (notRes.body.data && notRes.body.data._id) {
-        const id = notRes.body.data._id;
-        const res = await request(BASE_URL)
-          .patch(`/notificacoes/${id}/visualizar`)
-          .set('Authorization', `Bearer ${token}`)
-          .expect(200);
-        expect(res.body.data.visualizada).toBe(true);
-      } else {
-        expect(notRes.status).toBe(201);
-      }
+      const notificacao = await criarNotificacao(token);
+      const res = await req(token).patch(
+        `/notificacoes/${notificacao._id}/visualizar`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.visualizada).toBe(true);
     });
+
     it('deve retornar 404 ao marcar inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .patch(`/notificacoes/${id}/visualizar`)
-        .set('Authorization', `Bearer ${token}`)
-        .send();
+      const res = await req(token).patch(
+        `/notificacoes/${ID_INEXISTENTE}/visualizar`,
+      );
       expect(res.status).toBe(404);
     });
   });
 
   describe('PUT /notificacoes/:id/visualizar', () => {
     it('deve marcar notificação como visualizada (PUT)', async () => {
-      const dados = await criarNotificacaoValida();
-      const notRes = await request(BASE_URL)
-        .post('/notificacoes')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      if (notRes.body.data && notRes.body.data._id) {
-        const id = notRes.body.data._id;
-        const res = await request(BASE_URL)
-          .put(`/notificacoes/${id}/visualizar`)
-          .set('Authorization', `Bearer ${token}`)
-          .send();
-        expect([200, 201]).toContain(res.status);
-        expect(res.body.data.visualizada).toBe(true);
-        if ('dataLeitura' in res.body.data) {
-          expect(res.body.data.dataLeitura).toBeTruthy();
-        }
-      } else {
-        expect(notRes.status).toBe(201);
-      }
+      const notificacao = await criarNotificacao(token);
+      const res = await req(token).put(
+        `/notificacoes/${notificacao._id}/visualizar`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.visualizada).toBe(true);
     });
+
     it('deve retornar 404 ao marcar inexistente (PUT)', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .put(`/notificacoes/${id}/visualizar`)
-        .set('Authorization', `Bearer ${token}`)
-        .send();
+      const res = await req(token).put(
+        `/notificacoes/${ID_INEXISTENTE}/visualizar`,
+      );
       expect(res.status).toBe(404);
     });
   });
 
-  it('deve retornar erro 500 para falha inesperada', async () => {
-    const res = await request(BASE_URL)
-      .get('/notificacoes/erro-interno')
-      .set('Authorization', `Bearer ${token}`);
-    expect([500, 400, 404]).toContain(res.status);
+  describe('PATCH /notificacoes/visualizar-todas', () => {
+    it('deve marcar todas as notificações do autor como visualizadas', async () => {
+      await criarNotificacao(tokenUsuarioPadrao);
+      await criarNotificacao(tokenUsuarioPadrao);
+      const res = await req(tokenUsuarioPadrao).patch(
+        '/notificacoes/visualizar-todas',
+      );
+      esperarEnvelopeSucesso(res, 200);
+
+      const listagem = await req(tokenUsuarioPadrao).get(
+        '/notificacoes?visualizada=false',
+      );
+      expect(listagem.body.data.docs).toHaveLength(0);
+    });
+  });
+
+  describe('PATCH /notificacoes/:id/inativar', () => {
+    it('deve inativar notificação existente', async () => {
+      const notificacao = await criarNotificacao(token);
+      const res = await req(token).patch(
+        `/notificacoes/${notificacao._id}/inativar`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+    });
+
+    it('deve retornar 404 ao inativar inexistente', async () => {
+      const res = await req(token).patch(
+        `/notificacoes/${ID_INEXISTENTE}/inativar`,
+      );
+      expect(res.status).toBe(404);
+    });
   });
 });

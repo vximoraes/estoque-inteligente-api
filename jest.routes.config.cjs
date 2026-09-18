@@ -13,4 +13,5 @@ module.exports = {
   globalSetup: '<rootDir>/test/routesGlobalSetup.ts',
   globalTeardown: '<rootDir>/test/routesGlobalTeardown.ts',
   testTimeout: 30000,
+  maxWorkers: 1,
 };

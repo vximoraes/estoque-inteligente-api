@@ -95,7 +95,9 @@ class RotaRepository {
   }
 
   async atualizar(parsedData: Record<string, unknown>, id: string) {
-    const data = await this.model.findByIdAndUpdate(id, parsedData);
+    const data = await this.model.findByIdAndUpdate(id, parsedData, {
+      new: true,
+    });
     if (!data) {
       throw new CustomError({
         statusCode: 404,

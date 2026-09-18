@@ -7,9 +7,11 @@ Este arquivo orienta o Claude Code (claude.ai/code) ao trabalhar com código nes
 ```bash
 npm run dev              # servidor de dev com hot reload (tsx watch server.js), na PORT (padrão 3010)
 npm start                # roda uma vez, sem watch
-npm test                 # jest --coverage (todos os testes)
+npm test                 # jest --coverage (suíte unitária)
 npx jest path/to/file.test.ts            # roda um único arquivo de teste
 npx jest -t "test name"                  # roda testes que casam com um nome
+npm run test:server      # sobe a API de teste (porta 3011, Mongo efêmero, seed automático)
+npm run test:routes      # suíte de integração (*Routes.test.ts) — sobe/derruba o servidor sozinha
 npm run seed              # popula o MongoDB com dados fake (src/seeds/seeds.ts)
 npm run typecheck         # tsc --noEmit
 npm run lint / lint:fix
@@ -18,7 +20,7 @@ npm run fix               # eslint --fix + prettier --write
 docker compose up --build                # API + MongoDB + MinIO
 ```
 
-Requer MongoDB acessível via `DB_URL` (ver `.env.example`). Testes de model sobem sua própria instância de `mongodb-memory-server` (por arquivo, em `beforeAll`/`afterAll`); `jest.setup.js` só define `NODE_ENV=test` e mocka MinIO/Sharp.
+Requer MongoDB acessível via `DB_URL` (ver `.env.example`). Testes de model sobem sua própria instância de `mongodb-memory-server` (por arquivo, em `beforeAll`/`afterAll`); `jest.setup.js` só define `NODE_ENV=test` e mocka MinIO/Sharp. Testes de rota (`*Routes.test.ts`) rodam à parte via `test:routes`, contra um servidor real com `MongoMemoryReplSet` — ver `.claude/rules/testing.md`.
 
 Este repositório é um workspace de um monorepo maior; o front-end irmão fica em `../estoque-inteligente-front` (com seu próprio `CLAUDE.md`) e precisa se manter sincronizado quanto ao contrato de autenticação descrito abaixo.
 
