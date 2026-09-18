@@ -48,5 +48,19 @@ export default async function usuarioSeed() {
     grupos: grupos[0] ? [grupos[0]._id] : [],
   });
 
-  return { adminId: adminUser.id };
+  const usuarioNome = process.env['USER_NAME'] ?? 'Usuário Padrão';
+  const usuarioEmail = process.env['USER_EMAIL'] ?? 'usuario@usuario.com';
+  const usuarioSenha = process.env['USER_PASSWORD'] ?? 'Senha@123';
+
+  const { user: usuarioPadrao } = await auth.api.signUpEmail({
+    body: { email: usuarioEmail, name: usuarioNome, password: usuarioSenha },
+  });
+
+  await Usuario.findByIdAndUpdate(usuarioPadrao.id, {
+    ativo: true,
+    permissoes: grupoUsuario?.permissoes || [],
+    grupos: grupoUsuario ? [grupoUsuario._id] : [],
+  });
+
+  return { adminId: adminUser.id, usuarioPadraoId: usuarioPadrao.id };
 }

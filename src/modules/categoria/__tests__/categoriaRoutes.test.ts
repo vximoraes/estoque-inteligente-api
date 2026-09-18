@@ -1,174 +1,162 @@
-import request from 'supertest';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const PORT = process.env.PORT || 3010;
-const BASE_URL = `http://localhost:${PORT}`;
-
-let token;
-
-const criarCategoriaValida = async (override = {}) => {
-  const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
-  const nome = `Categoria Teste ${unique}`;
-  return {
-    nome,
-    tipo: 'consumo',
-    ...override,
-  };
-};
+import {
+  req,
+  logarAdmin,
+  logarUsuarioPadrao,
+  criarCategoria,
+  sufixoUnico,
+  esperarEnvelopeSucesso,
+  esperarEnvelopeErro,
+  esperarErroDeCampo,
+  esperarPaginado,
+  ID_INVALIDO,
+  ID_INEXISTENTE,
+} from '../../../../test/helpers/rotasTestHelper.js';
 
 describe('Rotas de Categoria', () => {
-  let categoriaId;
+  let token;
+  let tokenUsuarioPadrao;
 
   beforeAll(async () => {
-    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
-    const loginRes = await request(BASE_URL)
-      .post('/api/auth/sign-in/email')
-      .send({
-        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-        password: process.env.ADMIN_PASSWORD || 'Senha@123',
-      });
-    token = loginRes.body?.token;
-    expect(token).toBeTruthy();
+    token = await logarAdmin();
+    tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
   describe('POST /categorias', () => {
     it('deve cadastrar categoria válida', async () => {
-      const dados = await criarCategoriaValida();
-      const res = await request(BASE_URL)
+      const res = await req(token)
         .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([200, 201]).toContain(res.status);
+        .send({ nome: sufixoUnico('zz-categoria'), tipo: 'consumo' });
+      esperarEnvelopeSucesso(res, 201);
       expect(res.body.data).toHaveProperty('_id');
-      categoriaId = res.body.data._id;
     });
+
     it('deve falhar ao cadastrar sem nome', async () => {
-      const res = await request(BASE_URL)
+      const res = await req(token)
         .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send({});
-      expect([400, 422]).toContain(res.status);
+        .send({ tipo: 'consumo' });
+      esperarEnvelopeErro(res, 400);
+      esperarErroDeCampo(res, 'nome');
     });
+
+    it('deve falhar ao cadastrar sem tipo', async () => {
+      const res = await req(token)
+        .post('/categorias')
+        .send({ nome: sufixoUnico('zz-categoria') });
+      esperarEnvelopeErro(res, 400);
+      esperarErroDeCampo(res, 'tipo');
+    });
+
     it('deve falhar ao cadastrar com nome já existente', async () => {
-      const dados = await criarCategoriaValida();
-      await request(BASE_URL)
+      const categoria = await criarCategoria(token);
+      const res = await req(token)
         .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      const res = await request(BASE_URL)
+        .send({ nome: categoria.nome, tipo: 'consumo' });
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve permitir cadastro para usuário sem permissão administrativa', async () => {
+      const res = await req(tokenUsuarioPadrao)
         .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      expect([400, 409, 422]).toContain(res.status);
+        .send({ nome: sufixoUnico('zz-categoria'), tipo: 'consumo' });
+      esperarEnvelopeSucesso(res, 201);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('')
+        .post('/categorias')
+        .send({
+          nome: sufixoUnico('zz-categoria'),
+          tipo: 'consumo',
+        });
+      expect(res.status).toBe(498);
+    });
+
+    it('deve rejeitar com token inválido', async () => {
+      const res = await req('token-invalido')
+        .post('/categorias')
+        .send({
+          nome: sufixoUnico('zz-categoria'),
+          tipo: 'consumo',
+        });
+      expect(res.status).toBe(498);
     });
   });
 
   describe('GET /categorias', () => {
-    it('deve listar todas as categorias', async () => {
-      const res = await request(BASE_URL)
-        .get('/categorias')
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      let lista = res.body.data;
-      if (!Array.isArray(lista)) {
-        if (Array.isArray(res.body.data?.docs)) lista = res.body.data.docs;
-        else if (Array.isArray(res.body.data?.itens)) {
-          lista = res.body.data.itens;
-        } else if (Array.isArray(res.body.data?.results)) {
-          lista = res.body.data.results;
-        }
-      }
-      expect(Array.isArray(lista)).toBe(true);
+    it('deve listar categorias paginadas', async () => {
+      const res = await req(token).get('/categorias');
+      esperarEnvelopeSucesso(res, 200);
+      esperarPaginado(res);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').get('/categorias');
+      expect(res.status).toBe(498);
     });
   });
 
   describe('GET /categorias/:id', () => {
     it('deve retornar categoria por id', async () => {
-      const dados = await criarCategoriaValida();
-      const catRes = await request(BASE_URL)
-        .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      const id = catRes.body.data._id;
-      const res = await request(BASE_URL)
-        .get(`/categorias/${id}`)
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201]).toContain(res.status);
-      expect(res.body.data).toHaveProperty('_id', id);
+      const categoria = await criarCategoria(token);
+      const res = await req(token).get(`/categorias/${categoria._id}`);
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data).toHaveProperty('_id', categoria._id);
     });
+
+    it('deve retornar 400 para id malformado', async () => {
+      const res = await req(token).get(`/categorias/${ID_INVALIDO}`);
+      esperarEnvelopeErro(res, 400);
+    });
+
     it('deve retornar 404 para categoria inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .get(`/categorias/${id}`)
-        .set('Authorization', `Bearer ${token}`);
+      const res = await req(token).get(`/categorias/${ID_INEXISTENTE}`);
       expect(res.status).toBe(404);
     });
   });
 
   describe('PATCH /categorias/:id', () => {
     it('deve atualizar nome da categoria', async () => {
-      const dados = await criarCategoriaValida();
-      const catRes = await request(BASE_URL)
-        .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      const id = catRes.body.data._id;
-      const novoNome = dados.nome + ' Atualizado';
-      const res = await request(BASE_URL)
-        .patch(`/categorias/${id}`)
-        .set('Authorization', `Bearer ${token}`)
+      const categoria = await criarCategoria(token);
+      const novoNome = sufixoUnico('zz-categoria-atualizada');
+      const res = await req(token)
+        .patch(`/categorias/${categoria._id}`)
         .send({ nome: novoNome });
-      expect([200, 201]).toContain(res.status);
+      esperarEnvelopeSucesso(res, 200);
       expect(res.body.data.nome).toBe(novoNome);
     });
+
     it('deve falhar ao atualizar para nome já existente', async () => {
-      const dados1 = await criarCategoriaValida();
-      const dados2 = await criarCategoriaValida();
-      const cat1 = await request(BASE_URL)
-        .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados1);
-      const cat2 = await request(BASE_URL)
-        .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados2);
-      const res = await request(BASE_URL)
-        .patch(`/categorias/${cat2.body.data._id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({ nome: dados1.nome });
-      expect([400, 409, 422]).toContain(res.status);
+      const categoria1 = await criarCategoria(token);
+      const categoria2 = await criarCategoria(token);
+      const res = await req(token)
+        .patch(`/categorias/${categoria2._id}`)
+        .send({ nome: categoria1.nome });
+      esperarEnvelopeErro(res, 400);
     });
+
     it('deve retornar 404 ao atualizar categoria inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .patch(`/categorias/${id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({ nome: 'Qualquer' });
+      const res = await req(token)
+        .patch(`/categorias/${ID_INEXISTENTE}`)
+        .send({ nome: sufixoUnico('zz-categoria') });
       expect(res.status).toBe(404);
     });
   });
 
   describe('PATCH /categorias/:id/inativar', () => {
     it('deve inativar categoria existente', async () => {
-      const dados = await criarCategoriaValida();
-      const catRes = await request(BASE_URL)
-        .post('/categorias')
-        .set('Authorization', `Bearer ${token}`)
-        .send(dados);
-      const id = catRes.body.data._id;
-      const res = await request(BASE_URL)
-        .patch(`/categorias/${id}/inativar`)
-        .set('Authorization', `Bearer ${token}`);
-      expect([200, 201, 204]).toContain(res.status);
+      const categoria = await criarCategoria(token);
+      const res = await req(token).patch(
+        `/categorias/${categoria._id}/inativar`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.ativo).toBe(false);
     });
+
     it('deve retornar 404 ao inativar categoria inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .patch(`/categorias/${id}/inativar`)
-        .set('Authorization', `Bearer ${token}`);
+      const res = await req(token).patch(
+        `/categorias/${ID_INEXISTENTE}/inativar`,
+      );
       expect(res.status).toBe(404);
     });
   });
