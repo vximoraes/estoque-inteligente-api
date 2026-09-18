@@ -17,6 +17,7 @@
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
     "test": "clear && jest --coverage",
     "test:routes": "clear && jest --config=jest.routes.config.cjs",
+    "test:server": "tsx test/routesServer.runner.ts",
     "typecheck": "node_modules/.bin/tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

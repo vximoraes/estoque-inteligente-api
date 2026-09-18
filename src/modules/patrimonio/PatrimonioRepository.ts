@@ -32,6 +32,25 @@ class PatrimonioRepository {
       .populate('localizacao');
   }
 
+  async buscarPorNumero(numeroPatrimonio: string) {
+    return await this.model.findOne({
+      numero_patrimonio: numeroPatrimonio.trim().toUpperCase(),
+      ativo: true,
+    });
+  }
+
+  async buscarNumerosExistentes(numerosPatrimonio: string[]) {
+    const documentos = await this.model
+      .find({
+        numero_patrimonio: {
+          $in: numerosPatrimonio.map((numero) => numero.trim().toUpperCase()),
+        },
+        ativo: true,
+      })
+      .select('numero_patrimonio');
+    return documentos.map((doc) => doc.numero_patrimonio);
+  }
+
   async criarMuitos(itens: Record<string, unknown>[]) {
     const salvos = await this.model.create(itens);
     const ids = salvos.map((doc) => doc._id);

@@ -1,150 +1,210 @@
-import request from 'supertest';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import {
+  req,
+  logarAdmin,
+  logarUsuarioPadrao,
+  criarItem,
+  criarLocalizacao,
+  criarMovimentacao,
+  esperarEnvelopeSucesso,
+  esperarEnvelopeErro,
+  esperarPaginado,
+  ID_INEXISTENTE,
+} from '../../../../test/helpers/rotasTestHelper.js';
 
-dotenv.config();
+async function criarDependenciasEmprestimo(token) {
+  const item = await criarItem(token);
+  const localizacao = await criarLocalizacao(token);
+  await criarMovimentacao(token, {
+    item: item._id,
+    localizacao: localizacao._id,
+    quantidade: '50',
+  });
+  return { item: item._id, localizacao: localizacao._id };
+}
 
-const PORT = process.env.PORT || 3010;
-const BASE_URL = `http://localhost:${PORT}`;
-
-let token;
-
-const criarDependenciasEmprestimo = async () => {
-  const unique = Date.now() + '-' + Math.floor(Math.random() * 10000);
-
-  const categoriaRes = await request(BASE_URL)
-    .post('/categorias')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ nome: `Categoria Emprestimo ${unique}`, tipo: 'consumo' });
-  const categoria = categoriaRes.body?.data?._id;
-  expect(categoria).toBeTruthy();
-
-  const localizacaoRes = await request(BASE_URL)
-    .post('/localizacoes')
-    .set('Authorization', `Bearer ${token}`)
-    .send({ nome: `Localizacao Emprestimo ${unique}` });
-  const localizacao = localizacaoRes.body?.data?._id;
-  expect(localizacao).toBeTruthy();
-
-  await new Promise((r) => setTimeout(r, 100));
-
-  const itemRes = await request(BASE_URL)
-    .post('/itens')
-    .set('Authorization', `Bearer ${token}`)
+async function criarEmprestimo(token, override = {}) {
+  const { item, localizacao } = await criarDependenciasEmprestimo(token);
+  const res = await req(token)
+    .post('/emprestimos')
     .send({
-      nome: `Item Emprestimo ${unique}`,
-      categoria,
-      quantidade: 200,
-      estoque_minimo: '10',
-      valor_unitario: '1',
-    });
-  const item = itemRes.body?.data?._id;
-  expect(item).toBeTruthy();
-
-  await request(BASE_URL)
-    .post('/movimentacoes')
-    .set('Authorization', `Bearer ${token}`)
-    .send({
-      tipo: 'entrada',
-      quantidade: '50',
       item,
       localizacao,
+      quantidade_emprestada: 5,
+      solicitante_nome: 'Fulano Externo',
+      data_prevista_devolucao: new Date(
+        Date.now() + 5 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      ...override,
     });
-
-  return { item, localizacao };
-};
+  esperarEnvelopeSucesso(res, 201);
+  return res.body.data;
+}
 
 describe('Rotas de Emprestimo', () => {
-  beforeAll(async () => {
-    // Requer `npm run seed` rodado contra o mesmo DB_URL do servidor em teste.
-    const loginRes = await request(BASE_URL)
-      .post('/api/auth/sign-in/email')
-      .send({
-        email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-        password: process.env.ADMIN_PASSWORD || 'Senha@123',
-      });
+  let token;
+  let tokenUsuarioPadrao;
 
-    token = loginRes.body?.token;
-    expect(token).toBeTruthy();
+  beforeAll(async () => {
+    token = await logarAdmin();
+    tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
   describe('POST /emprestimos', () => {
-    it('deve cadastrar emprestimo valido', async () => {
-      const { item, localizacao } = await criarDependenciasEmprestimo();
+    it('deve cadastrar emprestimo válido', async () => {
+      const emprestimo = await criarEmprestimo(token);
+      expect(emprestimo).toHaveProperty('_id');
+      expect(emprestimo.quantidade_aberta).toBe(5);
+      expect(emprestimo).toHaveProperty('status');
+    });
 
-      const res = await request(BASE_URL)
+    it('deve falhar ao cadastrar sem campos obrigatórios', async () => {
+      const res = await req(token).post('/emprestimos').send({});
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve permitir cadastro para usuário sem permissão administrativa', async () => {
+      const { item, localizacao } =
+        await criarDependenciasEmprestimo(tokenUsuarioPadrao);
+      const res = await req(tokenUsuarioPadrao)
         .post('/emprestimos')
-        .set('Authorization', `Bearer ${token}`)
         .send({
           item,
           localizacao,
-          quantidade_emprestada: 5,
+          quantidade_emprestada: 3,
           solicitante_nome: 'Fulano Externo',
           data_prevista_devolucao: new Date(
             Date.now() + 5 * 24 * 60 * 60 * 1000,
           ).toISOString(),
-          observacoes_emprestimo: 'Emprestimo para teste',
         });
+      esperarEnvelopeSucesso(res, 201);
+    });
 
-      expect([200, 201]).toContain(res.status);
-      expect(res.body.data).toHaveProperty('_id');
-      expect(res.body.data.quantidade_aberta).toBe(5);
-      expect(res.body.data).toHaveProperty('status');
-    }, 20000);
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').post('/emprestimos').send({});
+      expect(res.status).toBe(498);
+    });
+  });
+
+  describe('GET /emprestimos', () => {
+    it('deve listar emprestimos paginados', async () => {
+      await criarEmprestimo(token);
+      const res = await req(token).get('/emprestimos');
+      esperarEnvelopeSucesso(res, 200);
+      esperarPaginado(res);
+    });
+
+    it('deve rejeitar sem token', async () => {
+      const res = await req('').get('/emprestimos');
+      expect(res.status).toBe(498);
+    });
+  });
+
+  describe('GET /emprestimos/tendencia', () => {
+    it('deve retornar tendência de empréstimos', async () => {
+      const res = await req(token).get('/emprestimos/tendencia');
+      esperarEnvelopeSucesso(res, 200);
+    });
+  });
+
+  describe('GET /emprestimos/:id', () => {
+    it('deve retornar empréstimo por id', async () => {
+      const emprestimo = await criarEmprestimo(token);
+      const res = await req(token).get(`/emprestimos/${emprestimo._id}`);
+      esperarEnvelopeSucesso(res, 200);
+    });
+
+    it('deve retornar 404 para empréstimo inexistente', async () => {
+      const res = await req(token).get(`/emprestimos/${ID_INEXISTENTE}`);
+      expect(res.status).toBe(404);
+    });
   });
 
   describe('PATCH /emprestimos/:id/devolver', () => {
-    it('deve registrar devolucao parcial', async () => {
-      const { item, localizacao } = await criarDependenciasEmprestimo();
+    it('deve registrar devolução parcial', async () => {
+      const emprestimo = await criarEmprestimo(token, {
+        quantidade_emprestada: 4,
+      });
 
-      const createRes = await request(BASE_URL)
-        .post('/emprestimos')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          item,
-          localizacao,
-          quantidade_emprestada: 4,
-          solicitante_nome: 'Cliente Externo',
-          data_prevista_devolucao: new Date(
-            Date.now() + 3 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        });
+      const res = await req(token)
+        .patch(`/emprestimos/${emprestimo._id}/devolver`)
+        .send({ quantidade_devolvida: 2, observacoes_devolucao: 'Parcial' });
 
-      const emprestimoId = createRes.body?.data?._id;
-      expect(emprestimoId).toBeTruthy();
-
-      const res = await request(BASE_URL)
-        .patch(`/emprestimos/${emprestimoId}/devolver`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          quantidade_devolvida: 2,
-          observacoes_devolucao: 'Devolucao parcial',
-        });
-
-      expect(res.status).toBe(200);
+      esperarEnvelopeSucesso(res, 200);
       expect(res.body.data.quantidade_devolvida).toBe(2);
       expect(res.body.data.quantidade_aberta).toBe(2);
       expect(res.body.data.status).toBe('Ativo');
-    }, 20000);
-  });
-
-  describe('GET /emprestimos e /emprestimos/:id', () => {
-    it('deve listar emprestimos paginados', async () => {
-      const res = await request(BASE_URL)
-        .get('/emprestimos')
-        .set('Authorization', `Bearer ${token}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.data).toHaveProperty('docs');
-      expect(Array.isArray(res.body.data.docs)).toBe(true);
     });
 
-    it('deve retornar 404 para emprestimo inexistente', async () => {
-      const id = new mongoose.Types.ObjectId();
-      const res = await request(BASE_URL)
-        .get(`/emprestimos/${id}`)
-        .set('Authorization', `Bearer ${token}`);
+    it('deve retornar 404 ao devolver empréstimo inexistente', async () => {
+      const res = await req(token)
+        .patch(`/emprestimos/${ID_INEXISTENTE}/devolver`)
+        .send({ quantidade_devolvida: 1 });
+      expect(res.status).toBe(404);
+    });
+  });
 
+  describe('PATCH /emprestimos/:id/desfazer-devolucao', () => {
+    it('deve desfazer devolução registrada', async () => {
+      const emprestimo = await criarEmprestimo(token, {
+        quantidade_emprestada: 4,
+      });
+      await req(token)
+        .patch(`/emprestimos/${emprestimo._id}/devolver`)
+        .send({ quantidade_devolvida: 2 });
+
+      const res = await req(token).patch(
+        `/emprestimos/${emprestimo._id}/desfazer-devolucao`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.quantidade_aberta).toBe(4);
+    });
+
+    it('deve retornar 404 ao desfazer devolução de empréstimo inexistente', async () => {
+      const res = await req(token).patch(
+        `/emprestimos/${ID_INEXISTENTE}/desfazer-devolucao`,
+      );
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PUT /emprestimos/:id', () => {
+    it('deve atualizar observações do empréstimo', async () => {
+      const emprestimo = await criarEmprestimo(token);
+      const res = await req(token)
+        .put(`/emprestimos/${emprestimo._id}`)
+        .send({ observacoes_emprestimo: 'Atualizado' });
+      esperarEnvelopeSucesso(res, 200);
+    });
+
+    it('deve retornar 404 ao atualizar empréstimo inexistente', async () => {
+      const res = await req(token)
+        .put(`/emprestimos/${ID_INEXISTENTE}`)
+        .send({ observacoes_emprestimo: 'Qualquer' });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('DELETE /emprestimos/:id', () => {
+    it('deve falhar ao excluir empréstimo em aberto', async () => {
+      const emprestimo = await criarEmprestimo(token);
+      const res = await req(token).delete(`/emprestimos/${emprestimo._id}`);
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve excluir empréstimo já totalmente devolvido', async () => {
+      const emprestimo = await criarEmprestimo(token, {
+        quantidade_emprestada: 3,
+      });
+      await req(token)
+        .patch(`/emprestimos/${emprestimo._id}/devolver`)
+        .send({ quantidade_devolvida: 3 });
+
+      const res = await req(token).delete(`/emprestimos/${emprestimo._id}`);
+      esperarEnvelopeSucesso(res, 200);
+    });
+
+    it('deve retornar 404 ao excluir empréstimo inexistente', async () => {
+      const res = await req(token).delete(`/emprestimos/${ID_INEXISTENTE}`);
       expect(res.status).toBe(404);
     });
   });

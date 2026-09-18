@@ -46,6 +46,7 @@ class PatrimonioService {
   async criar(parsedData: Patrimonio, req: AuthenticatedRequest) {
     await this.validarCategoriaPermanente(parsedData.categoria);
     await this.validarLocalizacao(parsedData.localizacao);
+    await this.validarNumeroPatrimonio(parsedData.numero_patrimonio);
 
     const status = parsedData.status ?? 'Disponível';
 
@@ -106,6 +107,25 @@ class PatrimonioService {
         usuario: req.user_id,
       }),
     );
+
+    const existentes = await this.repository.buscarNumerosExistentes(
+      unidades.map((unidade) => unidade.numero_patrimonio),
+    );
+    if (existentes.length > 0) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.CONFLICT.code,
+        errorType: 'resourceConflict',
+        field: 'numero_patrimonio',
+        details: existentes.map((numero) => ({
+          path: 'numero_patrimonio',
+          message: `"${numero}" já está em uso.`,
+        })),
+        customMessage: messages.error.resourceConflict(
+          'Patrimonio',
+          'numero_patrimonio',
+        ),
+      });
+    }
 
     const criados = await this.repository.criarMuitos(unidades);
 
@@ -428,6 +448,27 @@ class PatrimonioService {
     const data = await this.repository.atualizar(id, { imagem: '' }, req);
 
     return { imagem: (data as PatrimonioDocument).imagem };
+  }
+
+  private async validarNumeroPatrimonio(numeroPatrimonio: string) {
+    const existente = await this.repository.buscarPorNumero(numeroPatrimonio);
+    if (existente) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.CONFLICT.code,
+        errorType: 'resourceConflict',
+        field: 'numero_patrimonio',
+        details: [
+          {
+            path: 'numero_patrimonio',
+            message: 'Número de patrimônio já está em uso.',
+          },
+        ],
+        customMessage: messages.error.resourceConflict(
+          'Patrimonio',
+          'numero_patrimonio',
+        ),
+      });
+    }
   }
 
   private async validarCategoriaPermanente(categoriaId: string) {

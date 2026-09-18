@@ -29,6 +29,8 @@ describe('PatrimonioService', () => {
       buscarPorId: jest.fn(),
       atualizar: jest.fn(),
       buscarEventosPorPatrimonio: jest.fn(),
+      buscarPorNumero: jest.fn().mockResolvedValue(null),
+      buscarNumerosExistentes: jest.fn().mockResolvedValue([]),
     };
     PatrimonioRepository.mockImplementation(() => repositoryMock);
     service = new PatrimonioService();
