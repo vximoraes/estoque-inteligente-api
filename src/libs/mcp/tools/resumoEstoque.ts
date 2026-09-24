@@ -12,6 +12,7 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     unidadesDisponiveis,
     unidadesEmprestadas,
     unidadesManutencao,
+    unidadesBaixadas,
   ] = await Promise.all([
     ItemModel.countDocuments({ ativo: true }),
     ItemModel.countDocuments({ ativo: true, status: 'Em Estoque' }),
@@ -24,9 +25,10 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     PatrimonioModel.countDocuments({ ativo: true, status: 'Disponível' }),
     PatrimonioModel.countDocuments({ ativo: true, status: 'Emprestado' }),
     PatrimonioModel.countDocuments({ ativo: true, status: 'Manutenção' }),
+    PatrimonioModel.countDocuments({ ativo: true, status: 'Baixado' }),
   ]);
 
-  const totalUnidadesPatrimonio =
+  const unidadesEmUso =
     unidadesDisponiveis + unidadesEmprestadas + unidadesManutencao;
 
   const hoje = new Date();
@@ -43,9 +45,11 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     indisponivel,
     emprestimos_ativos: totalEmprestimosAtivos,
     emprestimos_atrasados: emprestimosAtrasados,
-    total_unidades_patrimonio: totalUnidadesPatrimonio,
+    total_unidades_patrimonio: unidadesEmUso + unidadesBaixadas,
+    unidades_patrimonio_em_uso: unidadesEmUso,
     unidades_disponiveis: unidadesDisponiveis,
     unidades_emprestadas: unidadesEmprestadas,
     unidades_manutencao: unidadesManutencao,
+    unidades_baixadas: unidadesBaixadas,
   };
 }

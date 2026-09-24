@@ -84,10 +84,12 @@ describe('buscarEmprestimos', () => {
 
     const resultado = await buscarEmprestimos({}, usuarioId);
 
-    expect(resultado).toHaveLength(1);
-    expect(resultado[0]?.item).toBe('ThinkPad T14 (patrimônio PAT-001)');
-    expect(resultado[0]?.tipo_controle).toBe('unidade');
-    expect(resultado[0]?.item).not.toBe(null);
+    expect(resultado.registros).toHaveLength(1);
+    expect(resultado.registros[0]?.item).toBe(
+      'ThinkPad T14 (patrimônio PAT-001)',
+    );
+    expect(resultado.registros[0]?.tipo_controle).toBe('unidade');
+    expect(resultado.registros[0]?.item).not.toBe(null);
   });
 
   it('resolve o campo item para o nome do item em empréstimo de quantidade', async () => {
@@ -107,9 +109,9 @@ describe('buscarEmprestimos', () => {
 
     const resultado = await buscarEmprestimos({}, usuarioId);
 
-    expect(resultado).toHaveLength(1);
-    expect(resultado[0]?.item).toBe('Mouse Logitech MX Master');
-    expect(resultado[0]?.tipo_controle).toBe('quantidade');
+    expect(resultado.registros).toHaveLength(1);
+    expect(resultado.registros[0]?.item).toBe('Mouse Logitech MX Master');
+    expect(resultado.registros[0]?.tipo_controle).toBe('quantidade');
   });
 
   it('traz empréstimo atrasado antigo mesmo fora da janela dos mais recentes', async () => {
@@ -159,7 +161,9 @@ describe('buscarEmprestimos', () => {
     );
 
     expect(
-      resultado.some((e) => e.solicitante === 'Empréstimo Antigo Atrasado'),
+      resultado.registros.some(
+        (e) => e.solicitante === 'Empréstimo Antigo Atrasado',
+      ),
     ).toBe(true);
   });
 });

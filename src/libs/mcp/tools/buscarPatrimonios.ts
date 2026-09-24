@@ -1,6 +1,7 @@
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarPatrimonios(
   {
@@ -52,14 +53,17 @@ export async function buscarPatrimonios(
     };
   }
 
-  const patrimonios = await PatrimonioModel.find(filtros)
-    .populate('categoria', 'nome')
-    .populate('localizacao', 'nome')
-    .sort({ numero_patrimonio: 1 })
-    .limit(Math.min(Number(limite), 50))
-    .lean();
+  const [patrimonios, total] = await Promise.all([
+    PatrimonioModel.find(filtros)
+      .populate('categoria', 'nome')
+      .populate('localizacao', 'nome')
+      .sort({ numero_patrimonio: 1 })
+      .limit(Math.min(Number(limite), 50))
+      .lean(),
+    PatrimonioModel.countDocuments(filtros),
+  ]);
 
-  return patrimonios.map((p) => {
+  const registrosFormatados = patrimonios.map((p) => {
     const pObj = p as Record<string, unknown>;
     const categoriaPopulada = pObj['categoria'] as Record<
       string,
@@ -81,4 +85,6 @@ export async function buscarPatrimonios(
       campos_personalizados: pObj['campos_personalizados'] ?? [],
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }

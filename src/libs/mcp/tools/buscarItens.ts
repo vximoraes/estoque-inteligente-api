@@ -2,6 +2,7 @@ import ItemModel from '../../../modules/item/ItemModel.js';
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarItens(
   {
@@ -49,13 +50,16 @@ export async function buscarItens(
     filtros['_id'] = { $in: estoquesCorrespondentes.map((e) => e.item) };
   }
 
-  const itens = await ItemModel.find(filtros)
-    .populate('categoria', 'nome')
-    .limit(Math.min(Number(limite), 50))
-    .sort({ nome: 1 })
-    .lean();
+  const [itens, total] = await Promise.all([
+    ItemModel.find(filtros)
+      .populate('categoria', 'nome')
+      .limit(Math.min(Number(limite), 50))
+      .sort({ nome: 1 })
+      .lean(),
+    ItemModel.countDocuments(filtros),
+  ]);
 
-  return itens.map((item) => {
+  const registrosFormatados = itens.map((item) => {
     const itemObj = item as Record<string, unknown>;
     const categoria = itemObj['categoria'] as Record<string, unknown> | null;
     return {
@@ -70,4 +74,6 @@ export async function buscarItens(
       categoria: categoria?.['nome'] ?? null,
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }

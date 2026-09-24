@@ -1,4 +1,5 @@
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarUsuarios(
   {
@@ -15,13 +16,16 @@ export async function buscarUsuarios(
   if (email) filtros['email'] = { $regex: email, $options: 'i' };
   if (ativo !== undefined) filtros['ativo'] = ativo;
 
-  const usuarios = await UsuarioModel.find(filtros)
-    .populate('grupos', 'nome')
-    .sort({ nome: 1 })
-    .limit(Math.min(Number(limite), 50))
-    .lean();
+  const [usuarios, total] = await Promise.all([
+    UsuarioModel.find(filtros)
+      .populate('grupos', 'nome')
+      .sort({ nome: 1 })
+      .limit(Math.min(Number(limite), 50))
+      .lean(),
+    UsuarioModel.countDocuments(filtros),
+  ]);
 
-  return usuarios.map((u) => {
+  const registrosFormatados = usuarios.map((u) => {
     const uObj = u as Record<string, unknown>;
     const grupos = uObj['grupos'] as Record<string, unknown>[] | null;
     return {
@@ -32,4 +36,6 @@ export async function buscarUsuarios(
       ativadoEm: uObj['ativadoEm'] ?? null,
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }
