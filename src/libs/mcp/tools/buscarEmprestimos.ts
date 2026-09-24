@@ -2,6 +2,7 @@ import EmprestimoModel from '../../../modules/emprestimo/EmprestimoModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 function resolverIdentificacao(
   tipoControle: string,
@@ -86,15 +87,18 @@ export async function buscarEmprestimos(
     ];
   }
 
-  const emprestimos = await EmprestimoModel.find(filtros)
-    .populate('item', 'nome')
-    .populate('localizacao', 'nome')
-    .populate('patrimonio', 'numero_patrimonio modelo fabricante status')
-    .sort({ createdAt: -1 })
-    .limit(Math.min(Number(limite), 50))
-    .lean();
+  const [emprestimos, total] = await Promise.all([
+    EmprestimoModel.find(filtros)
+      .populate('item', 'nome')
+      .populate('localizacao', 'nome')
+      .populate('patrimonio', 'numero_patrimonio modelo fabricante status')
+      .sort({ createdAt: -1 })
+      .limit(Math.min(Number(limite), 50))
+      .lean(),
+    EmprestimoModel.countDocuments(filtros),
+  ]);
 
-  return emprestimos.map((e) => {
+  const registrosFormatados = emprestimos.map((e) => {
     const eObj = e as Record<string, unknown>;
     const item = eObj['item'] as Record<string, unknown> | null;
     const localizacaoPopulada = eObj['localizacao'] as Record<
@@ -128,4 +132,6 @@ export async function buscarEmprestimos(
       status: statusCalculado,
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }

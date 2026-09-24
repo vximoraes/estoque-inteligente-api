@@ -1,6 +1,7 @@
 import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarMovimentacoes(
   {
@@ -51,15 +52,18 @@ export async function buscarMovimentacoes(
     };
   }
 
-  const movimentacoes = await MovimentacaoModel.find(filtros)
-    .populate('item', 'nome')
-    .populate('localizacao', 'nome')
-    .populate('usuario', 'nome')
-    .sort({ data_hora: -1 })
-    .limit(Math.min(Number(limite), 50))
-    .lean();
+  const [movimentacoes, total] = await Promise.all([
+    MovimentacaoModel.find(filtros)
+      .populate('item', 'nome')
+      .populate('localizacao', 'nome')
+      .populate('usuario', 'nome')
+      .sort({ data_hora: -1 })
+      .limit(Math.min(Number(limite), 50))
+      .lean(),
+    MovimentacaoModel.countDocuments(filtros),
+  ]);
 
-  return movimentacoes.map((m) => {
+  const registrosFormatados = movimentacoes.map((m) => {
     const mObj = m as Record<string, unknown>;
     const item = mObj['item'] as Record<string, unknown> | null;
     const localizacaoPopulada = mObj['localizacao'] as Record<
@@ -76,4 +80,6 @@ export async function buscarMovimentacoes(
       data_hora: mObj['data_hora'],
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }

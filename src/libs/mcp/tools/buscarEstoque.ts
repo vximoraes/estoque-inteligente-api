@@ -1,6 +1,7 @@
 import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarEstoque(
   {
@@ -43,14 +44,17 @@ export async function buscarEstoque(
     };
   }
 
-  const registros = await EstoqueModel.find(filtros)
-    .populate('item', 'nome status')
-    .populate('localizacao', 'nome')
-    .limit(Math.min(Number(limite), 50))
-    .sort({ updatedAt: -1 })
-    .lean();
+  const [registros, total] = await Promise.all([
+    EstoqueModel.find(filtros)
+      .populate('item', 'nome status')
+      .populate('localizacao', 'nome')
+      .limit(Math.min(Number(limite), 50))
+      .sort({ updatedAt: -1 })
+      .lean(),
+    EstoqueModel.countDocuments(filtros),
+  ]);
 
-  return registros.map((r) => {
+  const registrosFormatados = registros.map((r) => {
     const rObj = r as Record<string, unknown>;
     const item = rObj['item'] as Record<string, unknown> | null;
     const localizacao = rObj['localizacao'] as Record<string, unknown> | null;
@@ -61,4 +65,6 @@ export async function buscarEstoque(
       atualizado_em: rObj['updatedAt'],
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }

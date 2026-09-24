@@ -288,7 +288,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'itensPrioritariosCompra',
-    'Retorna itens de consumo (almoxarifado) abaixo do estoque mínimo ou indisponíveis, cruzados com a quantidade de saídas nos últimos 30 dias, ranqueados por prioridade de compra (déficit de estoque × frequência de saída).',
+    'Retorna itens de consumo (almoxarifado) com status "Baixo Estoque" ou "Indisponível", ranqueados por prioridade de compra. Para cada item: deficit = estoque_minimo - quantidade_atual; saidas_30_dias = soma das quantidades que saíram do estoque (movimentações do tipo "saida") nos últimos 30 dias — é volume de unidades, não número de movimentações; score_prioridade = deficit × (1 + saidas_30_dias). Lista ordenada por score_prioridade decrescente.',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'movimentacoes');
@@ -353,7 +353,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'resumoEstoque',
-    'Retorna um resumo estatístico geral: total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos ativos/atrasados, e a contagem de unidades de patrimônio (disponíveis, emprestadas, em manutenção)',
+    'Retorna um resumo estatístico geral: total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos ativos/atrasados, e a contagem de unidades de patrimônio. total_unidades_patrimonio é o total real (inclui as baixadas); unidades_patrimonio_em_uso = disponíveis + emprestadas + em manutenção (exclui as baixadas); unidades_baixadas vem separado.',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');

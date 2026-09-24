@@ -1,6 +1,7 @@
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import PatrimonioEventoModel from '../../../modules/patrimonio/PatrimonioEventoModel.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function historicoPatrimonio(
   {
@@ -23,16 +24,18 @@ export async function historicoPatrimonio(
     });
   }
 
-  const eventos = await PatrimonioEventoModel.find({
-    patrimonio: patrimonio._id,
-  })
-    .populate('localizacao_anterior', 'nome')
-    .populate('localizacao_nova', 'nome')
-    .sort({ data_hora: -1 })
-    .limit(Math.min(Number(limite), 50))
-    .lean();
+  const filtros = { patrimonio: patrimonio._id };
+  const [eventos, total] = await Promise.all([
+    PatrimonioEventoModel.find(filtros)
+      .populate('localizacao_anterior', 'nome')
+      .populate('localizacao_nova', 'nome')
+      .sort({ data_hora: -1 })
+      .limit(Math.min(Number(limite), 50))
+      .lean(),
+    PatrimonioEventoModel.countDocuments(filtros),
+  ]);
 
-  return eventos.map((e) => {
+  const registrosFormatados = eventos.map((e) => {
     const eObj = e as Record<string, unknown>;
     const localizacaoAnterior = eObj['localizacao_anterior'] as Record<
       string,
@@ -52,4 +55,6 @@ export async function historicoPatrimonio(
       data_hora: eObj['data_hora'],
     };
   });
+
+  return resultadoLimitado(registrosFormatados, total);
 }
