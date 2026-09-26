@@ -153,13 +153,6 @@ class ItemService {
       });
     }
     try {
-      const data = await this.repository.atualizar(
-        id,
-        {
-          imagem: urlPublicaItem(id),
-        },
-        req,
-      );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
       await minioClient.send(
@@ -169,6 +162,13 @@ class ItemService {
           Body: newFile,
           ContentType: 'image/jpeg',
         }),
+      );
+      const data = await this.repository.atualizar(
+        id,
+        {
+          imagem: urlPublicaItem(id),
+        },
+        req,
       );
 
       return { imagem: (data as Record<string, unknown>)['imagem'] };

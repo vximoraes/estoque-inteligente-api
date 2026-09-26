@@ -411,13 +411,6 @@ class PatrimonioService {
       });
     }
     try {
-      const data = await this.repository.atualizar(
-        id,
-        {
-          imagem: urlPublicaPatrimonio(id),
-        },
-        req,
-      );
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
       await minioClient.send(
@@ -427,6 +420,13 @@ class PatrimonioService {
           Body: newFile,
           ContentType: 'image/jpeg',
         }),
+      );
+      const data = await this.repository.atualizar(
+        id,
+        {
+          imagem: urlPublicaPatrimonio(id),
+        },
+        req,
       );
 
       return { imagem: (data as PatrimonioDocument).imagem };

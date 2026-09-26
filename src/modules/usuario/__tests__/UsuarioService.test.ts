@@ -222,6 +222,14 @@ describe('UsuarioService', () => {
       repositoryMock.atualizar.mockRejectedValue(new Error('falha mongo'));
       await expect(service.uploadFoto(req, '1')).rejects.toThrow(Error);
     });
+
+    it('não deve atualizar a fotoPerfil se o envio ao MinIO falhar', async () => {
+      const req = { file: { size: 100, buffer: Buffer.from('x') } };
+      minioClient.send.mockRejectedValueOnce(new Error('timeout storage'));
+
+      await expect(service.uploadFoto(req, '1')).rejects.toThrow(Error);
+      expect(repositoryMock.atualizar).not.toHaveBeenCalled();
+    });
   });
 
   describe('deletarFoto', () => {
