@@ -46,14 +46,11 @@ estoqueSchema.post('save', async function (this: EstoqueDocument) {
   await Model.atualizarQuantidadeItem(this.item);
 });
 
-estoqueSchema.post(
-  'deleteOne',
-  async function (this: mongoose.Query<unknown, EstoqueDocument>) {
-    const model = this.model as unknown as IEstoqueModel;
-    const doc = await model.findOne(
-      this.getQuery() as mongoose.FilterQuery<EstoqueDocument>,
-    );
-    if (doc) {
+estoqueSchema.post<mongoose.Query<EstoqueDocument | null, EstoqueDocument>>(
+  'findOneAndDelete',
+  async function (doc) {
+    if (doc && 'item' in doc) {
+      const model = this.model as unknown as IEstoqueModel;
       await model.atualizarQuantidadeItem(doc.item);
     }
   },
@@ -66,7 +63,7 @@ estoqueSchema.post(
     const doc = await model.findOne(
       this.getQuery() as mongoose.FilterQuery<EstoqueDocument>,
     );
-    if (doc) {
+    if (doc && 'item' in doc) {
       await model.atualizarQuantidadeItem(doc.item);
     }
   },
