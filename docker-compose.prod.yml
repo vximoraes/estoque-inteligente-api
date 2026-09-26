@@ -1,0 +1,57 @@
+services:
+  mongodb:
+    container_name: mongodb-estoque-inteligente
+    image: mongo:4.4
+    volumes:
+      - vol-mongodb:/data/db
+    command: mongod --replSet rs0 --bind_ip_all --quiet --logpath /dev/null
+    restart: always
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mongo',
+          '--quiet',
+          '--eval',
+          "if (rs.status().ok !== 1) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }); quit(1) }",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  api:
+    container_name: estoque-inteligente-api
+    build: .
+    ports:
+      - '3010:3010'
+    env_file:
+      - .env
+    environment:
+      - PORT=3010
+      - NODE_ENV=production
+      - DB_URL=mongodb://mongodb:27017/estoque-inteligente?replicaSet=rs0
+      - API_INTERNAL_URL=http://api:3010
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: always
+
+  frontend:
+    container_name: estoque-inteligente-front
+    build:
+      context: ../estoque-inteligente-front
+      args:
+        - NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}
+      - API_URL=http://api:3010
+    depends_on:
+      - api
+    restart: always
+
+volumes:
+  vol-mongodb:
