@@ -83,7 +83,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarPatrimonios',
-    'Busca unidades individuais de bens permanentes (patrimônio) por número de patrimônio, modelo, status ou localização. Use esta tool para perguntas sobre uma unidade específica, como "onde está o patrimônio X" ou "quais notebooks estão emprestados/em manutenção".',
+    'Busca unidades individuais de bens permanentes (patrimônio) por número de patrimônio, modelo, categoria, status ou localização. Use esta tool para perguntas sobre uma unidade específica, como "onde está o patrimônio X" ou "quais notebooks estão emprestados/em manutenção". O nome do modelo nem sempre contém o tipo do equipamento (ex: "MacBook Air M2" é um notebook): para perguntas por tipo de equipamento, filtre pela categoria correspondente (use buscarCategorias se não souber o nome) e selecione você mesmo os modelos do tipo pedido, excluindo da resposta as unidades da categoria que são de outro tipo.',
     {
       numeroPatrimonio: z
         .string()
@@ -93,7 +93,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .string()
         .optional()
         .describe(
-          'Filtrar pelo modelo da unidade (busca parcial, ex: "notebook")',
+          'Filtrar por trecho do nome do modelo (busca textual parcial, ex: "Inspiron", "MacBook"). Não use para tipo de equipamento; para isso, use categoria',
         ),
       status: z
         .enum(['Disponível', 'Emprestado', 'Manutenção', 'Baixado'])
@@ -106,7 +106,9 @@ export function criarMCPServer(usuarioId: string): McpServer {
       categoria: z
         .string()
         .optional()
-        .describe('Filtrar pelo nome da categoria (busca parcial)'),
+        .describe(
+          'Filtrar pelo nome da categoria (busca parcial, ex: "Computadores")',
+        ),
       limite: z
         .number()
         .int()
