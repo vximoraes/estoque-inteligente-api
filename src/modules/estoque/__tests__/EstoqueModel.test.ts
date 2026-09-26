@@ -150,6 +150,44 @@ describe('Modelo de Estoque', () => {
     );
   });
 
+  it('deve recalcular o item e notificar ao deletar estoque', async () => {
+    const item = await criarItemComEstoqueMinimo(5);
+    const localizacao1 = await criarLocalizacao();
+    const localizacao2 = await criarLocalizacao();
+
+    await Estoque.create({
+      item: item._id,
+      localizacao: localizacao1._id,
+      quantidade: 10,
+      usuario: usuarioId,
+    });
+    const estoque2 = await Estoque.create({
+      item: item._id,
+      localizacao: localizacao2._id,
+      quantidade: 2,
+      usuario: usuarioId,
+    });
+
+    await Estoque.findOneAndDelete({ item: item._id, quantidade: 10 });
+
+    const itemAposPrimeira = await Item.findById(item._id);
+    expect(itemAposPrimeira.quantidade).toBe(2);
+
+    await Estoque.findOneAndDelete({ _id: estoque2._id });
+
+    const itemAtualizado = await Item.findById(item._id);
+    expect(itemAtualizado.quantidade).toBe(0);
+    expect(itemAtualizado.quantidade_disponivel).toBe(0);
+
+    const notificacoes = await Notificacao.find({ usuario: usuarioId });
+    expect(notificacoes.some((n) => n.mensagem.includes('estoque baixo'))).toBe(
+      true,
+    );
+    expect(notificacoes.some((n) => n.mensagem.includes('indisponível'))).toBe(
+      true,
+    );
+  });
+
   it('deve notificar quando o item entra em estoque baixo', async () => {
     const item = await criarItemComEstoqueMinimo(10);
     const localizacao = await criarLocalizacao();
