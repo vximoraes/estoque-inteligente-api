@@ -100,9 +100,6 @@ class UsuarioService {
       });
     }
     try {
-      const data = await this.repository.atualizar(id, {
-        fotoPerfil: urlPublicaUsuario(id),
-      });
       const newFile = await compress(file.buffer);
       const objectName = `${id}.jpeg`;
       await minioClient.send(
@@ -113,6 +110,9 @@ class UsuarioService {
           ContentType: 'image/jpeg',
         }),
       );
+      const data = await this.repository.atualizar(id, {
+        fotoPerfil: urlPublicaUsuario(id),
+      });
       return { fotoPerfil: (data as Record<string, unknown>)['fotoPerfil'] };
     } catch (err) {
       throw new Error(describirErro(err));

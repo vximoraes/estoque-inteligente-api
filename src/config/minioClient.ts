@@ -25,6 +25,10 @@ const minioClient = new S3Client({
     secretAccessKey: process.env['MINIO_SECRET_KEY'] as string,
   },
   forcePathStyle: true,
+  requestHandler: {
+    connectionTimeout: 5_000,
+    requestTimeout: 30_000,
+  },
 });
 
 export default minioClient;

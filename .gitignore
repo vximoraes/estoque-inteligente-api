@@ -144,3 +144,4 @@ minio-data/
 
 # Claude Code personal overrides
 CLAUDE.local.md
+docker-compose.local.yml

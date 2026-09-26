@@ -12,5 +12,7 @@ for repo in estoque-inteligente-api estoque-inteligente-front; do
 done
 
 cd "$BASE_DIR/estoque-inteligente-api"
-docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+COMPOSE_FILES=(-f docker-compose.prod.yml)
+[ -f docker-compose.local.yml ] && COMPOSE_FILES+=(-f docker-compose.local.yml)
+docker compose "${COMPOSE_FILES[@]}" up -d --build --remove-orphans
 docker image prune -f
