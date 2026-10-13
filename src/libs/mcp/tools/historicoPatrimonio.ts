@@ -2,6 +2,7 @@ import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import PatrimonioEventoModel from '../../../modules/patrimonio/PatrimonioEventoModel.js';
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 
 export async function historicoPatrimonio(
   {
@@ -29,6 +30,7 @@ export async function historicoPatrimonio(
     PatrimonioEventoModel.find(filtros)
       .populate('localizacao_anterior', 'nome')
       .populate('localizacao_nova', 'nome')
+      .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
       .sort({ data_hora: -1 })
       .limit(Math.min(Number(limite), 50))
       .lean(),
@@ -45,6 +47,7 @@ export async function historicoPatrimonio(
       string,
       unknown
     > | null;
+    const usuario = eObj['usuario'] as Record<string, unknown> | null;
     return {
       tipo: eObj['tipo'],
       status_anterior: eObj['status_anterior'] ?? null,
@@ -53,6 +56,7 @@ export async function historicoPatrimonio(
       localizacao_nova: localizacaoNova?.['nome'] ?? null,
       observacoes: eObj['observacoes'] ?? null,
       data_hora: eObj['data_hora'],
+      registrado_por: usuario?.['nome'] ?? null,
     };
   });
 
