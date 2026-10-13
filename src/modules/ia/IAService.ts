@@ -5,6 +5,7 @@ import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import {
   MODELO,
   MODELO_RESERVA,
+  TIMEOUT_MODELO_PRINCIPAL_MS,
   MAX_OUTPUT_TOKENS,
   THINKING_BUDGET,
   RECURSION_LIMIT,
@@ -178,24 +179,31 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
 - Não adicione instruções, opiniões ou informação que não esteja no texto acima.
 - Texto corrido, sem markdown, no máximo 6 frases.`;
 
-  const invocarResumo = (modelo: string) =>
+  const invocarResumo = (modelo: string, signal?: AbortSignal) =>
     new ChatGoogleGenerativeAI({
       model: modelo,
       apiKey: process.env['GEMINI_API_KEY'],
       temperature: 0,
       maxOutputTokens: RESUMO_MAX_OUTPUT_TOKENS,
       maxRetries: MAX_RETRIES,
-    }).invoke([new HumanMessage(promptResumo)]);
+    }).invoke([new HumanMessage(promptResumo)], { signal });
 
   try {
-    const resposta = await invocarResumo(MODELO).catch((err: unknown) => {
-      if (!podeUsarModeloReserva(MODELO, err)) throw err;
-      logger.warn(
-        { message: (err as Error).message, modeloReserva: MODELO_RESERVA },
-        'IA: modelo principal indisponível no resumo, usando modelo reserva',
-      );
-      return invocarResumo(MODELO_RESERVA);
-    });
+    const limitePrincipal = temModeloReserva(MODELO)
+      ? AbortSignal.timeout(TIMEOUT_MODELO_PRINCIPAL_MS)
+      : undefined;
+    const resposta = await invocarResumo(MODELO, limitePrincipal).catch(
+      (err: unknown) => {
+        if (!limitePrincipal?.aborted && !podeUsarModeloReserva(MODELO, err)) {
+          throw err;
+        }
+        logger.warn(
+          { message: (err as Error).message, modeloReserva: MODELO_RESERVA },
+          'IA: modelo principal indisponível no resumo, usando modelo reserva',
+        );
+        return invocarResumo(MODELO_RESERVA);
+      },
+    );
     const conteudo = resposta.content;
     const novoResumo =
       typeof conteudo === 'string'
@@ -257,7 +265,7 @@ export async function processarMensagem(
     const historicoLangChain = prepararHistorico(conversa.mensagens);
     const mensagens = [...historicoLangChain, new HumanMessage(novaMensagem)];
 
-    const criarStream = (modelo: string) =>
+    const criarStream = (modelo: string, signalTentativa: AbortSignal) =>
       createReactAgent({
         llm: new ChatGoogleGenerativeAI({
           model: modelo,
@@ -275,7 +283,7 @@ export async function processarMensagem(
         {
           version: 'v2',
           recursionLimit: RECURSION_LIMIT,
-          signal,
+          signal: AbortSignal.any([signal, signalTentativa]),
           callbacks: criarCallbacks(),
         },
       ) as AsyncIterable<unknown>;
@@ -328,12 +336,12 @@ function ehErroIndisponibilidade(err: unknown): boolean {
   );
 }
 
+function temModeloReserva(modelo: string): boolean {
+  return Boolean(MODELO_RESERVA) && modelo !== MODELO_RESERVA;
+}
+
 export function podeUsarModeloReserva(modelo: string, err: unknown): boolean {
-  return (
-    Boolean(MODELO_RESERVA) &&
-    modelo !== MODELO_RESERVA &&
-    ehErroIndisponibilidade(err)
-  );
+  return temModeloReserva(modelo) && ehErroIndisponibilidade(err);
 }
 
 function eventoTemConteudoDeTexto(evt: unknown): boolean {
@@ -356,7 +364,10 @@ function eventoTemConteudoDeTexto(evt: unknown): boolean {
 }
 
 export async function* executarComRetentativas(
-  criarStream: (modelo: string) => AsyncIterable<unknown>,
+  criarStream: (
+    modelo: string,
+    signalTentativa: AbortSignal,
+  ) => AsyncIterable<unknown>,
   aoTrocarModelo: (modelo: string) => void,
 ): AsyncGenerator<unknown> {
   let modelo = MODELO;
@@ -364,14 +375,39 @@ export async function* executarComRetentativas(
 
   while (true) {
     let algumConteudoEmitido = false;
+    let estourouTempo = false;
+    let temporizador: NodeJS.Timeout | undefined;
+    const controleTentativa = new AbortController();
+    const vigiarTempo = temModeloReserva(modelo);
+
     try {
-      for await (const event of criarStream(modelo)) {
+      for await (const event of criarStream(modelo, controleTentativa.signal)) {
+        if (vigiarTempo) {
+          const nome = (event as { event?: string })?.event;
+          clearTimeout(temporizador);
+          if (nome === 'on_chat_model_start') {
+            temporizador = setTimeout(() => {
+              estourouTempo = true;
+              controleTentativa.abort();
+            }, TIMEOUT_MODELO_PRINCIPAL_MS);
+          }
+        }
         if (eventoTemConteudoDeTexto(event)) algumConteudoEmitido = true;
         yield event;
       }
       return;
     } catch (err) {
       if (algumConteudoEmitido) throw err;
+
+      if (estourouTempo) {
+        modelo = MODELO_RESERVA;
+        aoTrocarModelo(modelo);
+        logger.warn(
+          { limiteMs: TIMEOUT_MODELO_PRINCIPAL_MS, modeloReserva: modelo },
+          'IA: modelo principal sem resposta no tempo limite, usando modelo reserva',
+        );
+        continue;
+      }
 
       if (!jaTentouNovamente && ehErroStreamTruncado(err)) {
         jaTentouNovamente = true;
@@ -390,6 +426,8 @@ export async function* executarComRetentativas(
         { message: (err as Error).message, modeloReserva: modelo },
         'IA: modelo principal indisponível, usando modelo reserva',
       );
+    } finally {
+      clearTimeout(temporizador);
     }
   }
 }
