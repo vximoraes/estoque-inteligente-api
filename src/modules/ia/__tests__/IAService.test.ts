@@ -5,7 +5,11 @@ import {
   executarComRetentativas,
   podeUsarModeloReserva,
 } from '../IAService.js';
-import { MODELO, MODELO_RESERVA } from '../IAConfig.js';
+import {
+  MODELO,
+  MODELO_RESERVA,
+  TIMEOUT_MODELO_PRINCIPAL_MS,
+} from '../IAConfig.js';
 
 describe('contemVazamentoDoPrompt', () => {
   it('deve detectar vazamento quando a resposta contém a tag raiz do prompt', () => {
@@ -184,5 +188,62 @@ describe('executarComRetentativas', () => {
 
     expect(modelosChamados).toEqual([MODELO, MODELO]);
     expect(eventos).toEqual([eventoTexto]);
+  });
+});
+
+describe('executarComRetentativas — tempo limite do modelo principal', () => {
+  it('usa o modelo reserva quando o principal não manda nenhum chunk a tempo', async () => {
+    jest.useFakeTimers();
+    const aoTrocarModelo = jest.fn();
+    const modelosChamados: string[] = [];
+
+    const promessa = coletar(
+      executarComRetentativas(async function* (modelo, signalTentativa) {
+        modelosChamados.push(modelo);
+        if (modelo === MODELO) {
+          yield { event: 'on_chat_model_start' };
+          await new Promise((_, rejeitar) =>
+            signalTentativa.addEventListener('abort', () =>
+              rejeitar(new Error('Aborted')),
+            ),
+          );
+        }
+        yield eventoTexto;
+      }, aoTrocarModelo),
+    );
+
+    await jest.advanceTimersByTimeAsync(TIMEOUT_MODELO_PRINCIPAL_MS);
+    const eventos = await promessa;
+    jest.useRealTimers();
+
+    expect(modelosChamados).toEqual([MODELO, MODELO_RESERVA]);
+    expect(aoTrocarModelo).toHaveBeenCalledWith(MODELO_RESERVA);
+    expect(eventos).toEqual([{ event: 'on_chat_model_start' }, eventoTexto]);
+  });
+
+  it('não aborta o principal quando os chunks chegam dentro do limite', async () => {
+    jest.useFakeTimers();
+    const aoTrocarModelo = jest.fn();
+
+    const promessa = coletar(
+      executarComRetentativas(async function* () {
+        yield { event: 'on_chat_model_start' };
+        await new Promise((resolver) =>
+          setTimeout(resolver, TIMEOUT_MODELO_PRINCIPAL_MS - 1),
+        );
+        yield eventoTexto;
+        await new Promise((resolver) =>
+          setTimeout(resolver, TIMEOUT_MODELO_PRINCIPAL_MS * 2),
+        );
+        yield { event: 'on_chat_model_end' };
+      }, aoTrocarModelo),
+    );
+
+    await jest.advanceTimersByTimeAsync(TIMEOUT_MODELO_PRINCIPAL_MS * 3);
+    const eventos = await promessa;
+    jest.useRealTimers();
+
+    expect(aoTrocarModelo).not.toHaveBeenCalled();
+    expect(eventos).toHaveLength(3);
   });
 });

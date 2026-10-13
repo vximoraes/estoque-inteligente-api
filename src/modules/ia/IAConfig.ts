@@ -20,6 +20,10 @@ export const RESUMO_MAX_OUTPUT_TOKENS = Number(
 
 export const TIMEOUT_MS = Number(process.env['IA_TIMEOUT_MS'] ?? 120_000);
 
+export const TIMEOUT_MODELO_PRINCIPAL_MS = Number(
+  process.env['IA_TIMEOUT_MODELO_PRINCIPAL_MS'] ?? 15_000,
+);
+
 export const MAX_RETRIES = 1;
 
 export const MAX_STREAMS_SIMULTANEOS = Number(
