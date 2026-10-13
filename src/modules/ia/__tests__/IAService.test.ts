@@ -2,7 +2,10 @@ import {
   contemVazamentoDoPrompt,
   montarPromptComResumo,
   calcularFatiaParaResumir,
+  executarComRetentativas,
+  podeUsarModeloReserva,
 } from '../IAService.js';
+import { MODELO, MODELO_RESERVA } from '../IAConfig.js';
 
 describe('contemVazamentoDoPrompt', () => {
   it('deve detectar vazamento quando a resposta contém a tag raiz do prompt', () => {
@@ -74,5 +77,112 @@ describe('calcularFatiaParaResumir', () => {
 
   it('retorna null quando o resumo já está em dia com a janela atual', () => {
     expect(calcularFatiaParaResumir(20, 5)).toBeNull();
+  });
+});
+
+function erroComStatus(status: number) {
+  return Object.assign(
+    new Error(`[${status} Service Unavailable] high demand`),
+    { status },
+  );
+}
+
+const eventoTexto = {
+  event: 'on_chat_model_stream',
+  data: { chunk: { content: 'Há 3 itens.' } },
+};
+
+async function coletar(gerador: AsyncGenerator<unknown>) {
+  const eventos: unknown[] = [];
+  for await (const evento of gerador) eventos.push(evento);
+  return eventos;
+}
+
+describe('podeUsarModeloReserva', () => {
+  it('permite trocar quando o modelo principal responde 503 ou 429', () => {
+    expect(podeUsarModeloReserva(MODELO, erroComStatus(503))).toBe(true);
+    expect(podeUsarModeloReserva(MODELO, erroComStatus(429))).toBe(true);
+  });
+
+  it('reconhece o status pela mensagem quando o erro não traz status', () => {
+    const erro = new Error(
+      '[GoogleGenerativeAI Error]: Error fetching from ...: [503 Service Unavailable] This model is currently experiencing high demand.',
+    );
+    expect(podeUsarModeloReserva(MODELO, erro)).toBe(true);
+  });
+
+  it('não troca para erros que não são de indisponibilidade', () => {
+    expect(podeUsarModeloReserva(MODELO, erroComStatus(400))).toBe(false);
+    expect(podeUsarModeloReserva(MODELO, new Error('falha qualquer'))).toBe(
+      false,
+    );
+  });
+
+  it('não troca quando já está no modelo reserva', () => {
+    expect(podeUsarModeloReserva(MODELO_RESERVA, erroComStatus(503))).toBe(
+      false,
+    );
+  });
+});
+
+describe('executarComRetentativas', () => {
+  it('usa o modelo reserva quando o principal falha com 503 antes de emitir texto', async () => {
+    const modelosChamados: string[] = [];
+    const aoTrocarModelo = jest.fn();
+
+    const eventos = await coletar(
+      executarComRetentativas(async function* (modelo) {
+        modelosChamados.push(modelo);
+        if (modelo === MODELO) throw erroComStatus(503);
+        yield eventoTexto;
+      }, aoTrocarModelo),
+    );
+
+    expect(modelosChamados).toEqual([MODELO, MODELO_RESERVA]);
+    expect(aoTrocarModelo).toHaveBeenCalledWith(MODELO_RESERVA);
+    expect(eventos).toEqual([eventoTexto]);
+  });
+
+  it('não troca de modelo se já emitiu texto antes do erro', async () => {
+    const aoTrocarModelo = jest.fn();
+
+    await expect(
+      coletar(
+        executarComRetentativas(async function* () {
+          yield eventoTexto;
+          throw erroComStatus(503);
+        }, aoTrocarModelo),
+      ),
+    ).rejects.toThrow('503');
+    expect(aoTrocarModelo).not.toHaveBeenCalled();
+  });
+
+  it('propaga o erro quando o modelo reserva também está indisponível', async () => {
+    const criarStream = jest.fn(async function* () {
+      yield* [];
+      throw erroComStatus(503);
+    });
+
+    await expect(
+      coletar(executarComRetentativas(criarStream, jest.fn())),
+    ).rejects.toThrow('503');
+    expect(criarStream).toHaveBeenCalledTimes(2);
+  });
+
+  it('tenta de novo no mesmo modelo quando o stream é truncado', async () => {
+    const modelosChamados: string[] = [];
+    let tentativas = 0;
+
+    const eventos = await coletar(
+      executarComRetentativas(async function* (modelo) {
+        modelosChamados.push(modelo);
+        tentativas += 1;
+        if (tentativas === 1) throw new Error('Failed to parse stream');
+        yield eventoTexto;
+      }, jest.fn()),
+    );
+
+    expect(modelosChamados).toEqual([MODELO, MODELO]);
+    expect(eventos).toEqual([eventoTexto]);
   });
 });
