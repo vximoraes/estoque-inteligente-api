@@ -2,6 +2,7 @@ import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 
 export async function buscarPatrimonios(
   {
@@ -57,6 +58,7 @@ export async function buscarPatrimonios(
     PatrimonioModel.find(filtros)
       .populate('categoria', 'nome')
       .populate('localizacao', 'nome')
+      .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
       .sort({ numero_patrimonio: 1 })
       .limit(Math.min(Number(limite), 50))
       .lean(),
@@ -73,6 +75,7 @@ export async function buscarPatrimonios(
       string,
       unknown
     > | null;
+    const usuario = pObj['usuario'] as Record<string, unknown> | null;
     return {
       numero_patrimonio: pObj['numero_patrimonio'],
       modelo: pObj['modelo'] ?? null,
@@ -83,6 +86,10 @@ export async function buscarPatrimonios(
       data_aquisicao: pObj['data_aquisicao'] ?? null,
       observacoes: pObj['observacoes'] ?? null,
       campos_personalizados: pObj['campos_personalizados'] ?? [],
+      possui_imagem: Boolean(pObj['imagem']),
+      cadastrado_por: usuario?.['nome'] ?? null,
+      cadastrado_em: pObj['createdAt'] ?? null,
+      atualizado_em: pObj['updatedAt'] ?? null,
     };
   });
 

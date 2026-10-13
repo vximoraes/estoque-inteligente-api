@@ -3,6 +3,7 @@ import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 
 function resolverIdentificacao(
   tipoControle: string,
@@ -92,6 +93,11 @@ export async function buscarEmprestimos(
       .populate('item', 'nome')
       .populate('localizacao', 'nome')
       .populate('patrimonio', 'numero_patrimonio modelo fabricante status')
+      .populate({
+        path: 'usuario_responsavel',
+        select: 'nome',
+        model: UsuarioModel,
+      })
       .sort({ createdAt: -1 })
       .limit(Math.min(Number(limite), 50))
       .lean(),
@@ -107,6 +113,10 @@ export async function buscarEmprestimos(
     > | null;
     const patrimonio = eObj['patrimonio'] as Record<string, unknown> | null;
     const tipoControle = eObj['tipo_controle'] as string;
+    const responsavel = eObj['usuario_responsavel'] as Record<
+      string,
+      unknown
+    > | null;
 
     const quantidadeAberta = Number(eObj['quantidade_aberta'] ?? 0);
     const dataPrevista = eObj['data_prevista_devolucao'];
@@ -125,10 +135,16 @@ export async function buscarEmprestimos(
       numero_patrimonio: patrimonio?.['numero_patrimonio'] ?? null,
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       solicitante: eObj['solicitante_nome'],
+      solicitante_email: eObj['solicitante_email'] || null,
+      registrado_por: responsavel?.['nome'] ?? null,
       quantidade_emprestada: eObj['quantidade_emprestada'],
       quantidade_devolvida: eObj['quantidade_devolvida'],
       quantidade_aberta: eObj['quantidade_aberta'],
+      data_saida: eObj['data_saida'] ?? null,
       data_prevista_devolucao: eObj['data_prevista_devolucao'],
+      data_devolucao_total: eObj['data_devolucao_total'] ?? null,
+      observacoes_emprestimo: eObj['observacoes_emprestimo'] || null,
+      observacoes_devolucao: eObj['observacoes_devolucao'] || null,
       status: statusCalculado,
     };
   });

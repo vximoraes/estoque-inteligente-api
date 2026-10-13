@@ -3,6 +3,7 @@ import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 
 export async function buscarItens(
   {
@@ -53,6 +54,7 @@ export async function buscarItens(
   const [itens, total] = await Promise.all([
     ItemModel.find(filtros)
       .populate('categoria', 'nome')
+      .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
       .limit(Math.min(Number(limite), 50))
       .sort({ nome: 1 })
       .lean(),
@@ -62,6 +64,7 @@ export async function buscarItens(
   const registrosFormatados = itens.map((item) => {
     const itemObj = item as Record<string, unknown>;
     const categoria = itemObj['categoria'] as Record<string, unknown> | null;
+    const usuario = itemObj['usuario'] as Record<string, unknown> | null;
     return {
       id: item._id,
       nome: item.nome,
@@ -72,6 +75,10 @@ export async function buscarItens(
       estoque_minimo: item.estoque_minimo,
       status: item.status,
       categoria: categoria?.['nome'] ?? null,
+      possui_imagem: Boolean(itemObj['imagem']),
+      cadastrado_por: usuario?.['nome'] ?? null,
+      cadastrado_em: itemObj['createdAt'] ?? null,
+      atualizado_em: itemObj['updatedAt'] ?? null,
     };
   });
 
