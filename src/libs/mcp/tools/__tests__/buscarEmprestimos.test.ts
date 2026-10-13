@@ -6,6 +6,7 @@ import CategoriaModel from '../../../../modules/categoria/CategoriaModel.js';
 import LocalizacaoModel from '../../../../modules/localizacao/LocalizacaoModel.js';
 import PatrimonioModel from '../../../../modules/patrimonio/PatrimonioModel.js';
 import EmprestimoModel from '../../../../modules/emprestimo/EmprestimoModel.js';
+import UsuarioModel from '../../../../modules/usuario/UsuarioModel.js';
 
 let mongoServer: MongoMemoryServer;
 const usuarioId = new mongoose.Types.ObjectId().toString();
@@ -90,6 +91,42 @@ describe('buscarEmprestimos', () => {
     );
     expect(resultado.registros[0]?.tipo_controle).toBe('unidade');
     expect(resultado.registros[0]?.item).not.toBe(null);
+  });
+
+  it('expõe datas, observações, contato do solicitante e quem registrou', async () => {
+    const usuario = await UsuarioModel.create({
+      nome: 'Responsável Teste',
+      email: 'responsavel-emprestimo@teste.com',
+    });
+    const localizacao = await criarLocalizacao();
+    const patrimonio = await criarPatrimonio(localizacao._id);
+    const dataSaida = new Date('2026-10-01T10:00:00Z');
+
+    await EmprestimoModel.create({
+      tipo_controle: 'unidade',
+      patrimonio: patrimonio._id,
+      localizacao: localizacao._id,
+      quantidade_emprestada: 1,
+      quantidade_devolvida: 0,
+      quantidade_aberta: 1,
+      solicitante_nome: 'Fulano de Tal',
+      solicitante_email: 'fulano@teste.com',
+      data_saida: dataSaida,
+      observacoes_emprestimo: 'Levar para a aula de redes',
+      usuario_responsavel: usuario._id.toString(),
+    });
+
+    const { registros } = await buscarEmprestimos({}, usuarioId);
+
+    expect(registros[0]).toMatchObject({
+      solicitante_email: 'fulano@teste.com',
+      data_saida: dataSaida,
+      observacoes_emprestimo: 'Levar para a aula de redes',
+      observacoes_devolucao: null,
+      data_devolucao_total: null,
+      registrado_por: 'Responsável Teste',
+    });
+    await UsuarioModel.deleteMany({});
   });
 
   it('resolve o campo item para o nome do item em empréstimo de quantidade', async () => {
