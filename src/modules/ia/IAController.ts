@@ -159,6 +159,7 @@ class IAController {
     let respostaTruncadaPorTamanho = false;
     let erroOcorrido: Error | null = null;
     const inicioMs = Date.now();
+    let modeloUsado = MODELO;
     const uso = {
       tokensEntrada: 0,
       tokensSaida: 0,
@@ -179,6 +180,9 @@ class IAController {
             mensagemSanitizada,
             cookie,
             signal,
+            (modelo) => {
+              modeloUsado = modelo;
+            },
           );
 
           for await (const event of stream) {
@@ -335,7 +339,7 @@ class IAController {
           );
 
           registrarCusto({
-            model: MODELO,
+            model: modeloUsado,
             usageDetails: {
               input: uso.tokensEntrada,
               output: uso.tokensSaida,
@@ -343,7 +347,7 @@ class IAController {
               total: uso.tokensTotais,
             },
             costDetails: calcularCustoDetalhado(
-              MODELO,
+              modeloUsado,
               uso.tokensEntrada,
               tokensSaidaFaturavel,
             ),
@@ -352,7 +356,7 @@ class IAController {
           await registrarUso({
             usuarioId: usuarioId as string,
             conversaId: id as string,
-            modelo: MODELO,
+            modelo: modeloUsado,
             tokensEntrada: uso.tokensEntrada,
             tokensSaida: uso.tokensSaida,
             tokensTotais: uso.tokensTotais,

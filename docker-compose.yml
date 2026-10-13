@@ -45,7 +45,7 @@ services:
       start_period: 40s
 
   minio:
-    image: minio/minio:latest
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     container_name: minio-estoque-inteligente
     command: server /data --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}"
     ports:
@@ -172,7 +172,7 @@ services:
 
   langfuse-minio-init:
     container_name: langfuse-minio-init-estoque-inteligente
-    image: minio/mc:latest
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     profiles: ['langfuse']
     depends_on:
       minio:

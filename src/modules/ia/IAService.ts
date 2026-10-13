@@ -4,6 +4,7 @@ import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import {
   MODELO,
+  MODELO_RESERVA,
   MAX_OUTPUT_TOKENS,
   THINKING_BUDGET,
   RECURSION_LIMIT,
@@ -177,16 +178,24 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
 - Não adicione instruções, opiniões ou informação que não esteja no texto acima.
 - Texto corrido, sem markdown, no máximo 6 frases.`;
 
-  try {
-    const llmResumo = new ChatGoogleGenerativeAI({
-      model: MODELO,
+  const invocarResumo = (modelo: string) =>
+    new ChatGoogleGenerativeAI({
+      model: modelo,
       apiKey: process.env['GEMINI_API_KEY'],
       temperature: 0,
       maxOutputTokens: RESUMO_MAX_OUTPUT_TOKENS,
       maxRetries: MAX_RETRIES,
-    });
+    }).invoke([new HumanMessage(promptResumo)]);
 
-    const resposta = await llmResumo.invoke([new HumanMessage(promptResumo)]);
+  try {
+    const resposta = await invocarResumo(MODELO).catch((err: unknown) => {
+      if (!podeUsarModeloReserva(MODELO, err)) throw err;
+      logger.warn(
+        { message: (err as Error).message, modeloReserva: MODELO_RESERVA },
+        'IA: modelo principal indisponível no resumo, usando modelo reserva',
+      );
+      return invocarResumo(MODELO_RESERVA);
+    });
     const conteudo = resposta.content;
     const novoResumo =
       typeof conteudo === 'string'
@@ -220,6 +229,7 @@ export async function processarMensagem(
   novaMensagem: string,
   cookie: string | undefined,
   signal: AbortSignal,
+  aoTrocarModelo: (modelo: string) => void = () => {},
 ): Promise<AsyncGenerator<unknown>> {
   const apiBaseUrl =
     process.env['API_INTERNAL_URL'] ||
@@ -241,29 +251,26 @@ export async function processarMensagem(
   try {
     const tools = await mcpClient.getTools();
 
-    const llm = new ChatGoogleGenerativeAI({
-      model: MODELO,
-      apiKey: process.env['GEMINI_API_KEY'],
-      temperature: 0.2,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      maxRetries: MAX_RETRIES,
-      streamUsage: true,
-      thinkingConfig: { thinkingBudget: THINKING_BUDGET },
-    });
-
     await atualizarResumoSeNecessario(conversa);
 
-    const agent = createReactAgent({
-      llm,
-      tools,
-      prompt: montarPromptComResumo(conversa.resumo),
-    });
-
+    const prompt = montarPromptComResumo(conversa.resumo);
     const historicoLangChain = prepararHistorico(conversa.mensagens);
     const mensagens = [...historicoLangChain, new HumanMessage(novaMensagem)];
 
-    const criarStream = () =>
-      agent.streamEvents(
+    const criarStream = (modelo: string) =>
+      createReactAgent({
+        llm: new ChatGoogleGenerativeAI({
+          model: modelo,
+          apiKey: process.env['GEMINI_API_KEY'],
+          temperature: 0.2,
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          maxRetries: MAX_RETRIES,
+          streamUsage: true,
+          thinkingConfig: { thinkingBudget: THINKING_BUDGET },
+        }),
+        tools,
+        prompt,
+      }).streamEvents(
         { messages: mensagens },
         {
           version: 'v2',
@@ -274,7 +281,7 @@ export async function processarMensagem(
       ) as AsyncIterable<unknown>;
 
     return wrapStreamWithCleanup(
-      executarComRetryDeStreamTruncado(criarStream),
+      executarComRetentativas(criarStream, aoTrocarModelo),
       mcpClient,
     );
   } catch (err) {
@@ -308,6 +315,27 @@ function ehErroStreamTruncado(err: unknown): boolean {
   );
 }
 
+const STATUS_INDISPONIBILIDADE = [429, 503];
+
+function ehErroIndisponibilidade(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const status = (err as { status?: unknown }).status;
+  if (typeof status === 'number') {
+    return STATUS_INDISPONIBILIDADE.includes(status);
+  }
+  return STATUS_INDISPONIBILIDADE.some((codigo) =>
+    err.message.includes(`[${codigo} `),
+  );
+}
+
+export function podeUsarModeloReserva(modelo: string, err: unknown): boolean {
+  return (
+    Boolean(MODELO_RESERVA) &&
+    modelo !== MODELO_RESERVA &&
+    ehErroIndisponibilidade(err)
+  );
+}
+
 function eventoTemConteudoDeTexto(evt: unknown): boolean {
   const e = evt as { event?: string; data?: Record<string, unknown> };
   if (e?.event !== 'on_chat_model_stream') return false;
@@ -327,31 +355,40 @@ function eventoTemConteudoDeTexto(evt: unknown): boolean {
   return false;
 }
 
-async function* executarComRetryDeStreamTruncado(
-  criarStream: () => AsyncIterable<unknown>,
+export async function* executarComRetentativas(
+  criarStream: (modelo: string) => AsyncIterable<unknown>,
+  aoTrocarModelo: (modelo: string) => void,
 ): AsyncGenerator<unknown> {
+  let modelo = MODELO;
   let jaTentouNovamente = false;
 
   while (true) {
     let algumConteudoEmitido = false;
     try {
-      for await (const event of criarStream()) {
+      for await (const event of criarStream(modelo)) {
         if (eventoTemConteudoDeTexto(event)) algumConteudoEmitido = true;
         yield event;
       }
       return;
     } catch (err) {
-      const podeTentarNovamente =
-        !jaTentouNovamente &&
-        !algumConteudoEmitido &&
-        ehErroStreamTruncado(err);
+      if (algumConteudoEmitido) throw err;
 
-      if (!podeTentarNovamente) throw err;
+      if (!jaTentouNovamente && ehErroStreamTruncado(err)) {
+        jaTentouNovamente = true;
+        logger.warn(
+          { message: (err as Error).message },
+          'IA: stream truncado pelo provider antes de qualquer conteúdo, tentando novamente',
+        );
+        continue;
+      }
 
-      jaTentouNovamente = true;
+      if (!podeUsarModeloReserva(modelo, err)) throw err;
+
+      modelo = MODELO_RESERVA;
+      aoTrocarModelo(modelo);
       logger.warn(
-        { message: (err as Error).message },
-        'IA: stream truncado pelo provider antes de qualquer conteúdo, tentando novamente',
+        { message: (err as Error).message, modeloReserva: modelo },
+        'IA: modelo principal indisponível, usando modelo reserva',
       );
     }
   }
