@@ -34,6 +34,7 @@ export async function buscarUsuarios(
       ativo: uObj['ativo'],
       grupos: (grupos ?? []).map((g) => g['nome']),
       ativadoEm: uObj['ativadoEm'] ?? null,
+      fuso_horario: uObj['fuso_horario'] ?? null,
     };
   });
 

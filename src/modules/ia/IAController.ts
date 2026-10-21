@@ -183,6 +183,7 @@ class IAController {
             (modelo) => {
               modeloUsado = modelo;
             },
+            req.fuso_horario,
           );
 
           for await (const event of stream) {

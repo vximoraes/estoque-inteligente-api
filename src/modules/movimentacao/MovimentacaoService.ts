@@ -65,14 +65,9 @@ class MovimentacaoService {
       }
     }
 
-    const now = new Date();
-    now.setHours(now.getHours() - 4);
-    now.setDate(now.getDate() - 1);
-    const data_hora = now.toISOString().slice(0, 23).replace('T', ' ');
-
     return await this.repository.criar({
       ...parsedData,
-      data_hora,
+      data_hora: new Date(),
       usuario: req.user_id,
     });
   }

@@ -10,6 +10,7 @@ import { resolverJanelaMensal } from '../../utils/janelaMensal.js';
 import { EMPRESTIMO_SORT_FIELDS } from './EmprestimoQuerySchema.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
+import { limiteDeData, resolverFuso } from '../../utils/fusoHorario.js';
 
 type EmprestimoPlain = Record<string, unknown>;
 
@@ -96,6 +97,7 @@ class EmprestimoRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
+    const fuso = resolverFuso(req.fuso_horario);
     const {
       busca,
       item,
@@ -112,10 +114,8 @@ class EmprestimoRepository {
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
-    const dataSaidaInicio = data_saida_inicio
-      ? new Date(data_saida_inicio)
-      : null;
-    const dataSaidaFim = data_saida_fim ? new Date(data_saida_fim) : null;
+    const dataSaidaInicio = limiteDeData(data_saida_inicio, 'inicio', fuso);
+    const dataSaidaFim = limiteDeData(data_saida_fim, 'fim', fuso);
 
     const filterBuilder = new EmprestimoFilterBuilder()
       .comSolicitanteNome(solicitante_nome ?? '')
@@ -259,12 +259,12 @@ class EmprestimoRepository {
     req: AuthenticatedRequest,
   ): Promise<EmprestimoTendenciaPonto[]> {
     const query = req.query as Record<string, string | undefined>;
+    const fuso = resolverFuso(req.fuso_horario);
     const { dataInicio, dataFim, chavesMes } = resolverJanelaMensal({
+      fuso,
       meses: query['meses'] ? parseInt(query['meses'], 10) : undefined,
-      data_inicio: query['data_inicio']
-        ? new Date(query['data_inicio'])
-        : undefined,
-      data_fim: query['data_fim'] ? new Date(query['data_fim']) : undefined,
+      data_inicio: limiteDeData(query['data_inicio'], 'inicio', fuso),
+      data_fim: limiteDeData(query['data_fim'], 'fim', fuso),
     });
 
     const resultado = (await this.model.aggregate([
@@ -276,7 +276,11 @@ class EmprestimoRepository {
             {
               $group: {
                 _id: {
-                  $dateToString: { format: '%Y-%m', date: '$data_saida' },
+                  $dateToString: {
+                    format: '%Y-%m',
+                    date: '$data_saida',
+                    timezone: fuso,
+                  },
                 },
                 count: { $sum: 1 },
               },
@@ -298,6 +302,7 @@ class EmprestimoRepository {
                   $dateToString: {
                     format: '%Y-%m',
                     date: '$data_devolucao_total',
+                    timezone: fuso,
                   },
                 },
                 count: { $sum: 1 },

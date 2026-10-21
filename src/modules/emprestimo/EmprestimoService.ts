@@ -43,7 +43,7 @@ class EmprestimoService {
           data_saida: parsedData.data_saida ?? new Date(),
         });
 
-        return await this.finalizarCriacao(data);
+        return await this.finalizarCriacao(data, req.fuso_horario);
       } catch (erro) {
         // Sem transação no banco: se o registro de Emprestimo falhar depois
         // que a unidade já foi marcada como Emprestado, a devolução
@@ -138,7 +138,7 @@ class EmprestimoService {
       data_saida: parsedData.data_saida ?? new Date(),
     });
 
-    return await this.finalizarCriacao(data);
+    return await this.finalizarCriacao(data, req.fuso_horario);
   }
 
   // Valida a unidade patrimonial e a transiciona atomicamente para
@@ -209,12 +209,13 @@ class EmprestimoService {
   // Trecho final de `criar`, comum aos dois tipos de controle: e-mails de
   // aviso. Extraído para não duplicar entre o ramo de unidade e o de
   // quantidade.
-  private async finalizarCriacao(data: Record<string, unknown>) {
+  private async finalizarCriacao(data: Record<string, unknown>, fuso?: string) {
     if (data['solicitante_email']) {
       EmailService.enviarEmailNovoEmprestimo(
         data['solicitante_nome'] as string,
         data['solicitante_email'] as string,
         data as unknown as EmprestimoEmailData,
+        fuso,
       ).catch((err: unknown) =>
         console.error('Erro ao enviar e-mail de novo emprestimo:', err),
       );
@@ -229,6 +230,7 @@ class EmprestimoService {
         data['solicitante_nome'] as string,
         data['solicitante_email'] as string,
         data as unknown as EmprestimoEmailData,
+        fuso,
       )
         .then(() =>
           EmprestimoModel.updateOne(
@@ -433,6 +435,7 @@ class EmprestimoService {
         emprestimoAtualizado['solicitante_email'] as string,
         emprestimoAtualizado as unknown as EmprestimoEmailData,
         parsedData.quantidade_devolvida,
+        req.fuso_horario,
       ).catch((err: unknown) =>
         console.error('Erro ao enviar e-mail de devolucao:', err),
       );

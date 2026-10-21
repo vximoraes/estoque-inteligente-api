@@ -64,6 +64,28 @@ describe('montarPromptComResumo', () => {
       resultado.indexOf('assistente_estoque_config'),
     );
   });
+
+  it('informa a data atual no fuso do usuário, sem trocar o dia perto da meia-noite UTC', () => {
+    const resultado = montarPromptComResumo(
+      undefined,
+      'America/Porto_Velho',
+      new Date('2026-10-21T02:30:00.000Z'),
+    );
+    expect(resultado).toContain('<data_atual>');
+    expect(resultado).toContain('terça-feira, 20/10/2026');
+    expect(resultado).toContain('2026-10-20');
+    expect(resultado).toContain('dataInicio');
+  });
+
+  it('usa UTC na data atual quando o usuário não tem fuso', () => {
+    const resultado = montarPromptComResumo(
+      undefined,
+      undefined,
+      new Date('2026-10-21T02:30:00.000Z'),
+    );
+    expect(resultado).toContain('quarta-feira, 21/10/2026');
+    expect(resultado).toContain('fuso UTC');
+  });
 });
 
 describe('calcularFatiaParaResumir', () => {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { fusoValido } from '../../utils/fusoHorario.js';
 
 const senhaRegex =
   /^(?=.*[?@!#$%^&*()/\\])(?=.*[0-9])(?=.*[a-zA-Z])[?@!#$%^&*()/\\a-zA-Z0-9]+$/;
@@ -27,6 +28,14 @@ const UsuarioSchema = z.object({
       },
     ),
   ativo: z.boolean().default(true),
+  fuso_horario: z
+    .string()
+    .refine(fusoValido, {
+      message:
+        'Fuso horário inválido. Use um identificador IANA (ex: America/Sao_Paulo).',
+    })
+    .nullable()
+    .optional(),
 });
 
 const UsuarioUpdateSchema = UsuarioSchema.omit({ email: true }).partial();

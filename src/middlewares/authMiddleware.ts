@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import AuthenticationError from '../utils/errors/AuthenticationError.js';
 import { getAuth } from '../config/auth.js';
 import type { AuthenticatedRequest } from '../utils/types.js';
+import { resolverFuso } from '../utils/fusoHorario.js';
 
 async function authMiddleware(
   req: Request,
@@ -23,6 +24,9 @@ async function authMiddleware(
     }
 
     (req as AuthenticatedRequest).user_id = session.user.id;
+    (req as AuthenticatedRequest).fuso_horario = resolverFuso(
+      (session.user as Record<string, unknown>)['fuso_horario'],
+    );
     next();
   } catch (err) {
     next(new AuthenticationError('Erro ao validar sessão.'));

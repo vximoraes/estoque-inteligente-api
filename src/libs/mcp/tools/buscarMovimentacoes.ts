@@ -2,6 +2,8 @@ import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.j
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { limiteDeData, resolverFuso } from '../../../utils/fusoHorario.js';
 
 export async function buscarMovimentacoes(
   {
@@ -19,7 +21,7 @@ export async function buscarMovimentacoes(
     localizacao?: string;
     limite?: number;
   },
-  _usuarioId: string,
+  usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = {};
 
@@ -27,8 +29,14 @@ export async function buscarMovimentacoes(
 
   if (dataInicio || dataFim) {
     const data_hora: Record<string, Date> = {};
-    if (dataInicio) data_hora['$gte'] = new Date(dataInicio);
-    if (dataFim) data_hora['$lte'] = new Date(dataFim);
+    const usuario = await UsuarioModel.findById(usuarioId)
+      .select('fuso_horario')
+      .lean();
+    const fuso = resolverFuso(usuario?.fuso_horario);
+    const inicio = limiteDeData(dataInicio, 'inicio', fuso);
+    const fim = limiteDeData(dataFim, 'fim', fuso);
+    if (inicio) data_hora['$gte'] = inicio;
+    if (fim) data_hora['$lte'] = fim;
     filtros['data_hora'] = data_hora;
   }
 

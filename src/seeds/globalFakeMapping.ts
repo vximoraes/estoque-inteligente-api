@@ -42,6 +42,7 @@ export const fakeMappings = {
     fotoPerfil: () => '',
     convidadoEm: () => null,
     ativadoEm: () => null,
+    fuso_horario: () => null,
   },
 
   Notificacao: {

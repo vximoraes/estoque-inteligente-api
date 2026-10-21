@@ -78,6 +78,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
       additionalFields: {
         ativo: { type: 'boolean', defaultValue: false, required: false },
         fotoPerfil: { type: 'string', required: false },
+        fuso_horario: { type: 'string', required: false, input: false },
       },
     },
 

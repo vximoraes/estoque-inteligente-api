@@ -2,6 +2,7 @@ import Item from '../item/ItemModel.js';
 import Localizacao from '../localizacao/LocalizacaoModel.js';
 import mongoose from 'mongoose';
 import { escapeRegex } from '../../utils/helpers/escapeRegex.js';
+import { FUSO_PADRAO, fimDoDia, inicioDoDia } from '../../utils/fusoHorario.js';
 
 const { Types } = mongoose;
 
@@ -15,11 +16,12 @@ class MovimentacaoFilterBuilder {
     return this;
   }
 
-  comData(data: string | null | undefined): this {
+  comData(data: string | null | undefined, fuso: string = FUSO_PADRAO): this {
     if (data) {
-      const inicio = new Date(data + 'T00:00:00.000Z');
-      const fim = new Date(data + 'T23:59:59.999Z');
-      this.filtros['data_hora'] = { $gte: inicio, $lte: fim };
+      this.filtros['data_hora'] = {
+        $gte: inicioDoDia(data, fuso),
+        $lte: fimDoDia(data, fuso),
+      };
     }
     return this;
   }

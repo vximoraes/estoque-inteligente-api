@@ -184,11 +184,15 @@ export function criarMCPServer(usuarioId: string): McpServer {
       dataInicio: z
         .string()
         .optional()
-        .describe('Data de início no formato ISO 8601 (ex: 2026-01-01)'),
+        .describe(
+          'Data de início no formato YYYY-MM-DD (ex: 2026-01-01); sem hora, vale desde o começo do dia no fuso do usuário',
+        ),
       dataFim: z
         .string()
         .optional()
-        .describe('Data de fim no formato ISO 8601 (ex: 2026-12-31)'),
+        .describe(
+          'Data de fim no formato YYYY-MM-DD (ex: 2026-12-31); sem hora, inclui o dia inteiro no fuso do usuário',
+        ),
       itemNome: z
         .string()
         .optional()

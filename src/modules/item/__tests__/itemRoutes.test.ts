@@ -45,13 +45,11 @@ describe('Rotas de Item', () => {
 
     it('deve falhar ao cadastrar com nome já existente', async () => {
       const item = await criarItem(token);
-      const res = await req(token)
-        .post('/itens')
-        .send({
-          nome: item.nome,
-          categoria: item.categoria,
-          estoque_minimo: '10',
-        });
+      const res = await req(token).post('/itens').send({
+        nome: item.nome,
+        categoria: item.categoria,
+        estoque_minimo: '10',
+      });
       esperarEnvelopeErro(res, 400);
     });
 

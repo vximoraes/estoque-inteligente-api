@@ -22,6 +22,10 @@ const UsuarioDetalhes = registry.register(
       .string()
       .optional()
       .openapi({ example: 'https://storage/foto.jpg' }),
+    fuso_horario: z
+      .string()
+      .nullable()
+      .openapi({ example: 'America/Porto_Velho' }),
     ...timestampFields,
   }),
 );
