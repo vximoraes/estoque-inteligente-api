@@ -55,10 +55,70 @@ describe('MovimentacaoService', () => {
       };
       const req = { user_id: 'user123' };
       Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 15 }),
+      );
       repositoryMock.criar.mockResolvedValue(makeMovimentacao(parsedData));
 
-      const result = await service.criar({ ...parsedData }, req);
+      await service.criar({ ...parsedData }, req);
+      expect(Estoque.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ quantidade: { $lte: 999999999 - 5 } }),
+        expect.objectContaining({ $inc: { quantidade: 5 } }),
+        { new: true },
+      );
       expect(repositoryMock.criar).toHaveBeenCalled();
+      expect(Estoque.atualizarQuantidadeItem).toHaveBeenCalledWith(item._id);
+    });
+
+    it('cria o saldo na primeira entrada do item na localização', async () => {
+      const item = makeItem();
+      Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(null);
+      Estoque.exists.mockResolvedValue(null);
+      Estoque.create.mockResolvedValue(makeEstoque({ quantidade: 5 }));
+      repositoryMock.criar.mockResolvedValue(makeMovimentacao());
+
+      await service.criar(
+        { item: item._id, tipo: 'entrada', quantidade: 5 },
+        { user_id: 'user123' },
+      );
+      expect(Estoque.create).toHaveBeenCalledWith(
+        expect.objectContaining({ quantidade: 5 }),
+      );
+    });
+
+    it('recusa entrada que passaria do limite de estoque', async () => {
+      const item = makeItem();
+      Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(null);
+      Estoque.exists.mockResolvedValue({ _id: 'e1' });
+
+      await expect(
+        service.criar(
+          { item: item._id, tipo: 'entrada', quantidade: 5 },
+          { user_id: 'user123' },
+        ),
+      ).rejects.toThrow('Limite de estoque excedido');
+      expect(repositoryMock.criar).not.toHaveBeenCalled();
+    });
+
+    it('devolve a reserva ao saldo se gravar a movimentação falhar', async () => {
+      const item = makeItem();
+      Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 7 }),
+      );
+      repositoryMock.criar.mockRejectedValue(new Error('falha ao gravar'));
+
+      await expect(
+        service.criar(
+          { item: item._id, tipo: 'saida', quantidade: 3 },
+          { user_id: 'user123' },
+        ),
+      ).rejects.toThrow('falha ao gravar');
+      expect(Estoque.updateOne).toHaveBeenCalledWith(expect.any(Object), {
+        $inc: { quantidade: 3 },
+      });
     });
 
     it('deve cadastrar movimentação de saída com sucesso (sem fornecedor)', async () => {
@@ -72,13 +132,19 @@ describe('MovimentacaoService', () => {
       };
       const req = { user_id: 'user123' };
 
-      // Mock do Estoque
-      Estoque.findOne.mockResolvedValue(makeEstoque({ quantidade: 10 }));
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 7 }),
+      );
 
       Item.findOne.mockResolvedValue(item);
       repositoryMock.criar.mockResolvedValue(makeMovimentacao(parsedData));
 
-      const result = await service.criar({ ...parsedData }, req);
+      await service.criar({ ...parsedData }, req);
+      expect(Estoque.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ quantidade: { $gte: 3 } }),
+        expect.objectContaining({ $inc: { quantidade: -3 } }),
+        { new: true },
+      );
       expect(repositoryMock.criar).toHaveBeenCalled();
     });
 
@@ -108,11 +174,14 @@ describe('MovimentacaoService', () => {
       };
       const req = { user_id: 'user123' };
 
-      // Mock do Estoque com quantidade insuficiente
+      Estoque.findOneAndUpdate.mockResolvedValue(null);
       Estoque.findOne.mockResolvedValue(makeEstoque({ quantidade: 2 }));
 
       Item.findOne.mockResolvedValue(item);
-      await expect(service.criar(parsedData, req)).rejects.toThrow(CustomError);
+      await expect(service.criar(parsedData, req)).rejects.toThrow(
+        'Estoque insuficiente (disponível: 2)',
+      );
+      expect(repositoryMock.criar).not.toHaveBeenCalled();
     });
     it('deve lidar corretamente com tipo diferente de entrada/saida', async () => {
       const item = makeItem({ quantidade: 10 });

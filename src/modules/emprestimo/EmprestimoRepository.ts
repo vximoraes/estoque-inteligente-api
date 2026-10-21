@@ -175,6 +175,18 @@ class EmprestimoRepository {
     return emprestimo;
   }
 
+  async atualizarSe(
+    id: string,
+    condicao: Record<string, unknown>,
+    atualizacao: Record<string, unknown>,
+  ): Promise<boolean> {
+    const resultado = await this.model.updateOne(
+      { _id: id, ativo: true, ...condicao },
+      atualizacao,
+    );
+    return resultado.modifiedCount === 1;
+  }
+
   async atualizarDevolucao(
     id: string,
     payload: Record<string, unknown>,

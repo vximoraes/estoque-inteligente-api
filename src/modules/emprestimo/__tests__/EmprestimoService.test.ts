@@ -22,6 +22,7 @@ describe('EmprestimoService', () => {
     listar: jest.Mock;
     buscarPorId: jest.Mock;
     atualizarDevolucao: jest.Mock;
+    atualizarSe: jest.Mock;
     atualizar: jest.Mock;
     excluir: jest.Mock;
   };
@@ -42,6 +43,7 @@ describe('EmprestimoService', () => {
       listar: jest.fn(),
       buscarPorId: jest.fn(),
       atualizarDevolucao: jest.fn(),
+      atualizarSe: jest.fn().mockResolvedValue(true),
       atualizar: jest.fn(),
       excluir: jest.fn(),
     };
@@ -265,12 +267,48 @@ describe('EmprestimoService', () => {
         req,
       );
       expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
-      expect(repositoryMock.atualizarDevolucao).toHaveBeenCalledWith(
+      expect(repositoryMock.atualizarSe).toHaveBeenCalledWith(
         'emp1',
-        expect.objectContaining({
-          quantidade_devolvida: 1,
-          quantidade_aberta: 0,
-        }),
+        { quantidade_aberta: { $gte: 1 } },
+        { $inc: { quantidade_devolvida: 1, quantidade_aberta: -1 } },
+      );
+    });
+
+    it('409 e nenhuma entrada quando outra devolução já reservou a quantidade', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_aberta: 1,
+        quantidade_devolvida: 0,
+        quantidade_emprestada: 1,
+      });
+      repositoryMock.atualizarSe.mockResolvedValueOnce(false);
+
+      await expect(
+        service.devolver('emp1', { quantidade_devolvida: 1 } as any, req),
+      ).rejects.toMatchObject({ statusCode: 409 });
+      expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
+    });
+
+    it('desfaz a reserva se a entrada no estoque falhar', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_aberta: 2,
+        quantidade_devolvida: 0,
+        quantidade_emprestada: 2,
+      });
+      movimentacaoServiceMock.criar.mockRejectedValueOnce(new Error('falhou'));
+
+      await expect(
+        service.devolver('emp1', { quantidade_devolvida: 2 } as any, req),
+      ).rejects.toThrow('falhou');
+      expect(repositoryMock.atualizarSe).toHaveBeenLastCalledWith(
+        'emp1',
+        {},
+        { $inc: { quantidade_devolvida: -2, quantidade_aberta: 2 } },
       );
     });
 
@@ -333,6 +371,28 @@ describe('EmprestimoService', () => {
       await expect(service.desfazerDevolucao('emp1', req)).rejects.toThrow(
         'não é possível desfazer',
       );
+      expect(repositoryMock.atualizarSe).toHaveBeenLastCalledWith(
+        'emp1',
+        {},
+        expect.objectContaining({ quantidade_devolvida: 1 }),
+      );
+    });
+
+    it('409 quando outra operação já desfez a devolução', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_devolvida: 2,
+        quantidade_aberta: 0,
+        quantidade_emprestada: 2,
+      });
+      repositoryMock.atualizarSe.mockResolvedValueOnce(false);
+
+      await expect(
+        service.desfazerDevolucao('emp1', req),
+      ).rejects.toMatchObject({ statusCode: 409 });
+      expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
     });
   });
 

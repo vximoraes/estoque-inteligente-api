@@ -1,6 +1,7 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import type { IEstoqueModel } from '../estoque/EstoqueModel.js';
+import logger from '../../utils/logger.js';
 
 export interface IMovimentacao {
   tipo: 'entrada' | 'saida';
@@ -47,6 +48,7 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
 );
 
 movimentacaoSchema.post('save', async function (this: MovimentacaoDocument) {
+  if (this.$locals['estoqueJaAtualizado']) return;
   const Model = this.constructor as unknown as IMovimentacaoModel;
   await Model.atualizarEstoque(this.item, this.localizacao, this.usuario);
 });
@@ -104,8 +106,18 @@ movimentacaoSchema.statics['atualizarEstoque'] = async function (
     },
   ])) as Array<{ quantidadeTotal: number }>;
 
-  const quantidadeTotal =
-    resultado.length > 0 ? Math.max(0, resultado[0]?.quantidadeTotal ?? 0) : 0;
+  const somaMovimentacoes = resultado[0]?.quantidadeTotal ?? 0;
+  if (somaMovimentacoes < 0) {
+    logger.warn(
+      {
+        item: String(itemId),
+        localizacao: String(localizacaoId),
+        somaMovimentacoes,
+      },
+      'Estoque: soma das movimentações negativa, saldo ajustado para 0',
+    );
+  }
+  const quantidadeTotal = Math.max(0, somaMovimentacoes);
 
   await EstoqueModel.findOneAndUpdate(
     { item: itemId, localizacao: localizacaoId },

@@ -30,7 +30,10 @@ describe('MovimentacaoRepository', () => {
   describe('criar', () => {
     it('deve criar movimentação e retornar populada', async () => {
       const mockSave = jest.fn().mockResolvedValue({ _id: '1' });
-      MovimentacaoModel.mockImplementation(() => ({ save: mockSave }));
+      MovimentacaoModel.mockImplementation(() => ({
+        save: mockSave,
+        $locals: {},
+      }));
       const populatedResult = {
         _id: '1',
         item: { _id: 'c1', nome: 'Item 1' },

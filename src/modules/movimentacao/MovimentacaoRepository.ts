@@ -43,6 +43,7 @@ class MovimentacaoRepository {
 
   async criar(parsedData: Record<string, unknown>) {
     const movimentacao = new this.model(parsedData);
+    movimentacao.$locals['estoqueJaAtualizado'] = true;
     const movimentacaoSalva = await movimentacao.save();
 
     return await this.model
