@@ -281,7 +281,7 @@ class IAController {
               'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
             );
             respostaCompleta =
-              '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações ou empréstimos?';
+              'Esse assunto foge do que eu consigo ajudar por aqui. Sou o assistente do estoque: posso consultar itens, movimentações, empréstimos, patrimônio, fornecedores ou usuários. Quer ver algum deles?';
           }
 
           conversa.mensagens.push({
@@ -303,6 +303,8 @@ class IAController {
               role: 'assistant',
               content: respostaCompleta,
             });
+          } else {
+            conversa.mensagens.pop();
           }
           await conversa.save().catch((saveErr: Error) => {
             logger.error(
