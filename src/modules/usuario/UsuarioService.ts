@@ -43,6 +43,15 @@ class UsuarioService {
   }
 
   async deletar(id: string, req: AuthenticatedRequest) {
+    if (id === req.user_id) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'Usuário',
+        details: [],
+        customMessage: 'Não é possível excluir a própria conta.',
+      });
+    }
     await this.ensureUserExists(id);
     return this.repository.deletar(id, req.user_id);
   }

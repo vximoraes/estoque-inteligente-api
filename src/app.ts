@@ -115,9 +115,14 @@ export async function bootstrap(): Promise<express.Express> {
   );
 
   app.use((req, res) => {
-    return CommonResponse.error(res, 404, 'resourceNotFound', null, [
-      { message: 'Rota não encontrada.' },
-    ]);
+    return CommonResponse.error(
+      res,
+      404,
+      'resourceNotFound',
+      null,
+      [{ message: 'Rota não encontrada.' }],
+      'Rota não encontrada.',
+    );
   });
 
   process.on('unhandledRejection', (reason, promise) => {
@@ -125,7 +130,8 @@ export async function bootstrap(): Promise<express.Express> {
   });
 
   process.on('uncaughtException', (error) => {
-    logger.error(error, 'Uncaught Exception thrown:');
+    logger.fatal(error, 'Uncaught Exception thrown, encerrando o processo:');
+    process.exit(1);
   });
 
   app.use(errorHandler);

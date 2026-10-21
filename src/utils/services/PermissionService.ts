@@ -29,7 +29,7 @@ class PermissionService {
       }
 
       if (rota === 'usuarios' && params['id'] && params['id'] === userId) {
-        const metodosPermitidos = ['GET', 'PATCH', 'PUT', 'DELETE'];
+        const metodosPermitidos = ['GET', 'PATCH', 'PUT'];
         if (metodosPermitidos.includes(httpMethod)) {
           return true;
         }
@@ -48,17 +48,7 @@ class PermissionService {
         }
       }
 
-      const permissoesUnicas: IGrupoPermissao[] = [];
-      const combinacoes = new Set<string>();
-
-      permissoes.forEach((permissao) => {
-        if (!combinacoes.has(permissao.rota)) {
-          combinacoes.add(permissao.rota);
-          permissoesUnicas.push(permissao);
-        }
-      });
-
-      return permissoesUnicas.some((permissao) => {
+      return permissoes.some((permissao) => {
         return (
           permissao.rota === rota &&
           permissao.ativo &&

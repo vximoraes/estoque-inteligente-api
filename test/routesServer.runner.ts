@@ -24,6 +24,8 @@ async function main() {
     NODE_ENV: 'test',
     EMAIL_USER: '',
     EMAIL_APP_PASSWORD: '',
+    MCP_SEGREDO_INTERNO:
+      process.env['MCP_SEGREDO_INTERNO'] || 'segredo-de-teste-do-mcp',
   };
 
   await new Promise<void>((resolve, reject) => {

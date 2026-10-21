@@ -4,6 +4,9 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 const SESSION_TTL_MS = 2 * 60 * 1000;
 const SESSION_TTL_ABSOLUTO_MS = 30 * 60 * 1000;
 const MAX_SESSOES = Number(process.env['MCP_MAX_SESSOES'] ?? 100);
+const MAX_SESSOES_POR_USUARIO = Number(
+  process.env['MCP_MAX_SESSOES_POR_USUARIO'] ?? 5,
+);
 
 export interface MCPSession {
   transport: StreamableHTTPServerTransport;
@@ -23,6 +26,15 @@ class MCPSessionStore {
   }
 
   set(sessionId: string, sessionData: MCPSession): void {
+    if (!this._store.has(sessionId)) {
+      const doUsuario = [...this._store].filter(
+        ([, sessao]) => sessao.usuarioId === sessionData.usuarioId,
+      );
+      if (doUsuario.length >= MAX_SESSOES_POR_USUARIO && doUsuario[0]) {
+        this._encerrar(doUsuario[0][0]);
+      }
+    }
+
     if (!this._store.has(sessionId) && this._store.size >= MAX_SESSOES) {
       const maisAntigaId = this._store.keys().next().value;
       if (maisAntigaId) this._encerrar(maisAntigaId);

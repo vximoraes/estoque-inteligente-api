@@ -42,11 +42,15 @@ function lerJsonRpc(res) {
   return JSON.parse(ultima.slice('data:'.length).trim());
 }
 
-function postMcp(token, corpo, sessionId?) {
+const SEGREDO_MCP =
+  process.env['MCP_SEGREDO_INTERNO'] || 'segredo-de-teste-do-mcp';
+
+function postMcp(token, corpo, sessionId?, segredo = SEGREDO_MCP) {
   let requisicao = request(BASE_URL)
     .post('/mcp')
     .set('Accept', ACCEPT)
     .set('Content-Type', 'application/json');
+  if (segredo) requisicao = requisicao.set('x-mcp-segredo', segredo);
   if (token) requisicao = requisicao.set('Authorization', `Bearer ${token}`);
   if (sessionId) {
     requisicao = requisicao
@@ -140,6 +144,7 @@ describe('Rotas do MCP (/mcp)', () => {
         request(BASE_URL)
           .delete('/mcp')
           .set('Authorization', `Bearer ${dono}`)
+          .set('x-mcp-segredo', SEGREDO_MCP)
           .set('mcp-session-id', sessionId)
           .set('mcp-protocol-version', PROTOCOL_VERSION),
       ),
@@ -147,6 +152,22 @@ describe('Rotas do MCP (/mcp)', () => {
   });
 
   describe('Autenticação e sessão', () => {
+    it('deve rejeitar com 403 quem chama o MCP sem o segredo do assistente, mesmo logado', async () => {
+      const res = await postMcp(token, corpoInitialize(), undefined, '');
+      expect(res.status).toBe(403);
+      expect(res.headers['mcp-session-id']).toBeUndefined();
+    });
+
+    it('deve rejeitar com 403 um segredo errado', async () => {
+      const res = await postMcp(
+        token,
+        corpoInitialize(),
+        undefined,
+        'segredo-errado',
+      );
+      expect(res.status).toBe(403);
+    });
+
     it('deve rejeitar initialize sem token com 401', async () => {
       const res = await postMcp('', corpoInitialize());
       expect(res.status).toBe(401);
@@ -349,7 +370,8 @@ describe('Rotas do MCP (/mcp)', () => {
       const filtro = `data_inicio=2000-01-01&data_fim=${hoje}`;
       const tela = await request(BASE_URL)
         .get(`/movimentacoes/resumo?${filtro}`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Authorization', `Bearer ${token}`)
+        .set('x-mcp-segredo', SEGREDO_MCP);
 
       const dados = extrairDados(
         await chamarFerramenta(sessaoAdmin, 'resumoMovimentacoes', {
@@ -404,7 +426,8 @@ describe('Rotas do MCP (/mcp)', () => {
     beforeAll(async () => {
       const sessao = await request(BASE_URL)
         .get('/api/auth/get-session')
-        .set('Authorization', `Bearer ${tokenUsuarioPadrao}`);
+        .set('Authorization', `Bearer ${tokenUsuarioPadrao}`)
+        .set('x-mcp-segredo', SEGREDO_MCP);
       usuarioPadraoId = sessao.body.user.id;
     });
 
@@ -412,6 +435,7 @@ describe('Rotas do MCP (/mcp)', () => {
       await request(BASE_URL)
         .patch(`/usuarios/${usuarioPadraoId}`)
         .set('Authorization', `Bearer ${tokenUsuarioPadrao}`)
+        .set('x-mcp-segredo', SEGREDO_MCP)
         .send({ fuso_horario: null });
     });
 
@@ -441,6 +465,7 @@ describe('Rotas do MCP (/mcp)', () => {
       await request(BASE_URL)
         .patch(`/usuarios/${usuarioPadraoId}`)
         .set('Authorization', `Bearer ${tokenUsuarioPadrao}`)
+        .set('x-mcp-segredo', SEGREDO_MCP)
         .send({ fuso_horario: 'Asia/Tokyo' });
       const item = await criarItem(tokenUsuarioPadrao);
 

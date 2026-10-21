@@ -4,7 +4,8 @@
       "type": "http",
       "url": "http://localhost:3010/mcp",
       "headers": {
-        "Authorization": "Bearer ${ESTOQUE_MCP_TOKEN}"
+        "Authorization": "Bearer ${ESTOQUE_MCP_TOKEN}",
+        "X-MCP-Segredo": "${ESTOQUE_MCP_SEGREDO}"
       }
     }
   }

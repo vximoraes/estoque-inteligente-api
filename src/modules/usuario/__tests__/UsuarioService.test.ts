@@ -109,6 +109,13 @@ describe('UsuarioService', () => {
   });
 
   describe('deletar', () => {
+    it('recusa excluir a própria conta', async () => {
+      await expect(
+        service.deletar('user123', { user_id: 'user123' }),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(repositoryMock.deletar).not.toHaveBeenCalled();
+    });
+
     it('deve deletar usuário existente', async () => {
       const req = { user_id: 'user123' };
       repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });

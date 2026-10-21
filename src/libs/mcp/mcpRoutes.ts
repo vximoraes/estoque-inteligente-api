@@ -6,6 +6,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { getAuth } from '../../config/auth.js';
 import { criarMCPServer } from './mcpServerFactory.js';
 import MCPSessionStore from './MCPSessionStore.js';
+import { HEADER_SEGREDO_MCP, segredoConfere } from './segredoInterno.js';
 
 interface MCPError extends Error {
   statusCode?: number;
@@ -18,6 +19,13 @@ function mcpError(message: string, statusCode: number): MCPError {
 }
 
 const router = express.Router();
+
+router.use('/mcp', (req: Request, res: Response, next) => {
+  if (segredoConfere(req.headers[HEADER_SEGREDO_MCP])) return next();
+  res
+    .status(403)
+    .json({ error: 'O MCP só pode ser acessado pelo assistente do sistema' });
+});
 
 async function autenticarRequisicao(req: Request): Promise<string> {
   const session = await getAuth().api.getSession({

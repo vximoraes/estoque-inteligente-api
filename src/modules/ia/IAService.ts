@@ -16,6 +16,10 @@ import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 import { criarCallbacks } from './IAObservabilidade.js';
 import { limparCaracteresInvisiveis } from './IASchema.js';
 import logger from '../../utils/logger.js';
+import {
+  HEADER_SEGREDO_MCP,
+  SEGREDO_MCP_INTERNO,
+} from '../../libs/mcp/segredoInterno.js';
 import { FUSO_PADRAO, dataHoraPorExtenso } from '../../utils/fusoHorario.js';
 
 const JANELA_CONTEXTO = 15;
@@ -288,6 +292,7 @@ export async function processarMensagem(
         url: `${apiBaseUrl}/mcp`,
         headers: {
           Cookie: cookie ?? '',
+          [HEADER_SEGREDO_MCP]: SEGREDO_MCP_INTERNO,
         },
       },
     },

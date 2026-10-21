@@ -38,4 +38,4 @@ Toda resposta passa por `CommonResponse` (`src/utils/helpers/CommonResponse.ts`)
 ## Camada de IA/MCP
 
 - Ferramentas em `src/libs/mcp/tools/` são **somente leitura** (consulta a dados já existentes) — não adicionar tool que escreve/edita dados sem alinhar antes, já que o LLM as chama de forma autônoma dentro do chat.
-- O servidor MCP (`src/libs/mcp/mcpRoutes.ts`, rota `/mcp`) exige a mesma sessão Better Auth do resto da API (`getAuth().api.getSession(...)`) — não é um endpoint aberto.
+- O servidor MCP (`src/libs/mcp/mcpRoutes.ts`, rota `/mcp`) exige a mesma sessão Better Auth do resto da API (`getAuth().api.getSession(...)`) **e** o cabeçalho `x-mcp-segredo` com `MCP_SEGREDO_INTERNO` (`src/libs/mcp/segredoInterno.ts`), que só o `IAService` envia — não é um endpoint aberto, nem para usuário logado chamando direto.
