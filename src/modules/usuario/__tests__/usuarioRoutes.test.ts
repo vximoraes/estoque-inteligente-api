@@ -11,6 +11,13 @@ import {
   ID_INEXISTENTE,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
+function nomeUnico(prefixo) {
+  const letras = Array.from({ length: 8 }, () =>
+    String.fromCharCode(97 + Math.floor(Math.random() * 26)),
+  ).join('');
+  return `${prefixo} X${letras}`;
+}
+
 describe('Rotas de Usuário', () => {
   let token;
   let tokenUsuarioPadrao;
@@ -42,6 +49,22 @@ describe('Rotas de Usuário', () => {
       const res = await req(token)
         .post('/usuarios/convidar')
         .send({ nome: 'Zz Teste Usuario' });
+      esperarEnvelopeErro(res, 400);
+    });
+
+    it('deve falhar com 400 ao convidar com e-mail inválido', async () => {
+      const res = await req(token)
+        .post('/usuarios/convidar')
+        .send({ nome: 'Zz Convite Invalido', email: 'nao-e-email' });
+      esperarEnvelopeErro(res, 400);
+      expect(JSON.stringify(res.body)).not.toContain('stack');
+    });
+
+    it('deve falhar com 400 em JSON malformado', async () => {
+      const res = await req(token)
+        .post('/usuarios/convidar')
+        .set('Content-Type', 'application/json')
+        .send('{"nome": ');
       esperarEnvelopeErro(res, 400);
     });
 
@@ -78,7 +101,7 @@ describe('Rotas de Usuário', () => {
 
     it('deve aplicar filtro de busca por nome', async () => {
       const usuario = await convidarUsuario(token, {
-        nome: sufixoUnico('zz-usuario-filtro'),
+        nome: nomeUnico('Zz Filtro'),
       });
       const res = await req(token).get(`/usuarios?nome=${usuario.nome}`);
       esperarEnvelopeSucesso(res, 200);
@@ -127,7 +150,7 @@ describe('Rotas de Usuário', () => {
   describe('PUT /usuarios/:id', () => {
     it('deve atualizar nome do usuário', async () => {
       const usuario = await convidarUsuario(token);
-      const novoNome = sufixoUnico('zz-usuario-atualizado');
+      const novoNome = nomeUnico('Zz Atualizado');
       const res = await req(token)
         .put(`/usuarios/${usuario._id}`)
         .send({ nome: novoNome });

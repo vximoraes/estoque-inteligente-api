@@ -63,3 +63,16 @@ describe('FornecedorUpdateSchema', () => {
     expect(() => FornecedorUpdateSchema.parse({ ativo: 'sim' })).toThrow();
   });
 });
+
+describe('FornecedorSchema — protocolo da URL', () => {
+  it.each(['javascript:alert(1)', 'ftp://exemplo.com'])('rejeita %s', (url) => {
+    expect(() => FornecedorSchema.parse({ nome: 'Fornecedor', url })).toThrow();
+  });
+
+  it('aceita https', () => {
+    expect(
+      FornecedorSchema.parse({ nome: 'Fornecedor', url: 'https://exemplo.com' })
+        .url,
+    ).toBe('https://exemplo.com');
+  });
+});

@@ -143,3 +143,15 @@ describe('ItemUpdateSchema', () => {
     expect(() => ItemUpdateSchema.parse(dadosInvalidos)).toThrow();
   });
 });
+
+describe('ItemSchema — estoque mínimo fracionado', () => {
+  it('rejeita 2.5 em vez de arredondar', () => {
+    expect(() =>
+      ItemSchema.parse({
+        nome: 'Caneta',
+        categoria: new mongoose.Types.ObjectId().toString(),
+        estoque_minimo: '2.5',
+      }),
+    ).toThrow('Estoque mínimo deve ser inteiro');
+  });
+});

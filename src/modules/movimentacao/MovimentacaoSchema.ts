@@ -16,14 +16,11 @@ const MovimentacaoSchema = z.object({
     })
     .optional(),
   quantidade: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseInt(val) : undefined))
-    .refine((val) => val === undefined || Number.isInteger(val), {
-      message: 'Quantidade deve ser inteira',
-    })
-    .refine((val) => val === undefined || (val >= 0 && val <= 999999999), {
-      message: 'Quantidade: 0 a 999.999.999',
+    .string({ required_error: 'Campo quantidade é obrigatório.' })
+    .regex(/^\d+$/, 'Quantidade deve ser um número inteiro')
+    .transform((val) => Number(val))
+    .refine((val) => val >= 1 && val <= 999999999, {
+      message: 'Quantidade: 1 a 999.999.999',
     }),
   item: objectIdSchema,
   localizacao: objectIdSchema,

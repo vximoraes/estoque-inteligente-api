@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { fusoValido } from '../../utils/fusoHorario.js';
 
-const senhaRegex =
-  /^(?=.*[?@!#$%^&*()/\\])(?=.*[0-9])(?=.*[a-zA-Z])[?@!#$%^&*()/\\a-zA-Z0-9]+$/;
+const senhaRegex = /^(?=.*\p{Ll})(?=.*\p{Lu})(?=.*\d)(?=.*[^\p{L}\d]).+$/u;
 const nomeRegex =
   /^([A-ZÀ-Ö][a-zà-öø-ÿ]{1,})( ((de|da|do|das|dos)|[A-ZÀ-Ö][a-zà-öø-ÿ]{1,}))*$/;
 
@@ -10,7 +9,11 @@ const UsuarioSchema = z.object({
   nome: z
     .string()
     .min(1, 'Campo nome é obrigatório.')
-    .max(100, 'O nome deve ter no máximo 100 caracteres.'),
+    .max(100, 'O nome deve ter no máximo 100 caracteres.')
+    .regex(
+      nomeRegex,
+      'O nome não pode ter caracteres especiais, nem números e somente ter letras maiúsculas no começo de cada nome/sobrenome, possuindo ao menos 2 letras',
+    ),
   email: z
     .string()
     .email('Formato de email inválido.')
@@ -39,8 +42,9 @@ const UsuarioSchema = z.object({
 });
 
 const UsuarioUpdateSchema = UsuarioSchema.omit({ email: true }).partial();
+const ConviteSchema = UsuarioSchema.pick({ nome: true, email: true });
 
 export type Usuario = z.infer<typeof UsuarioSchema>;
 export type UsuarioUpdate = z.infer<typeof UsuarioUpdateSchema>;
 
-export { UsuarioSchema, UsuarioUpdateSchema, senhaRegex };
+export { UsuarioSchema, UsuarioUpdateSchema, ConviteSchema, senhaRegex };

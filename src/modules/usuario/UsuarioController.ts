@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import UsuarioService from './UsuarioService.js';
 import { UsuarioQuerySchema, UsuarioIdSchema } from './UsuarioQuerySchema.js';
-import { UsuarioUpdateSchema } from './UsuarioSchema.js';
+import { UsuarioUpdateSchema, ConviteSchema } from './UsuarioSchema.js';
 import {
   CommonResponse,
   CustomError,
@@ -99,7 +99,11 @@ class UsuarioController {
       });
     }
 
-    const data = await this.service.convidarUsuario(nome, email);
+    const convite = ConviteSchema.parse({ nome, email });
+    const data = await this.service.convidarUsuario(
+      convite.nome,
+      convite.email,
+    );
     return CommonResponse.created(res, data);
   }
 

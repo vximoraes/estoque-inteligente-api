@@ -123,3 +123,15 @@ describe('CategoriaUpdateSchema', () => {
     expect(resultado.descricao).toBe('Nova descrição');
   });
 });
+
+describe('CategoriaSchema — limites do nome', () => {
+  it.each(['   ', 'x'.repeat(101)])('rejeita nome inválido', (nome) => {
+    expect(() => CategoriaSchema.parse({ nome, tipo: 'consumo' })).toThrow();
+  });
+
+  it('remove espaços nas pontas', () => {
+    expect(
+      CategoriaSchema.parse({ nome: '  Papelaria ', tipo: 'consumo' }).nome,
+    ).toBe('Papelaria');
+  });
+});

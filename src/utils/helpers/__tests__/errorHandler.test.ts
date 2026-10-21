@@ -275,6 +275,27 @@ describe('errorHandler', () => {
     process.env.NODE_ENV = 'development';
   });
 
+  it('esconde o stack em teste e em qualquer ambiente fora de development', () => {
+    process.env.NODE_ENV = 'test';
+    errorHandler(new Error('falha interna'), req, res, next);
+
+    const detalhe = CommonResponse.error.mock.calls[0][4][0];
+    expect(detalhe.stack).toBeUndefined();
+    expect(detalhe.message).toMatch(/Referência: /);
+
+    process.env.NODE_ENV = 'development';
+  });
+
+  it('devolve 400 para JSON malformado no corpo', () => {
+    const erro = Object.assign(new SyntaxError('Unexpected token'), {
+      type: 'entity.parse.failed',
+    });
+    errorHandler(erro, req, res, next);
+
+    expect(CommonResponse.error.mock.calls[0][1]).toBe(400);
+    expect(CommonResponse.error.mock.calls[0][2]).toBe('validationError');
+  });
+
   it('should include requestId in logging if available', () => {
     const loggerSpy = jest.spyOn(logger, 'error');
     const customReq = { path: '/test', requestId: 'custom-req-id' };

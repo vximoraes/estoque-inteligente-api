@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 const CategoriaSchema = z.object({
-  nome: z.string().min(1, 'Campo nome é obrigatório.'),
+  nome: z
+    .string()
+    .trim()
+    .min(1, 'Campo nome é obrigatório.')
+    .max(100, 'O nome deve ter no máximo 100 caracteres.'),
   tipo: z.enum(['consumo', 'permanente'], {
     errorMap: () => ({ message: "Tipo deve ser 'consumo' ou 'permanente'" }),
   }),

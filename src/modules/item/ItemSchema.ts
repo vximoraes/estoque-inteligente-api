@@ -12,6 +12,9 @@ const ItemSchema = z.object({
   estoque_minimo: z
     .string()
     .optional()
+    .refine((val) => !val || /^\d+$/.test(val), {
+      message: 'Estoque mínimo deve ser inteiro',
+    })
     .transform((val) => (val ? parseInt(val) : undefined))
     .refine((val) => val === undefined || Number.isInteger(val), {
       message: 'Estoque mínimo deve ser inteiro',

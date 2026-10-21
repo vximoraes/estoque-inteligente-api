@@ -108,15 +108,27 @@ describe('MovimentacaoSchema', () => {
       expect(typeof result.quantidade).toBe('number');
     });
 
-    it('deve aceitar quando quantidade não é fornecida (opcional)', () => {
+    it('deve rejeitar quando quantidade não é fornecida', () => {
       const data = {
         tipo: 'entrada',
         item: '64f234a0c781a7b30c2fe445',
         localizacao: '64f234a0c781a7b30c2fe447',
       };
-      const result = MovimentacaoSchema.parse(data);
-      expect(result.quantidade).toBeUndefined();
+      expect(() => MovimentacaoSchema.parse(data)).toThrow();
     });
+
+    it.each(['0', '2.5', '-3', 'abc'])(
+      'deve rejeitar quantidade %s',
+      (quantidade) => {
+        const data = {
+          tipo: 'entrada',
+          item: '64f234a0c781a7b30c2fe445',
+          localizacao: '64f234a0c781a7b30c2fe447',
+          quantidade,
+        };
+        expect(() => MovimentacaoSchema.parse(data)).toThrow();
+      },
+    );
 
     it('deve rejeitar quando quantidade não é um número inteiro válido', () => {
       const data = {

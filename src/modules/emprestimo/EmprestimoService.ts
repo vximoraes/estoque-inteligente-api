@@ -18,6 +18,12 @@ import type {
   AtualizarEmprestimo,
 } from './EmprestimoSchema.js';
 
+const MOTIVO_UNIDADE_INDISPONIVEL: Record<string, string> = {
+  Emprestado: 'Esta unidade já está emprestada.',
+  Manutenção: 'Esta unidade está em manutenção e não pode ser emprestada.',
+  Baixado: 'Esta unidade foi baixada e não pode ser emprestada.',
+};
+
 class EmprestimoService {
   private repository: EmprestimoRepository;
   private movimentacaoService: MovimentacaoService;
@@ -195,12 +201,15 @@ class EmprestimoService {
       req,
     );
     if (!transicionada) {
+      const atual = await PatrimonioModel.findById(patrimonioId, 'status');
       throw new CustomError({
         statusCode: 409,
         errorType: 'conflictError',
         field: 'patrimonio',
         details: [],
-        customMessage: 'Esta unidade já está emprestada.',
+        customMessage:
+          MOTIVO_UNIDADE_INDISPONIVEL[atual?.status ?? ''] ??
+          'Esta unidade não está disponível para empréstimo.',
       });
     }
 

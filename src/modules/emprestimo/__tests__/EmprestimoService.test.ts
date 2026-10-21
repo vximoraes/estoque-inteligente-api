@@ -176,6 +176,29 @@ describe('EmprestimoService', () => {
       expect(repositoryMock.criar).not.toHaveBeenCalled();
     });
 
+    it('explica que a unidade está em manutenção', async () => {
+      const patrimonioId = makeId();
+      PatrimonioModel.findById = jest
+        .fn()
+        .mockResolvedValueOnce({ _id: patrimonioId, ativo: true })
+        .mockResolvedValueOnce({ status: 'Manutenção' });
+      patrimonioServiceMock.emprestarUnidade.mockResolvedValue(null);
+
+      await expect(
+        service.criar(
+          {
+            solicitante_nome: 'Fulano',
+            patrimonio: patrimonioId.toString(),
+          } as any,
+          req,
+        ),
+      ).rejects.toMatchObject({
+        statusCode: 409,
+        customMessage:
+          'Esta unidade está em manutenção e não pode ser emprestada.',
+      });
+    });
+
     it('monta o registro com quantidade 1 e a localização real da unidade, ignorando o que foi enviado', async () => {
       const patrimonioId = makeId();
       const localizacaoReal = makeId();

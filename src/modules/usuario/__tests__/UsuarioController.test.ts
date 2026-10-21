@@ -39,6 +39,7 @@ jest.mock('../../../utils/helpers/index.js', () => {
 jest.mock('../UsuarioSchema.js', () => {
   return {
     UsuarioUpdateSchema: { parse: jest.fn() },
+    ConviteSchema: { parse: jest.fn((dados) => dados) },
   };
 });
 

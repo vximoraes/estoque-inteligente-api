@@ -28,9 +28,23 @@ const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const mostrarStack = process.env.NODE_ENV === 'development';
   const errorId = uuidv4();
   const requestId = req.requestId ?? 'N/A';
+
+  const erroDeCorpo = err as Error & { type?: string };
+  if (erroDeCorpo.type === 'entity.parse.failed') {
+    logger.warn({ path: req.path, requestId }, 'JSON malformado no corpo');
+    CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      null,
+      [{ message: 'O corpo da requisição não é um JSON válido.' }],
+      'O corpo da requisição não é um JSON válido.',
+    );
+    return;
+  }
 
   if (err instanceof ZodError) {
     logger.warn(
@@ -133,9 +147,9 @@ const errorHandler = (
     { message: err.message, stack: err.stack, requestId },
     `Erro interno [ID: ${errorId}]`,
   );
-  const detalhes = isProduction
-    ? [{ message: `Erro interno do servidor. Referência: ${errorId}` }]
-    : [{ message: err.message, stack: err.stack }];
+  const detalhes = mostrarStack
+    ? [{ message: err.message, stack: err.stack }]
+    : [{ message: `Erro interno do servidor. Referência: ${errorId}` }];
 
   CommonResponse.error(res, 500, 'serverError', null, detalhes);
 };

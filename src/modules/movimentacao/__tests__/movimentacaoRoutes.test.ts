@@ -88,6 +88,11 @@ describe('Rotas de Movimentação', () => {
       esperarPaginado(res);
     });
 
+    it.each(['abc', '0', '500'])('recusa limite=%s com 400', async (limite) => {
+      const res = await req(token).get(`/movimentacoes?limite=${limite}`);
+      esperarEnvelopeErro(res, 400);
+    });
+
     it('expõe só o nome de quem registrou, sem e-mail nem grupos', async () => {
       await criarMovimentacao(token);
       const res = await req(token).get('/movimentacoes');
