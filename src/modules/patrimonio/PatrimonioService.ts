@@ -148,6 +148,10 @@ class PatrimonioService {
     return await this.repository.listar(req);
   }
 
+  async stats(req: AuthenticatedRequest) {
+    return await this.repository.stats(req);
+  }
+
   async buscarPorId(id: string, req: AuthenticatedRequest) {
     return await this.repository.buscarPorId(id, req);
   }

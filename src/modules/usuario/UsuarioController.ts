@@ -83,6 +83,13 @@ class UsuarioController {
     return CommonResponse.success(res, data, 200, 'Foto deletada com sucesso.');
   }
 
+  async permissoes(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    UsuarioIdSchema.parse(id);
+    const data = await this.service.permissoes(id);
+    return CommonResponse.success(res, data);
+  }
+
   async convidarUsuario(req: AuthenticatedRequest, res: Response) {
     const { nome, email } = req.body as { nome?: string; email?: string };
 

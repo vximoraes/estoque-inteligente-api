@@ -46,6 +46,22 @@ registry.register(
   'UsuarioListagem',
   z.object({ data: z.array(UsuarioDetalhes), ...paginationMetaFields }),
 );
+registry.register(
+  'UsuarioPermissoes',
+  z.object({
+    data: z.array(
+      z.object({
+        rota: z.string().openapi({ example: 'itens' }),
+        ativo: z.boolean(),
+        buscar: z.boolean(),
+        enviar: z.boolean(),
+        substituir: z.boolean(),
+        modificar: z.boolean(),
+        excluir: z.boolean(),
+      }),
+    ),
+  }),
+);
 registry.register('UsuarioPost', UsuarioSchema);
 registry.register('UsuarioPatch', UsuarioUpdateSchema);
 
@@ -128,6 +144,34 @@ registerPaths({
         200: commonResponses[200]!('#/components/schemas/UsuarioListagem'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/usuarios/{id}/permissoes': {
+    get: {
+      tags: ['Usuários'],
+      summary: 'Lista as permissões efetivas de um usuário',
+      description: `
+            + Caso de uso: O front decide o que mostrar (menus, botões) com as mesmas regras que a API usa para autorizar.
+
+            + Regras de Negócio:
+                - Soma, por rota, as permissões do próprio usuário e de todos os grupos dele (basta um dar o método).
+                - O próprio usuário sempre pode consultar as suas.
+
+            + Resultado Esperado:
+                - HTTP 200 OK com corpo conforme **UsuarioPermissoes**.
+        `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do usuário')],
+      responses: {
+        200: commonResponses[200]!('#/components/schemas/UsuarioPermissoes'),
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        403: commonResponses[403]!(),
         404: commonResponses[404]!(),
         498: commonResponses[498]!(),
         500: commonResponses[500]!(),

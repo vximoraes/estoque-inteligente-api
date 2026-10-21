@@ -35,30 +35,65 @@ class PermissionService {
         }
       }
 
-      const usuarioObj = usuario as unknown as {
-        permissoes?: IGrupoPermissao[];
-        grupos?: Array<{ permissoes?: IGrupoPermissao[] }>;
-      };
-
-      let permissoes: IGrupoPermissao[] = usuarioObj.permissoes ?? [];
-
-      if (Array.isArray(usuarioObj.grupos)) {
-        for (const grupo of usuarioObj.grupos) {
-          permissoes = permissoes.concat(grupo.permissoes ?? []);
-        }
-      }
-
-      return permissoes.some((permissao) => {
-        return (
-          permissao.rota === rota &&
-          permissao.ativo &&
-          (permissao as unknown as Record<string, unknown>)[metodo]
-        );
-      });
+      const permissao = this.unirPermissoes(usuario).find(
+        (p) => p.rota === rota,
+      );
+      return Boolean(
+        permissao?.ativo &&
+        (permissao as unknown as Record<string, unknown>)[metodo],
+      );
     } catch (error) {
       console.error('Erro ao verificar permissões:', error);
       return false;
     }
+  }
+
+  async permissoesEfetivas(userId: string): Promise<IGrupoPermissao[]> {
+    const usuario = await this.repository.buscarPorIdComGrupos(userId);
+    if (!usuario) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Usuário',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Usuário'),
+      });
+    }
+    return this.unirPermissoes(usuario);
+  }
+
+  private unirPermissoes(usuario: unknown): IGrupoPermissao[] {
+    const usuarioObj = usuario as {
+      permissoes?: IGrupoPermissao[];
+      grupos?: Array<{ permissoes?: IGrupoPermissao[] }>;
+    };
+    const todas = [
+      ...(usuarioObj.permissoes ?? []),
+      ...(usuarioObj.grupos ?? []).flatMap((grupo) => grupo.permissoes ?? []),
+    ];
+
+    const porRota = new Map<string, IGrupoPermissao>();
+    for (const p of todas) {
+      const atual = porRota.get(p.rota) ?? {
+        rota: p.rota,
+        ativo: false,
+        buscar: false,
+        enviar: false,
+        substituir: false,
+        modificar: false,
+        excluir: false,
+      };
+      porRota.set(p.rota, {
+        rota: p.rota,
+        ativo: atual.ativo || p.ativo,
+        buscar: atual.buscar || (p.ativo && p.buscar),
+        enviar: atual.enviar || (p.ativo && p.enviar),
+        substituir: atual.substituir || (p.ativo && p.substituir),
+        modificar: atual.modificar || (p.ativo && p.modificar),
+        excluir: atual.excluir || (p.ativo && p.excluir),
+      });
+    }
+    return [...porRota.values()];
   }
 }
 

@@ -123,6 +123,31 @@ describe('Rotas de Patrimonio', () => {
     });
   });
 
+  describe('GET /patrimonios/stats', () => {
+    it('conta por status todas as unidades do filtro, não só uma página', async () => {
+      const categoria = await criarCategoria(token, { tipo: 'permanente' });
+      for (let i = 0; i < 3; i++) {
+        await criarPatrimonio(token, { categoria: categoria._id });
+      }
+      await criarPatrimonio(token, {
+        categoria: categoria._id,
+        status: 'Manutenção',
+      });
+
+      const res = await req(token).get(
+        `/patrimonios/stats?categoria=${categoria._id}&limite=1`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data).toEqual({
+        total: 4,
+        disponiveis: 3,
+        emprestadas: 0,
+        manutencao: 1,
+        baixadas: 0,
+      });
+    });
+  });
+
   describe('GET /patrimonios', () => {
     it('deve listar patrimônios paginados', async () => {
       const res = await req(token).get('/patrimonios');

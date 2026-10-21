@@ -136,6 +136,26 @@ describe('Rotas de Usuário', () => {
       esperarEnvelopeSucesso(res, 200);
     });
 
+    it('devolve ao usuário comum as próprias permissões efetivas', async () => {
+      const perfil = await req(tokenUsuarioPadrao).get('/api/auth/get-session');
+      const meuId = perfil.body.user.id;
+      const res = await req(tokenUsuarioPadrao).get(
+        `/usuarios/${meuId}/permissoes`,
+      );
+      esperarEnvelopeSucesso(res, 200);
+      const porRota = Object.fromEntries(res.body.data.map((p) => [p.rota, p]));
+      expect(porRota.itens?.buscar).toBe(true);
+      expect(porRota.usuarios?.buscar ?? false).toBe(false);
+    });
+
+    it('não deixa o usuário comum ver permissões de outro usuário', async () => {
+      const outro = await convidarUsuario(token);
+      const res = await req(tokenUsuarioPadrao).get(
+        `/usuarios/${outro._id}/permissoes`,
+      );
+      expect(res.status).toBe(403);
+    });
+
     it('deve retornar 400 para id malformado', async () => {
       const res = await req(token).get(`/usuarios/${ID_INVALIDO}`);
       esperarEnvelopeErro(res, 400);

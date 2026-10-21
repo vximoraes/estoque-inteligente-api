@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import UsuarioRepository from './UsuarioRepository.js';
+import PermissionService from '../../utils/services/PermissionService.js';
 import {
   CustomError,
   HttpStatusCodes,
@@ -17,13 +18,19 @@ import type { UsuarioUpdate } from './UsuarioSchema.js';
 
 class UsuarioService {
   private repository: UsuarioRepository;
+  private permissionService: PermissionService;
 
   constructor() {
     this.repository = new UsuarioRepository();
+    this.permissionService = new PermissionService();
   }
 
   async listar(req: AuthenticatedRequest) {
     return this.repository.listar(req);
+  }
+
+  async permissoes(id: string) {
+    return this.permissionService.permissoesEfetivas(id);
   }
 
   async atualizar(

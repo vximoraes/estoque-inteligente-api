@@ -56,6 +56,15 @@ class PatrimonioController {
     return CommonResponse.success(res, data);
   }
 
+  async stats(req: AuthenticatedRequest, res: Response) {
+    const query = req.query ?? {};
+    if (Object.keys(query).length !== 0) {
+      await PatrimonioQuerySchema.parseAsync(query);
+    }
+    const data = await this.service.stats(req);
+    return CommonResponse.success(res, data);
+  }
+
   async buscarEventos(req: AuthenticatedRequest, res: Response) {
     const id = req.params['id'] as string;
     PatrimonioIdSchema.parse(id);
