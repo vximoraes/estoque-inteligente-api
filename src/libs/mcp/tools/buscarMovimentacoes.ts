@@ -2,8 +2,8 @@ import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.j
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
-import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
-import { limiteDeData, resolverFuso } from '../../../utils/fusoHorario.js';
+import { limiteDeData } from '../../../utils/fusoHorario.js';
+import { fusoDoUsuario } from '../fusoDoUsuario.js';
 
 export async function buscarMovimentacoes(
   {
@@ -29,10 +29,7 @@ export async function buscarMovimentacoes(
 
   if (dataInicio || dataFim) {
     const data_hora: Record<string, Date> = {};
-    const usuario = await UsuarioModel.findById(usuarioId)
-      .select('fuso_horario')
-      .lean();
-    const fuso = resolverFuso(usuario?.fuso_horario);
+    const fuso = await fusoDoUsuario(usuarioId);
     const inicio = limiteDeData(dataInicio, 'inicio', fuso);
     const fim = limiteDeData(dataFim, 'fim', fuso);
     if (inicio) data_hora['$gte'] = inicio;

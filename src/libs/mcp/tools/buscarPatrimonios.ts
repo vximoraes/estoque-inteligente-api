@@ -4,6 +4,12 @@ import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 
+const ORDENACAO = {
+  numero_patrimonio: { numero_patrimonio: 1 },
+  mais_recentes: { createdAt: -1 },
+  mais_antigos: { createdAt: 1 },
+} as const;
+
 export async function buscarPatrimonios(
   {
     numeroPatrimonio,
@@ -11,6 +17,8 @@ export async function buscarPatrimonios(
     status,
     localizacao,
     categoria,
+    ordenar = 'numero_patrimonio',
+    apenasMeus = false,
     limite = 20,
   }: {
     numeroPatrimonio?: string;
@@ -18,11 +26,14 @@ export async function buscarPatrimonios(
     status?: string;
     localizacao?: string;
     categoria?: string;
+    ordenar?: 'numero_patrimonio' | 'mais_recentes' | 'mais_antigos';
+    apenasMeus?: boolean;
     limite?: number;
   },
-  _usuarioId: string,
+  usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = { ativo: true };
+  if (apenasMeus) filtros['usuario'] = usuarioId;
 
   if (numeroPatrimonio) {
     filtros['numero_patrimonio'] = { $regex: numeroPatrimonio, $options: 'i' };
@@ -59,7 +70,7 @@ export async function buscarPatrimonios(
       .populate('categoria', 'nome')
       .populate('localizacao', 'nome')
       .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
-      .sort({ numero_patrimonio: 1 })
+      .sort(ORDENACAO[ordenar])
       .limit(Math.min(Number(limite), 50))
       .lean(),
     PatrimonioModel.countDocuments(filtros),

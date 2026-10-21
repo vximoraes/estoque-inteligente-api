@@ -113,7 +113,7 @@ function extrairDados(resultado) {
   expect(resultado.isError).toBeFalsy();
   const texto = resultado.content[0].text;
   const casamento = texto.match(
-    /^<dados_ferramenta ferramenta="[^"]+" origem="banco_de_dados">\n([\s\S]*)\n<\/dados_ferramenta>/,
+    /^<dados_ferramenta ferramenta="[^"]+" origem="banco_de_dados"[^>]*>\n([\s\S]*)\n<\/dados_ferramenta>/,
   );
   if (!casamento) throw new Error(`Envelope inesperado: ${texto}`);
   return JSON.parse(casamento[1]);
@@ -316,6 +316,70 @@ describe('Rotas do MCP (/mcp)', () => {
 
       expect(dados.total_encontrado).toBe(1);
       expect(dados.registros[0].nome).toBe(item.nome);
+    });
+  });
+
+  describe('Ordenação, filtro do próprio usuário e fuso horário', () => {
+    let usuarioPadraoId;
+
+    beforeAll(async () => {
+      const sessao = await request(BASE_URL)
+        .get('/api/auth/get-session')
+        .set('Authorization', `Bearer ${tokenUsuarioPadrao}`);
+      usuarioPadraoId = sessao.body.user.id;
+    });
+
+    afterAll(async () => {
+      await request(BASE_URL)
+        .patch(`/usuarios/${usuarioPadraoId}`)
+        .set('Authorization', `Bearer ${tokenUsuarioPadrao}`)
+        .send({ fuso_horario: null });
+    });
+
+    it('buscarItens com mais_recentes e apenasMeus traz o último item do próprio usuário', async () => {
+      const meu = await criarItem(tokenUsuarioPadrao);
+      const deOutro = await criarItem(token);
+
+      const ultimoGeral = extrairDados(
+        await chamarFerramenta(sessaoUsuarioPadrao, 'buscarItens', {
+          ordenar: 'mais_recentes',
+          limite: 1,
+        }),
+      );
+      expect(ultimoGeral.registros[0].nome).toBe(deOutro.nome);
+
+      const ultimoMeu = extrairDados(
+        await chamarFerramenta(sessaoUsuarioPadrao, 'buscarItens', {
+          ordenar: 'mais_recentes',
+          apenasMeus: true,
+          limite: 1,
+        }),
+      );
+      expect(ultimoMeu.registros[0].nome).toBe(meu.nome);
+    });
+
+    it('devolve as datas no fuso horário do usuário', async () => {
+      await request(BASE_URL)
+        .patch(`/usuarios/${usuarioPadraoId}`)
+        .set('Authorization', `Bearer ${tokenUsuarioPadrao}`)
+        .send({ fuso_horario: 'Asia/Tokyo' });
+      const item = await criarItem(tokenUsuarioPadrao);
+
+      const resultado = await chamarFerramenta(
+        sessaoUsuarioPadrao,
+        'buscarItens',
+        { nome: item.nome },
+      );
+      const dados = extrairDados(resultado);
+      const cadastradoEm = dados.registros[0].cadastrado_em;
+
+      expect(cadastradoEm).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/,
+      );
+      expect(new Date(cadastradoEm).getTime()).toBe(
+        new Date(item.createdAt).setMilliseconds(0),
+      );
+      expect(resultado.content[0].text).toContain('fuso_horario="Asia/Tokyo"');
     });
   });
 

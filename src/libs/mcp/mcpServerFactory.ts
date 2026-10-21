@@ -14,6 +14,7 @@ import { resumoEstoque } from './tools/resumoEstoque.js';
 import { historicoPatrimonio } from './tools/historicoPatrimonio.js';
 import { buscarUsuarios } from './tools/buscarUsuarios.js';
 import { formatarResultado } from './formatarResultado.js';
+import { fusoDoUsuario } from './fusoDoUsuario.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 
 const permissionService = new PermissionService();
@@ -62,6 +63,20 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Filtrar por itens com estoque na localização informada (busca parcial pelo nome)',
         ),
+      ordenar: z
+        .enum(['nome', 'mais_recentes', 'mais_antigos'])
+        .optional()
+        .default('nome')
+        .describe(
+          'Ordem dos resultados: por nome, ou pela data de cadastro (use mais_recentes para "último cadastrado/criado")',
+        ),
+      apenasMeus: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
+        ),
       limite: z
         .number()
         .int()
@@ -71,13 +86,25 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ nome, status, categoria, localizacao, limite }) => {
+    async ({
+      nome,
+      status,
+      categoria,
+      localizacao,
+      ordenar,
+      apenasMeus,
+      limite,
+    }) => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens(
-        { nome, status, categoria, localizacao, limite },
+        { nome, status, categoria, localizacao, ordenar, apenasMeus, limite },
         usuarioId,
       );
-      return formatarResultado('buscarItens', resultado);
+      return formatarResultado(
+        'buscarItens',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -109,6 +136,20 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Filtrar pelo nome da categoria (busca parcial, ex: "Computadores")',
         ),
+      ordenar: z
+        .enum(['numero_patrimonio', 'mais_recentes', 'mais_antigos'])
+        .optional()
+        .default('numero_patrimonio')
+        .describe(
+          'Ordem dos resultados: por número de patrimônio, ou pela data de cadastro (use mais_recentes para "último cadastrado/criado")',
+        ),
+      apenasMeus: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
+        ),
       limite: z
         .number()
         .int()
@@ -124,14 +165,29 @@ export function criarMCPServer(usuarioId: string): McpServer {
       status,
       localizacao,
       categoria,
+      ordenar,
+      apenasMeus,
       limite,
     }) => {
       await verificarPermissao(usuarioId, 'patrimonios');
       const resultado = await buscarPatrimonios(
-        { numeroPatrimonio, modelo, status, localizacao, categoria, limite },
+        {
+          numeroPatrimonio,
+          modelo,
+          status,
+          localizacao,
+          categoria,
+          ordenar,
+          apenasMeus,
+          limite,
+        },
         usuarioId,
       );
-      return formatarResultado('buscarPatrimonios', resultado);
+      return formatarResultado(
+        'buscarPatrimonios',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -167,7 +223,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { itemId, itemNome, localizacaoId, localizacaoNome, limite },
         usuarioId,
       );
-      return formatarResultado('buscarEstoque', resultado);
+      return formatarResultado(
+        'buscarEstoque',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -216,7 +276,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { tipo, dataInicio, dataFim, itemNome, localizacao, limite },
         usuarioId,
       );
-      return formatarResultado('buscarMovimentacoes', resultado);
+      return formatarResultado(
+        'buscarMovimentacoes',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -277,7 +341,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         },
         usuarioId,
       );
-      return formatarResultado('buscarEmprestimos', resultado);
+      return formatarResultado(
+        'buscarEmprestimos',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -288,7 +356,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await verificarItensAbaixoMinimo({}, usuarioId);
-      return formatarResultado('verificarItensAbaixoMinimo', resultado);
+      return formatarResultado(
+        'verificarItensAbaixoMinimo',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -299,7 +371,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'movimentacoes');
       const resultado = await itensPrioritariosCompra({}, usuarioId);
-      return formatarResultado('itensPrioritariosCompra', resultado);
+      return formatarResultado(
+        'itensPrioritariosCompra',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -321,7 +397,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ tipo, nome }) => {
       await verificarPermissao(usuarioId, 'categorias');
       const resultado = await buscarCategorias({ tipo, nome }, usuarioId);
-      return formatarResultado('buscarCategorias', resultado);
+      return formatarResultado(
+        'buscarCategorias',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -337,7 +417,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ nome }) => {
       await verificarPermissao(usuarioId, 'localizacoes');
       const resultado = await buscarLocalizacoes({ nome }, usuarioId);
-      return formatarResultado('buscarLocalizacoes', resultado);
+      return formatarResultado(
+        'buscarLocalizacoes',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -353,7 +437,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ nome }) => {
       await verificarPermissao(usuarioId, 'fornecedores');
       const resultado = await buscarFornecedores({ nome }, usuarioId);
-      return formatarResultado('buscarFornecedores', resultado);
+      return formatarResultado(
+        'buscarFornecedores',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -364,7 +452,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');
       const resultado = await resumoEstoque({}, usuarioId);
-      return formatarResultado('resumoEstoque', resultado);
+      return formatarResultado(
+        'resumoEstoque',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -390,7 +482,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { numeroPatrimonio, limite },
         usuarioId,
       );
-      return formatarResultado('historicoPatrimonio', resultado);
+      return formatarResultado(
+        'historicoPatrimonio',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -425,7 +521,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { nome, email, ativo, limite },
         usuarioId,
       );
-      return formatarResultado('buscarUsuarios', resultado);
+      return formatarResultado(
+        'buscarUsuarios',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 

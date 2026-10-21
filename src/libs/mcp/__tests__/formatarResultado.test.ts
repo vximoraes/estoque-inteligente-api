@@ -38,4 +38,30 @@ describe('formatarResultado', () => {
     expect(resultado.content).toHaveLength(1);
     expect(resultado.content[0]!.type).toBe('text');
   });
+
+  it('converte instantes ISO para o fuso informado e mantém datas de calendário em UTC', () => {
+    const resultado = formatarResultado(
+      'buscarPatrimonios',
+      {
+        cadastrado_em: '2026-10-21T15:53:25.237Z',
+        data_aquisicao: '2026-10-20T00:00:00.000Z',
+        nome: '2026-10-21T15:53:25.237Z é só texto',
+      },
+      'America/Porto_Velho',
+    );
+    const texto = resultado.content[0]!.text;
+
+    expect(texto).toContain('"cadastrado_em":"2026-10-21T11:53:25-04:00"');
+    expect(texto).toContain('"data_aquisicao":"2026-10-20"');
+    expect(texto).toContain('é só texto');
+    expect(texto).toContain('fuso_horario="America/Porto_Velho"');
+  });
+
+  it('usa UTC quando nenhum fuso é informado', () => {
+    const texto = formatarResultado('buscarItens', {
+      cadastrado_em: '2026-10-21T15:53:25.237Z',
+    }).content[0]!.text;
+
+    expect(texto).toContain('"cadastrado_em":"2026-10-21T15:53:25+00:00"');
+  });
 });

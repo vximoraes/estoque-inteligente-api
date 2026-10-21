@@ -61,3 +61,11 @@ export function dataHoraPorExtenso(instante: Date, fuso: string): string {
   const data = new TZDate(instante, fuso);
   return `${format(data, 'EEEE, dd/MM/yyyy, HH:mm', { locale: ptBR })} (${format(data, 'yyyy-MM-dd')}, fuso ${fuso}, UTC${format(data, 'xxx')})`;
 }
+
+export function instanteNoFuso(instante: Date, fuso: string): string {
+  return format(new TZDate(instante, fuso), "yyyy-MM-dd'T'HH:mm:ssxxx");
+}
+
+export function diaEmUTC(instante: Date): string {
+  return format(new TZDate(instante, 'UTC'), 'yyyy-MM-dd');
+}
