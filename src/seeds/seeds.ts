@@ -11,6 +11,13 @@ import usuarioSeed from './usuarioSeed.js';
 import notificacaoSeed from './notificacaoSeed.js';
 import emprestimoSeed from './emprestimoSeed.js';
 import rotasSeed from './rotasSeed.js';
+import { motivoBloqueioSeed } from './travaAmbiente.js';
+
+const bloqueio = motivoBloqueioSeed();
+if (bloqueio) {
+  console.error(bloqueio);
+  process.exit(1);
+}
 
 await DbConnect.conectar();
 initAuth();
@@ -34,7 +41,8 @@ try {
   console.log(`[${new Date().toLocaleString()}] - Seeds criadas com sucesso!`);
 } catch (error) {
   console.error('Erro ao criar seeds:', error);
+  process.exitCode = 1;
 } finally {
-  mongoose.connection.close();
-  process.exit(0);
+  await mongoose.connection.close();
+  process.exit();
 }
