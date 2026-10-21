@@ -1,7 +1,11 @@
 export const MODELO = process.env['GEMINI_MODEL'] ?? 'gemini-3.5-flash-lite';
 
-export const MODELO_RESERVA =
-  process.env['GEMINI_MODEL_FALLBACK'] ?? 'gemini-3.5-flash';
+export const MODELOS_RESERVA = (
+  process.env['GEMINI_MODEL_FALLBACK'] ?? 'gemini-2.5-flash,gemini-3.5-flash'
+)
+  .split(',')
+  .map((modelo) => modelo.trim())
+  .filter(Boolean);
 
 export const MAX_OUTPUT_TOKENS = Number(
   process.env['IA_MAX_OUTPUT_TOKENS'] ?? 1536,

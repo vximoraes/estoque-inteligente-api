@@ -4,12 +4,16 @@ import {
   calcularFatiaParaResumir,
   executarComRetentativas,
   podeUsarModeloReserva,
+  proximoModelo,
 } from '../IAService.js';
 import {
   MODELO,
-  MODELO_RESERVA,
+  MODELOS_RESERVA,
   TIMEOUT_MODELO_PRINCIPAL_MS,
 } from '../IAConfig.js';
+
+const [MODELO_RESERVA = '', SEGUNDO_MODELO_RESERVA = ''] = MODELOS_RESERVA;
+const ULTIMO_MODELO = MODELOS_RESERVA.at(-1) ?? MODELO;
 
 describe('contemVazamentoDoPrompt', () => {
   it('deve detectar vazamento quando a resposta contém a tag raiz do prompt', () => {
@@ -144,10 +148,29 @@ describe('podeUsarModeloReserva', () => {
     );
   });
 
-  it('não troca quando já está no modelo reserva', () => {
+  it('troca do primeiro para o segundo modelo reserva', () => {
     expect(podeUsarModeloReserva(MODELO_RESERVA, erroComStatus(503))).toBe(
+      true,
+    );
+  });
+
+  it('não troca quando já está no último modelo da cadeia', () => {
+    expect(podeUsarModeloReserva(ULTIMO_MODELO, erroComStatus(503))).toBe(
       false,
     );
+  });
+});
+
+describe('proximoModelo', () => {
+  it('segue a ordem principal, primeiro reserva, segundo reserva', () => {
+    expect(MODELOS_RESERVA).toHaveLength(2);
+    expect(proximoModelo(MODELO)).toBe(MODELO_RESERVA);
+    expect(proximoModelo(MODELO_RESERVA)).toBe(SEGUNDO_MODELO_RESERVA);
+    expect(proximoModelo(SEGUNDO_MODELO_RESERVA)).toBeUndefined();
+  });
+
+  it('não devolve reserva para modelo fora da cadeia', () => {
+    expect(proximoModelo('modelo-desconhecido')).toBeUndefined();
   });
 });
 
@@ -183,7 +206,28 @@ describe('executarComRetentativas', () => {
     expect(aoTrocarModelo).not.toHaveBeenCalled();
   });
 
-  it('propaga o erro quando o modelo reserva também está indisponível', async () => {
+  it('usa o segundo modelo reserva quando o primeiro também está indisponível', async () => {
+    const modelosChamados: string[] = [];
+    const aoTrocarModelo = jest.fn();
+
+    const eventos = await coletar(
+      executarComRetentativas(async function* (modelo) {
+        modelosChamados.push(modelo);
+        if (modelo !== SEGUNDO_MODELO_RESERVA) throw erroComStatus(429);
+        yield eventoTexto;
+      }, aoTrocarModelo),
+    );
+
+    expect(modelosChamados).toEqual([
+      MODELO,
+      MODELO_RESERVA,
+      SEGUNDO_MODELO_RESERVA,
+    ]);
+    expect(aoTrocarModelo).toHaveBeenLastCalledWith(SEGUNDO_MODELO_RESERVA);
+    expect(eventos).toEqual([eventoTexto]);
+  });
+
+  it('propaga o erro quando todos os modelos estão indisponíveis', async () => {
     const criarStream = jest.fn(async function* () {
       yield* [];
       throw erroComStatus(503);
@@ -192,7 +236,7 @@ describe('executarComRetentativas', () => {
     await expect(
       coletar(executarComRetentativas(criarStream, jest.fn())),
     ).rejects.toThrow('503');
-    expect(criarStream).toHaveBeenCalledTimes(2);
+    expect(criarStream).toHaveBeenCalledTimes(3);
   });
 
   it('tenta de novo no mesmo modelo quando o stream é truncado', async () => {
@@ -267,5 +311,35 @@ describe('executarComRetentativas — tempo limite do modelo principal', () => {
 
     expect(aoTrocarModelo).not.toHaveBeenCalled();
     expect(eventos).toHaveLength(3);
+  });
+
+  it('passa para o segundo modelo reserva quando o primeiro também estoura o tempo', async () => {
+    jest.useFakeTimers();
+    const modelosChamados: string[] = [];
+
+    const promessa = coletar(
+      executarComRetentativas(async function* (modelo, signalTentativa) {
+        modelosChamados.push(modelo);
+        if (modelo !== SEGUNDO_MODELO_RESERVA) {
+          yield { event: 'on_chat_model_start' };
+          await new Promise((_, rejeitar) =>
+            signalTentativa.addEventListener('abort', () =>
+              rejeitar(new Error('Aborted')),
+            ),
+          );
+        }
+        yield eventoTexto;
+      }, jest.fn()),
+    );
+
+    await jest.advanceTimersByTimeAsync(TIMEOUT_MODELO_PRINCIPAL_MS * 2);
+    await promessa;
+    jest.useRealTimers();
+
+    expect(modelosChamados).toEqual([
+      MODELO,
+      MODELO_RESERVA,
+      SEGUNDO_MODELO_RESERVA,
+    ]);
   });
 });
