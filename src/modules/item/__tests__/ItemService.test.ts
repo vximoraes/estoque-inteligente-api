@@ -7,6 +7,8 @@ import { CustomError } from '../../../utils/helpers/index.js';
 jest.mock('../ItemRepository.js');
 jest.mock('../../localizacao/LocalizacaoModel.js');
 jest.mock('../../categoria/CategoriaModel.js');
+jest.mock('../../estoque/EstoqueModel.js');
+jest.mock('../../emprestimo/EmprestimoModel.js');
 
 const makeItem = (props = {}) => ({
   _id: 'comp1',

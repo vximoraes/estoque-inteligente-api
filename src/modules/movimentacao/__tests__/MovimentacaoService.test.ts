@@ -3,6 +3,7 @@ import MovimentacaoRepository from '../MovimentacaoRepository.js';
 import Item from '../../item/ItemModel.js';
 import Fornecedor from '../../fornecedor/FornecedorModel.js';
 import Estoque from '../../estoque/EstoqueModel.js';
+import Localizacao from '../../localizacao/LocalizacaoModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 import mongoose from 'mongoose';
 
@@ -10,6 +11,7 @@ jest.mock('../MovimentacaoRepository.js');
 jest.mock('../../item/ItemModel.js');
 jest.mock('../../fornecedor/FornecedorModel.js');
 jest.mock('../../estoque/EstoqueModel.js');
+jest.mock('../../localizacao/LocalizacaoModel.js');
 
 const makeItem = (props = {}) => ({
   _id: new mongoose.Types.ObjectId(),
@@ -35,6 +37,7 @@ const makeEstoque = (props = {}) => ({
 describe('MovimentacaoService', () => {
   let service, repositoryMock;
   beforeEach(() => {
+    Localizacao.exists.mockResolvedValue({ _id: 'loc1' });
     MovimentacaoRepository.mockClear();
     repositoryMock = {
       criar: jest.fn(),

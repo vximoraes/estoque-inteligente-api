@@ -472,7 +472,10 @@ class PatrimonioService {
   }
 
   private async validarCategoriaPermanente(categoriaId: string) {
-    const categoria = await CategoriaModel.findById(categoriaId);
+    const categoria = await CategoriaModel.findOne({
+      _id: categoriaId,
+      ativo: true,
+    });
     if (!categoria) {
       throw new CustomError({
         statusCode: 404,
@@ -496,7 +499,10 @@ class PatrimonioService {
   }
 
   private async validarLocalizacao(localizacaoId: string) {
-    const localizacao = await LocalizacaoModel.findById(localizacaoId);
+    const localizacao = await LocalizacaoModel.findOne({
+      _id: localizacaoId,
+      ativo: true,
+    });
     if (!localizacao) {
       throw new CustomError({
         statusCode: 404,

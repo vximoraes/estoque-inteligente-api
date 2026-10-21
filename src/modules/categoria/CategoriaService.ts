@@ -1,5 +1,6 @@
 import CategoriaRepository from './CategoriaRepository.js';
 import ItemModel from '../item/ItemModel.js';
+import PatrimonioModel from '../patrimonio/PatrimonioModel.js';
 import {
   CustomError,
   HttpStatusCodes,
@@ -60,6 +61,21 @@ class CategoriaService {
         field: 'Categoria',
         details: [],
         customMessage: 'Categoria vinculada a itens ativos.',
+      });
+    }
+
+    const existePatrimonioAtivo = await PatrimonioModel.exists({
+      categoria: id,
+      ativo: true,
+    });
+
+    if (existePatrimonioAtivo) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'resourceInUse',
+        field: 'Categoria',
+        details: [],
+        customMessage: 'Categoria vinculada a patrimônios ativos.',
       });
     }
 

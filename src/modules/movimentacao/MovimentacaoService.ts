@@ -1,6 +1,7 @@
 import MovimentacaoRepository from './MovimentacaoRepository.js';
 import Item from '../item/ItemModel.js';
 import Estoque from '../estoque/EstoqueModel.js';
+import Localizacao from '../localizacao/LocalizacaoModel.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
 import type { Movimentacao } from './MovimentacaoSchema.js';
@@ -15,7 +16,7 @@ class MovimentacaoService {
   }
 
   async criar(parsedData: Movimentacao, req: AuthenticatedRequest) {
-    const item = await Item.findOne({ _id: parsedData.item });
+    const item = await Item.findOne({ _id: parsedData.item, ativo: true });
     if (!item) {
       throw new CustomError({
         statusCode: 404,
@@ -23,6 +24,20 @@ class MovimentacaoService {
         field: 'Item',
         details: [],
         customMessage: messages.error.resourceNotFound('Item'),
+      });
+    }
+
+    const localizacaoAtiva = await Localizacao.exists({
+      _id: parsedData.localizacao,
+      ativo: true,
+    });
+    if (!localizacaoAtiva) {
+      throw new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Localizacao',
+        details: [],
+        customMessage: messages.error.resourceNotFound('Localização'),
       });
     }
 

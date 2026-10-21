@@ -8,6 +8,8 @@ import {
   describirErro,
 } from '../../utils/helpers/index.js';
 import CategoriaModel from '../categoria/CategoriaModel.js';
+import EstoqueModel from '../estoque/EstoqueModel.js';
+import EmprestimoModel from '../emprestimo/EmprestimoModel.js';
 import minioClient from '../../config/minioClient.js';
 import compress from '../../config/sharpConfig.js';
 import type { AuthenticatedRequest } from '../../utils/types.js';
@@ -65,6 +67,29 @@ class ItemService {
 
   async inativar(id: string, req: AuthenticatedRequest) {
     await this.ensureItemExists(id, req);
+
+    const [temSaldo, temEmprestimoAberto] = await Promise.all([
+      EstoqueModel.exists({ item: id, quantidade: { $gt: 0 } }),
+      EmprestimoModel.exists({
+        item: id,
+        ativo: true,
+        data_devolucao_total: null,
+      }),
+    ]);
+
+    if (temSaldo || temEmprestimoAberto) {
+      const mensagem = temEmprestimoAberto
+        ? 'Item possui empréstimo em aberto.'
+        : 'Item possui saldo em estoque. Registre a saída antes de inativar.';
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'resourceInUse',
+        field: 'Item',
+        details: [],
+        customMessage: mensagem,
+      });
+    }
+
     return await this.repository.atualizar(id, { ativo: false }, req);
   }
 
@@ -104,7 +129,10 @@ class ItemService {
     categoriaId: string,
     _req: AuthenticatedRequest,
   ) {
-    const categoria = await CategoriaModel.findOne({ _id: categoriaId });
+    const categoria = await CategoriaModel.findOne({
+      _id: categoriaId,
+      ativo: true,
+    });
     if (!categoria) {
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
