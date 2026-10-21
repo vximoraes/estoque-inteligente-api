@@ -32,7 +32,7 @@ Helper compartilhado em `test/helpers/rotasTestHelper.ts` (fora de `src/`, não 
 
 O seed cria três identidades fixas: admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`, acesso total) e usuário padrão (`USER_EMAIL`/`USER_PASSWORD`, grupo `Usuario` — sem acesso a `usuarios`/`grupos`/`rotas`, acesso total ao resto). Use o usuário padrão para os cenários de RBAC (`403` nas rotas restritas, `200`/`201` nas demais) — nunca dependa de um usuário criado manualmente fora do seed.
 
-Documentação por recurso em `documentacao/suites-de-teste/suite-teste-<recurso>.md` — mantida sincronizada com esses arquivos de teste.
+Documentação por recurso em `docs/suites-de-teste/suite-teste-<recurso>.md` — mantida sincronizada com esses arquivos de teste.
 
 ## Outros testes unitários
 
