@@ -19,21 +19,23 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 
 ## Ferramentas Expostas
 
-| Ferramenta                   | Permissão (rota)          | Retorno                                                                                                                           |
-| :--------------------------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `buscarItens`                | `itens`                   | Resultado limitado.                                                                                                               |
-| `buscarPatrimonios`          | `patrimonios`             | Resultado limitado.                                                                                                               |
-| `buscarEstoque`              | `estoques`                | Resultado limitado.                                                                                                               |
-| `buscarMovimentacoes`        | `movimentacoes`           | Resultado limitado.                                                                                                               |
-| `buscarEmprestimos`          | `emprestimos`             | Resultado limitado.                                                                                                               |
-| `historicoPatrimonio`        | `patrimonios`             | Resultado limitado.                                                                                                               |
-| `buscarUsuarios`             | `usuarios`                | Resultado limitado.                                                                                                               |
-| `verificarItensAbaixoMinimo` | `itens`                   | Array ordenado por `deficit` decrescente (`deficit = estoque_minimo - quantidade_atual`).                                         |
-| `itensPrioritariosCompra`    | `itens` + `movimentacoes` | Array ordenado por `score_prioridade = deficit * (1 + saidas_30_dias)`, onde `saidas_30_dias` soma a quantidade que saiu em 30 d. |
-| `resumoEstoque`              | `itens` + `emprestimos`   | Objeto com contagens; `total_unidades_patrimonio` inclui baixadas, `unidades_patrimonio_em_uso` não.                              |
-| `buscarCategorias`           | `categorias`              | Array.                                                                                                                            |
-| `buscarLocalizacoes`         | `localizacoes`            | Array.                                                                                                                            |
-| `buscarFornecedores`         | `fornecedores`            | Array.                                                                                                                            |
+| Ferramenta                   | Permissão (rota)                | Retorno                                                                                                                              |
+| :--------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `buscarItens`                | `itens`                         | Resultado limitado.                                                                                                                  |
+| `buscarPatrimonios`          | `patrimonios`                   | Resultado limitado.                                                                                                                  |
+| `buscarEstoque`              | `estoques`                      | Resultado limitado.                                                                                                                  |
+| `buscarMovimentacoes`        | `movimentacoes`                 | Resultado limitado.                                                                                                                  |
+| `buscarEmprestimos`          | `emprestimos`                   | Resultado limitado.                                                                                                                  |
+| `historicoPatrimonio`        | `patrimonios`                   | Resultado limitado.                                                                                                                  |
+| `buscarUsuarios`             | `usuarios`                      | Resultado limitado.                                                                                                                  |
+| `verificarItensAbaixoMinimo` | `itens`                         | Array ordenado por `deficit` decrescente (`deficit = estoque_minimo - quantidade_atual`).                                            |
+| `itensPrioritariosCompra`    | `itens` + `movimentacoes`       | Array ordenado por `score_prioridade = deficit * (1 + saidas_30_dias)`, onde `saidas_30_dias` soma a quantidade que saiu em 30 d.    |
+| `resumoEstoque`              | `itens` + `emprestimos`         | Objeto com contagens; `total_unidades_patrimonio` inclui baixadas, `unidades_patrimonio_em_uso` não.                                 |
+| `buscarCategorias`           | `categorias`                    | Array.                                                                                                                               |
+| `buscarLocalizacoes`         | `localizacoes`                  | Array.                                                                                                                               |
+| `buscarFornecedores`         | `fornecedores`                  | Array.                                                                                                                               |
+| `resumoMovimentacoes`        | `movimentacoes`                 | Objeto igual ao de `/movimentacoes/resumo` (total, entradas, saídas, quantidades e `saldo = quantidade_entrada - quantidade_saida`). |
+| `tendenciaMensal`            | `movimentacoes` + `emprestimos` | Array mensal (`YYYY-MM`) com movimentações e empréstimos, igual à aba Tendência.                                                     |
 
 ## Massa de Dados Recomendada
 
@@ -68,7 +70,7 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 | Funcionalidade       | Comportamento Esperado        | Verificações                  | Critérios de Aceite                               |
 | :------------------- | :---------------------------- | :---------------------------- | :------------------------------------------------ |
 | **Cenários felizes** |                               |                               |                                                   |
-| Listar ferramentas   | Deve expor as 13 ferramentas. | `tools/list` na sessão admin. | 13 nomes, iguais à tabela "Ferramentas Expostas". |
+| Listar ferramentas   | Deve expor as 15 ferramentas. | `tools/list` na sessão admin. | 15 nomes, iguais à tabela "Ferramentas Expostas". |
 
 ## Ferramentas de análise
 
@@ -120,7 +122,7 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 | `beforeAll`                                  | Autenticar admin e usuário padrão e abrir uma sessão MCP para cada um.    |
 | `afterAll`                                   | Encerrar as sessões com `DELETE /mcp`.                                    |
 | `describe('Autenticação e sessão')`          | 401, sessão alheia, sessão inexistente, Origin bloqueado.                 |
-| `describe('tools/list')`                     | As 13 ferramentas.                                                        |
+| `describe('tools/list')`                     | As 15 ferramentas.                                                        |
 | `describe('Ferramentas de análise')`         | `resumoEstoque`, `verificarItensAbaixoMinimo`, `itensPrioritariosCompra`. |
 | `describe('Resultados limitados')`           | Aviso de corte, ausência de aviso, limite acima do máximo.                |
 | `describe('RBAC nas ferramentas')`           | Negação em `buscarUsuarios`, acesso em `buscarItens`.                     |

@@ -9,6 +9,7 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     baixoEstoque,
     indisponivel,
     totalEmprestimosAtivos,
+    emprestimosDevolvidos,
     unidadesDisponiveis,
     unidadesEmprestadas,
     unidadesManutencao,
@@ -21,6 +22,10 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     EmprestimoModel.countDocuments({
       ativo: true,
       quantidade_aberta: { $gt: 0 },
+    }),
+    EmprestimoModel.countDocuments({
+      ativo: true,
+      quantidade_aberta: { $lte: 0 },
     }),
     PatrimonioModel.countDocuments({ ativo: true, status: 'Disponível' }),
     PatrimonioModel.countDocuments({ ativo: true, status: 'Emprestado' }),
@@ -45,6 +50,8 @@ export async function resumoEstoque(_args: unknown, _usuarioId: string) {
     indisponivel,
     emprestimos_ativos: totalEmprestimosAtivos,
     emprestimos_atrasados: emprestimosAtrasados,
+    emprestimos_no_prazo: totalEmprestimosAtivos - emprestimosAtrasados,
+    emprestimos_devolvidos: emprestimosDevolvidos,
     total_unidades_patrimonio: unidadesEmUso + unidadesBaixadas,
     unidades_patrimonio_em_uso: unidadesEmUso,
     unidades_disponiveis: unidadesDisponiveis,

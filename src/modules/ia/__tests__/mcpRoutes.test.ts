@@ -24,6 +24,8 @@ const FERRAMENTAS_ESPERADAS = [
   'resumoEstoque',
   'historicoPatrimonio',
   'buscarUsuarios',
+  'resumoMovimentacoes',
+  'tendenciaMensal',
 ];
 
 // O transport responde em SSE (`event: message` + `data: {...}`) quando o
@@ -186,11 +188,33 @@ describe('Rotas do MCP (/mcp)', () => {
   });
 
   describe('tools/list', () => {
-    it('deve listar as 13 ferramentas', async () => {
+    it('deve listar as 15 ferramentas', async () => {
       const resposta = await sessaoAdmin.enviar('tools/list');
       const nomes = resposta.result.tools.map((t) => t.name);
-      expect(nomes).toHaveLength(13);
+      expect(nomes).toHaveLength(15);
       expect([...nomes].sort()).toEqual([...FERRAMENTAS_ESPERADAS].sort());
+    });
+
+    it('não usa enum com valores não textuais (o Gemini recusa e derruba todas as mensagens)', async () => {
+      const resposta = await sessaoAdmin.enviar('tools/list');
+      const enumsInvalidos = [];
+      const percorrer = (no, caminho) => {
+        if (!no || typeof no !== 'object') return;
+        if (
+          Array.isArray(no.enum) &&
+          no.enum.some((v) => typeof v !== 'string')
+        ) {
+          enumsInvalidos.push(caminho);
+        }
+        if ('const' in no && typeof no.const !== 'string') {
+          enumsInvalidos.push(caminho);
+        }
+        Object.entries(no).forEach(([chave, valor]) =>
+          percorrer(valor, `${caminho}.${chave}`),
+        );
+      };
+      resposta.result.tools.forEach((t) => percorrer(t.inputSchema, t.name));
+      expect(enumsInvalidos).toEqual([]);
     });
   });
 
@@ -316,6 +340,61 @@ describe('Rotas do MCP (/mcp)', () => {
 
       expect(dados.total_encontrado).toBe(1);
       expect(dados.registros[0].nome).toBe(item.nome);
+    });
+  });
+
+  describe('Indicadores das telas de Relatórios', () => {
+    it('resumoMovimentacoes devolve os mesmos números de /movimentacoes/resumo', async () => {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const filtro = `data_inicio=2000-01-01&data_fim=${hoje}`;
+      const tela = await request(BASE_URL)
+        .get(`/movimentacoes/resumo?${filtro}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      const dados = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'resumoMovimentacoes', {
+          dataInicio: '2000-01-01',
+          dataFim: hoje,
+        }),
+      );
+
+      expect(dados.saldo).toBe(tela.body.data.saldo);
+      expect(dados.total_movimentacoes).toBe(
+        tela.body.data.total_movimentacoes,
+      );
+      expect(dados.saldo).toBe(
+        dados.quantidade_entrada - dados.quantidade_saida,
+      );
+    });
+
+    it('tendenciaMensal devolve um ponto por mês com movimentações e empréstimos', async () => {
+      const dados = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'tendenciaMensal', { meses: 6 }),
+      );
+
+      expect(dados).toHaveLength(6);
+      expect(Object.keys(dados[0]).sort()).toEqual(
+        [
+          'devolucoes',
+          'emprestimos',
+          'entradas',
+          'mes',
+          'quantidade_entrada',
+          'quantidade_saida',
+          'saidas',
+        ].sort(),
+      );
+    });
+
+    it('resumoEstoque traz empréstimos no prazo e devolvidos', async () => {
+      const dados = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'resumoEstoque'),
+      );
+
+      expect(dados.emprestimos_no_prazo).toBe(
+        dados.emprestimos_ativos - dados.emprestimos_atrasados,
+      );
+      expect(typeof dados.emprestimos_devolvidos).toBe('number');
     });
   });
 
