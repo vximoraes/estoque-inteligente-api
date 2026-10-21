@@ -88,6 +88,14 @@ describe('Rotas de Movimentação', () => {
       esperarPaginado(res);
     });
 
+    it('expõe só o nome de quem registrou, sem e-mail nem grupos', async () => {
+      await criarMovimentacao(token);
+      const res = await req(token).get('/movimentacoes');
+      esperarEnvelopeSucesso(res, 200);
+      const usuario = res.body.data.docs[0].usuario;
+      expect(Object.keys(usuario).sort()).toEqual(['_id', 'nome']);
+    });
+
     it('data_inicio e data_fim iguais a hoje incluem a movimentação recém-criada', async () => {
       const movimentacao = await criarMovimentacao(token);
       const itemId = movimentacao.item?._id ?? movimentacao.item;

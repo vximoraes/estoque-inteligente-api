@@ -4,6 +4,7 @@ import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 const ORDENACAO = {
   nome: { nome: 1 },
@@ -34,12 +35,12 @@ export async function buscarItens(
   const filtros: Record<string, unknown> = { ativo: true };
   if (apenasMeus) filtros['usuario'] = usuarioId;
 
-  if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
+  if (nome) filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
   if (status) filtros['status'] = status;
 
   if (categoria) {
     const categoriasCorrespondentes = await CategoriaModel.find({
-      nome: { $regex: categoria, $options: 'i' },
+      nome: { $regex: escapeRegex(categoria), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -50,7 +51,7 @@ export async function buscarItens(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();

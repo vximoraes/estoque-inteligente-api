@@ -109,7 +109,11 @@ class MovimentacaoRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      populate: ['item', 'localizacao', 'usuario'],
+      populate: [
+        { path: 'item' },
+        { path: 'localizacao' },
+        { path: 'usuario', select: 'nome' },
+      ],
       sort: resolveSort(query['ordenar'], MOVIMENTACAO_SORT_FIELDS, {
         data_hora: -1,
       }),

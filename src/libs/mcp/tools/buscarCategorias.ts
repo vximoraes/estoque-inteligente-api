@@ -1,4 +1,5 @@
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 interface BuscarCategoriasArgs {
   tipo?: 'consumo' | 'permanente';
@@ -14,7 +15,7 @@ export async function buscarCategorias(
     filtro['tipo'] = args.tipo;
   }
   if (args.nome) {
-    filtro['nome'] = { $regex: args.nome, $options: 'i' };
+    filtro['nome'] = { $regex: escapeRegex(args.nome), $options: 'i' };
   }
 
   const categorias = await CategoriaModel.find(filtro).sort({ nome: 1 }).lean();

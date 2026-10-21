@@ -2,6 +2,7 @@ import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function buscarEstoque(
   {
@@ -26,7 +27,7 @@ export async function buscarEstoque(
 
   if (itemNome) {
     const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: itemNome, $options: 'i' },
+      nome: { $regex: escapeRegex(itemNome), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -35,7 +36,7 @@ export async function buscarEstoque(
 
   if (localizacaoNome) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacaoNome, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacaoNome), $options: 'i' },
     })
       .select('_id')
       .lean();

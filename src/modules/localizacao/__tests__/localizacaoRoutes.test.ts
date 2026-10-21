@@ -73,6 +73,16 @@ describe('Rotas de Localização', () => {
       esperarPaginado(res);
     });
 
+    it('trata caracteres de regex no nome como texto', async () => {
+      const parentese = await req(token).get('/localizacoes?nome=(');
+      esperarEnvelopeSucesso(parentese, 200);
+      expect(parentese.body.data.docs).toEqual([]);
+
+      const curinga = await req(token).get('/localizacoes?nome=.*');
+      esperarEnvelopeSucesso(curinga, 200);
+      expect(curinga.body.data.docs).toEqual([]);
+    });
+
     it('deve rejeitar sem token', async () => {
       const res = await req('').get('/localizacoes');
       expect(res.status).toBe(498);

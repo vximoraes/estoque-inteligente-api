@@ -4,6 +4,7 @@ import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import { limiteDeData } from '../../../utils/fusoHorario.js';
 import { fusoDoUsuario } from '../fusoDoUsuario.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function buscarMovimentacoes(
   {
@@ -39,7 +40,7 @@ export async function buscarMovimentacoes(
 
   if (itemNome) {
     const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: itemNome, $options: 'i' },
+      nome: { $regex: escapeRegex(itemNome), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -48,7 +49,7 @@ export async function buscarMovimentacoes(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();

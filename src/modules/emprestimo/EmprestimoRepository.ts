@@ -54,7 +54,7 @@ class EmprestimoRepository {
       .findById(emprestimoSalvo._id)
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email')
+      .populate('usuario_responsavel', 'nome')
       .populate('patrimonio', 'numero_patrimonio status');
 
     if (!documento) {
@@ -79,7 +79,7 @@ class EmprestimoRepository {
         .findOne({ _id: id, ativo: true })
         .populate('item')
         .populate('localizacao')
-        .populate('usuario_responsavel', 'nome email')
+        .populate('usuario_responsavel', 'nome')
         .populate('patrimonio', 'numero_patrimonio status');
 
       if (!data) {
@@ -134,7 +134,12 @@ class EmprestimoRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      populate: ['item', 'localizacao', 'usuario_responsavel', 'patrimonio'],
+      populate: [
+        { path: 'item' },
+        { path: 'localizacao' },
+        { path: 'usuario_responsavel', select: 'nome' },
+        { path: 'patrimonio' },
+      ],
       sort: resolveSort(query['ordenar'], EMPRESTIMO_SORT_FIELDS, {
         data_saida: -1,
       }),
@@ -159,7 +164,7 @@ class EmprestimoRepository {
       .findOne({ _id: id, ativo: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email')
+      .populate('usuario_responsavel', 'nome')
       .populate('patrimonio', 'numero_patrimonio status');
 
     if (!emprestimo) {
@@ -195,7 +200,7 @@ class EmprestimoRepository {
       .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email')
+      .populate('usuario_responsavel', 'nome')
       .populate('patrimonio', 'numero_patrimonio status');
 
     if (!emprestimoAtualizado) {
@@ -233,7 +238,7 @@ class EmprestimoRepository {
       .findOneAndUpdate({ _id: id, ativo: true }, payload, { new: true })
       .populate('item')
       .populate('localizacao')
-      .populate('usuario_responsavel', 'nome email')
+      .populate('usuario_responsavel', 'nome')
       .populate('patrimonio', 'numero_patrimonio status');
 
     if (!atualizado) {

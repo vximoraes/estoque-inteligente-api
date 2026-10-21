@@ -3,6 +3,7 @@ import PatrimonioEventoModel from '../../../modules/patrimonio/PatrimonioEventoM
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function historicoPatrimonio(
   {
@@ -12,7 +13,10 @@ export async function historicoPatrimonio(
   _usuarioId: string,
 ) {
   const patrimonio = await PatrimonioModel.findOne({
-    numero_patrimonio: { $regex: `^${numeroPatrimonio}$`, $options: 'i' },
+    numero_patrimonio: {
+      $regex: `^${escapeRegex(numeroPatrimonio)}$`,
+      $options: 'i',
+    },
   }).lean();
 
   if (!patrimonio) {

@@ -4,6 +4,7 @@ import ItemModel from '../../../modules/item/ItemModel.js';
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 function resolverIdentificacao(
   tipoControle: string,
@@ -40,12 +41,15 @@ export async function buscarEmprestimos(
   const filtros: Record<string, unknown> = { ativo: true };
 
   if (solicitanteNome) {
-    filtros['solicitante_nome'] = { $regex: solicitanteNome, $options: 'i' };
+    filtros['solicitante_nome'] = {
+      $regex: escapeRegex(solicitanteNome),
+      $options: 'i',
+    };
   }
 
   if (itemNome) {
     const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: itemNome, $options: 'i' },
+      nome: { $regex: escapeRegex(itemNome), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -54,7 +58,10 @@ export async function buscarEmprestimos(
 
   if (numeroPatrimonio) {
     const patrimoniosCorrespondentes = await PatrimonioModel.find({
-      numero_patrimonio: { $regex: numeroPatrimonio, $options: 'i' },
+      numero_patrimonio: {
+        $regex: escapeRegex(numeroPatrimonio),
+        $options: 'i',
+      },
     })
       .select('_id')
       .lean();
@@ -65,7 +72,7 @@ export async function buscarEmprestimos(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();

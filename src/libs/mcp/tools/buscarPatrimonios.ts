@@ -3,6 +3,7 @@ import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 const ORDENACAO = {
   numero_patrimonio: { numero_patrimonio: 1 },
@@ -36,16 +37,19 @@ export async function buscarPatrimonios(
   if (apenasMeus) filtros['usuario'] = usuarioId;
 
   if (numeroPatrimonio) {
-    filtros['numero_patrimonio'] = { $regex: numeroPatrimonio, $options: 'i' };
+    filtros['numero_patrimonio'] = {
+      $regex: escapeRegex(numeroPatrimonio),
+      $options: 'i',
+    };
   }
   if (status) filtros['status'] = status;
   if (modelo) {
-    filtros['modelo'] = { $regex: modelo, $options: 'i' };
+    filtros['modelo'] = { $regex: escapeRegex(modelo), $options: 'i' };
   }
 
   if (categoria) {
     const categoriasCorrespondentes = await CategoriaModel.find({
-      nome: { $regex: categoria, $options: 'i' },
+      nome: { $regex: escapeRegex(categoria), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -56,7 +60,7 @@ export async function buscarPatrimonios(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();
