@@ -75,6 +75,11 @@ describe('EmprestimoService', () => {
         .mockResolvedValue({ _id: itemId, tipo: 'consumo' });
       Localizacao.findById = jest.fn().mockResolvedValue({ _id: makeId() });
       Estoque.findOne = jest.fn().mockResolvedValue({ quantidade: 10 });
+      Estoque.atualizarQuantidadeItem = jest.fn().mockResolvedValue(undefined);
+      const sessao = { id: 'sessao-teste' };
+      jest
+        .spyOn(mongoose.connection, 'transaction')
+        .mockImplementation((fn) => fn(sessao as any));
 
       const criado = { _id: makeId(), quantidade_aberta: 3 };
       repositoryMock.criar.mockResolvedValue(criado);
@@ -93,13 +98,16 @@ describe('EmprestimoService', () => {
       expect(movimentacaoServiceMock.criar).toHaveBeenCalledWith(
         expect.objectContaining({ tipo: 'saida', quantidade: 3 }),
         req,
+        sessao,
       );
       expect(repositoryMock.criar).toHaveBeenCalledWith(
         expect.objectContaining({
           tipo_controle: 'quantidade',
           quantidade_aberta: 3,
         }),
+        sessao,
       );
+      expect(Estoque.atualizarQuantidadeItem).toHaveBeenCalledWith(itemId);
       expect(patrimonioServiceMock.emprestarUnidade).not.toHaveBeenCalled();
     });
 

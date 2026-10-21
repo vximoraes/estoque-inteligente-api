@@ -41,13 +41,16 @@ class MovimentacaoRepository {
     this.model = movimentacaoModel;
   }
 
-  async criar(parsedData: Record<string, unknown>) {
+  async criar(
+    parsedData: Record<string, unknown>,
+    session?: mongoose.ClientSession,
+  ) {
     const movimentacao = new this.model(parsedData);
     movimentacao.$locals['estoqueJaAtualizado'] = true;
-    const movimentacaoSalva = await movimentacao.save();
+    const movimentacaoSalva = await movimentacao.save({ session });
 
     return await this.model
-      .findById(movimentacaoSalva._id)
+      .findById(movimentacaoSalva._id, null, { session })
       .populate('item')
       .populate('localizacao');
   }

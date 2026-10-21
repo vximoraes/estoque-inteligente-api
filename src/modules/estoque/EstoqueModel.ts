@@ -42,6 +42,7 @@ const estoqueSchema = new mongoose.Schema<EstoqueDocument>(
 estoqueSchema.index({ item: 1, localizacao: 1 }, { unique: true });
 
 estoqueSchema.post('save', async function (this: EstoqueDocument) {
+  if (this.$session()) return;
   const Model = this.constructor as unknown as IEstoqueModel;
   await Model.atualizarQuantidadeItem(this.item);
 });
@@ -59,6 +60,7 @@ estoqueSchema.post<mongoose.Query<EstoqueDocument | null, EstoqueDocument>>(
 estoqueSchema.post(
   ['updateOne', 'findOneAndUpdate'],
   async function (this: mongoose.Query<unknown, EstoqueDocument>) {
+    if (this.getOptions().session) return;
     const model = this.model as unknown as IEstoqueModel;
     const doc = await model.findOne(
       this.getQuery() as mongoose.FilterQuery<EstoqueDocument>,

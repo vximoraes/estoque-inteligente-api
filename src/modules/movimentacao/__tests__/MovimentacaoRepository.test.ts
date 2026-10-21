@@ -50,7 +50,9 @@ describe('MovimentacaoRepository', () => {
         .mockReturnValue({ populate: mockPopulateItem });
       const result = await repository.criar({ item: 'c1', fornecedor: 'f1' });
       expect(mockSave).toHaveBeenCalled();
-      expect(MovimentacaoModel.findById).toHaveBeenCalledWith('1');
+      expect(MovimentacaoModel.findById).toHaveBeenCalledWith('1', null, {
+        session: undefined,
+      });
       expect(result).toEqual(populatedResult);
     });
   });

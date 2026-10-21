@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import EmprestimoRepository from './EmprestimoRepository.js';
 import MovimentacaoService from '../movimentacao/MovimentacaoService.js';
 import Item from '../item/ItemModel.js';
@@ -119,24 +120,31 @@ class EmprestimoService {
       });
     }
 
-    await this.movimentacaoService.criar(
-      {
-        tipo: 'saida',
-        quantidade: parsedData.quantidade_emprestada,
-        item: parsedData.item,
-        localizacao: parsedData.localizacao,
-      },
-      req,
-    );
-
-    const data = await this.repository.criar({
-      ...parsedData,
-      tipo_controle: 'quantidade',
-      quantidade_devolvida: 0,
-      quantidade_aberta: parsedData.quantidade_emprestada,
-      usuario_responsavel: req.user_id,
-      data_saida: parsedData.data_saida ?? new Date(),
+    const quantidadeEmprestada = parsedData.quantidade_emprestada;
+    const data = await mongoose.connection.transaction(async (session) => {
+      await this.movimentacaoService.criar(
+        {
+          tipo: 'saida',
+          quantidade: quantidadeEmprestada,
+          item: item._id.toString(),
+          localizacao: localizacao._id.toString(),
+        },
+        req,
+        session,
+      );
+      return await this.repository.criar(
+        {
+          ...parsedData,
+          tipo_controle: 'quantidade',
+          quantidade_devolvida: 0,
+          quantidade_aberta: quantidadeEmprestada,
+          usuario_responsavel: req.user_id,
+          data_saida: parsedData.data_saida ?? new Date(),
+        },
+        session,
+      );
     });
+    await Estoque.atualizarQuantidadeItem(item._id);
 
     return await this.finalizarCriacao(data, req.fuso_horario);
   }

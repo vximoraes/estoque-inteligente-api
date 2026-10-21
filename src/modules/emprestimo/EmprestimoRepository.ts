@@ -46,12 +46,13 @@ class EmprestimoRepository {
 
   async criar(
     parsedData: Record<string, unknown>,
+    session?: mongoose.ClientSession,
   ): Promise<Record<string, unknown>> {
     const emprestimo = new this.model(parsedData);
-    const emprestimoSalvo = await emprestimo.save();
+    const emprestimoSalvo = await emprestimo.save({ session });
 
     const documento = await this.model
-      .findById(emprestimoSalvo._id)
+      .findById(emprestimoSalvo._id, null, { session })
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome')

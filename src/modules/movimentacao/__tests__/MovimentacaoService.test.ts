@@ -34,9 +34,14 @@ const makeEstoque = (props = {}) => ({
   ...props,
 });
 
+const sessao = { id: 'sessao-teste' };
+
 describe('MovimentacaoService', () => {
   let service, repositoryMock;
   beforeEach(() => {
+    jest
+      .spyOn(mongoose.connection, 'transaction')
+      .mockImplementation((fn) => fn(sessao));
     Localizacao.exists.mockResolvedValue({ _id: 'loc1' });
     MovimentacaoRepository.mockClear();
     repositoryMock = {
@@ -67,26 +72,28 @@ describe('MovimentacaoService', () => {
       expect(Estoque.findOneAndUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ quantidade: { $lte: 999999999 - 5 } }),
         expect.objectContaining({ $inc: { quantidade: 5 } }),
-        { new: true },
+        { new: true, session: sessao },
       );
       expect(repositoryMock.criar).toHaveBeenCalled();
       expect(Estoque.atualizarQuantidadeItem).toHaveBeenCalledWith(item._id);
     });
 
-    it('cria o saldo na primeira entrada do item na localização', async () => {
+    it('cria o saldo zerado na primeira entrada do item na localização', async () => {
       const item = makeItem();
       Item.findOne.mockResolvedValue(item);
-      Estoque.findOneAndUpdate.mockResolvedValue(null);
-      Estoque.exists.mockResolvedValue(null);
-      Estoque.create.mockResolvedValue(makeEstoque({ quantidade: 5 }));
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 5 }),
+      );
       repositoryMock.criar.mockResolvedValue(makeMovimentacao());
 
       await service.criar(
         { item: item._id, tipo: 'entrada', quantidade: 5 },
         { user_id: 'user123' },
       );
-      expect(Estoque.create).toHaveBeenCalledWith(
-        expect.objectContaining({ quantidade: 5 }),
+      expect(Estoque.updateOne).toHaveBeenCalledWith(
+        expect.objectContaining({ item: item._id }),
+        { $setOnInsert: { quantidade: 0, usuario: 'user123' } },
+        { upsert: true, session: sessao },
       );
     });
 
@@ -94,7 +101,6 @@ describe('MovimentacaoService', () => {
       const item = makeItem();
       Item.findOne.mockResolvedValue(item);
       Estoque.findOneAndUpdate.mockResolvedValue(null);
-      Estoque.exists.mockResolvedValue({ _id: 'e1' });
 
       await expect(
         service.criar(
@@ -105,7 +111,26 @@ describe('MovimentacaoService', () => {
       expect(repositoryMock.criar).not.toHaveBeenCalled();
     });
 
-    it('devolve a reserva ao saldo se gravar a movimentação falhar', async () => {
+    it('grava saldo e movimentação na mesma transação', async () => {
+      const item = makeItem();
+      Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 7 }),
+      );
+      repositoryMock.criar.mockResolvedValue(makeMovimentacao());
+
+      await service.criar(
+        { item: item._id, tipo: 'saida', quantidade: 3 },
+        { user_id: 'user123' },
+      );
+      expect(mongoose.connection.transaction).toHaveBeenCalledTimes(1);
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.any(Object),
+        sessao,
+      );
+    });
+
+    it('não recalcula o item se gravar a movimentação falhar', async () => {
       const item = makeItem();
       Item.findOne.mockResolvedValue(item);
       Estoque.findOneAndUpdate.mockResolvedValue(
@@ -119,9 +144,29 @@ describe('MovimentacaoService', () => {
           { user_id: 'user123' },
         ),
       ).rejects.toThrow('falha ao gravar');
-      expect(Estoque.updateOne).toHaveBeenCalledWith(expect.any(Object), {
-        $inc: { quantidade: 3 },
-      });
+      expect(Estoque.atualizarQuantidadeItem).not.toHaveBeenCalled();
+    });
+
+    it('usa a sessão recebida sem abrir outra transação', async () => {
+      const item = makeItem();
+      const sessaoExterna = { id: 'externa' };
+      Item.findOne.mockResolvedValue(item);
+      Estoque.findOneAndUpdate.mockResolvedValue(
+        makeEstoque({ quantidade: 7 }),
+      );
+      repositoryMock.criar.mockResolvedValue(makeMovimentacao());
+
+      await service.criar(
+        { item: item._id, tipo: 'saida', quantidade: 3 },
+        { user_id: 'user123' },
+        sessaoExterna,
+      );
+      expect(mongoose.connection.transaction).not.toHaveBeenCalled();
+      expect(repositoryMock.criar).toHaveBeenCalledWith(
+        expect.any(Object),
+        sessaoExterna,
+      );
+      expect(Estoque.atualizarQuantidadeItem).not.toHaveBeenCalled();
     });
 
     it('deve cadastrar movimentação de saída com sucesso (sem fornecedor)', async () => {
@@ -146,7 +191,7 @@ describe('MovimentacaoService', () => {
       expect(Estoque.findOneAndUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ quantidade: { $gte: 3 } }),
         expect.objectContaining({ $inc: { quantidade: -3 } }),
-        { new: true },
+        { new: true, session: sessao },
       );
       expect(repositoryMock.criar).toHaveBeenCalled();
     });
