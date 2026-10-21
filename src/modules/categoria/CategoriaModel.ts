@@ -27,7 +27,15 @@ const categoriaSchema = new mongoose.Schema<CategoriaDocument>(
   { timestamps: true },
 );
 
-categoriaSchema.index({ nome: 1, tipo: 1 });
+categoriaSchema.index(
+  { nome: 1, tipo: 1 },
+  {
+    name: 'categoria_nome_tipo_unico',
+    unique: true,
+    partialFilterExpression: { ativo: true },
+    collation: { locale: 'pt', strength: 2 },
+  },
+);
 
 categoriaSchema.plugin(mongoosePaginate);
 

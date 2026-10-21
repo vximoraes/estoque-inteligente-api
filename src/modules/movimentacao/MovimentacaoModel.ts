@@ -47,6 +47,9 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
   { timestamps: true },
 );
 
+movimentacaoSchema.index({ item: 1, tipo: 1, data_hora: -1 });
+movimentacaoSchema.index({ data_hora: -1 });
+
 movimentacaoSchema.post('save', async function (this: MovimentacaoDocument) {
   if (this.$locals['estoqueJaAtualizado']) return;
   const Model = this.constructor as unknown as IMovimentacaoModel;

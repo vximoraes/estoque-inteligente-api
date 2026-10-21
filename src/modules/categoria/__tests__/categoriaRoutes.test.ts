@@ -23,6 +23,14 @@ describe('Rotas de Categoria', () => {
   });
 
   describe('POST /categorias', () => {
+    it('recusa categoria com o mesmo nome em outra capitalização', async () => {
+      const existente = await criarCategoria(token);
+      const res = await req(token)
+        .post('/categorias')
+        .send({ nome: existente.nome.toUpperCase(), tipo: existente.tipo });
+      esperarEnvelopeErro(res, 400);
+    });
+
     it('deve cadastrar categoria válida', async () => {
       const res = await req(token)
         .post('/categorias')

@@ -1,9 +1,11 @@
 import {
   req,
   logarAdmin,
+  criarCategoria,
   criarItem,
   criarLocalizacao,
   criarMovimentacao,
+  sufixoUnico,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 async function prepararEstoque(token, quantidade) {
@@ -133,5 +135,44 @@ describe('Concorrência no saldo de estoque', () => {
     );
     expect(soma).toBeGreaterThanOrEqual(0);
     expect(await saldoDoItem(token, item)).toBe(soma);
+  });
+
+  it('8 criações simultâneas de item com o mesmo nome: cria exatamente 1', async () => {
+    const categoria = await criarCategoria(token);
+    const nome = sufixoUnico('zz-item-concorrente');
+
+    const respostas = await Promise.all(
+      Array.from({ length: 8 }, () =>
+        req(token).post('/itens').send({
+          nome,
+          categoria: categoria._id,
+          estoque_minimo: '10',
+        }),
+      ),
+    );
+
+    const contagem = contarStatus(respostas);
+    expect(contagem[201]).toBe(1);
+    expect((contagem[400] ?? 0) + (contagem[409] ?? 0)).toBe(7);
+    const lista = await req(token).get(
+      `/itens?nome=${encodeURIComponent(nome)}`,
+    );
+    expect(lista.body.data.totalDocs).toBe(1);
+  });
+
+  it('categoria com o mesmo nome em outra capitalização, ao mesmo tempo: cria exatamente 1', async () => {
+    const nome = sufixoUnico('zz-categoria-concorrente');
+
+    const respostas = await Promise.all(
+      [nome, nome.toUpperCase(), nome, nome.toUpperCase()].map((variante) =>
+        req(token)
+          .post('/categorias')
+          .send({ nome: variante, tipo: 'consumo' }),
+      ),
+    );
+
+    const contagem = contarStatus(respostas);
+    expect(contagem[201]).toBe(1);
+    expect((contagem[400] ?? 0) + (contagem[409] ?? 0)).toBe(3);
   });
 });

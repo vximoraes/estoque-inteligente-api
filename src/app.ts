@@ -43,6 +43,7 @@ import './modules/patrimonio/patrimonioDocs.js';
 import './modules/grupo/grupoDocs.js';
 import './modules/rota/rotaDocs.js';
 import './modules/ia/iaDocs.js';
+import { garantirIndices } from './config/indices.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.set('trust proxy', 1);
 // Factory async em vez de top-level await: top-level await quebra o import do módulo sob Jest/Babel (CJS).
 export async function bootstrap(): Promise<express.Express> {
   await DbConnect.conectar();
+  await garantirIndices();
   const auth = initAuth();
   await setupMinio();
   iniciarJobEmprestimosAtrasados();

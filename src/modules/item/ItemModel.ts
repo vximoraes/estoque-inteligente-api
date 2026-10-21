@@ -71,6 +71,7 @@ itemSchema.index(
   { nome: 1 },
   { unique: true, partialFilterExpression: { ativo: true } },
 );
+itemSchema.index({ ativo: 1, tipo: 1, status: 1 });
 
 function statusDeConsumo(
   quantidade: number,
