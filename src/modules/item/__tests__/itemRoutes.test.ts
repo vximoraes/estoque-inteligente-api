@@ -152,6 +152,16 @@ describe('Rotas de Item', () => {
       expect(res.body.data.nome).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarItem(token);
+      const novoValor = sufixoUnico('zz-item-put');
+      const res = await req(token)
+        .put(`/itens/${registro._id}`)
+        .send({ nome: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.nome).toBe(novoValor);
+    });
+
     it('deve recalcular status ao atualizar estoque_minimo', async () => {
       const item = await criarItem(token);
       const res = await req(token)

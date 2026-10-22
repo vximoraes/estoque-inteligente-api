@@ -89,6 +89,7 @@ Arquivo: `src/modules/item/__tests__/itemRoutes.test.ts`
 | :---------------------------------------- | :-------------------------------------------------- | :--------------------------------------- | :-------------------------------------------- |
 | **Cenários felizes**                      |                                                     |                                          |                                               |
 | Atualizar campos permitidos               | Deve renomear o item.                               | `PATCH /itens/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado.        |
+| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /itens/:id` com `nome` novo. | Retorna `200`; `data.nome` novo. |
 | Recalcular status ao mudar estoque_minimo | Deve recalcular `status` a partir do novo mínimo.   | `PATCH` com novo `estoque_minimo`.       | Retorna `200`; `data.status` reflete a regra. |
 | `quantidade` no body é ignorado           | Não deve permitir alterar `quantidade` diretamente. | `PATCH` com `{ quantidade: 999 }`.       | Retorna `200`; `data.quantidade !== 999`.     |
 | **Cenários tristes**                      |                                                     |                                          |                                               |
@@ -103,6 +104,21 @@ Arquivo: `src/modules/item/__tests__/itemRoutes.test.ts`
 | Inativar item existente | Deve marcar o item como inativo.    | `PATCH /itens/:id/inativar`.                      | Retorna `200`; `data.ativo=false`. |
 | **Cenários tristes**    |                                     |                                                   |                                    |
 | Item inexistente        | Deve falhar pois o alvo não existe. | `PATCH /itens/000000000000000000000000/inativar`. | Retorna `404`.                     |
+
+## POST/DELETE /itens/:id/foto — Foto (`fotoRoutes.test.ts`)
+
+O mesmo arquivo cobre as fotos de patrimônio (`POST/DELETE /patrimonios/:id/foto`) e de usuário (`PUT/DELETE /usuarios/:id/foto`). Usa o MinIO local (`docker compose up minio`) e um PNG de 1×1 embutido no teste.
+
+| Funcionalidade              | Comportamento Esperado                                                   | Verificações                                                  | Critérios de Aceite                                                         |
+| :-------------------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------- |
+| **Cenários felizes**        |                                                                          |                                                               |                                                                             |
+| Enviar e remover            | Deve gravar o endereço da foto no registro e limpar ao remover.          | Envio do PNG, `GET` do registro, `DELETE .../foto`.           | `201` com `imagem`/`fotoPerfil` contendo o id; `GET` igual; `DELETE` `200` com `''`. |
+| **Cenários tristes**        |                                                                          |                                                               |                                                                             |
+| Arquivo que não é imagem    | Deve recusar extensão fora de JPEG/PNG.                                  | Envio de `foto.gif`.                                          | Retorna `400`.                                                              |
+| Sem arquivo                 | Deve recusar envio vazio.                                                | Requisição sem `file`.                                        | Retorna `400`.                                                              |
+| Registro inexistente        | Deve responder 404 antes de mexer no MinIO.                              | Envio e remoção com `ID_INEXISTENTE`.                         | Retorna `404` (antes: `500` em item e usuário, com arquivo órfão no MinIO). |
+| Acima de 5 MB               | Deve recusar pelo limite do `multer`.                                    | PNG com 5 MB de preenchimento.                                | Retorna `413` (antes: `500`).                                               |
+| Sem permissão               | Usuário padrão não troca a foto de outro usuário.                        | `PUT /usuarios/:outro/foto` com token do usuário padrão.      | Retorna `403`.                                                              |
 
 ## Cenários Transversais Obrigatórios (E2E)
 

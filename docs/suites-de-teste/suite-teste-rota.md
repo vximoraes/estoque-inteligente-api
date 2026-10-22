@@ -81,6 +81,7 @@ Arquivo: `src/modules/rota/__tests__/rotaRoutes.test.ts`
 | :------------------------------ | :---------------------------------- | :------------------------------------------------ | :------------------------------------- |
 | **Cenários felizes**            |                                     |                                                   |                                        |
 | Atualizar nome                  | Deve renomear a rota.               | `PATCH /rotas/:id` com novo `rota`.               | Retorna `200`; `data.rota` atualizado. |
+| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /rotas/:id` com `rota` novo. | Retorna `200`; `data.rota` novo. |
 | **Cenários tristes**            |                                     |                                                   |                                        |
 | Nome já existente em outra rota | Deve rejeitar duplicidade.          | `PATCH` usando `rota` de outro registro de teste. | Retorna `409`.                         |
 | Rota inexistente                | Deve falhar pois o alvo não existe. | `PATCH /rotas/000000000000000000000000`.          | Retorna `404`.                         |

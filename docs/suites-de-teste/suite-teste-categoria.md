@@ -76,6 +76,7 @@ Arquivo: `src/modules/categoria/__tests__/categoriaRoutes.test.ts`
 | :----------------------------------- | :---------------------------------- | :-------------------------------------------------------- | :------------------------------------- |
 | **Cenários felizes**                 |                                     |                                                           |                                        |
 | Atualizar nome                       | Deve renomear a categoria.          | `PATCH /categorias/:id` com novo `nome`.                  | Retorna `200`; `data.nome` atualizado. |
+| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /categorias/:id` com `nome` novo. | Retorna `200`; `data.nome` novo. |
 | **Cenários tristes**                 |                                     |                                                           |                                        |
 | Nome já existente em outra categoria | Deve rejeitar duplicidade.          | `PATCH` usando o `nome` de outra categoria já cadastrada. | Retorna `400`.                         |
 | Categoria inexistente                | Deve falhar pois o alvo não existe. | `PATCH /categorias/000000000000000000000000`.             | Retorna `404`.                         |

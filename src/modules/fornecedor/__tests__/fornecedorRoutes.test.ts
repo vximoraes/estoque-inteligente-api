@@ -127,6 +127,16 @@ describe('Rotas de Fornecedor', () => {
       expect(res.body.data.nome).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarFornecedor(token);
+      const novoValor = sufixoUnico('zz-fornecedor-put');
+      const res = await req(token)
+        .put(`/fornecedores/${registro._id}`)
+        .send({ nome: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.nome).toBe(novoValor);
+    });
+
     it('deve falhar ao atualizar para nome já existente', async () => {
       const fornecedor1 = await criarFornecedor(token);
       const fornecedor2 = await criarFornecedor(token);

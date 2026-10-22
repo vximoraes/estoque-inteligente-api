@@ -7,6 +7,8 @@ export const MODELOS_RESERVA = (
   .map((modelo) => modelo.trim())
   .filter(Boolean);
 
+export const GEMINI_BASE_URL = process.env['GEMINI_BASE_URL'] || undefined;
+
 export const MAX_OUTPUT_TOKENS = Number(
   process.env['IA_MAX_OUTPUT_TOKENS'] ?? 1536,
 );

@@ -134,6 +134,16 @@ describe('Rotas de Categoria', () => {
       expect(res.body.data.nome).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarCategoria(token);
+      const novoValor = sufixoUnico('zz-categoria-put');
+      const res = await req(token)
+        .put(`/categorias/${registro._id}`)
+        .send({ nome: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.nome).toBe(novoValor);
+    });
+
     it('deve falhar ao atualizar para nome já existente', async () => {
       const categoria1 = await criarCategoria(token);
       const categoria2 = await criarCategoria(token);

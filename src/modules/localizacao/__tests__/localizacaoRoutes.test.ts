@@ -119,6 +119,16 @@ describe('Rotas de Localização', () => {
       expect(res.body.data.nome).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarLocalizacao(token);
+      const novoValor = sufixoUnico('zz-localizacao-put');
+      const res = await req(token)
+        .put(`/localizacoes/${registro._id}`)
+        .send({ nome: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.nome).toBe(novoValor);
+    });
+
     it('deve falhar ao atualizar para nome já existente', async () => {
       const localizacao1 = await criarLocalizacao(token);
       const localizacao2 = await criarLocalizacao(token);

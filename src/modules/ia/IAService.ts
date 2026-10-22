@@ -12,6 +12,7 @@ import {
   RECURSION_LIMIT,
   MAX_RETRIES,
   RESUMO_MAX_OUTPUT_TOKENS,
+  GEMINI_BASE_URL,
 } from './IAConfig.js';
 import type { IMensagem, ConversaDocument } from './ConversaModel.js';
 import { criarCallbacks } from './IAObservabilidade.js';
@@ -226,6 +227,7 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
     new ChatGoogleGenerativeAI({
       model: modelo,
       apiKey: process.env['GEMINI_API_KEY'],
+      baseUrl: GEMINI_BASE_URL,
       temperature: 0,
       maxOutputTokens: RESUMO_MAX_OUTPUT_TOKENS,
       maxRetries: MAX_RETRIES,
@@ -328,6 +330,7 @@ export async function processarMensagem(
         llm: new ChatGoogleGenerativeAI({
           model: modelo,
           apiKey: process.env['GEMINI_API_KEY'],
+          baseUrl: GEMINI_BASE_URL,
           temperature: 0.2,
           maxOutputTokens: MAX_OUTPUT_TOKENS,
           maxRetries: MAX_RETRIES,

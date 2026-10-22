@@ -132,6 +132,16 @@ describe('Rotas de Grupo', () => {
       expect(res.body.data.nome).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarGrupo(token);
+      const novoValor = sufixoUnico('zz-grupo-put');
+      const res = await req(token)
+        .put(`/grupos/${registro._id}`)
+        .send({ nome: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.nome).toBe(novoValor);
+    });
+
     it('deve retornar 404 ao atualizar grupo inexistente', async () => {
       const res = await req(token)
         .patch(`/grupos/${ID_INEXISTENTE}`)

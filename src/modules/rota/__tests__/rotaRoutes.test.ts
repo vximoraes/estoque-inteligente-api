@@ -118,6 +118,16 @@ describe('Rotas de Rota (RBAC)', () => {
       expect(res.body.data.rota).toBe(novoNome);
     });
 
+    it('PUT também atualiza', async () => {
+      const registro = await criarRota(token);
+      const novoValor = sufixoUnico('zz-rota-put');
+      const res = await req(token)
+        .put(`/rotas/${registro._id}`)
+        .send({ rota: novoValor });
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.rota).toBe(novoValor);
+    });
+
     it('deve falhar ao atualizar para nome já existente', async () => {
       const rota1 = await criarRota(token);
       const rota2 = await criarRota(token);

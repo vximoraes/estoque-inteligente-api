@@ -82,6 +82,7 @@ Arquivo: `src/modules/grupo/__tests__/grupoRoutes.test.ts`
 | :------------------- | :---------------------------------- | :---------------------------------------- | :------------------------------------- |
 | **Cenários felizes** |                                     |                                           |                                        |
 | Atualizar nome       | Deve renomear o grupo.              | `PATCH /grupos/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
+| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /grupos/:id` com `nome` novo. | Retorna `200`; `data.nome` novo. |
 | **Cenários tristes** |                                     |                                           |                                        |
 | Grupo inexistente    | Deve falhar pois o alvo não existe. | `PATCH /grupos/000000000000000000000000`. | Retorna `404`.                         |
 
