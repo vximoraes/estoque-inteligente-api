@@ -65,6 +65,7 @@ describe('Rotas de IA', () => {
   async function enviar(conversaId: string, content: string) {
     const res = await comCookie()
       .post(`/ia/conversas/${conversaId}/mensagens`)
+      .set('Accept-Encoding', 'gzip')
       .send({ content });
     return { res, eventos: lerEventos(res.text) };
   }
@@ -171,6 +172,7 @@ describe('Rotas de IA', () => {
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toContain('text/event-stream');
+      expect(res.headers['content-encoding']).toBeUndefined();
       const texto = eventos
         .filter((e) => e.type === 'token')
         .map((e) => e.content)
