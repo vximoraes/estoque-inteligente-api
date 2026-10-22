@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import request from 'supertest';
 import {
   BASE_URL,
@@ -9,6 +10,7 @@ import {
   esperarEnvelopeSucesso,
   esperarEnvelopeErro,
   esperarPaginado,
+  conectarBancoDeTeste,
 } from '../../../../test/helpers/rotasTestHelper.js';
 import {
   criarGeminiFalso,
@@ -69,11 +71,13 @@ describe('Rotas de IA', () => {
 
   beforeAll(async () => {
     await gemini.iniciar();
+    await conectarBancoDeTeste();
     tokenAdmin = await logarAdmin();
     cookies = await cookieDoAdmin();
   });
 
   afterAll(async () => {
+    await mongoose.disconnect();
     await gemini.parar();
   });
 
@@ -242,6 +246,37 @@ describe('Rotas de IA', () => {
 
     it('responde 404 para conversa inexistente', async () => {
       esperarEnvelopeErro((await enviar(ID_INEXISTENTE, 'Olá')).res, 404);
+    });
+
+    it('resume as mensagens que saem da janela antes de responder', async () => {
+      gemini.responderCom((corpo) =>
+        JSON.stringify(corpo).includes('resumo contínuo')
+          ? [{ text: 'Resumo simulado.' }]
+          : [{ text: 'Resposta simulada.' }],
+      );
+      const conversa = await criarConversa();
+      const conversas = mongoose.connection.db!.collection('conversas');
+      await conversas.updateOne(
+        { _id: new mongoose.Types.ObjectId(String(conversa._id)) },
+        {
+          $set: {
+            mensagens: Array.from({ length: 16 }, (_, i) => ({
+              role: i % 2 === 0 ? 'user' : 'assistant',
+              content: `mensagem ${i}`,
+            })),
+          },
+        },
+      );
+
+      const { eventos } = await enviar(conversa._id, 'Mais uma');
+
+      expect(eventos.at(-1)).toEqual({ type: 'done' });
+      const salva = await conversas.findOne({
+        _id: new mongoose.Types.ObjectId(String(conversa._id)),
+      });
+      expect(salva!['resumo']).toBe('Resumo simulado.');
+      expect(salva!['resumoAteIndice']).toBe(2);
+      expect(salva!['mensagens']).toHaveLength(18);
     });
   });
 });

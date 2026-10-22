@@ -78,13 +78,13 @@ Arquivo: `src/modules/grupo/__tests__/grupoRoutes.test.ts`
 
 ## PATCH /grupos/:id — Atualização
 
-| Funcionalidade       | Comportamento Esperado              | Verificações                              | Critérios de Aceite                    |
-| :------------------- | :---------------------------------- | :---------------------------------------- | :------------------------------------- |
-| **Cenários felizes** |                                     |                                           |                                        |
-| Atualizar nome       | Deve renomear o grupo.              | `PATCH /grupos/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
-| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /grupos/:id` com `nome` novo. | Retorna `200`; `data.nome` novo. |
-| **Cenários tristes** |                                     |                                           |                                        |
-| Grupo inexistente    | Deve falhar pois o alvo não existe. | `PATCH /grupos/000000000000000000000000`. | Retorna `404`.                         |
+| Funcionalidade        | Comportamento Esperado                           | Verificações                              | Critérios de Aceite                    |
+| :-------------------- | :----------------------------------------------- | :---------------------------------------- | :------------------------------------- |
+| **Cenários felizes**  |                                                  |                                           |                                        |
+| Atualizar nome        | Deve renomear o grupo.                           | `PATCH /grupos/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
+| `PUT` também atualiza | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /grupos/:id` com `nome` novo.        | Retorna `200`; `data.nome` novo.       |
+| **Cenários tristes**  |                                                  |                                           |                                        |
+| Grupo inexistente     | Deve falhar pois o alvo não existe.              | `PATCH /grupos/000000000000000000000000`. | Retorna `404`.                         |
 
 ## DELETE /grupos/:id — Exclusão
 
@@ -94,6 +94,16 @@ Arquivo: `src/modules/grupo/__tests__/grupoRoutes.test.ts`
 | Deletar grupo existente | Deve excluir o grupo criado em teste. | `DELETE /grupos/:id`.                      | Retorna `200`.      |
 | **Cenários tristes**    |                                       |                                            |                     |
 | Grupo inexistente       | Deve falhar pois o alvo não existe.   | `DELETE /grupos/000000000000000000000000`. | Retorna `404`.      |
+
+## Permissões por módulo (`permissaoRoutes.test.ts`)
+
+Não há rota que coloque um usuário num grupo: o teste convida e ativa um usuário e grava as permissões dele direto no banco de teste (`criarUsuarioComPermissoes`, em `rotasTestHelper.ts`), sem grupos.
+
+| Funcionalidade            | Comportamento Esperado                   | Verificações                                                                                                                               | Critérios de Aceite                              |
+| :------------------------ | :--------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
+| Sem permissão nenhuma     | Nenhum módulo lista.                     | `GET` em itens, patrimônios, empréstimos, movimentações, categorias, localizações, fornecedores, notificações, conversas da IA e estoques. | `403` em todos.                                  |
+| Só leitura                | Lista, mas não cria, altera nem inativa. | `GET` e `POST` nos mesmos módulos; `PATCH /:id` e `PATCH /:id/inativar` em itens, categorias, localizações e fornecedores.                 | `GET` `200`; escrita `403`.                      |
+| Permissão de um módulo só | Não abre os outros.                      | Usuário com `itens` apenas.                                                                                                                | `/itens` `200`; patrimônios e empréstimos `403`. |
 
 ## Cenários Transversais Obrigatórios (E2E)
 

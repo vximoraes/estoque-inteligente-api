@@ -105,21 +105,21 @@ Arquivo: `src/modules/usuario/__tests__/usuarioRoutes.test.ts`
 
 Lê o token de convite direto da coleção `verification` do banco de teste (`ROUTES_TEST_DB_URL`, exportada pelo `globalSetup`), porque o e-mail fica desligado na API de teste.
 
-| Funcionalidade                          | Comportamento Esperado                                              | Verificações                                                           | Critérios de Aceite                                           |
-| :-------------------------------------- | :------------------------------------------------------------------ | :--------------------------------------------------------------------- | :------------------------------------------------------------ |
-| **Cenários felizes**                    |                                                                     |                                                                        |                                                               |
-| Ativar com token no corpo               | Deve definir a senha e liberar o login.                             | Login antes (`401`), `POST /ativar-conta` com `{ token, senha }`.       | `200`; login seguinte `200` com `token`.                      |
-| Token na URL                            | Continua aceito por compatibilidade.                                | `POST /ativar-conta?token=...` com `{ senha }`.                         | Retorna `200`.                                                |
-| PATCH pelo admin                        | Deve alterar o nome de outro usuário.                               | `PATCH /usuarios/:id` com `nome`.                                      | `200`; `data.nome` novo.                                      |
-| PATCH no próprio registro               | Usuário ativado altera o próprio fuso.                              | `PATCH /usuarios/:proprio` com `fuso_horario`.                         | `200`; `data.fuso_horario` novo.                              |
-| **Cenários tristes**                    |                                                                     |                                                                        |                                                               |
-| Token reaproveitado                     | Não deve trocar a senha de novo.                                    | Segunda ativação com o mesmo token.                                    | `400`/`401`; login com a segunda senha falha.                 |
-| Token inválido / ausente / senha fraca  | Deve recusar.                                                       | Token inexistente; sem token; `senha: 'fraca'`.                        | `401`; `400`; `400`.                                          |
-| Reenviar para quem já ativou            | Deve recusar.                                                       | `POST /usuarios/:id/reenviar-convite` após ativar.                     | Retorna `400`.                                                |
-| Reenviar sem e-mail configurado         | Deve avisar que não reenviou.                                       | Mesmo endpoint com usuário pendente.                                   | Retorna `503`.                                                |
-| Reenviar para inexistente               | Deve falhar.                                                        | `ID_INEXISTENTE`.                                                      | Retorna `404`.                                                |
-| PATCH em outro usuário sem permissão    | Usuário comum não altera terceiros.                                 | `PATCH /usuarios/:outro`.                                              | Retorna `403`.                                                |
-| PATCH com nome fora do padrão ou fuso inexistente | Deve recusar.                                             | `nome: 'nome minúsculo'`; `fuso_horario: 'Lugar/Nenhum'`.              | Retorna `400`.                                                |
+| Funcionalidade                                    | Comportamento Esperado                  | Verificações                                                      | Critérios de Aceite                           |
+| :------------------------------------------------ | :-------------------------------------- | :---------------------------------------------------------------- | :-------------------------------------------- |
+| **Cenários felizes**                              |                                         |                                                                   |                                               |
+| Ativar com token no corpo                         | Deve definir a senha e liberar o login. | Login antes (`401`), `POST /ativar-conta` com `{ token, senha }`. | `200`; login seguinte `200` com `token`.      |
+| Token na URL                                      | Continua aceito por compatibilidade.    | `POST /ativar-conta?token=...` com `{ senha }`.                   | Retorna `200`.                                |
+| PATCH pelo admin                                  | Deve alterar o nome de outro usuário.   | `PATCH /usuarios/:id` com `nome`.                                 | `200`; `data.nome` novo.                      |
+| PATCH no próprio registro                         | Usuário ativado altera o próprio fuso.  | `PATCH /usuarios/:proprio` com `fuso_horario`.                    | `200`; `data.fuso_horario` novo.              |
+| **Cenários tristes**                              |                                         |                                                                   |                                               |
+| Token reaproveitado                               | Não deve trocar a senha de novo.        | Segunda ativação com o mesmo token.                               | `400`/`401`; login com a segunda senha falha. |
+| Token inválido / ausente / senha fraca            | Deve recusar.                           | Token inexistente; sem token; `senha: 'fraca'`.                   | `401`; `400`; `400`.                          |
+| Reenviar para quem já ativou                      | Deve recusar.                           | `POST /usuarios/:id/reenviar-convite` após ativar.                | Retorna `400`.                                |
+| Reenviar sem e-mail configurado                   | Deve avisar que não reenviou.           | Mesmo endpoint com usuário pendente.                              | Retorna `503`.                                |
+| Reenviar para inexistente                         | Deve falhar.                            | `ID_INEXISTENTE`.                                                 | Retorna `404`.                                |
+| PATCH em outro usuário sem permissão              | Usuário comum não altera terceiros.     | `PATCH /usuarios/:outro`.                                         | Retorna `403`.                                |
+| PATCH com nome fora do padrão ou fuso inexistente | Deve recusar.                           | `nome: 'nome minúsculo'`; `fuso_horario: 'Lugar/Nenhum'`.         | Retorna `400`.                                |
 
 ## Cenários Transversais Obrigatórios (E2E)
 
