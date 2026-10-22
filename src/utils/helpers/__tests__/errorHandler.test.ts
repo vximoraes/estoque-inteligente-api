@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import { ZodError } from 'zod';
 import mongoose from 'mongoose';
+import multer from 'multer';
 import errorHandler from '../errorHandler.js';
 import CustomError from '../CustomError.js';
 import AuthenticationError from '../../errors/AuthenticationError.js';
@@ -34,6 +35,37 @@ describe('errorHandler', () => {
       null,
       [{ path: 'field', message: 'Invalid value' }],
       'Erro de validação. 1 campo(s) inválido(s).',
+    );
+  });
+
+  it('responde 413 para imagem acima do limite do upload', () => {
+    errorHandler(new multer.MulterError('LIMIT_FILE_SIZE'), req, res, next);
+
+    expect(CommonResponse.error).toHaveBeenCalledWith(
+      res,
+      413,
+      'payloadTooLarge',
+      'Imagem',
+      [{ path: 'Imagem', message: 'O arquivo é maior do que 5 MB.' }],
+      'O arquivo é maior do que 5 MB.',
+    );
+  });
+
+  it('responde 400 para outros erros do upload', () => {
+    errorHandler(
+      new multer.MulterError('LIMIT_UNEXPECTED_FILE'),
+      req,
+      res,
+      next,
+    );
+
+    expect(CommonResponse.error).toHaveBeenCalledWith(
+      res,
+      400,
+      'validationError',
+      'Imagem',
+      [{ path: 'Imagem', message: 'Envie uma única imagem no campo file.' }],
+      'Envie uma única imagem no campo file.',
     );
   });
 

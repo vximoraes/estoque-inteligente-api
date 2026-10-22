@@ -92,6 +92,7 @@ class UsuarioService {
   }
 
   async uploadFoto(req: AuthenticatedRequest, id: string) {
+    await this.ensureUserExists(id);
     const file = req.file;
     if (!file) {
       throw new CustomError({
@@ -137,6 +138,7 @@ class UsuarioService {
   }
 
   async deletarFoto(_req: AuthenticatedRequest, id: string) {
+    await this.ensureUserExists(id);
     const objectName = `${id}.jpeg`;
     await minioClient.send(
       new DeleteObjectCommand({

@@ -4,6 +4,7 @@ import logger from '../logger.js';
 import CommonResponse from './CommonResponse.js';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
+import multer from 'multer';
 import AuthenticationError from '../errors/AuthenticationError.js';
 import CustomError from './CustomError.js';
 import type { AuthenticatedRequest } from '../types.js';
@@ -42,6 +43,26 @@ const errorHandler = (
       null,
       [{ message: 'O corpo da requisição não é um JSON válido.' }],
       'O corpo da requisição não é um JSON válido.',
+    );
+    return;
+  }
+
+  if (err instanceof multer.MulterError) {
+    const tamanho = err.code === 'LIMIT_FILE_SIZE';
+    const mensagem = tamanho
+      ? 'O arquivo é maior do que 5 MB.'
+      : 'Envie uma única imagem no campo file.';
+    logger.warn(
+      { code: err.code, path: req.path, requestId },
+      'Erro de upload',
+    );
+    CommonResponse.error(
+      res,
+      tamanho ? 413 : 400,
+      tamanho ? 'payloadTooLarge' : 'validationError',
+      'Imagem',
+      [{ path: 'Imagem', message: mensagem }],
+      mensagem,
     );
     return;
   }

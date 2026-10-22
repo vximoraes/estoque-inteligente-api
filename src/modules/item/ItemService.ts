@@ -156,6 +156,7 @@ class ItemService {
   }
 
   async uploadFoto(req: AuthenticatedRequest, id: string) {
+    await this.ensureItemExists(id, req);
     const file = req.file;
     if (!file) {
       throw new CustomError({
@@ -206,6 +207,7 @@ class ItemService {
   }
 
   async deletarFoto(req: AuthenticatedRequest, id: string) {
+    await this.ensureItemExists(id, req);
     const objectName = `${id}.jpeg`;
     await minioClient.send(
       new DeleteObjectCommand({

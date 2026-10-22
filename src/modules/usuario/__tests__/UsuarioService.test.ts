@@ -205,6 +205,19 @@ describe('UsuarioService', () => {
   });
 
   describe('uploadFoto', () => {
+    beforeEach(() => {
+      repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
+    });
+
+    it('responde 404 sem enviar ao MinIO quando o usuário não existe', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(null);
+      const req = { file: { size: 100, buffer: Buffer.from('x') } };
+      await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
+        statusCode: 404,
+      });
+      expect(minioClient.send).not.toHaveBeenCalled();
+    });
+
     it('deve lançar erro se nenhum arquivo for enviado', async () => {
       const req = { file: undefined };
       await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
@@ -247,7 +260,16 @@ describe('UsuarioService', () => {
   });
 
   describe('deletarFoto', () => {
+    it('responde 404 sem tocar no MinIO quando o usuário não existe', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(null);
+      await expect(service.deletarFoto({}, '1')).rejects.toMatchObject({
+        statusCode: 404,
+      });
+      expect(minioClient.send).not.toHaveBeenCalled();
+    });
+
     it('deve remover do MinIO e retornar fotoPerfil vazia', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
       repositoryMock.atualizar.mockResolvedValue({ fotoPerfil: '' });
       const data = await service.deletarFoto({}, '1');
       expect(minioClient.send).toHaveBeenCalled();
