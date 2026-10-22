@@ -29,7 +29,7 @@ export default async function usuarioSeed() {
 
     await Usuario.findByIdAndUpdate(user.id, {
       ativo: fakeMappings.Usuario.ativo(),
-      permissoes: grupoUsuario?.permissoes || [],
+      permissoes: [],
       grupos: grupoUsuario ? [grupoUsuario._id] : [],
     });
   }
@@ -44,7 +44,7 @@ export default async function usuarioSeed() {
 
   await Usuario.findByIdAndUpdate(adminUser.id, {
     ativo: true,
-    permissoes: rotasCompletas.map((r) => r.toObject()),
+    permissoes: [],
     grupos: grupos[0] ? [grupos[0]._id] : [],
   });
 
@@ -58,7 +58,7 @@ export default async function usuarioSeed() {
 
   await Usuario.findByIdAndUpdate(usuarioPadrao.id, {
     ativo: true,
-    permissoes: grupoUsuario?.permissoes || [],
+    permissoes: [],
     grupos: grupoUsuario ? [grupoUsuario._id] : [],
   });
 

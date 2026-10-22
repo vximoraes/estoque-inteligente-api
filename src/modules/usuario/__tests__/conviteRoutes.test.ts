@@ -8,19 +8,11 @@ import {
   convidarUsuario,
   esperarEnvelopeSucesso,
   esperarEnvelopeErro,
+  conectarBancoDeTeste,
+  tokenDoConvite,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 const SENHA = 'Senha@Nova1';
-
-async function tokenDoConvite(usuarioId: string): Promise<string> {
-  const registro = await mongoose.connection
-    .db!.collection('verification')
-    .findOne(
-      { value: usuarioId, identifier: /^reset-password:/ },
-      { sort: { createdAt: -1 } },
-    );
-  return String(registro!['identifier']).replace('reset-password:', '');
-}
 
 async function logar(email: string, senha: string) {
   return request(BASE_URL)
@@ -42,7 +34,7 @@ describe('Convite e ativação de conta', () => {
   }
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.ROUTES_TEST_DB_URL!);
+    await conectarBancoDeTeste();
     tokenAdmin = await logarAdmin();
   });
 
@@ -66,6 +58,20 @@ describe('Convite e ativação de conta', () => {
       const login = await logar(usuario.email, SENHA);
       expect(login.status).toBe(200);
       expect(login.body.token).toBeDefined();
+
+      const db = mongoose.connection.db!;
+      const grupoUsuario = await db
+        .collection('grupos')
+        .findOne({ nome: 'Usuario' });
+      const ativado = await db
+        .collection('usuarios')
+        .findOne({ _id: new mongoose.Types.ObjectId(String(usuario._id)) });
+      expect(ativado!['grupos'].map(String)).toEqual([
+        String(grupoUsuario!._id),
+      ]);
+      expect(ativado!['permissoes']).toEqual([]);
+      expect((await req(login.body.token).get('/itens')).status).toBe(200);
+      expect((await req(login.body.token).get('/usuarios')).status).toBe(403);
     });
 
     it('ainda aceita o token na URL', async () => {

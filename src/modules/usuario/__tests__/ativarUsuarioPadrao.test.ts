@@ -25,8 +25,9 @@ describe('ativarUsuarioPadrao', () => {
     grupoRepositoryInstance.buscarPorNome.mockClear();
   });
 
-  it('deve ativar usuário com as permissões do grupo "Usuario" quando existir', async () => {
+  it('deve ativar usuário no grupo "Usuario", sem copiar permissões', async () => {
     grupoRepositoryInstance.buscarPorNome.mockResolvedValue({
+      _id: 'grupo-usuario',
       permissoes: [{ rota: 'itens' }],
     });
     usuarioRepositoryInstance.atualizar.mockResolvedValue({
@@ -43,12 +44,13 @@ describe('ativarUsuarioPadrao', () => {
       ativo: true,
       ativadoEm: expect.any(Date),
       convidadoEm: null,
-      permissoes: [{ rota: 'itens' }],
+      grupos: ['grupo-usuario'],
+      permissoes: [],
     });
     expect(resultado).toEqual({ _id: '1', ativo: true });
   });
 
-  it('deve ativar usuário sem permissões quando grupo "Usuario" não existir', async () => {
+  it('deve ativar usuário sem grupo quando grupo "Usuario" não existir', async () => {
     grupoRepositoryInstance.buscarPorNome.mockResolvedValue(null);
     usuarioRepositoryInstance.atualizar.mockResolvedValue({ _id: '1' });
 
@@ -58,11 +60,12 @@ describe('ativarUsuarioPadrao', () => {
       ativo: true,
       ativadoEm: expect.any(Date),
       convidadoEm: null,
+      grupos: [],
       permissoes: [],
     });
   });
 
-  it('deve ativar usuário sem permissões quando busca do grupo falhar', async () => {
+  it('deve ativar usuário sem grupo quando busca do grupo falhar', async () => {
     grupoRepositoryInstance.buscarPorNome.mockRejectedValue(
       new Error('falha de conexão'),
     );
@@ -74,6 +77,7 @@ describe('ativarUsuarioPadrao', () => {
       ativo: true,
       ativadoEm: expect.any(Date),
       convidadoEm: null,
+      grupos: [],
       permissoes: [],
     });
   });
