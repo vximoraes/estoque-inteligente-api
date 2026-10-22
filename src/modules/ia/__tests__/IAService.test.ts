@@ -5,6 +5,7 @@ import {
   executarComRetentativas,
   podeUsarModeloReserva,
   proximoModelo,
+  motivoDeTermino,
 } from '../IAService.js';
 import {
   MODELO,
@@ -341,5 +342,33 @@ describe('executarComRetentativas — tempo limite do modelo principal', () => {
       MODELO_RESERVA,
       SEGUNDO_MODELO_RESERVA,
     ]);
+  });
+});
+
+describe('motivoDeTermino', () => {
+  it('lê o finishReason do generationInfo, onde o Gemini o coloca', () => {
+    expect(
+      motivoDeTermino({
+        generations: [
+          [{ text: '', generationInfo: { finishReason: 'MAX_TOKENS' } }],
+        ],
+      }),
+    ).toBe('MAX_TOKENS');
+  });
+
+  it('devolve undefined sem generationInfo', () => {
+    expect(motivoDeTermino({ generations: [[{ text: '' }]] })).toBeUndefined();
+  });
+});
+
+describe('contemVazamentoDoPrompt — variações', () => {
+  it('detecta a tag escrita em largura total (fullwidth)', () => {
+    expect(
+      contemVazamentoDoPrompt('ｉｎｊｅｃｔｉｏｎ＿ｒｅｓｉｓｔａｎｃｅ'),
+    ).toBe(true);
+  });
+
+  it('detecta o nome da tag sem os sinais < >', () => {
+    expect(contemVazamentoDoPrompt('[assistente_estoque_config]')).toBe(true);
   });
 });

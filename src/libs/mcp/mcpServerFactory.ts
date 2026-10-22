@@ -353,7 +353,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'verificarItensAbaixoMinimo',
-    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit.',
+    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit. Itens sem estoque mínimo (0) ficam de fora; para itens zerados em geral, use buscarItens com status "Indisponível".',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens');
@@ -383,7 +383,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarCategorias',
-    'Lista todas as categorias de itens cadastradas no sistema',
+    'Lista as categorias cadastradas com a contagem completa, feita no banco: `itens_ativos` nas de consumo e `unidades_patrimonio_ativas` nas permanentes. Use para comparar ou contar por categoria, em vez de somar uma lista de itens ou patrimônios (que vem limitada).',
     {
       tipo: z
         .enum(['consumo', 'permanente'])

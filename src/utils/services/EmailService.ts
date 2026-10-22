@@ -161,6 +161,10 @@ class EmailService {
     throw ultimoErro;
   }
 
+  disponivel(): boolean {
+    return this.transporter !== null;
+  }
+
   async enviarEmail(
     to: string,
     subject: string,

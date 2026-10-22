@@ -9,6 +9,7 @@ jest.mock('../ativarUsuarioPadrao.js', () => ({
 
 import mongoose from 'mongoose';
 import UsuarioService from '../UsuarioService.js';
+import EmailService from '../../../utils/services/EmailService.js';
 import UsuarioRepository from '../UsuarioRepository.js';
 import minioClient from '../../../config/minioClient.js';
 import compress from '../../../config/sharpConfig.js';
@@ -16,6 +17,10 @@ import { getAuth } from '../../../config/auth.js';
 import { ativarUsuarioPadrao } from '../ativarUsuarioPadrao.js';
 
 jest.mock('../UsuarioRepository.js');
+jest.mock('../../../utils/services/EmailService.js', () => ({
+  __esModule: true,
+  default: { disponivel: jest.fn(() => true) },
+}));
 
 const mockCollection = { deleteMany: jest.fn(), findOne: jest.fn() };
 mongoose.connection.db = { collection: jest.fn(() => mockCollection) };
@@ -395,6 +400,19 @@ describe('UsuarioService', () => {
       });
       await expect(service.reenviarConvite('1')).rejects.toMatchObject({
         statusCode: 400,
+      });
+      expect(authApiMock.requestPasswordReset).not.toHaveBeenCalled();
+    });
+
+    it('recusa com 503 quando o e-mail não está configurado', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: '1',
+        email: 'fulano@teste.com',
+        ativo: false,
+      });
+      EmailService.disponivel.mockReturnValueOnce(false);
+      await expect(service.reenviarConvite('1')).rejects.toMatchObject({
+        statusCode: 503,
       });
       expect(authApiMock.requestPasswordReset).not.toHaveBeenCalled();
     });

@@ -13,6 +13,7 @@ const REGEX_INVISIVEIS_UNICODE = new RegExp(
 
 export function limparCaracteresInvisiveis(valor: string): string {
   return valor
+    .normalize('NFKC')
     .replace(REGEX_CONTROLES_ASCII, '')
     .replace(REGEX_INVISIVEIS_UNICODE, '')
     .trim();

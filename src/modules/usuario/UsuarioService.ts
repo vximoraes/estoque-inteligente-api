@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import UsuarioRepository from './UsuarioRepository.js';
+import EmailService from '../../utils/services/EmailService.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 import {
   CustomError,
@@ -267,6 +268,17 @@ class UsuarioService {
         field: 'Usuário',
         details: [],
         customMessage: 'Este usuário já ativou sua conta.',
+      });
+    }
+
+    if (!EmailService.disponivel()) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.SERVICE_UNAVAILABLE.code,
+        errorType: 'emailServiceUnavailable',
+        field: 'Email',
+        details: [],
+        customMessage:
+          'O serviço de e-mail não está configurado; o convite não foi reenviado.',
       });
     }
 

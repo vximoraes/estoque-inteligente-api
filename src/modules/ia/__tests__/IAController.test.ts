@@ -253,4 +253,42 @@ describe('IAController', () => {
       ]);
     });
   });
+
+  describe('enviarMensagem — resposta cortada por tamanho', () => {
+    it('avisa o usuário quando o modelo para por MAX_TOKENS', async () => {
+      req.params = { id: '507f1f77bcf86cd799439011' };
+      req.body = { content: 'Liste tudo em detalhes' };
+      res = {
+        ...res,
+        setHeader: jest.fn(),
+        flushHeaders: jest.fn(),
+        write: jest.fn(),
+        end: jest.fn(),
+        on: jest.fn(),
+      };
+      const conversa = {
+        mensagens: [],
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      ConversaModel.findOne.mockResolvedValue(conversa);
+      iniciarStream.mockReturnValue(true);
+      processarMensagem.mockImplementation(async (...args) => {
+        const aoTerminarChamada = args[6];
+        return (async function* () {
+          yield {
+            event: 'on_chat_model_stream',
+            data: { chunk: { content: 'Parte da lista' } },
+          };
+          aoTerminarChamada('MAX_TOKENS');
+        })();
+      });
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('Resposta cortada por limite de tamanho'),
+      );
+      expect(conversa.mensagens[1].content).toContain('Resposta cortada');
+    });
+  });
 });

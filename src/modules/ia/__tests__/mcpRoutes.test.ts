@@ -5,6 +5,8 @@ import {
   logarUsuarioPadrao,
   criarItem,
   sufixoUnico,
+  criarCategoria,
+  criarPatrimonio,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 const ACCEPT = 'application/json, text/event-stream';
@@ -276,6 +278,39 @@ describe('Rotas do MCP (/mcp)', () => {
       for (let i = 1; i < itens.length; i++) {
         expect(itens[i - 1].deficit).toBeGreaterThanOrEqual(itens[i].deficit);
       }
+    });
+
+    it('buscarCategorias traz a contagem completa de itens e de unidades por categoria', async () => {
+      const consumo = await criarCategoria(token);
+      await criarItem(token, { categoria: consumo._id });
+      await criarItem(token, { categoria: consumo._id });
+      const permanente = await criarCategoria(token, { tipo: 'permanente' });
+      for (let i = 0; i < 3; i++) {
+        await criarPatrimonio(token, { categoria: permanente._id });
+      }
+
+      const [dadosConsumo] = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarCategorias', {
+          nome: consumo.nome,
+        }),
+      );
+      const [dadosPermanente] = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarCategorias', {
+          nome: permanente.nome,
+        }),
+      );
+
+      expect(dadosConsumo.itens_ativos).toBe(2);
+      expect(dadosPermanente.unidades_patrimonio_ativas).toBe(3);
+    });
+
+    it('verificarItensAbaixoMinimo ignora item sem estoque mínimo', async () => {
+      const item = await criarItem(token, { estoque_minimo: '0' });
+      const itens = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'verificarItensAbaixoMinimo'),
+      );
+      expect(itens.map((i) => i.nome)).not.toContain(item.nome);
+      expect(itens.every((i) => i.estoque_minimo > 0)).toBe(true);
     });
 
     it('itensPrioritariosCompra deve calcular score = deficit * (1 + saidas_30_dias) e ordenar', async () => {

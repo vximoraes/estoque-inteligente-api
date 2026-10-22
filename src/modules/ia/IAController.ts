@@ -184,6 +184,9 @@ class IAController {
               modeloUsado = modelo;
             },
             req.fuso_horario,
+            (motivo) => {
+              respostaTruncadaPorTamanho = motivo === 'MAX_TOKENS';
+            },
           );
 
           for await (const event of stream) {
@@ -222,7 +225,6 @@ class IAController {
                       total_tokens?: number;
                       input_token_details?: { cache_read?: number };
                     };
-                    response_metadata?: { finishReason?: string };
                   }
                 | undefined;
               const usage = output?.usage_metadata;
@@ -234,8 +236,6 @@ class IAController {
                   usage.input_token_details?.cache_read ?? 0;
                 uso.passosLlm += 1;
               }
-              respostaTruncadaPorTamanho =
-                output?.response_metadata?.finishReason === 'MAX_TOKENS';
             } else if (evt.event === 'on_tool_start') {
               if (evt.run_id) inicioFerramentas.set(evt.run_id, Date.now());
             } else if (

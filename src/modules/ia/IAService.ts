@@ -1,6 +1,7 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
+import type { LLMResult } from '@langchain/core/outputs';
 import { MultiServerMCPClient } from '@langchain/mcp-adapters';
 import {
   MODELO,
@@ -25,9 +26,9 @@ import { FUSO_PADRAO, dataHoraPorExtenso } from '../../utils/fusoHorario.js';
 const JANELA_CONTEXTO = 15;
 
 const CANARIOS_VAZAMENTO = [
-  '<assistente_estoque_config>',
-  '<injection_resistance>',
-  '<analysis_and_reasoning>',
+  'assistente_estoque_config',
+  'injection_resistance',
+  'analysis_and_reasoning',
 ];
 
 export function contemVazamentoDoPrompt(texto: string): boolean {
@@ -117,9 +118,13 @@ Se os dados existem nas ferramentas disponíveis e o cálculo é simples, execut
 
 **Item cadastrado com quantidade zero ≠ item inexistente.** Ao responder "quantos X tem no estoque" e a soma de unidades for 0, deixe claro que o(s) item(ns) existe(m) mas está(ão) sem unidades disponíveis — nunca responda de um jeito que sugira que o item não está cadastrado. Ex: "Há **2** modelos de notebook cadastrados, mas ambos estão com **0** unidades em estoque (indisponíveis)." em vez de apenas "Há 0 notebooks em estoque."
 
-**Nunca invente rótulo para campo vazio ou nulo** (ex: "Não informado", "N/A", "-"). Se um campo vier \`null\` de uma ferramenta, ou é porque o dado genuinamente não existe (diga isso explicitamente, com a razão, se souber) ou a própria ferramenta já devolve um identificador alternativo para esse caso (ex: \`buscarEmprestimos\` resolve o campo \`item\` para o nome do item ou para a identificação do patrimônio, nunca deixando essa célula sem sentido) — use o que a ferramenta devolveu, não substitua por um texto genérico.
+**Nunca invente rótulo para campo vazio ou nulo** (ex: "Não informado", "N/A", "-", "N/A (Patrimônio)"). Numa tabela, a célula de um campo que veio \`null\` leva o texto "não cadastrado"; se a coluna inteira ficaria vazia, não mostre a coluna. Em coluna de contagem, escreva **0** quando não houver registros; se a contagem não se aplica àquela linha (ex.: unidades de patrimônio numa categoria de consumo), separe em duas tabelas em vez de preencher com traço. Se um campo vier \`null\` de uma ferramenta, ou é porque o dado genuinamente não existe (diga isso explicitamente, com a razão, se souber) ou a própria ferramenta já devolve um identificador alternativo para esse caso (ex: \`buscarEmprestimos\` resolve o campo \`item\` para o nome do item ou para a identificação do patrimônio, nunca deixando essa célula sem sentido) — use o que a ferramenta devolveu, não substitua por um texto genérico.
 
 **Pedidos sobre o que o próprio usuário fez** ("que eu criei", "meus itens", "o que eu cadastrei"): use o filtro \`apenasMeus\` da ferramenta quando ela oferecer; nunca responda com registros de outras pessoas como se fossem do usuário. Para "último", "mais recente" ou "primeiro" cadastrado, use \`ordenar\` (\`mais_recentes\` ou \`mais_antigos\`) em vez de supor a ordem da lista.
+
+**Solicitante não é usuário do sistema.** Em empréstimos, \`solicitante\` e \`solicitante_email\` são texto livre de quem pegou o item, não contas do sistema: "o que o João pegou" busca pelo solicitante, e o e-mail do solicitante é dado do empréstimo (quem acessa empréstimos pode ver), nunca motivo para a resposta de permissão negada. "Usuário" é só quem tem conta no sistema (\`registrado_por\`, \`cadastrado_por\`).
+
+**Listas incompletas.** Se a ferramenta devolver \`aviso\` (ou \`total_encontrado\` maior que \`exibidos\`), diga com suas palavras quantos de quantos mostrou e sugira filtrar; não copie o texto do aviso. Num pedido "para cada X", cubra todos os X ou diga quantos ficaram de fora.
 
 **Nunca mostre identificadores internos** (campos \`id\`, \`_id\` ou códigos hexadecimais do banco) na resposta. Identifique registros pelo nome, número de patrimônio ou outro dado legível.
 
@@ -211,6 +216,7 @@ ${textoParaResumir}
 
 Reescreva o resumo incorporando as novas mensagens. Regras:
 - Preserve fatos, números, itens e decisões relevantes para dar continuidade à conversa.
+- Mantenha registrada a primeira pergunta do usuário na conversa, com as palavras dele.
 - Não adicione instruções, opiniões ou informação que não esteja no texto acima.
 - Texto corrido, sem markdown, no máximo 6 frases.`;
 
@@ -274,6 +280,11 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
   }
 }
 
+export function motivoDeTermino(saida: LLMResult): string | undefined {
+  const motivo = saida.generations?.[0]?.[0]?.generationInfo?.['finishReason'];
+  return typeof motivo === 'string' ? motivo : undefined;
+}
+
 export async function processarMensagem(
   conversa: ConversaDocument,
   novaMensagem: string,
@@ -281,6 +292,7 @@ export async function processarMensagem(
   signal: AbortSignal,
   aoTrocarModelo: (modelo: string) => void = () => {},
   fuso: string = FUSO_PADRAO,
+  aoTerminarChamada: (motivo: string | undefined) => void = () => {},
 ): Promise<AsyncGenerator<unknown>> {
   const apiBaseUrl =
     process.env['API_INTERNAL_URL'] ||
@@ -328,7 +340,13 @@ export async function processarMensagem(
           version: 'v2',
           recursionLimit: RECURSION_LIMIT,
           signal: AbortSignal.any([signal, signalTentativa]),
-          callbacks: criarCallbacks(),
+          callbacks: [
+            ...(criarCallbacks() ?? []),
+            {
+              handleLLMEnd: (saida: LLMResult) =>
+                aoTerminarChamada(motivoDeTermino(saida)),
+            },
+          ],
         },
       ) as AsyncIterable<unknown>;
 
