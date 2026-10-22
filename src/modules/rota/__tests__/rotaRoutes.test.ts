@@ -142,6 +142,30 @@ describe('Rotas de Rota (RBAC)', () => {
       esperarEnvelopeSucesso(res, 200);
     });
 
+    it('tira a rota excluída das permissões dos grupos', async () => {
+      const rota = await criarRota(token);
+      const grupo = await req(token)
+        .post('/grupos')
+        .send({ nome: sufixoUnico('zz-grupo'), descricao: 'Grupo de teste' });
+      esperarEnvelopeSucesso(grupo, 201);
+      const idGrupo = grupo.body.data._id;
+      esperarEnvelopeSucesso(
+        await req(token)
+          .post(`/grupos/${idGrupo}/rotas`)
+          .send({ idRota: rota._id }),
+        200,
+      );
+
+      esperarEnvelopeSucesso(
+        await req(token).delete(`/rotas/${rota._id}`),
+        200,
+      );
+
+      const depois = await req(token).get(`/grupos/${idGrupo}`);
+      const rotasDoGrupo = depois.body.data.permissoes.map((p) => p.rota);
+      expect(rotasDoGrupo).not.toContain(rota.rota);
+    });
+
     it('deve retornar 404 ao deletar rota inexistente', async () => {
       const res = await req(token).delete(`/rotas/${ID_INEXISTENTE}`);
       expect(res.status).toBe(404);

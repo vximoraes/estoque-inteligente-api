@@ -1,6 +1,11 @@
 jest.mock('../RotaRepository.js');
+jest.mock('../../grupo/GrupoModel.js');
+jest.mock('../../usuario/UsuarioModel.js');
 
+import mongoose from 'mongoose';
 import RotaService from '../RotaService.js';
+import GrupoModel from '../../grupo/GrupoModel.js';
+import UsuarioModel from '../../usuario/UsuarioModel.js';
 import RotaRepository from '../RotaRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
@@ -82,10 +87,25 @@ describe('RotaService', () => {
       repositoryMock.buscarPorId.mockResolvedValue({ rota: 'itens' });
       repositoryMock.deletar.mockResolvedValue({ _id: 'r1' });
 
+      const sessao = { id: 'sessao' };
+      jest
+        .spyOn(mongoose.connection, 'transaction')
+        .mockImplementation((fn) => fn(sessao));
+
       const req = { route: { path: '/rotas/:id' } };
       const resultado = await service.deletar(req, 'r1');
 
       expect(resultado).toEqual({ _id: 'r1' });
+      expect(GrupoModel.updateMany).toHaveBeenCalledWith(
+        {},
+        { $pull: { permissoes: { rota: 'itens' } } },
+        { session: sessao },
+      );
+      expect(UsuarioModel.updateMany).toHaveBeenCalledWith(
+        {},
+        { $pull: { permissoes: { rota: 'itens' } } },
+        { session: sessao },
+      );
     });
 
     it('deve lançar 404 quando rota a deletar não existe', async () => {

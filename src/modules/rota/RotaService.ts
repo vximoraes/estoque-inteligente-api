@@ -1,4 +1,7 @@
+import mongoose from 'mongoose';
 import RotaRepository from './RotaRepository.js';
+import GrupoModel from '../grupo/GrupoModel.js';
+import UsuarioModel from '../usuario/UsuarioModel.js';
 import {
   CustomError,
   HttpStatusCodes,
@@ -72,7 +75,13 @@ class RotaService {
         ),
       });
     }
-    return await this.repository.deletar(id);
+    return await mongoose.connection.transaction(async (session) => {
+      const removida = await this.repository.deletar(id, session);
+      const semRota = { $pull: { permissoes: { rota: rota.rota } } };
+      await GrupoModel.updateMany({}, semRota, { session });
+      await UsuarioModel.updateMany({}, semRota, { session });
+      return removida;
+    });
   }
 }
 
