@@ -64,6 +64,7 @@ const PatrimonioEventoDetalhes = registry.register(
         'transferencia',
         'baixa',
         'reativacao',
+        'inativacao',
       ])
       .openapi({ example: 'cadastro' }),
     status_anterior: z.string().nullable().openapi({ example: null }),

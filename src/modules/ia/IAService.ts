@@ -14,7 +14,11 @@ import {
   RESUMO_MAX_OUTPUT_TOKENS,
   GEMINI_BASE_URL,
 } from './IAConfig.js';
-import type { IMensagem, ConversaDocument } from './ConversaModel.js';
+import ConversaModel, {
+  type IMensagem,
+  type ConversaDocument,
+} from './ConversaModel.js';
+import { registrarUso } from './IAUsoService.js';
 import { criarCallbacks } from './IAObservabilidade.js';
 import { limparCaracteresInvisiveis } from './IASchema.js';
 import logger from '../../utils/logger.js';
@@ -25,6 +29,7 @@ import {
 import { FUSO_PADRAO, dataHoraPorExtenso } from '../../utils/fusoHorario.js';
 
 const JANELA_CONTEXTO = 15;
+const LOTE_RESUMO = 10;
 
 const CANARIOS_VAZAMENTO = [
   'assistente_estoque_config',
@@ -180,26 +185,45 @@ export function calcularFatiaParaResumir(
   resumoAteIndice: number,
 ): { inicio: number; fim: number } | null {
   const fim = totalMensagens - JANELA_CONTEXTO;
-  if (fim <= resumoAteIndice) return null;
+  if (fim - resumoAteIndice < LOTE_RESUMO) return null;
   return { inicio: resumoAteIndice, fim };
 }
 
-function prepararHistorico(mensagens: IMensagem[]) {
-  const janela = mensagens.slice(-JANELA_CONTEXTO);
+export function inicioDoHistorico(
+  totalMensagens: number,
+  resumoAteIndice: number,
+): number {
+  return Math.max(
+    resumoAteIndice,
+    totalMensagens - JANELA_CONTEXTO - LOTE_RESUMO,
+    0,
+  );
+}
+
+function prepararHistorico(mensagens: IMensagem[], resumoAteIndice: number) {
+  const janela = mensagens.slice(
+    inicioDoHistorico(mensagens.length, resumoAteIndice),
+  );
   return janela.map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
   );
 }
 
-async function atualizarResumoSeNecessario(
+const resumosEmAndamento = new Set<string>();
+
+export async function atualizarResumoSeNecessario(
   conversa: ConversaDocument,
+  usuarioId: string,
 ): Promise<void> {
   const resumoAteIndice = conversa.resumoAteIndice ?? 0;
   const fatia = calcularFatiaParaResumir(
     conversa.mensagens.length,
     resumoAteIndice,
   );
-  if (!fatia) return;
+  const conversaId = String(conversa._id);
+  if (!fatia || resumosEmAndamento.has(conversaId)) return;
+  resumosEmAndamento.add(conversaId);
+  const inicioMs = Date.now();
 
   const mensagensParaResumir = conversa.mensagens.slice(
     fatia.inicio,
@@ -235,13 +259,16 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
 
   const invocarComReserva = async (
     modelo: string,
-  ): ReturnType<typeof invocarResumo> => {
+  ): Promise<{
+    resposta: Awaited<ReturnType<typeof invocarResumo>>;
+    modelo: string;
+  }> => {
     const reserva = proximoModelo(modelo);
     const limite = reserva
       ? AbortSignal.timeout(TIMEOUT_MODELO_PRINCIPAL_MS)
       : undefined;
     try {
-      return await invocarResumo(modelo, limite);
+      return { resposta: await invocarResumo(modelo, limite), modelo };
     } catch (err) {
       if (!reserva || (!limite?.aborted && !ehErroIndisponibilidade(err))) {
         throw err;
@@ -255,7 +282,23 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
   };
 
   try {
-    const resposta = await invocarComReserva(MODELO);
+    const { resposta, modelo } = await invocarComReserva(MODELO);
+    const tokens = resposta.usage_metadata;
+    await registrarUso({
+      usuarioId,
+      conversaId,
+      modelo,
+      tipo: 'resumo',
+      tokensEntrada: tokens?.input_tokens ?? 0,
+      tokensSaida: tokens?.output_tokens ?? 0,
+      tokensTotais: tokens?.total_tokens ?? 0,
+      tokensCacheLeitura: tokens?.input_token_details?.cache_read ?? 0,
+      passosLlm: 1,
+      ferramentasChamadas: 0,
+      ferramentas: [],
+      duracaoMs: Date.now() - inicioMs,
+      finalizadoPor: 'concluido',
+    });
     const conteudo = resposta.content;
     const novoResumo =
       typeof conteudo === 'string'
@@ -273,14 +316,22 @@ Reescreva o resumo incorporando as novas mensagens. Regras:
           : '';
 
     if (novoResumo.trim()) {
-      conversa.resumo = novoResumo.trim();
-      conversa.resumoAteIndice = fatia.fim;
+      await ConversaModel.updateOne(
+        {
+          _id: conversa._id,
+          resumoAteIndice:
+            resumoAteIndice === 0 ? { $in: [0, null] } : resumoAteIndice,
+        },
+        { $set: { resumo: novoResumo.trim(), resumoAteIndice: fatia.fim } },
+      );
     }
   } catch (err) {
     logger.warn(
       { message: (err as Error)?.message },
       'IA: falha ao atualizar resumo da conversa, mantendo resumo anterior',
     );
+  } finally {
+    resumosEmAndamento.delete(conversaId);
   }
 }
 
@@ -319,10 +370,11 @@ export async function processarMensagem(
   try {
     const tools = await mcpClient.getTools();
 
-    await atualizarResumoSeNecessario(conversa);
-
     const prompt = montarPromptComResumo(conversa.resumo, fuso);
-    const historicoLangChain = prepararHistorico(conversa.mensagens);
+    const historicoLangChain = prepararHistorico(
+      conversa.mensagens,
+      conversa.resumoAteIndice ?? 0,
+    );
     const mensagens = [...historicoLangChain, new HumanMessage(novaMensagem)];
 
     const criarStream = (modelo: string, signalTentativa: AbortSignal) =>

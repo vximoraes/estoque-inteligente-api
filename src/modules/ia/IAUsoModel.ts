@@ -7,9 +7,12 @@ export type FinalizadoPor =
   | 'tempo_esgotado'
   | 'limite_passos';
 
+export type TipoUso = 'resposta' | 'resumo';
+
 export interface IIAUso {
   usuario: mongoose.Types.ObjectId;
   conversa: mongoose.Types.ObjectId;
+  tipo: TipoUso;
   modelo: string;
   tokens_entrada: number;
   tokens_saida: number;
@@ -40,6 +43,7 @@ const iaUsoSchema = new mongoose.Schema<IAUsoDocument>(
       ref: 'conversas',
       required: true,
     },
+    tipo: { type: String, enum: ['resposta', 'resumo'], default: 'resposta' },
     modelo: { type: String, required: true },
     tokens_entrada: { type: Number, default: 0 },
     tokens_saida: { type: Number, default: 0 },

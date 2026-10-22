@@ -1,6 +1,11 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
-import { processarMensagem, contemVazamentoDoPrompt } from './IAService.js';
+import {
+  processarMensagem,
+  contemVazamentoDoPrompt,
+  atualizarResumoSeNecessario,
+} from './IAService.js';
+import { etapaDaFerramenta } from './etapaDaFerramenta.js';
 import { TIMEOUT_MS, MODELO } from './IAConfig.js';
 import {
   registrarUso,
@@ -238,6 +243,9 @@ class IAController {
               }
             } else if (evt.event === 'on_tool_start') {
               if (evt.run_id) inicioFerramentas.set(evt.run_id, Date.now());
+              res.write(
+                `data: ${JSON.stringify({ type: 'status', message: etapaDaFerramenta(evt.name) })}\n\n`,
+              );
             } else if (
               evt.event === 'on_tool_end' ||
               evt.event === 'on_tool_error'
@@ -373,6 +381,7 @@ class IAController {
 
           finalizarStream(usuarioId as string);
           res.end();
+          void atualizarResumoSeNecessario(conversa, usuarioId as string);
         }
       },
     );

@@ -304,7 +304,21 @@ class PatrimonioService {
       });
     }
 
-    return await this.repository.atualizar(id, { ativo: false }, req);
+    const inativado = await this.repository.atualizar(
+      id,
+      { ativo: false },
+      req,
+    );
+
+    await PatrimonioEventoModel.create({
+      patrimonio: id,
+      tipo: 'inativacao',
+      status_anterior: patrimonio.status,
+      status_novo: patrimonio.status,
+      usuario: req.user_id,
+    });
+
+    return inativado;
   }
 
   // --- Consumidos pela Fase 3 (EmprestimoService); ainda não chamados por

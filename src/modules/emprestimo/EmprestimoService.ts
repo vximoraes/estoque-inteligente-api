@@ -24,6 +24,12 @@ const MOTIVO_UNIDADE_INDISPONIVEL: Record<string, string> = {
   Baixado: 'Esta unidade foi baixada e não pode ser emprestada.',
 };
 
+function textoDoCampo(valor: unknown): string {
+  if (valor === null || valor === undefined) return '';
+  if (valor instanceof Date) return valor.toISOString();
+  return String(valor);
+}
+
 class EmprestimoService {
   private repository: EmprestimoRepository;
   private movimentacaoService: MovimentacaoService;
@@ -510,9 +516,27 @@ class EmprestimoService {
   async atualizar(
     id: string,
     parsedData: AtualizarEmprestimo,
-    _req: AuthenticatedRequest,
+    req: AuthenticatedRequest,
   ) {
-    return this.repository.atualizar(id, parsedData as Record<string, unknown>);
+    const atual = await this.repository.buscarPorId(id);
+    const dataHora = new Date();
+    const alteracoes = Object.entries(parsedData)
+      .filter(([, valor]) => valor !== undefined)
+      .map(([campo, valor]) => ({
+        campo,
+        anterior: textoDoCampo(atual.get(campo)),
+        novo: textoDoCampo(valor),
+        usuario: req.user_id,
+        data_hora: dataHora,
+      }))
+      .filter((alteracao) => alteracao.anterior !== alteracao.novo);
+
+    return this.repository.atualizar(id, {
+      ...parsedData,
+      ...(alteracoes.length > 0 && {
+        $push: { alteracoes: { $each: alteracoes } },
+      }),
+    });
   }
 
   async excluir(id: string) {

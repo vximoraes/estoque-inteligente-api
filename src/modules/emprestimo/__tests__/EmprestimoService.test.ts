@@ -443,4 +443,55 @@ describe('EmprestimoService', () => {
       expect(resultado).toEqual({ message: 'ok' });
     });
   });
+
+  describe('atualizar', () => {
+    const atual = {
+      solicitante_nome: 'Ana',
+      solicitante_email: 'ana@x.com',
+      data_prevista_devolucao: new Date('2026-11-01T12:00:00Z'),
+    };
+
+    beforeEach(() => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        get: (campo) => atual[campo],
+      });
+      repositoryMock.atualizar.mockResolvedValue({ _id: 'emp1' });
+    });
+
+    it('registra só os campos que mudaram, com valor anterior, novo e quem alterou', async () => {
+      await service.atualizar(
+        'emp1',
+        {
+          solicitante_nome: 'Ana',
+          solicitante_email: 'ana.souza@x.com',
+          data_prevista_devolucao: new Date('2026-11-05T12:00:00Z'),
+        },
+        req,
+      );
+
+      const payload = repositoryMock.atualizar.mock.calls[0][1];
+      expect(payload.solicitante_email).toBe('ana.souza@x.com');
+      expect(payload.$push.alteracoes.$each).toEqual([
+        expect.objectContaining({
+          campo: 'solicitante_email',
+          anterior: 'ana@x.com',
+          novo: 'ana.souza@x.com',
+          usuario: 'user1',
+        }),
+        expect.objectContaining({
+          campo: 'data_prevista_devolucao',
+          anterior: '2026-11-01T12:00:00.000Z',
+          novo: '2026-11-05T12:00:00.000Z',
+        }),
+      ]);
+    });
+
+    it('não registra alteração quando nada mudou', async () => {
+      await service.atualizar('emp1', { solicitante_nome: 'Ana' }, req);
+
+      expect(repositoryMock.atualizar).toHaveBeenCalledWith('emp1', {
+        solicitante_nome: 'Ana',
+      });
+    });
+  });
 });

@@ -1,6 +1,8 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import SSEService from '../../utils/services/SSEService.js';
+import Grupo from '../grupo/GrupoModel.js';
+import Usuario from '../usuario/UsuarioModel.js';
 
 export interface IEstoque {
   quantidade: number;
@@ -75,6 +77,28 @@ estoqueSchema.post(
   },
 );
 
+async function quemRecebeAvisoDeEstoque(): Promise<mongoose.Types.ObjectId[]> {
+  const acessoAItens = {
+    $elemMatch: { rota: 'itens', ativo: true, buscar: true },
+  };
+  const grupos = await Grupo.find(
+    { ativo: true, permissoes: acessoAItens },
+    '_id',
+  ).lean();
+  const usuarios = await Usuario.find(
+    {
+      ativo: true,
+      desativadoEm: null,
+      $or: [
+        { grupos: { $in: grupos.map((grupo) => grupo._id) } },
+        { permissoes: acessoAItens },
+      ],
+    },
+    '_id',
+  ).lean();
+  return usuarios.map((usuario) => usuario._id as mongoose.Types.ObjectId);
+}
+
 estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
   this: unknown,
   itemId: mongoose.Types.ObjectId,
@@ -126,21 +150,27 @@ estoqueSchema.statics['atualizarQuantidadeItem'] = async function (
       mensagem = `${nomeItem} está com estoque baixo (${quantidadeTotal} unidades)`;
     }
 
-    if (mensagem && item['usuario']) {
-      const novaNotificacao = (await Notificacao.create({
-        mensagem,
-        data_hora: new Date(),
-        visualizada: false,
-        ativo: true,
-        usuario: item['usuario'],
-      })) as Record<string, unknown>;
+    if (mensagem) {
+      const destinatarios = await quemRecebeAvisoDeEstoque();
+      const dataHora = new Date();
+      const notificacoes = (await Notificacao.insertMany(
+        destinatarios.map((usuario) => ({
+          mensagem,
+          data_hora: dataHora,
+          visualizada: false,
+          ativo: true,
+          usuario,
+        })),
+      )) as unknown as Array<Record<string, unknown>>;
 
-      SSEService.sendNotification(item['usuario'], {
-        _id: novaNotificacao['_id'],
-        mensagem: novaNotificacao['mensagem'],
-        data_hora: novaNotificacao['data_hora'],
-        visualizada: novaNotificacao['visualizada'],
-      });
+      for (const notificacao of notificacoes) {
+        SSEService.sendNotification(String(notificacao['usuario']), {
+          _id: notificacao['_id'],
+          mensagem: notificacao['mensagem'],
+          data_hora: notificacao['data_hora'],
+          visualizada: notificacao['visualizada'],
+        });
+      }
     }
   }
 };

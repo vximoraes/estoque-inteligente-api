@@ -14,6 +14,7 @@ npm run test:server      # sobe a API de teste (porta 3011, Mongo efêmero, seed
 npm run test:routes      # suíte de integração (*Routes.test.ts) — sobe/derruba o servidor sozinha
 npm run seed              # popula o MongoDB com dados fake (src/seeds/seeds.ts)
 npm run typecheck         # tsc --noEmit
+npm run build             # compila para dist/ (tsconfig.build.json); a imagem Docker roda node dist/server.js
 npm run lint / lint:fix
 npm run format / format:check            # prettier
 npm run fix               # eslint --fix + prettier --write

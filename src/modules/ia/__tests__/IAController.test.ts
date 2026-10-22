@@ -18,6 +18,7 @@ jest.mock('../IALimites.js', () => ({
 jest.mock('../IAService.js', () => ({
   processarMensagem: jest.fn(),
   contemVazamentoDoPrompt: jest.fn().mockReturnValue(false),
+  atualizarResumoSeNecessario: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../IAObservabilidade.js', () => ({
   comTrace: jest.fn((_contexto, fn) => fn(jest.fn())),

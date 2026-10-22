@@ -98,12 +98,13 @@ Arquivo: `src/modules/emprestimo/__tests__/emprestimoRoutes.test.ts`
 
 ## PUT /emprestimos/:id — Atualização
 
-| Funcionalidade         | Comportamento Esperado                   | Verificações                                 | Critérios de Aceite |
-| :--------------------- | :--------------------------------------- | :------------------------------------------- | :------------------ |
-| **Cenários felizes**   |                                          |                                              |                     |
-| Atualizar observações  | Deve atualizar `observacoes_emprestimo`. | `PUT /emprestimos/:id` com nova observação.  | Retorna `200`.      |
-| **Cenários tristes**   |                                          |                                              |                     |
-| Empréstimo inexistente | Deve falhar pois o alvo não existe.      | `PUT /emprestimos/000000000000000000000000`. | Retorna `404`.      |
+| Funcionalidade         | Comportamento Esperado                                         | Verificações                                                      | Critérios de Aceite                                   |
+| :--------------------- | :------------------------------------------------------------- | :---------------------------------------------------------------- | :---------------------------------------------------- |
+| **Cenários felizes**   |                                                                |                                                                   |                                                       |
+| Atualizar observações  | Deve atualizar `observacoes_emprestimo`.                       | `PUT /emprestimos/:id` com nova observação.                       | Retorna `200`.                                        |
+| **Cenários tristes**   |                                                                |                                                                   |                                                       |
+| Trilha de alteração    | Deve guardar campo, valor anterior, valor novo e quem alterou. | `PUT` com novo `solicitante_nome`, depois `GET /emprestimos/:id`. | `alteracoes` com o anterior, o novo e `usuario.nome`. |
+| Empréstimo inexistente | Deve falhar pois o alvo não existe.                            | `PUT /emprestimos/000000000000000000000000`.                      | Retorna `404`.                                        |
 
 ## DELETE /emprestimos/:id — Exclusão
 

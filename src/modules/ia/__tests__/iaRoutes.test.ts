@@ -203,6 +203,10 @@ describe('Rotas de IA', () => {
       const { eventos } = await enviar(conversa._id, 'Quais categorias?');
 
       expect(eventos.at(-1)).toEqual({ type: 'done' });
+      expect(eventos).toContainEqual({
+        type: 'status',
+        message: 'Consultando categorias…',
+      });
       expect(
         eventos
           .filter((e) => e.type === 'token')
@@ -248,7 +252,7 @@ describe('Rotas de IA', () => {
       esperarEnvelopeErro((await enviar(ID_INEXISTENTE, 'Olá')).res, 404);
     });
 
-    it('resume as mensagens que saem da janela antes de responder', async () => {
+    it('resume em lote depois de responder, sem atrasar a resposta', async () => {
       gemini.responderCom((corpo) =>
         JSON.stringify(corpo).includes('resumo contínuo')
           ? [{ text: 'Resumo simulado.' }]
@@ -256,27 +260,38 @@ describe('Rotas de IA', () => {
       );
       const conversa = await criarConversa();
       const conversas = mongoose.connection.db!.collection('conversas');
-      await conversas.updateOne(
-        { _id: new mongoose.Types.ObjectId(String(conversa._id)) },
-        {
-          $set: {
-            mensagens: Array.from({ length: 16 }, (_, i) => ({
-              role: i % 2 === 0 ? 'user' : 'assistant',
-              content: `mensagem ${i}`,
-            })),
-          },
+      const filtro = {
+        _id: new mongoose.Types.ObjectId(String(conversa._id)),
+      };
+      await conversas.updateOne(filtro, {
+        $set: {
+          mensagens: Array.from({ length: 24 }, (_, i) => ({
+            role: i % 2 === 0 ? 'user' : 'assistant',
+            content: `mensagem ${i}`,
+          })),
         },
-      );
+      });
 
       const { eventos } = await enviar(conversa._id, 'Mais uma');
 
       expect(eventos.at(-1)).toEqual({ type: 'done' });
-      const salva = await conversas.findOne({
-        _id: new mongoose.Types.ObjectId(String(conversa._id)),
-      });
+      const pedidoDaResposta = JSON.stringify(gemini.chamadas[0]);
+      expect(pedidoDaResposta).not.toContain('resumo contínuo');
+      expect(pedidoDaResposta).toContain('mensagem 0');
+
+      let salva;
+      for (let i = 0; i < 50; i++) {
+        salva = await conversas.findOne(filtro);
+        if (salva?.['resumo']) break;
+        await new Promise((r) => setTimeout(r, 100));
+      }
       expect(salva!['resumo']).toBe('Resumo simulado.');
-      expect(salva!['resumoAteIndice']).toBe(2);
-      expect(salva!['mensagens']).toHaveLength(18);
+      expect(salva!['resumoAteIndice']).toBe(11);
+      expect(salva!['mensagens']).toHaveLength(26);
+      const usoDoResumo = await mongoose.connection
+        .db!.collection('ia_usos')
+        .findOne({ conversa: filtro._id, tipo: 'resumo' });
+      expect(usoDoResumo).not.toBeNull();
     });
   });
 });

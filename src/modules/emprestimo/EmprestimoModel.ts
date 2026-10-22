@@ -1,6 +1,14 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
+export interface IEmprestimoAlteracao {
+  campo: string;
+  anterior: string;
+  novo: string;
+  usuario: mongoose.Types.ObjectId;
+  data_hora: Date;
+}
+
 export interface IEmprestimo {
   item?: mongoose.Types.ObjectId | null;
   localizacao: mongoose.Types.ObjectId;
@@ -19,6 +27,7 @@ export interface IEmprestimo {
   usuario_responsavel: mongoose.Types.ObjectId;
   ativo: boolean;
   email_atraso_enviado: boolean;
+  alteracoes: IEmprestimoAlteracao[];
 }
 
 export type EmprestimoDocument = IEmprestimo & Document;
@@ -78,6 +87,20 @@ const emprestimoSchema = new mongoose.Schema<EmprestimoDocument>(
     },
     ativo: { type: Boolean, default: true },
     email_atraso_enviado: { type: Boolean, default: false },
+    alteracoes: [
+      {
+        _id: false,
+        campo: { type: String, required: true },
+        anterior: { type: String, default: '' },
+        novo: { type: String, default: '' },
+        usuario: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'usuarios',
+          required: true,
+        },
+        data_hora: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

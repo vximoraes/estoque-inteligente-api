@@ -211,6 +211,24 @@ describe('Rotas de Emprestimo', () => {
       esperarEnvelopeSucesso(res, 200);
     });
 
+    it('guarda quem alterou o solicitante, de que valor para qual', async () => {
+      const emprestimo = await criarEmprestimo(token);
+      await req(token)
+        .put(`/emprestimos/${emprestimo._id}`)
+        .send({ solicitante_nome: 'zz-Solicitante Corrigido' });
+
+      const res = await req(token).get(`/emprestimos/${emprestimo._id}`);
+      esperarEnvelopeSucesso(res, 200);
+      expect(res.body.data.alteracoes).toEqual([
+        expect.objectContaining({
+          campo: 'solicitante_nome',
+          anterior: emprestimo.solicitante_nome,
+          novo: 'zz-Solicitante Corrigido',
+          usuario: expect.objectContaining({ nome: expect.any(String) }),
+        }),
+      ]);
+    });
+
     it('deve retornar 404 ao atualizar empréstimo inexistente', async () => {
       const res = await req(token)
         .put(`/emprestimos/${ID_INEXISTENTE}`)

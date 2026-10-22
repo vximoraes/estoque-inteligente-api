@@ -56,7 +56,8 @@ class EmprestimoRepository {
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome')
-      .populate('patrimonio', 'numero_patrimonio status');
+      .populate('patrimonio', 'numero_patrimonio status')
+      .populate('alteracoes.usuario', 'nome');
 
     if (!documento) {
       throw new CustomError({
@@ -81,7 +82,8 @@ class EmprestimoRepository {
         .populate('item')
         .populate('localizacao')
         .populate('usuario_responsavel', 'nome')
-        .populate('patrimonio', 'numero_patrimonio status');
+        .populate('patrimonio', 'numero_patrimonio status')
+        .populate('alteracoes.usuario', 'nome');
 
       if (!data) {
         throw new CustomError({
@@ -142,6 +144,7 @@ class EmprestimoRepository {
         { path: 'localizacao' },
         { path: 'usuario_responsavel', select: 'nome' },
         { path: 'patrimonio' },
+        { path: 'alteracoes.usuario', select: 'nome' },
       ],
       sort: resolveSort(query['ordenar'], EMPRESTIMO_SORT_FIELDS, {
         data_saida: -1,
@@ -168,7 +171,8 @@ class EmprestimoRepository {
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome')
-      .populate('patrimonio', 'numero_patrimonio status');
+      .populate('patrimonio', 'numero_patrimonio status')
+      .populate('alteracoes.usuario', 'nome');
 
     if (!emprestimo) {
       throw new CustomError({
@@ -204,7 +208,8 @@ class EmprestimoRepository {
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome')
-      .populate('patrimonio', 'numero_patrimonio status');
+      .populate('patrimonio', 'numero_patrimonio status')
+      .populate('alteracoes.usuario', 'nome');
 
     if (!emprestimoAtualizado) {
       throw new CustomError({
@@ -242,7 +247,8 @@ class EmprestimoRepository {
       .populate('item')
       .populate('localizacao')
       .populate('usuario_responsavel', 'nome')
-      .populate('patrimonio', 'numero_patrimonio status');
+      .populate('patrimonio', 'numero_patrimonio status')
+      .populate('alteracoes.usuario', 'nome');
 
     if (!atualizado) {
       throw new CustomError({

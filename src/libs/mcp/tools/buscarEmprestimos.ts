@@ -110,6 +110,11 @@ export async function buscarEmprestimos(
         select: 'nome',
         model: UsuarioModel,
       })
+      .populate({
+        path: 'alteracoes.usuario',
+        select: 'nome',
+        model: UsuarioModel,
+      })
       .sort({ createdAt: -1 })
       .limit(Math.min(Number(limite), 50))
       .lean(),
@@ -139,6 +144,27 @@ export async function buscarEmprestimos(
       unknown
     > | null;
 
+    const emailVisivel = (email: string) =>
+      email && !umSolicitante ? mascararEmail(email) : email || null;
+    const alteracoes = (
+      (eObj['alteracoes'] as Array<Record<string, unknown>>) ?? []
+    ).map((alteracao) => {
+      const ehEmail = alteracao['campo'] === 'solicitante_email';
+      const valor = (chave: string) =>
+        ehEmail
+          ? emailVisivel(alteracao[chave] as string)
+          : alteracao[chave] || null;
+      return {
+        campo: alteracao['campo'],
+        anterior: valor('anterior'),
+        novo: valor('novo'),
+        alterado_por:
+          (alteracao['usuario'] as Record<string, unknown> | null)?.['nome'] ??
+          null,
+        data_hora: alteracao['data_hora'],
+      };
+    });
+
     const quantidadeAberta = Number(eObj['quantidade_aberta'] ?? 0);
     const dataPrevista = eObj['data_prevista_devolucao'];
     let statusCalculado: string;
@@ -156,11 +182,7 @@ export async function buscarEmprestimos(
       numero_patrimonio: patrimonio?.['numero_patrimonio'] ?? null,
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       solicitante: eObj['solicitante_nome'],
-      solicitante_email: eObj['solicitante_email']
-        ? umSolicitante
-          ? eObj['solicitante_email']
-          : mascararEmail(eObj['solicitante_email'] as string)
-        : null,
+      solicitante_email: emailVisivel(eObj['solicitante_email'] as string),
       registrado_por: responsavel?.['nome'] ?? null,
       quantidade_emprestada: eObj['quantidade_emprestada'],
       quantidade_devolvida: eObj['quantidade_devolvida'],
@@ -170,6 +192,7 @@ export async function buscarEmprestimos(
       data_devolucao_total: eObj['data_devolucao_total'] ?? null,
       observacoes_emprestimo: eObj['observacoes_emprestimo'] || null,
       observacoes_devolucao: eObj['observacoes_devolucao'] || null,
+      alteracoes,
       status: statusCalculado,
     };
   });

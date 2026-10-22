@@ -371,7 +371,7 @@ describe('PatrimonioService', () => {
       );
     });
 
-    it('deve inativar via repository.atualizar', async () => {
+    it('deve inativar via repository.atualizar e registrar o evento', async () => {
       PatrimonioModel.findById = jest
         .fn()
         .mockResolvedValue({ status: 'Disponível' });
@@ -383,6 +383,14 @@ describe('PatrimonioService', () => {
         'id1',
         { ativo: false },
         req,
+      );
+      expect(PatrimonioEventoModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          patrimonio: 'id1',
+          tipo: 'inativacao',
+          status_anterior: 'Disponível',
+          status_novo: 'Disponível',
+        }),
       );
     });
   });

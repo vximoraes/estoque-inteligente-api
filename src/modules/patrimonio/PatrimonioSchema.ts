@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { objectIdSchema } from '../../utils/commonFields.js';
 
 const dataAquisicaoSchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullish()
   .transform((val) => {
     if (!val || (typeof val === 'string' && val.trim() === '')) {
       return undefined;

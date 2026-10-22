@@ -2,6 +2,7 @@ import {
   contemVazamentoDoPrompt,
   montarPromptComResumo,
   calcularFatiaParaResumir,
+  inicioDoHistorico,
   executarComRetentativas,
   podeUsarModeloReserva,
   proximoModelo,
@@ -98,16 +99,27 @@ describe('calcularFatiaParaResumir', () => {
     expect(calcularFatiaParaResumir(10, 0)).toBeNull();
   });
 
-  it('retorna a fatia mais antiga assim que a conversa ultrapassa a janela', () => {
-    expect(calcularFatiaParaResumir(16, 0)).toEqual({ inicio: 0, fim: 1 });
+  it('espera juntar um lote de 10 mensagens fora da janela', () => {
+    expect(calcularFatiaParaResumir(16, 0)).toBeNull();
+    expect(calcularFatiaParaResumir(24, 0)).toBeNull();
+    expect(calcularFatiaParaResumir(25, 0)).toEqual({ inicio: 0, fim: 10 });
   });
 
-  it('acompanha o crescimento da conversa incrementalmente', () => {
-    expect(calcularFatiaParaResumir(20, 1)).toEqual({ inicio: 1, fim: 5 });
+  it('o próximo lote começa onde o resumo parou', () => {
+    expect(calcularFatiaParaResumir(34, 10)).toBeNull();
+    expect(calcularFatiaParaResumir(36, 10)).toEqual({ inicio: 10, fim: 21 });
+  });
+});
+
+describe('inicioDoHistorico', () => {
+  it('manda ao modelo tudo o que o resumo ainda não cobre', () => {
+    expect(inicioDoHistorico(10, 0)).toBe(0);
+    expect(inicioDoHistorico(24, 0)).toBe(0);
+    expect(inicioDoHistorico(30, 10)).toBe(10);
   });
 
-  it('retorna null quando o resumo já está em dia com a janela atual', () => {
-    expect(calcularFatiaParaResumir(20, 5)).toBeNull();
+  it('limita a 25 mensagens se o resumo ficar para trás', () => {
+    expect(inicioDoHistorico(40, 0)).toBe(15);
   });
 });
 

@@ -5,9 +5,30 @@ import Item from '../../item/ItemModel.js';
 import Categoria from '../../categoria/CategoriaModel.js';
 import Localizacao from '../../localizacao/LocalizacaoModel.js';
 import Notificacao from '../../notificacao/NotificacaoModel.js';
+import Grupo from '../../grupo/GrupoModel.js';
+import Usuario from '../../usuario/UsuarioModel.js';
 
 let mongoServer;
 const usuarioId = new mongoose.Types.ObjectId().toString();
+
+const permissao = (rota, buscar) => ({
+  rota,
+  ativo: true,
+  buscar,
+  enviar: false,
+  substituir: false,
+  modificar: false,
+  excluir: false,
+});
+
+async function criarUsuario(dados) {
+  return Usuario.create({
+    nome: 'Pessoa Teste',
+    email: `${new mongoose.Types.ObjectId()}@teste.com`,
+    ativo: true,
+    ...dados,
+  });
+}
 
 async function criarItemComEstoqueMinimo(estoqueMinimo) {
   const categoria = await Categoria.create({
@@ -34,6 +55,12 @@ describe('Modelo de Estoque', () => {
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
+    const grupo = await Grupo.create({
+      nome: 'Operacao',
+      descricao: 'Acesso a itens',
+      permissoes: [permissao('itens', true)],
+    });
+    await criarUsuario({ _id: usuarioId, grupos: [grupo._id] });
   });
 
   afterAll(async () => {
@@ -203,5 +230,36 @@ describe('Modelo de Estoque', () => {
     expect(notificacoes.some((n) => n.mensagem.includes('estoque baixo'))).toBe(
       true,
     );
+  });
+
+  it('avisa todos com acesso a itens, e não quem não tem acesso ou foi excluído', async () => {
+    const semAcesso = await Grupo.create({
+      nome: 'Sem itens',
+      descricao: 'Sem acesso a itens',
+      permissoes: [permissao('itens', false)],
+    });
+    const direto = await criarUsuario({
+      permissoes: [permissao('itens', true)],
+    });
+    const semPermissao = await criarUsuario({ grupos: [semAcesso._id] });
+    const excluido = await criarUsuario({
+      permissoes: [permissao('itens', true)],
+      desativadoEm: new Date(),
+    });
+    const item = await criarItemComEstoqueMinimo(10);
+    const localizacao = await criarLocalizacao();
+
+    await Estoque.create({
+      item: item._id,
+      localizacao: localizacao._id,
+      quantidade: 3,
+      usuario: semPermissao._id,
+    });
+
+    const avisados = (await Notificacao.find({}).lean()).map((n) =>
+      String(n.usuario),
+    );
+    expect(avisados.sort()).toEqual([usuarioId, String(direto._id)].sort());
+    expect(avisados).not.toContain(String(excluido._id));
   });
 });

@@ -22,6 +22,14 @@ describe('Rotas de Patrimonio', () => {
     tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
+  describe('GET /openapi.json', () => {
+    it('gera a documentação com as rotas de patrimônio', async () => {
+      const res = await req().get('/openapi.json');
+      expect(res.status).toBe(200);
+      expect(res.body.paths).toHaveProperty('/patrimonios');
+    });
+  });
+
   describe('POST /patrimonios', () => {
     it('deve cadastrar patrimônio válido com status Disponível', async () => {
       const patrimonio = await criarPatrimonio(token);
@@ -258,12 +266,17 @@ describe('Rotas de Patrimonio', () => {
   });
 
   describe('PATCH /patrimonios/:id/inativar', () => {
-    it('deve inativar patrimônio existente', async () => {
+    it('deve inativar patrimônio existente e registrar o evento', async () => {
       const patrimonio = await criarPatrimonio(token);
       const res = await req(token).patch(
         `/patrimonios/${patrimonio._id}/inativar`,
       );
       esperarEnvelopeSucesso(res, 200);
+
+      const eventos = await req(token).get(
+        `/patrimonios/${patrimonio._id}/eventos`,
+      );
+      expect(eventos.body.data.docs.map((e) => e.tipo)).toContain('inativacao');
     });
 
     it('deve retornar 404 ao inativar patrimônio inexistente', async () => {

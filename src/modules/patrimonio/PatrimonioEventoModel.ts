@@ -9,7 +9,8 @@ export type PatrimonioEventoTipo =
   | 'manutencao_saida'
   | 'transferencia'
   | 'baixa'
-  | 'reativacao';
+  | 'reativacao'
+  | 'inativacao';
 
 export interface IPatrimonioEvento {
   patrimonio: mongoose.Types.ObjectId;
@@ -47,6 +48,7 @@ const patrimonioEventoSchema = new mongoose.Schema<PatrimonioEventoDocument>({
       'transferencia',
       'baixa',
       'reativacao',
+      'inativacao',
     ],
     required: true,
   },
