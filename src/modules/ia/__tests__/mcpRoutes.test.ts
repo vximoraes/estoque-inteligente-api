@@ -304,6 +304,34 @@ describe('Rotas do MCP (/mcp)', () => {
       expect(dadosPermanente.unidades_patrimonio_ativas).toBe(3);
     });
 
+    it('buscaExata traz só o nome inteiro, em itens e no modelo do patrimônio', async () => {
+      const nome = sufixoUnico('zz-exato');
+      await criarItem(token, { nome });
+      await criarItem(token, { nome: `${nome}-parecido` });
+      await criarPatrimonio(token, { modelo: nome });
+      await criarPatrimonio(token, { modelo: `${nome}-parecido` });
+
+      const itens = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarItens', {
+          nome: nome.toUpperCase(),
+          buscaExata: true,
+        }),
+      );
+      const unidades = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarPatrimonios', {
+          modelo: nome,
+          buscaExata: true,
+        }),
+      );
+      const porTrecho = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarItens', { nome }),
+      );
+
+      expect(itens.registros.map((i) => i.nome)).toEqual([nome]);
+      expect(unidades.registros.map((u) => u.modelo)).toEqual([nome]);
+      expect(porTrecho.total_encontrado).toBe(2);
+    });
+
     it('verificarItensAbaixoMinimo ignora item sem estoque mínimo', async () => {
       const item = await criarItem(token, { estoque_minimo: '0' });
       const itens = extrairDados(

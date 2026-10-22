@@ -4,6 +4,7 @@ import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { padraoDeBusca } from '../padraoDeBusca.js';
 
 const ORDENACAO = {
   numero_patrimonio: { numero_patrimonio: 1 },
@@ -20,6 +21,7 @@ export async function buscarPatrimonios(
     categoria,
     ordenar = 'numero_patrimonio',
     apenasMeus = false,
+    buscaExata = false,
     limite = 20,
   }: {
     numeroPatrimonio?: string;
@@ -29,6 +31,7 @@ export async function buscarPatrimonios(
     categoria?: string;
     ordenar?: 'numero_patrimonio' | 'mais_recentes' | 'mais_antigos';
     apenasMeus?: boolean;
+    buscaExata?: boolean;
     limite?: number;
   },
   usuarioId: string,
@@ -38,13 +41,16 @@ export async function buscarPatrimonios(
 
   if (numeroPatrimonio) {
     filtros['numero_patrimonio'] = {
-      $regex: escapeRegex(numeroPatrimonio),
+      $regex: padraoDeBusca(numeroPatrimonio, buscaExata),
       $options: 'i',
     };
   }
   if (status) filtros['status'] = status;
   if (modelo) {
-    filtros['modelo'] = { $regex: escapeRegex(modelo), $options: 'i' };
+    filtros['modelo'] = {
+      $regex: padraoDeBusca(modelo, buscaExata),
+      $options: 'i',
+    };
   }
 
   if (categoria) {

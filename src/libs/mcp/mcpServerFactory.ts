@@ -79,6 +79,13 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
         ),
+      buscaExata: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'true para o texto inteiro, ignorando maiúsculas (use em "chamado X", "com nome X", "igual a X"); false busca por trecho',
+        ),
       limite: z
         .number()
         .int()
@@ -95,11 +102,21 @@ export function criarMCPServer(usuarioId: string): McpServer {
       localizacao,
       ordenar,
       apenasMeus,
+      buscaExata,
       limite,
     }) => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens(
-        { nome, status, categoria, localizacao, ordenar, apenasMeus, limite },
+        {
+          nome,
+          status,
+          categoria,
+          localizacao,
+          ordenar,
+          apenasMeus,
+          buscaExata,
+          limite,
+        },
         usuarioId,
       );
       return formatarResultado(
@@ -152,6 +169,13 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
         ),
+      buscaExata: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'true para o texto inteiro, ignorando maiúsculas (use em "chamado X", "com nome X", "igual a X"); false busca por trecho',
+        ),
       limite: z
         .number()
         .int()
@@ -169,6 +193,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
       categoria,
       ordenar,
       apenasMeus,
+      buscaExata,
       limite,
     }) => {
       await verificarPermissao(usuarioId, 'patrimonios');
@@ -181,6 +206,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
           categoria,
           ordenar,
           apenasMeus,
+          buscaExata,
           limite,
         },
         usuarioId,
@@ -573,7 +599,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarUsuarios',
-    'Lista usuários cadastrados no sistema (nome, e-mail, status, grupos). Só acessível a quem tem permissão de administração de usuários.',
+    'Lista usuários cadastrados no sistema (nome, e-mail, status, grupos). `ativo: false` = convite ainda não aceito; usuários excluídos não aparecem. Só acessível a quem tem permissão de administração de usuários.',
     {
       nome: z
         .string()

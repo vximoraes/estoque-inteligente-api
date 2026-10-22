@@ -5,6 +5,7 @@ import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { padraoDeBusca } from '../padraoDeBusca.js';
 
 const ORDENACAO = {
   nome: { nome: 1 },
@@ -20,6 +21,7 @@ export async function buscarItens(
     localizacao,
     ordenar = 'nome',
     apenasMeus = false,
+    buscaExata = false,
     limite = 20,
   }: {
     nome?: string;
@@ -28,6 +30,7 @@ export async function buscarItens(
     localizacao?: string;
     ordenar?: 'nome' | 'mais_recentes' | 'mais_antigos';
     apenasMeus?: boolean;
+    buscaExata?: boolean;
     limite?: number;
   },
   usuarioId: string,
@@ -35,7 +38,12 @@ export async function buscarItens(
   const filtros: Record<string, unknown> = { ativo: true };
   if (apenasMeus) filtros['usuario'] = usuarioId;
 
-  if (nome) filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
+  if (nome) {
+    filtros['nome'] = {
+      $regex: padraoDeBusca(nome, buscaExata),
+      $options: 'i',
+    };
+  }
   if (status) filtros['status'] = status;
 
   if (categoria) {
