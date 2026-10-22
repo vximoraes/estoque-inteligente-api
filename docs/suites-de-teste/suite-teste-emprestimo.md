@@ -53,12 +53,14 @@ Arquivo: `src/modules/emprestimo/__tests__/emprestimoRoutes.test.ts`
 
 ## GET /emprestimos — Listagem
 
-| Funcionalidade       | Comportamento Esperado                    | Verificações                            | Critérios de Aceite                                              |
-| :------------------- | :---------------------------------------- | :-------------------------------------- | :--------------------------------------------------------------- |
-| **Cenários felizes** |                                           |                                         |                                                                  |
-| Listagem paginada    | Deve retornar coleção paginada.           | `GET /emprestimos` autenticado.         | Retorna `200`; `data.docs` array; campos de paginação presentes. |
-| **Cenários tristes** |                                           |                                         |                                                                  |
-| Sem token            | Deve bloquear requisição não autenticada. | `GET /emprestimos` sem `Authorization`. | Retorna `498`.                                                   |
+| Funcionalidade       | Comportamento Esperado                                              | Verificações                                         | Critérios de Aceite                                              |
+| :------------------- | :------------------------------------------------------------------ | :--------------------------------------------------- | :--------------------------------------------------------------- |
+| **Cenários felizes** |                                                                     |                                                      |                                                                  |
+| Listagem paginada    | Deve retornar coleção paginada.                                     | `GET /emprestimos` autenticado.                      | Retorna `200`; `data.docs` array; campos de paginação presentes. |
+| Filtro `status`      | `ativo`, `devolvido`, `aberto` e `atrasado` separam os empréstimos. | Dois empréstimos do mesmo solicitante, um devolvido. | Cada status traz só o esperado.                                  |
+| **Cenários tristes** |                                                                     |                                                      |                                                                  |
+| Sem token            | Deve bloquear requisição não autenticada.                           | `GET /emprestimos` sem `Authorization`.              | Retorna `498`.                                                   |
+| Status desconhecido  | Deve recusar.                                                       | `GET /emprestimos?status=qualquer`.                  | Retorna `400`.                                                   |
 
 ## GET /emprestimos/tendencia — Série temporal
 

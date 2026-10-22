@@ -107,6 +107,7 @@ class EmprestimoRepository {
       solicitante_nome,
       apenas_abertos,
       atrasados,
+      status,
       data_saida_inicio,
       data_saida_fim,
     } = query;
@@ -122,6 +123,7 @@ class EmprestimoRepository {
       .comSolicitanteNome(solicitante_nome ?? '')
       .comApenasAbertos(apenas_abertos === 'true')
       .comAtrasados(atrasados === 'true')
+      .comStatus(status ?? '')
       .comTipoControle(tipo_controle ?? '')
       .comDataSaidaInicio(dataSaidaInicio)
       .comDataSaidaFim(dataSaidaFim);

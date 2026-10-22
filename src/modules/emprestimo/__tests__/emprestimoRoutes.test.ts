@@ -93,6 +93,41 @@ describe('Rotas de Emprestimo', () => {
       esperarPaginado(res);
     });
 
+    it('filtra por status: ativo, devolvido e aberto', async () => {
+      const solicitante = `Zz Status ${Date.now()}`;
+      const emAberto = await criarEmprestimo(token, {
+        solicitante_nome: solicitante,
+      });
+      const devolvido = await criarEmprestimo(token, {
+        solicitante_nome: solicitante,
+        quantidade_emprestada: 2,
+      });
+      esperarEnvelopeSucesso(
+        await req(token)
+          .patch(`/emprestimos/${devolvido._id}/devolver`)
+          .send({ quantidade_devolvida: 2 }),
+        200,
+      );
+
+      const ids = async (status) => {
+        const res = await req(token).get(
+          `/emprestimos?solicitante_nome=${encodeURIComponent(solicitante)}&status=${status}`,
+        );
+        esperarEnvelopeSucesso(res, 200);
+        return res.body.data.docs.map((d) => d._id);
+      };
+
+      expect(await ids('ativo')).toEqual([emAberto._id]);
+      expect(await ids('devolvido')).toEqual([devolvido._id]);
+      expect(await ids('aberto')).toEqual([emAberto._id]);
+      expect(await ids('atrasado')).toEqual([]);
+    });
+
+    it('recusa status desconhecido', async () => {
+      const res = await req(token).get('/emprestimos?status=qualquer');
+      expect(res.status).toBe(400);
+    });
+
     it('deve rejeitar sem token', async () => {
       const res = await req('').get('/emprestimos');
       expect(res.status).toBe(498);
