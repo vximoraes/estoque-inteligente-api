@@ -20,6 +20,11 @@ function resolverIdentificacao(
   return (item?.['nome'] as string | undefined) ?? null;
 }
 
+function mascararEmail(email: string): string {
+  const [local = '', dominio = ''] = email.split('@');
+  return `${local.slice(0, 2)}***@${dominio}`;
+}
+
 export async function buscarEmprestimos(
   {
     status,
@@ -111,6 +116,15 @@ export async function buscarEmprestimos(
     EmprestimoModel.countDocuments(filtros),
   ]);
 
+  const umSolicitante =
+    new Set(
+      emprestimos.map((e) =>
+        String(e['solicitante_nome'] ?? '')
+          .trim()
+          .toLowerCase(),
+      ),
+    ).size === 1;
+
   const registrosFormatados = emprestimos.map((e) => {
     const eObj = e as Record<string, unknown>;
     const item = eObj['item'] as Record<string, unknown> | null;
@@ -142,7 +156,11 @@ export async function buscarEmprestimos(
       numero_patrimonio: patrimonio?.['numero_patrimonio'] ?? null,
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       solicitante: eObj['solicitante_nome'],
-      solicitante_email: eObj['solicitante_email'] || null,
+      solicitante_email: eObj['solicitante_email']
+        ? umSolicitante
+          ? eObj['solicitante_email']
+          : mascararEmail(eObj['solicitante_email'] as string)
+        : null,
       registrado_por: responsavel?.['nome'] ?? null,
       quantidade_emprestada: eObj['quantidade_emprestada'],
       quantidade_devolvida: eObj['quantidade_devolvida'],

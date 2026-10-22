@@ -93,6 +93,44 @@ describe('buscarEmprestimos', () => {
     expect(resultado.registros[0]?.item).not.toBe(null);
   });
 
+  it('mascara o e-mail numa lista com vários solicitantes e mostra completo ao filtrar por um', async () => {
+    const localizacao = await criarLocalizacao();
+    const patrimonio = await criarPatrimonio(localizacao._id);
+    const base = {
+      tipo_controle: 'unidade',
+      patrimonio: patrimonio._id,
+      localizacao: localizacao._id,
+      quantidade_emprestada: 1,
+      quantidade_devolvida: 0,
+      quantidade_aberta: 1,
+      usuario_responsavel: usuarioId,
+    };
+    await EmprestimoModel.create([
+      {
+        ...base,
+        solicitante_nome: 'Joana Lima',
+        solicitante_email: 'joana@escola.edu',
+      },
+      {
+        ...base,
+        solicitante_nome: 'Pedro Alves',
+        solicitante_email: 'pedro@escola.edu',
+      },
+    ]);
+
+    const todos = await buscarEmprestimos({}, usuarioId);
+    expect(todos.registros.map((r) => r.solicitante_email).sort()).toEqual([
+      'jo***@escola.edu',
+      'pe***@escola.edu',
+    ]);
+
+    const umSo = await buscarEmprestimos(
+      { solicitanteNome: 'Joana' },
+      usuarioId,
+    );
+    expect(umSo.registros[0]?.solicitante_email).toBe('joana@escola.edu');
+  });
+
   it('expõe datas, observações, contato do solicitante e quem registrou', async () => {
     const usuario = await UsuarioModel.create({
       nome: 'Responsável Teste',

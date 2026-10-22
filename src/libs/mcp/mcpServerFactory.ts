@@ -314,7 +314,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarEmprestimos',
-    'Busca empréstimos com status calculado (Ativo, Devolvido, Atrasado). Um empréstimo é de item de consumo do almoxarifado (campo "item" preenchido) OU de uma unidade de patrimônio (campo "tipo_controle" = "unidade", identificada por número de patrimônio) — o campo "item" no retorno já vem resolvido para os dois casos, nunca use "Não informado" ou similar se ele vier nulo.',
+    'Busca empréstimos com status calculado (Ativo, Devolvido, Atrasado). Um empréstimo é de item de consumo do almoxarifado (campo "item" preenchido) OU de uma unidade de patrimônio (campo "tipo_controle" = "unidade", identificada por número de patrimônio) — o campo "item" no retorno já vem resolvido para os dois casos, nunca use "Não informado" ou similar se ele vier nulo. O "solicitante_email" vem completo só quando todos os registros são do mesmo solicitante; numa lista com várias pessoas ele vem mascarado (ex.: "jo***@dominio.com"), e o e-mail completo de alguém se obtém filtrando por "solicitanteNome".',
     {
       status: z
         .enum(['Ativo', 'Devolvido', 'Atrasado'])
