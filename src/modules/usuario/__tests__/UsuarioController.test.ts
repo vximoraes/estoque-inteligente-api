@@ -279,6 +279,20 @@ describe('UsuarioController - regras de negócio (simples)', () => {
       );
     });
 
+    it('aceita o token no corpo, sem expor na URL', async () => {
+      req.query = {};
+      req.body = { token: 'xyz789', senha: 'Senha@123' };
+      UsuarioUpdateSchema.parse.mockReturnValue({ senha: 'Senha@123' });
+      controller.service.ativarConta.mockResolvedValue({
+        message: 'Conta ativada com sucesso!',
+      });
+      await controller.ativarConta(req, res, next);
+      expect(controller.service.ativarConta).toHaveBeenCalledWith(
+        'xyz789',
+        'Senha@123',
+      );
+    });
+
     it('deve lançar erro 400 se token não informado', async () => {
       req.body = { senha: 'Senha@123' };
       await expect(

@@ -115,8 +115,9 @@ class UsuarioController {
   }
 
   async ativarConta(req: AuthenticatedRequest, res: Response) {
-    const token = req.query['token'] as string | undefined;
-    const { senha } = req.body as { senha?: string };
+    const corpo = (req.body ?? {}) as { senha?: string; token?: string };
+    const token = corpo.token ?? (req.query['token'] as string | undefined);
+    const { senha } = corpo;
 
     if (!token) {
       throw new CustomError({
