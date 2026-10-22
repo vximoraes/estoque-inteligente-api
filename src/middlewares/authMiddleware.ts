@@ -23,6 +23,14 @@ async function authMiddleware(
       );
     }
 
+    if ((session.user as Record<string, unknown>)['desativadoEm']) {
+      return next(
+        new AuthenticationError(
+          'Sessão inválida ou expirada. Faça login novamente.',
+        ),
+      );
+    }
+
     (req as AuthenticatedRequest).user_id = session.user.id;
     (req as AuthenticatedRequest).fuso_horario = resolverFuso(
       (session.user as Record<string, unknown>)['fuso_horario'],

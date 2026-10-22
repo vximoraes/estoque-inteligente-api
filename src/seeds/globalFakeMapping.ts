@@ -43,6 +43,7 @@ export const fakeMappings = {
     convidadoEm: () => null,
     ativadoEm: () => null,
     fuso_horario: () => null,
+    desativadoEm: () => null,
   },
 
   Notificacao: {

@@ -61,7 +61,7 @@ class UsuarioService {
       });
     }
     await this.ensureUserExists(id);
-    return this.repository.deletar(id, req.user_id);
+    return this.repository.definirDesativacao(id, new Date());
   }
 
   async validateEmail(email: string, id: string | null = null) {
@@ -150,6 +150,27 @@ class UsuarioService {
 
   async convidarUsuario(nome: string, email: string) {
     const emailNormalizado = email.toLowerCase();
+
+    const excluido =
+      await this.repository.buscarExcluidoPorEmail(emailNormalizado);
+    if (excluido) {
+      const restaurado = await this.repository.definirDesativacao(
+        String(excluido._id),
+        null,
+      );
+      return {
+        message:
+          'Este e-mail pertencia a um usuário excluído: a conta foi restaurada com o mesmo histórico, grupos e senha.',
+        usuario: {
+          _id: restaurado?._id,
+          nome: restaurado?.nome,
+          email: restaurado?.email,
+          ativo: restaurado?.ativo,
+          convidadoEm: restaurado?.convidadoEm,
+        },
+      };
+    }
+
     await this.validateEmail(emailNormalizado, null);
 
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';

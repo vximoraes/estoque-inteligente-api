@@ -224,9 +224,11 @@ describe('UsuarioController - regras de negócio (simples)', () => {
         'Fulano',
         'fulano@teste.com',
       );
-      expect(CommonResponse.created).toHaveBeenCalledWith(res, {
-        message: 'Convite enviado com sucesso!',
-      });
+      expect(CommonResponse.created).toHaveBeenCalledWith(
+        res,
+        { message: 'Convite enviado com sucesso!' },
+        'Convite enviado com sucesso!',
+      );
     });
 
     it('deve lançar erro 400 se nome não informado', async () => {

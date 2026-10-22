@@ -111,7 +111,7 @@ class UsuarioController {
       convite.nome,
       convite.email,
     );
-    return CommonResponse.created(res, data);
+    return CommonResponse.created(res, data, data.message);
   }
 
   async ativarConta(req: AuthenticatedRequest, res: Response) {

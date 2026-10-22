@@ -21,6 +21,33 @@ export function segredoDoAuth(valor = process.env['BETTER_AUTH_SECRET']) {
   return valor;
 }
 
+export async function recusarSessaoDeUsuarioDesativado(
+  sessao: { userId: string },
+  contexto?: { path?: string } | null,
+) {
+  if (!mongoose.Types.ObjectId.isValid(sessao.userId)) return;
+  const usuario = await mongoose.connection
+    .db!.collection('usuarios')
+    .findOne(
+      { _id: new mongoose.Types.ObjectId(sessao.userId) },
+      { projection: { desativadoEm: 1 } },
+    );
+  if (usuario?.['desativadoEm']) {
+    // Mesma resposta de quem não tem cadastro: no Google, o código faz o
+    // Better Auth redirecionar para a tela de login com ?error=.
+    if (contexto?.path?.includes('/callback')) {
+      throw new APIError('UNAUTHORIZED', {
+        code: 'signup_disabled',
+        message: 'signup disabled',
+      });
+    }
+    throw new APIError('UNAUTHORIZED', {
+      code: 'INVALID_EMAIL_OR_PASSWORD',
+      message: 'Invalid email or password',
+    });
+  }
+}
+
 export function initAuth(): ReturnType<typeof betterAuth> {
   const db = mongoose.connection.db as unknown as Db;
   const client = mongoose.connection.getClient() as unknown as MongoClient;
@@ -88,6 +115,7 @@ export function initAuth(): ReturnType<typeof betterAuth> {
         ativo: { type: 'boolean', defaultValue: false, required: false },
         fotoPerfil: { type: 'string', required: false },
         fuso_horario: { type: 'string', required: false, input: false },
+        desativadoEm: { type: 'date', required: false, input: false },
       },
     },
 
@@ -113,6 +141,11 @@ export function initAuth(): ReturnType<typeof betterAuth> {
     },
 
     databaseHooks: {
+      session: {
+        create: {
+          before: recusarSessaoDeUsuarioDesativado,
+        },
+      },
       account: {
         create: {
           async after(account: Record<string, unknown>) {

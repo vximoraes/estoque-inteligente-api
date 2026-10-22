@@ -11,7 +11,7 @@ export async function buscarUsuarios(
   }: { nome?: string; email?: string; ativo?: boolean; limite?: number },
   _usuarioId: string,
 ) {
-  const filtros: Record<string, unknown> = {};
+  const filtros: Record<string, unknown> = { desativadoEm: null };
 
   if (nome) filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
   if (email) filtros['email'] = { $regex: escapeRegex(email), $options: 'i' };

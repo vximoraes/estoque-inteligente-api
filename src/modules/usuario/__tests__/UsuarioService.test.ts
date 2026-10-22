@@ -43,7 +43,9 @@ describe('UsuarioService', () => {
       atualizar: jest.fn(),
       deletar: jest.fn(),
       buscarPorEmail: jest.fn(),
+      buscarExcluidoPorEmail: jest.fn().mockResolvedValue(null),
       buscarPorId: jest.fn(),
+      definirDesativacao: jest.fn(),
     };
 
     authApiMock = {
@@ -121,16 +123,16 @@ describe('UsuarioService', () => {
       expect(repositoryMock.deletar).not.toHaveBeenCalled();
     });
 
-    it('deve deletar usuário existente', async () => {
+    it('exclui de forma lógica, gravando a data', async () => {
       const req = { user_id: 'user123' };
       repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
-      repositoryMock.deletar.mockResolvedValue({
-        acknowledged: true,
-        deletedCount: 1,
-      });
-      const data = await service.deletar('1', req);
-      expect(repositoryMock.deletar).toHaveBeenCalledWith('1', 'user123');
-      expect(data).toEqual({ acknowledged: true, deletedCount: 1 });
+      repositoryMock.definirDesativacao.mockResolvedValue({ _id: '1' });
+      await service.deletar('1', req);
+      expect(repositoryMock.definirDesativacao).toHaveBeenCalledWith(
+        '1',
+        expect.any(Date),
+      );
+      expect(repositoryMock.deletar).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro se usuário não existir', async () => {
@@ -389,6 +391,32 @@ describe('UsuarioService', () => {
           email: 'fulano@teste.com',
         },
       });
+    });
+  });
+
+  describe('convidarUsuario — e-mail de usuário excluído', () => {
+    it('restaura a conta em vez de criar outra', async () => {
+      repositoryMock.buscarExcluidoPorEmail.mockResolvedValueOnce({
+        _id: 'u9',
+      });
+      repositoryMock.definirDesativacao.mockResolvedValue({
+        _id: 'u9',
+        nome: 'Fulano',
+        email: 'fulano@teste.com',
+        ativo: true,
+      });
+
+      const resultado = await service.convidarUsuario(
+        'Fulano',
+        'Fulano@Teste.com',
+      );
+
+      expect(repositoryMock.definirDesativacao).toHaveBeenCalledWith(
+        'u9',
+        null,
+      );
+      expect(authApiMock.signUpEmail).not.toHaveBeenCalled();
+      expect(resultado.usuario._id).toBe('u9');
     });
   });
 

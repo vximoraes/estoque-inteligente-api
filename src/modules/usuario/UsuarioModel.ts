@@ -12,6 +12,7 @@ export interface IUsuario {
   permissoes: IGrupoPermissao[];
   fotoPerfil?: string;
   fuso_horario?: string | null;
+  desativadoEm?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -39,6 +40,7 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
     ],
     fotoPerfil: { type: String, required: false },
     fuso_horario: { type: String, default: null },
+    desativadoEm: { type: Date, default: null },
   },
   // Better Auth já grava createdAt/updatedAt nesta collection; declarar aqui expõe o campo na resposta
   { timestamps: true },

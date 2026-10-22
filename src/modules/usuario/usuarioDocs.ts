@@ -26,6 +26,7 @@ const UsuarioDetalhes = registry.register(
       .string()
       .nullable()
       .openapi({ example: 'America/Porto_Velho' }),
+    desativadoEm: z.string().nullable().openapi({ example: null }),
     ...timestampFields,
   }),
 );
@@ -240,11 +241,13 @@ registerPaths({
 
     delete: {
       tags: ['Usuários'],
-      summary: 'Deleta um usuário',
+      summary: 'Exclui um usuário (exclusão lógica)',
       description: `
             + Regras de Negócio:
-                - Verificar impedimentos por relacionamento antes de excluir.
-                - Registrar log de auditoria sobre a operação.
+                - Grava desativadoEm, encerra as sessões e recusa novo login; o cadastro fica guardado para manter a autoria do histórico.
+                - O usuário some das listagens e das consultas por id.
+                - Não é possível excluir a própria conta.
+                - Convidar de novo o mesmo e-mail restaura a conta, com o mesmo histórico, grupos e senha.
             `,
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do usuário')],
