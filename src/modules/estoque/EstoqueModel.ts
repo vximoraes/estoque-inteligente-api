@@ -6,7 +6,7 @@ export interface IEstoque {
   quantidade: number;
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
 }
 
 export type EstoqueDocument = IEstoque & Document;
@@ -34,7 +34,11 @@ const estoqueSchema = new mongoose.Schema<EstoqueDocument>(
       ref: 'localizacoes',
       required: true,
     },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
   },
   { timestamps: true },
 );

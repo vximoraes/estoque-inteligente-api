@@ -1,6 +1,7 @@
 import UsuarioRepository from '../../modules/usuario/UsuarioRepository.js';
 import { CustomError, messages } from '../../utils/helpers/index.js';
 import type { IGrupoPermissao } from '../../modules/grupo/GrupoModel.js';
+import { comCache } from './cachePermissoes.js';
 
 class PermissionService {
   private repository: UsuarioRepository;
@@ -17,16 +18,9 @@ class PermissionService {
     httpMethod = '',
   ): Promise<boolean> {
     try {
-      const usuario = await this.repository.buscarPorIdComGrupos(userId);
-      if (!usuario) {
-        throw new CustomError({
-          statusCode: 404,
-          errorType: 'resourceNotFound',
-          field: 'Usuário',
-          details: [],
-          customMessage: messages.error.resourceNotFound('Usuário'),
-        });
-      }
+      const permissoes = await comCache(`usuario:${userId}`, () =>
+        this.permissoesEfetivas(userId),
+      );
 
       if (rota === 'usuarios' && params['id'] && params['id'] === userId) {
         const metodosPermitidos = ['GET', 'PATCH', 'PUT'];
@@ -35,9 +29,7 @@ class PermissionService {
         }
       }
 
-      const permissao = this.unirPermissoes(usuario).find(
-        (p) => p.rota === rota,
-      );
+      const permissao = permissoes.find((p) => p.rota === rota);
       return Boolean(
         permissao?.ativo &&
         (permissao as unknown as Record<string, unknown>)[metodo],

@@ -1,5 +1,6 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
+import { limparCacheAoGravar } from '../../utils/services/cachePermissoes.js';
 import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 export interface IUsuario {
@@ -47,6 +48,7 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
 );
 
 usuarioSchema.plugin(mongoosePaginate);
+limparCacheAoGravar(usuarioSchema);
 
 export default mongoose.model<
   UsuarioDocument,

@@ -8,7 +8,7 @@ export type FinalizadoPor =
   | 'limite_passos';
 
 export interface IIAUso {
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
   conversa: mongoose.Types.ObjectId;
   modelo: string;
   tokens_entrada: number;
@@ -29,7 +29,12 @@ export type IAUsoDocument = IIAUso & Document;
 
 const iaUsoSchema = new mongoose.Schema<IAUsoDocument>(
   {
-    usuario: { type: String, ref: 'usuarios', required: true, index: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+      index: true,
+    },
     conversa: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'conversas',

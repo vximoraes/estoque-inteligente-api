@@ -5,7 +5,7 @@ export interface ICategoria {
   nome: string;
   tipo: 'consumo' | 'permanente';
   ativo: boolean;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
   descricao?: string;
 }
 
@@ -21,7 +21,11 @@ const categoriaSchema = new mongoose.Schema<CategoriaDocument>(
       immutable: true,
     },
     ativo: { type: Boolean, default: true },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
     descricao: { type: String, required: false },
   },
   { timestamps: true },

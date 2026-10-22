@@ -9,7 +9,7 @@ export interface IMovimentacao {
   quantidade: number;
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
 }
 
 export type MovimentacaoDocument = IMovimentacao & Document;
@@ -18,7 +18,7 @@ export interface IMovimentacaoModel extends mongoose.PaginateModel<MovimentacaoD
   atualizarEstoque(
     itemId: mongoose.Types.ObjectId,
     localizacaoId: mongoose.Types.ObjectId,
-    usuarioId: string,
+    usuarioId: mongoose.Types.ObjectId | string,
   ): Promise<void>;
 }
 
@@ -26,7 +26,6 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
   {
     tipo: {
       type: String,
-      index: true,
       required: true,
       enum: ['entrada', 'saida'],
     },
@@ -42,7 +41,11 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
       ref: 'localizacoes',
       required: true,
     },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
   },
   { timestamps: true },
 );
@@ -56,37 +59,11 @@ movimentacaoSchema.post('save', async function (this: MovimentacaoDocument) {
   await Model.atualizarEstoque(this.item, this.localizacao, this.usuario);
 });
 
-movimentacaoSchema.post(
-  'deleteOne',
-  async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
-    const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(
-      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
-    );
-    if (doc) {
-      await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
-    }
-  },
-);
-
-movimentacaoSchema.post(
-  ['updateOne', 'findOneAndUpdate'],
-  async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
-    const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(
-      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
-    );
-    if (doc) {
-      await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
-    }
-  },
-);
-
 movimentacaoSchema.statics['atualizarEstoque'] = async function (
   this: unknown,
   itemId: mongoose.Types.ObjectId,
   localizacaoId: mongoose.Types.ObjectId,
-  usuarioId: string,
+  usuarioId: mongoose.Types.ObjectId | string,
 ) {
   const self = this as IMovimentacaoModel;
   const EstoqueModel = mongoose.model('estoques') as unknown as IEstoqueModel;

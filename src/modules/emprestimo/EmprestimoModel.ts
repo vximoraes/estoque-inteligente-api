@@ -16,7 +16,7 @@ export interface IEmprestimo {
   data_devolucao_total?: Date | null;
   observacoes_emprestimo?: string;
   observacoes_devolucao?: string;
-  usuario_responsavel: string;
+  usuario_responsavel: mongoose.Types.ObjectId;
   ativo: boolean;
   email_atraso_enviado: boolean;
 }
@@ -72,11 +72,11 @@ const emprestimoSchema = new mongoose.Schema<EmprestimoDocument>(
     observacoes_emprestimo: { type: String, default: '', trim: true },
     observacoes_devolucao: { type: String, default: '', trim: true },
     usuario_responsavel: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'usuarios',
       required: true,
     },
-    ativo: { type: Boolean, default: true, index: true },
+    ativo: { type: Boolean, default: true },
     email_atraso_enviado: { type: Boolean, default: false },
   },
   { timestamps: true },

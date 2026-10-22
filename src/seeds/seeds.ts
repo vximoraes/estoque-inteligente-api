@@ -12,6 +12,9 @@ import notificacaoSeed from './notificacaoSeed.js';
 import emprestimoSeed from './emprestimoSeed.js';
 import rotasSeed from './rotasSeed.js';
 import { motivoBloqueioSeed } from './travaAmbiente.js';
+import Estoque from '../modules/estoque/EstoqueModel.js';
+import Conversa from '../modules/ia/ConversaModel.js';
+import IAUso from '../modules/ia/IAUsoModel.js';
 
 const bloqueio = motivoBloqueioSeed();
 if (bloqueio) {
@@ -27,6 +30,9 @@ try {
     `[${new Date().toLocaleString()}] - Iniciando criação das seeds...`,
   );
 
+  await Estoque.deleteMany({});
+  await Conversa.deleteMany({});
+  await IAUso.deleteMany({});
   await rotasSeed();
   const { adminId } = await usuarioSeed();
   await categoriaSeed(adminId);

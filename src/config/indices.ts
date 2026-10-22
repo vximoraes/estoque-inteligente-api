@@ -14,7 +14,31 @@ const INDICES_BETTER_AUTH: Record<string, mongoose.mongo.IndexDescription[]> = {
   ],
 };
 
+const INDICES_OBSOLETOS: Record<string, string[]> = {
+  movimentacoes: ['tipo_1'],
+  emprestimos: ['ativo_1'],
+  notificacoes: ['mensagem_1'],
+};
+
 const CONFLITO_DE_INDICE = new Set([85, 86]);
+const INDICE_INEXISTENTE = 27;
+const COLECAO_INEXISTENTE = 26;
+
+async function removerIndicesObsoletos(db: mongoose.mongo.Db) {
+  for (const [colecao, nomes] of Object.entries(INDICES_OBSOLETOS)) {
+    for (const nome of nomes) {
+      try {
+        await db.collection(colecao).dropIndex(nome);
+        logger.info({ colecao, indice: nome }, 'Índices: obsoleto removido');
+      } catch (erro) {
+        const codigo = (erro as { code?: number }).code;
+        if (codigo !== INDICE_INEXISTENTE && codigo !== COLECAO_INEXISTENTE) {
+          throw erro;
+        }
+      }
+    }
+  }
+}
 
 async function criarIndicesDoModel(
   model: Pick<
@@ -41,6 +65,7 @@ export async function garantirIndices(): Promise<void> {
   if (!db) return;
 
   const tarefas = [
+    { nome: 'índices obsoletos', criar: () => removerIndicesObsoletos(db) },
     ...mongoose.modelNames().map((nome) => ({
       nome,
       criar: () => criarIndicesDoModel(mongoose.model(nome)),
