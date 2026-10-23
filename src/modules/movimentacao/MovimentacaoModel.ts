@@ -1,6 +1,7 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import type { IEstoqueModel } from '../estoque/EstoqueModel.js';
+import logger from '../../utils/logger.js';
 
 export interface IMovimentacao {
   tipo: 'entrada' | 'saida';
@@ -8,7 +9,7 @@ export interface IMovimentacao {
   quantidade: number;
   item: mongoose.Types.ObjectId;
   localizacao: mongoose.Types.ObjectId;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
 }
 
 export type MovimentacaoDocument = IMovimentacao & Document;
@@ -17,7 +18,7 @@ export interface IMovimentacaoModel extends mongoose.PaginateModel<MovimentacaoD
   atualizarEstoque(
     itemId: mongoose.Types.ObjectId,
     localizacaoId: mongoose.Types.ObjectId,
-    usuarioId: string,
+    usuarioId: mongoose.Types.ObjectId | string,
   ): Promise<void>;
 }
 
@@ -25,7 +26,6 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
   {
     tipo: {
       type: String,
-      index: true,
       required: true,
       enum: ['entrada', 'saida'],
     },
@@ -41,47 +41,29 @@ const movimentacaoSchema = new mongoose.Schema<MovimentacaoDocument>(
       ref: 'localizacoes',
       required: true,
     },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
   },
   { timestamps: true },
 );
 
+movimentacaoSchema.index({ item: 1, tipo: 1, data_hora: -1 });
+movimentacaoSchema.index({ data_hora: -1 });
+
 movimentacaoSchema.post('save', async function (this: MovimentacaoDocument) {
+  if (this.$locals['estoqueJaAtualizado']) return;
   const Model = this.constructor as unknown as IMovimentacaoModel;
   await Model.atualizarEstoque(this.item, this.localizacao, this.usuario);
 });
-
-movimentacaoSchema.post(
-  'deleteOne',
-  async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
-    const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(
-      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
-    );
-    if (doc) {
-      await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
-    }
-  },
-);
-
-movimentacaoSchema.post(
-  ['updateOne', 'findOneAndUpdate'],
-  async function (this: mongoose.Query<unknown, MovimentacaoDocument>) {
-    const model = this.model as unknown as IMovimentacaoModel;
-    const doc = await model.findOne(
-      this.getQuery() as mongoose.FilterQuery<MovimentacaoDocument>,
-    );
-    if (doc) {
-      await model.atualizarEstoque(doc.item, doc.localizacao, doc.usuario);
-    }
-  },
-);
 
 movimentacaoSchema.statics['atualizarEstoque'] = async function (
   this: unknown,
   itemId: mongoose.Types.ObjectId,
   localizacaoId: mongoose.Types.ObjectId,
-  usuarioId: string,
+  usuarioId: mongoose.Types.ObjectId | string,
 ) {
   const self = this as IMovimentacaoModel;
   const EstoqueModel = mongoose.model('estoques') as unknown as IEstoqueModel;
@@ -104,8 +86,18 @@ movimentacaoSchema.statics['atualizarEstoque'] = async function (
     },
   ])) as Array<{ quantidadeTotal: number }>;
 
-  const quantidadeTotal =
-    resultado.length > 0 ? Math.max(0, resultado[0]?.quantidadeTotal ?? 0) : 0;
+  const somaMovimentacoes = resultado[0]?.quantidadeTotal ?? 0;
+  if (somaMovimentacoes < 0) {
+    logger.warn(
+      {
+        item: String(itemId),
+        localizacao: String(localizacaoId),
+        somaMovimentacoes,
+      },
+      'Estoque: soma das movimentações negativa, saldo ajustado para 0',
+    );
+  }
+  const quantidadeTotal = Math.max(0, somaMovimentacoes);
 
   await EstoqueModel.findOneAndUpdate(
     { item: itemId, localizacao: localizacaoId },

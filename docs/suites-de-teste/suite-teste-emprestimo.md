@@ -53,12 +53,14 @@ Arquivo: `src/modules/emprestimo/__tests__/emprestimoRoutes.test.ts`
 
 ## GET /emprestimos — Listagem
 
-| Funcionalidade       | Comportamento Esperado                    | Verificações                            | Critérios de Aceite                                              |
-| :------------------- | :---------------------------------------- | :-------------------------------------- | :--------------------------------------------------------------- |
-| **Cenários felizes** |                                           |                                         |                                                                  |
-| Listagem paginada    | Deve retornar coleção paginada.           | `GET /emprestimos` autenticado.         | Retorna `200`; `data.docs` array; campos de paginação presentes. |
-| **Cenários tristes** |                                           |                                         |                                                                  |
-| Sem token            | Deve bloquear requisição não autenticada. | `GET /emprestimos` sem `Authorization`. | Retorna `498`.                                                   |
+| Funcionalidade       | Comportamento Esperado                                              | Verificações                                         | Critérios de Aceite                                              |
+| :------------------- | :------------------------------------------------------------------ | :--------------------------------------------------- | :--------------------------------------------------------------- |
+| **Cenários felizes** |                                                                     |                                                      |                                                                  |
+| Listagem paginada    | Deve retornar coleção paginada.                                     | `GET /emprestimos` autenticado.                      | Retorna `200`; `data.docs` array; campos de paginação presentes. |
+| Filtro `status`      | `ativo`, `devolvido`, `aberto` e `atrasado` separam os empréstimos. | Dois empréstimos do mesmo solicitante, um devolvido. | Cada status traz só o esperado.                                  |
+| **Cenários tristes** |                                                                     |                                                      |                                                                  |
+| Sem token            | Deve bloquear requisição não autenticada.                           | `GET /emprestimos` sem `Authorization`.              | Retorna `498`.                                                   |
+| Status desconhecido  | Deve recusar.                                                       | `GET /emprestimos?status=qualquer`.                  | Retorna `400`.                                                   |
 
 ## GET /emprestimos/tendencia — Série temporal
 
@@ -96,12 +98,13 @@ Arquivo: `src/modules/emprestimo/__tests__/emprestimoRoutes.test.ts`
 
 ## PUT /emprestimos/:id — Atualização
 
-| Funcionalidade         | Comportamento Esperado                   | Verificações                                 | Critérios de Aceite |
-| :--------------------- | :--------------------------------------- | :------------------------------------------- | :------------------ |
-| **Cenários felizes**   |                                          |                                              |                     |
-| Atualizar observações  | Deve atualizar `observacoes_emprestimo`. | `PUT /emprestimos/:id` com nova observação.  | Retorna `200`.      |
-| **Cenários tristes**   |                                          |                                              |                     |
-| Empréstimo inexistente | Deve falhar pois o alvo não existe.      | `PUT /emprestimos/000000000000000000000000`. | Retorna `404`.      |
+| Funcionalidade         | Comportamento Esperado                                         | Verificações                                                      | Critérios de Aceite                                   |
+| :--------------------- | :------------------------------------------------------------- | :---------------------------------------------------------------- | :---------------------------------------------------- |
+| **Cenários felizes**   |                                                                |                                                                   |                                                       |
+| Atualizar observações  | Deve atualizar `observacoes_emprestimo`.                       | `PUT /emprestimos/:id` com nova observação.                       | Retorna `200`.                                        |
+| **Cenários tristes**   |                                                                |                                                                   |                                                       |
+| Trilha de alteração    | Deve guardar campo, valor anterior, valor novo e quem alterou. | `PUT` com novo `solicitante_nome`, depois `GET /emprestimos/:id`. | `alteracoes` com o anterior, o novo e `usuario.nome`. |
+| Empréstimo inexistente | Deve falhar pois o alvo não existe.                            | `PUT /emprestimos/000000000000000000000000`.                      | Retorna `404`.                                        |
 
 ## DELETE /emprestimos/:id — Exclusão
 

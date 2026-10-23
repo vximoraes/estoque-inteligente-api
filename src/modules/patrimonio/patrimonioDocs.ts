@@ -64,6 +64,7 @@ const PatrimonioEventoDetalhes = registry.register(
         'transferencia',
         'baixa',
         'reativacao',
+        'inativacao',
       ])
       .openapi({ example: 'cadastro' }),
     status_anterior: z.string().nullable().openapi({ example: null }),
@@ -95,6 +96,19 @@ const PatrimonioUploadFotoResposta = registry.register(
     }),
     message: z.string().openapi({ example: 'Foto enviada com sucesso.' }),
     errors: z.array(z.unknown()).openapi({ example: [] }),
+  }),
+);
+
+registry.register(
+  'PatrimonioStats',
+  z.object({
+    data: z.object({
+      total: z.number().openapi({ example: 60 }),
+      disponiveis: z.number().openapi({ example: 31 }),
+      emprestadas: z.number().openapi({ example: 13 }),
+      manutencao: z.number().openapi({ example: 8 }),
+      baixadas: z.number().openapi({ example: 8 }),
+    }),
   }),
 );
 
@@ -218,6 +232,31 @@ registerPaths({
       parameters: filtrosListagem,
       responses: {
         200: commonResponses[200]!('#/components/schemas/PatrimonioListagem'),
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
+  '/patrimonios/stats': {
+    get: {
+      tags: ['Patrimônio'],
+      summary: 'Conta unidades de patrimônio por status',
+      description: `
+        + Caso de uso: Cartões do relatório de Patrimônio, contados no banco sobre todas as unidades que casam com os filtros, não só a página carregada.
+
+        + Regras de Negócio:
+            - Aceita os mesmos filtros da listagem.
+
+        + Resultado Esperado:
+            - 200 OK com corpo conforme schema **PatrimonioStats**.
+        `,
+      security: [{ bearerAuth: [] }],
+      parameters: filtrosListagem,
+      responses: {
+        200: commonResponses[200]!('#/components/schemas/PatrimonioStats'),
         400: commonResponses[400]!(),
         401: commonResponses[401]!(),
         498: commonResponses[498]!(),

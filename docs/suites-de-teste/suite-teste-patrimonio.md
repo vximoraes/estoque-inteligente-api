@@ -6,14 +6,14 @@ Arquivo: `src/modules/patrimonio/__tests__/patrimonioRoutes.test.ts`
 
 ## Visão de Fluxo e Regras de Negócio
 
-| Regra                                  | Comportamento Atual do Sistema                                                                           | Impacto na Suite E2E                                                          |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
-| Categoria deve ser permanente          | Só aceita categoria com `tipo: 'permanente'`; categoria de consumo é rejeitada.                          | Cobrir `400` ao usar categoria de tipo errado.                                |
-| `numero_patrimonio` único entre ativos | Índice único parcial (só entre `ativo: true`) **e** checagem explícita no Service antes de gravar.       | Cobrir `409` tanto na criação individual quanto no lote.                      |
-| Máquina de estados de status           | Só transições listadas em `EVENTO_POR_TRANSICAO` são aceitas; `'Emprestado'` nunca é destino manual.     | Cobrir transição válida, mesmo status, e tentativa de ir para `'Emprestado'`. |
-| Todo evento gera `PatrimonioEvento`    | Cadastro, transição de status e transferência de localização criam um registro em `patrimonios_eventos`. | `GET /:id/eventos` deve sempre conter ao menos o evento de `cadastro`.        |
-| Autenticação em duas camadas           | `AuthMiddleware` roda antes de `AuthPermission` em toda rota.                                            | Sem sessão válida a resposta é sempre `498`.                                  |
-| RBAC liberal                           | O grupo `Usuario` (não-admin) tem todas as permissões ativas nesta rota.                                 | Usuário comum aqui é cenário positivo (201), não 403.                         |
+| Regra                                  | Comportamento Atual do Sistema                                                                                       | Impacto na Suite E2E                                                          |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| Categoria deve ser permanente          | Só aceita categoria com `tipo: 'permanente'`; categoria de consumo é rejeitada.                                      | Cobrir `400` ao usar categoria de tipo errado.                                |
+| `numero_patrimonio` único entre ativos | Índice único parcial (só entre `ativo: true`) **e** checagem explícita no Service antes de gravar.                   | Cobrir `409` tanto na criação individual quanto no lote.                      |
+| Máquina de estados de status           | Só transições listadas em `EVENTO_POR_TRANSICAO` são aceitas; `'Emprestado'` nunca é destino manual.                 | Cobrir transição válida, mesmo status, e tentativa de ir para `'Emprestado'`. |
+| Todo evento gera `PatrimonioEvento`    | Cadastro, transição de status, transferência de localização e inativação criam um registro em `patrimonios_eventos`. | `GET /:id/eventos` deve sempre conter ao menos o evento de `cadastro`.        |
+| Autenticação em duas camadas           | `AuthMiddleware` roda antes de `AuthPermission` em toda rota.                                                        | Sem sessão válida a resposta é sempre `498`.                                  |
+| RBAC liberal                           | O grupo `Usuario` (não-admin) tem todas as permissões ativas nesta rota.                                             | Usuário comum aqui é cenário positivo (201), não 403.                         |
 
 ## Modelo de Patrimonio
 
@@ -41,6 +41,12 @@ Arquivo: `src/modules/patrimonio/__tests__/patrimonioRoutes.test.ts`
 | `logarAdmin()` / `logarUsuarioPadrao()`         | Autenticar admin e usuário não-admin. | `200` e `body.token` em ambos. |
 | `criarCategoria(token, { tipo: 'permanente' })` | Categoria válida para patrimônio.     | `201` e `data._id`.            |
 | `criarLocalizacao()`                            | Localização válida para patrimônio.   | `201` e `data._id`.            |
+
+## GET /openapi.json — Documentação
+
+| Caso                | Objetivo                                                                                                                | Entrada                         | Esperado                              |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------ | :------------------------------------ |
+| Gera a documentação | Os _schemas_ de patrimônio não podem quebrar o gerador (antes, `z.union` com `z.undefined()` derrubava a rota com 500). | `GET /openapi.json` sem sessão. | `200`; `paths` contém `/patrimonios`. |
 
 ## POST /patrimonios — Cadastro individual
 
@@ -121,12 +127,12 @@ Arquivo: `src/modules/patrimonio/__tests__/patrimonioRoutes.test.ts`
 
 ## PATCH /patrimonios/:id/inativar — Inativação
 
-| Funcionalidade                | Comportamento Esperado                 | Verificações                                            | Critérios de Aceite |
-| :---------------------------- | :------------------------------------- | :------------------------------------------------------ | :------------------ |
-| **Cenários felizes**          |                                        |                                                         |                     |
-| Inativar patrimônio existente | Deve marcar o patrimônio como inativo. | `PATCH /patrimonios/:id/inativar`.                      | Retorna `200`.      |
-| **Cenários tristes**          |                                        |                                                         |                     |
-| Patrimônio inexistente        | Deve falhar pois o alvo não existe.    | `PATCH /patrimonios/000000000000000000000000/inativar`. | Retorna `404`.      |
+| Funcionalidade                | Comportamento Esperado                                      | Verificações                                                  | Critérios de Aceite                         |
+| :---------------------------- | :---------------------------------------------------------- | :------------------------------------------------------------ | :------------------------------------------ |
+| **Cenários felizes**          |                                                             |                                                               |                                             |
+| Inativar patrimônio existente | Deve marcar o patrimônio como inativo e registrar o evento. | `PATCH /patrimonios/:id/inativar`, depois `GET /:id/eventos`. | Retorna `200`; eventos contêm `inativacao`. |
+| **Cenários tristes**          |                                                             |                                                               |                                             |
+| Patrimônio inexistente        | Deve falhar pois o alvo não existe.                         | `PATCH /patrimonios/000000000000000000000000/inativar`.       | Retorna `404`.                              |
 
 ## Cenários Transversais Obrigatórios (E2E)
 

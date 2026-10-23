@@ -3,6 +3,7 @@ import PatrimonioEventoModel from '../../../modules/patrimonio/PatrimonioEventoM
 import { CustomError, messages } from '../../../utils/helpers/index.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function historicoPatrimonio(
   {
@@ -11,9 +12,14 @@ export async function historicoPatrimonio(
   }: { numeroPatrimonio: string; limite?: number },
   _usuarioId: string,
 ) {
-  const patrimonio = await PatrimonioModel.findOne({
-    numero_patrimonio: { $regex: `^${numeroPatrimonio}$`, $options: 'i' },
-  }).lean();
+  const [patrimonio, ...outrasUnidades] = await PatrimonioModel.find({
+    numero_patrimonio: {
+      $regex: `^${escapeRegex(numeroPatrimonio)}$`,
+      $options: 'i',
+    },
+  })
+    .sort({ ativo: -1, createdAt: -1 })
+    .lean();
 
   if (!patrimonio) {
     throw new CustomError({
@@ -60,5 +66,20 @@ export async function historicoPatrimonio(
     };
   });
 
-  return resultadoLimitado(registrosFormatados, total);
+  return {
+    unidade_consultada: patrimonio.ativo ? 'atual' : 'removida',
+    modelo: patrimonio.modelo,
+    ...resultadoLimitado(registrosFormatados, total),
+    ...(outrasUnidades.length > 0 && {
+      outras_unidades_com_mesmo_numero: outrasUnidades.map((u) => {
+        const uObj = u as Record<string, unknown>;
+        return {
+          situacao: u.ativo ? 'atual' : 'removida',
+          modelo: u.modelo,
+          cadastrada_em: uObj['createdAt'],
+          ...(!u.ativo && { removida_em: uObj['updatedAt'] }),
+        };
+      }),
+    }),
+  };
 }

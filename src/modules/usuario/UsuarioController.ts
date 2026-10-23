@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import UsuarioService from './UsuarioService.js';
 import { UsuarioQuerySchema, UsuarioIdSchema } from './UsuarioQuerySchema.js';
-import { UsuarioUpdateSchema } from './UsuarioSchema.js';
+import { UsuarioUpdateSchema, ConviteSchema } from './UsuarioSchema.js';
 import {
   CommonResponse,
   CustomError,
@@ -83,6 +83,13 @@ class UsuarioController {
     return CommonResponse.success(res, data, 200, 'Foto deletada com sucesso.');
   }
 
+  async permissoes(req: AuthenticatedRequest, res: Response) {
+    const id = req.params['id'] as string;
+    UsuarioIdSchema.parse(id);
+    const data = await this.service.permissoes(id);
+    return CommonResponse.success(res, data);
+  }
+
   async convidarUsuario(req: AuthenticatedRequest, res: Response) {
     const { nome, email } = req.body as { nome?: string; email?: string };
 
@@ -99,13 +106,18 @@ class UsuarioController {
       });
     }
 
-    const data = await this.service.convidarUsuario(nome, email);
-    return CommonResponse.created(res, data);
+    const convite = ConviteSchema.parse({ nome, email });
+    const data = await this.service.convidarUsuario(
+      convite.nome,
+      convite.email,
+    );
+    return CommonResponse.created(res, data, data.message);
   }
 
   async ativarConta(req: AuthenticatedRequest, res: Response) {
-    const token = req.query['token'] as string | undefined;
-    const { senha } = req.body as { senha?: string };
+    const corpo = (req.body ?? {}) as { senha?: string; token?: string };
+    const token = corpo.token ?? (req.query['token'] as string | undefined);
+    const { senha } = corpo;
 
     if (!token) {
       throw new CustomError({

@@ -9,7 +9,8 @@ export type PatrimonioEventoTipo =
   | 'manutencao_saida'
   | 'transferencia'
   | 'baixa'
-  | 'reativacao';
+  | 'reativacao'
+  | 'inativacao';
 
 export interface IPatrimonioEvento {
   patrimonio: mongoose.Types.ObjectId;
@@ -21,7 +22,7 @@ export interface IPatrimonioEvento {
   emprestimo?: mongoose.Types.ObjectId;
   data_hora: Date;
   observacoes?: string;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
 }
 
 // Ledger imutável: sem rotas de update/delete. É o histórico de patrimônio,
@@ -47,6 +48,7 @@ const patrimonioEventoSchema = new mongoose.Schema<PatrimonioEventoDocument>({
       'transferencia',
       'baixa',
       'reativacao',
+      'inativacao',
     ],
     required: true,
   },
@@ -69,7 +71,11 @@ const patrimonioEventoSchema = new mongoose.Schema<PatrimonioEventoDocument>({
   },
   data_hora: { type: Date, required: true, default: Date.now },
   observacoes: { type: String, required: false },
-  usuario: { type: String, ref: 'usuarios', required: true },
+  usuario: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'usuarios',
+    required: true,
+  },
 });
 
 patrimonioEventoSchema.index({ patrimonio: 1, data_hora: -1 });

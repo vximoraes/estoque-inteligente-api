@@ -1,6 +1,8 @@
 import {
   createOrdenarSchema,
+  limiteTextoSchema,
   objectIdSchema,
+  paginaTextoSchema,
 } from '../../utils/commonFields.js';
 import { z } from 'zod';
 
@@ -31,8 +33,8 @@ const EstoqueQuerySchema = z.object({
       },
     ),
   ordenar: createOrdenarSchema(Object.keys(ESTOQUE_SORT_FIELDS)),
-  page: z.string().optional(),
-  limite: z.string().optional(),
+  page: paginaTextoSchema,
+  limite: limiteTextoSchema,
 });
 
 const EstoqueIdSchema = objectIdSchema;

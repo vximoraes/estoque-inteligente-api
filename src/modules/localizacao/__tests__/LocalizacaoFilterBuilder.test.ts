@@ -27,7 +27,7 @@ describe('LocalizacaoFilterBuilder', () => {
       .comNome('Sala 1')
       .comNome('Sala 2');
     expect(builder.build()).toEqual({
-      nome: { $regex: 'Sala 2', $options: 'i' },
+      nome: { $regex: 'Sala\\ 2', $options: 'i' },
     });
   });
 });

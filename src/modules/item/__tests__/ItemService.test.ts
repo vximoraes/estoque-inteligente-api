@@ -3,10 +3,13 @@ import ItemRepository from '../ItemRepository.js';
 import LocalizacaoModel from '../../localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../categoria/CategoriaModel.js';
 import { CustomError } from '../../../utils/helpers/index.js';
+import minioClient from '../../../config/minioClient.js';
 
 jest.mock('../ItemRepository.js');
 jest.mock('../../localizacao/LocalizacaoModel.js');
 jest.mock('../../categoria/CategoriaModel.js');
+jest.mock('../../estoque/EstoqueModel.js');
+jest.mock('../../emprestimo/EmprestimoModel.js');
 
 const makeItem = (props = {}) => ({
   _id: 'comp1',
@@ -189,6 +192,65 @@ describe('ItemService', () => {
       repositoryMock.buscarPorId.mockResolvedValue(makeItem());
       repositoryMock.atualizar.mockRejectedValue(new Error('DB error'));
       await expect(service.inativar('comp1', req)).rejects.toThrow('DB error');
+    });
+  });
+
+  describe('foto', () => {
+    const arquivo = { size: 100, buffer: Buffer.from('x') };
+
+    it('envia ao MinIO e grava o endereço da imagem', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+      repositoryMock.atualizar.mockResolvedValue({ imagem: 'url/comp1.jpeg' });
+
+      const data = await service.uploadFoto({ file: arquivo }, 'comp1');
+
+      expect(minioClient.send).toHaveBeenCalled();
+      expect(data).toEqual({ imagem: 'url/comp1.jpeg' });
+    });
+
+    it('não toca no MinIO quando o item não existe', async () => {
+      repositoryMock.buscarPorId.mockRejectedValue(
+        new CustomError({ statusCode: 404, customMessage: 'Item' }),
+      );
+
+      await expect(
+        service.uploadFoto({ file: arquivo }, 'x'),
+      ).rejects.toMatchObject({ statusCode: 404 });
+      await expect(service.deletarFoto({}, 'x')).rejects.toMatchObject({
+        statusCode: 404,
+      });
+      expect(minioClient.send).not.toHaveBeenCalled();
+    });
+
+    it('recusa envio sem arquivo e acima de 5 MB', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+      await expect(service.uploadFoto({}, 'comp1')).rejects.toMatchObject({
+        statusCode: 400,
+      });
+      await expect(
+        service.uploadFoto(
+          { file: { size: 6 * 1024 * 1024, buffer: Buffer.from('x') } },
+          'comp1',
+        ),
+      ).rejects.toMatchObject({ statusCode: 413 });
+    });
+
+    it('não grava o endereço se o envio ao MinIO falhar', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+      minioClient.send.mockRejectedValueOnce(new Error('timeout'));
+
+      await expect(
+        service.uploadFoto({ file: arquivo }, 'comp1'),
+      ).rejects.toThrow(Error);
+      expect(repositoryMock.atualizar).not.toHaveBeenCalled();
+    });
+
+    it('remove do MinIO e limpa a imagem', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(makeItem());
+      repositoryMock.atualizar.mockResolvedValue({ imagem: '' });
+
+      expect(await service.deletarFoto({}, 'comp1')).toEqual({ imagem: '' });
+      expect(minioClient.send).toHaveBeenCalled();
     });
   });
 

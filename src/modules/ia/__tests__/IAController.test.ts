@@ -15,10 +15,29 @@ jest.mock('../IALimites.js', () => ({
   iniciarStream: jest.fn(),
   finalizarStream: jest.fn(),
 }));
+jest.mock('../IAService.js', () => ({
+  processarMensagem: jest.fn(),
+  contemVazamentoDoPrompt: jest.fn().mockReturnValue(false),
+  atualizarResumoSeNecessario: jest.fn().mockResolvedValue(undefined),
+  ehErroIndisponibilidade:
+    jest.requireActual('../IAService.js').ehErroIndisponibilidade,
+}));
+jest.mock('../IAObservabilidade.js', () => ({
+  comTrace: jest.fn((_contexto, fn) => fn(jest.fn())),
+}));
+jest.mock('../IAUsoService.js', () => ({
+  registrarUso: jest.fn(),
+  derivarTokens: jest.fn(() => ({
+    tokensPensamento: 0,
+    tokensSaidaFaturavel: 0,
+  })),
+  calcularCustoDetalhado: jest.fn(),
+}));
 
 import IAController from '../IAController.js';
 import ConversaModel, { MAX_MENSAGENS } from '../ConversaModel.js';
 import { iniciarStream } from '../IALimites.js';
+import { processarMensagem } from '../IAService.js';
 
 describe('IAController', () => {
   let req, res;
@@ -174,6 +193,118 @@ describe('IAController', () => {
       req.body = { content: '' };
 
       await expect(IAController.enviarMensagem(req, res)).rejects.toThrow();
+    });
+  });
+
+  describe('enviarMensagem — persistência após falha', () => {
+    const idValido = '507f1f77bcf86cd799439011';
+
+    function prepararStream(eventos, erro) {
+      req.params = { id: idValido };
+      req.body = { content: 'Quantos itens tenho?' };
+      res = {
+        ...res,
+        setHeader: jest.fn(),
+        flushHeaders: jest.fn(),
+        write: jest.fn(),
+        end: jest.fn(),
+        on: jest.fn(),
+      };
+      const conversa = {
+        mensagens: [],
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      ConversaModel.findOne.mockResolvedValue(conversa);
+      iniciarStream.mockReturnValue(true);
+      processarMensagem.mockResolvedValue(
+        (async function* () {
+          yield* eventos;
+          throw erro;
+        })(),
+      );
+      return conversa;
+    }
+
+    it('não salva a pergunta quando a IA falha antes de responder', async () => {
+      const conversa = prepararStream([], new Error('503'));
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(conversa.mensagens).toEqual([]);
+      expect(conversa.save).toHaveBeenCalled();
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('"type":"error"'),
+      );
+    });
+
+    it('pede para esperar quando todos os modelos respondem 429', async () => {
+      prepararStream(
+        [],
+        Object.assign(new Error('[429 Too Many Requests]'), { status: 429 }),
+      );
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('Aguarde cerca de 1 minuto'),
+      );
+    });
+
+    it('salva pergunta e resposta parcial quando a falha vem depois do texto', async () => {
+      const conversa = prepararStream(
+        [
+          {
+            event: 'on_chat_model_stream',
+            data: { chunk: { content: 'Você tem ' } },
+          },
+        ],
+        new Error('corte'),
+      );
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(conversa.mensagens.map((m) => m.role)).toEqual([
+        'user',
+        'assistant',
+      ]);
+    });
+  });
+
+  describe('enviarMensagem — resposta cortada por tamanho', () => {
+    it('avisa o usuário quando o modelo para por MAX_TOKENS', async () => {
+      req.params = { id: '507f1f77bcf86cd799439011' };
+      req.body = { content: 'Liste tudo em detalhes' };
+      res = {
+        ...res,
+        setHeader: jest.fn(),
+        flushHeaders: jest.fn(),
+        write: jest.fn(),
+        end: jest.fn(),
+        on: jest.fn(),
+      };
+      const conversa = {
+        mensagens: [],
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      ConversaModel.findOne.mockResolvedValue(conversa);
+      iniciarStream.mockReturnValue(true);
+      processarMensagem.mockImplementation(async (...args) => {
+        const aoTerminarChamada = args[6];
+        return (async function* () {
+          yield {
+            event: 'on_chat_model_stream',
+            data: { chunk: { content: 'Parte da lista' } },
+          };
+          aoTerminarChamada('MAX_TOKENS');
+        })();
+      });
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('Resposta cortada por limite de tamanho'),
+      );
+      expect(conversa.mensagens[1].content).toContain('Resposta cortada');
     });
   });
 });

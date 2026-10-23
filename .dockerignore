@@ -21,3 +21,4 @@ jest.config.js
 jest.setup.js
 docker-compose*.yml
 Dockerfile
+dist

@@ -1,6 +1,12 @@
 import { GraphRecursionError } from '@langchain/langgraph';
 import ConversaModel, { MAX_MENSAGENS } from './ConversaModel.js';
-import { processarMensagem, contemVazamentoDoPrompt } from './IAService.js';
+import {
+  processarMensagem,
+  contemVazamentoDoPrompt,
+  atualizarResumoSeNecessario,
+  ehErroIndisponibilidade,
+} from './IAService.js';
+import { etapaDaFerramenta } from './etapaDaFerramenta.js';
 import { TIMEOUT_MS, MODELO } from './IAConfig.js';
 import {
   registrarUso,
@@ -145,7 +151,7 @@ class IAController {
     conversa.mensagens.push({ role: 'user', content: mensagemSanitizada });
 
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
@@ -182,6 +188,10 @@ class IAController {
             signal,
             (modelo) => {
               modeloUsado = modelo;
+            },
+            req.fuso_horario,
+            (motivo) => {
+              respostaTruncadaPorTamanho = motivo === 'MAX_TOKENS';
             },
           );
 
@@ -221,7 +231,6 @@ class IAController {
                       total_tokens?: number;
                       input_token_details?: { cache_read?: number };
                     };
-                    response_metadata?: { finishReason?: string };
                   }
                 | undefined;
               const usage = output?.usage_metadata;
@@ -233,10 +242,11 @@ class IAController {
                   usage.input_token_details?.cache_read ?? 0;
                 uso.passosLlm += 1;
               }
-              respostaTruncadaPorTamanho =
-                output?.response_metadata?.finishReason === 'MAX_TOKENS';
             } else if (evt.event === 'on_tool_start') {
               if (evt.run_id) inicioFerramentas.set(evt.run_id, Date.now());
+              res.write(
+                `data: ${JSON.stringify({ type: 'status', message: etapaDaFerramenta(evt.name) })}\n\n`,
+              );
             } else if (
               evt.event === 'on_tool_end' ||
               evt.event === 'on_tool_error'
@@ -280,7 +290,7 @@ class IAController {
               'IA: possível vazamento de system prompt detectado, resposta redigida antes de persistir',
             );
             respostaCompleta =
-              '**Fora do meu escopo.** Sou especializado apenas em consultas do estoque. Posso ajudar com itens, movimentações ou empréstimos?';
+              'Esse assunto foge do que eu consigo ajudar por aqui. Sou o assistente do estoque: posso consultar itens, movimentações, empréstimos, patrimônio, fornecedores ou usuários. Quer ver algum deles?';
           }
 
           conversa.mensagens.push({
@@ -302,6 +312,8 @@ class IAController {
               role: 'assistant',
               content: respostaCompleta,
             });
+          } else {
+            conversa.mensagens.pop();
           }
           await conversa.save().catch((saveErr: Error) => {
             logger.error(
@@ -315,7 +327,9 @@ class IAController {
               ? 'A consulta demorou demais e foi interrompida.'
               : erroOcorrido instanceof GraphRecursionError
                 ? 'A consulta ficou complexa demais. Tente ser mais específico.'
-                : 'Não foi possível processar sua mensagem. Tente novamente.';
+                : ehErroIndisponibilidade(erroOcorrido)
+                  ? 'O assistente está recebendo muitas consultas agora. Aguarde cerca de 1 minuto e tente de novo.'
+                  : 'Não foi possível processar sua mensagem. Tente novamente.';
 
             res.write(
               `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
@@ -370,6 +384,7 @@ class IAController {
 
           finalizarStream(usuarioId as string);
           res.end();
+          void atualizarResumoSeNecessario(conversa, usuarioId as string);
         }
       },
     );

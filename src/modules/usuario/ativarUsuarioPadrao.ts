@@ -1,16 +1,15 @@
 import UsuarioRepository from './UsuarioRepository.js';
 import GrupoRepository from '../grupo/GrupoRepository.js';
-import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 const usuarioRepository = new UsuarioRepository();
 const grupoRepository = new GrupoRepository();
 
 export async function ativarUsuarioPadrao(userId: string) {
-  let permissoes: IGrupoPermissao[] = [];
+  let grupos: unknown[] = [];
   try {
     const grupoUsuario = await grupoRepository.buscarPorNome('Usuario');
     if (grupoUsuario) {
-      permissoes = grupoUsuario.permissoes;
+      grupos = [grupoUsuario._id];
     }
   } catch (error) {
     console.warn(
@@ -23,6 +22,7 @@ export async function ativarUsuarioPadrao(userId: string) {
     ativo: true,
     ativadoEm: new Date(),
     convidadoEm: null,
-    permissoes: permissoes as unknown as Record<string, unknown>[],
+    grupos,
+    permissoes: [],
   });
 }

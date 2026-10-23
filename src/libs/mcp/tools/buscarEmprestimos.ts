@@ -4,6 +4,7 @@ import ItemModel from '../../../modules/item/ItemModel.js';
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 function resolverIdentificacao(
   tipoControle: string,
@@ -17,6 +18,11 @@ function resolverIdentificacao(
     return modelo ? `${modelo} (patrimônio ${numero})` : `patrimônio ${numero}`;
   }
   return (item?.['nome'] as string | undefined) ?? null;
+}
+
+function mascararEmail(email: string): string {
+  const [local = '', dominio = ''] = email.split('@');
+  return `${local.slice(0, 2)}***@${dominio}`;
 }
 
 export async function buscarEmprestimos(
@@ -40,12 +46,15 @@ export async function buscarEmprestimos(
   const filtros: Record<string, unknown> = { ativo: true };
 
   if (solicitanteNome) {
-    filtros['solicitante_nome'] = { $regex: solicitanteNome, $options: 'i' };
+    filtros['solicitante_nome'] = {
+      $regex: escapeRegex(solicitanteNome),
+      $options: 'i',
+    };
   }
 
   if (itemNome) {
     const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: itemNome, $options: 'i' },
+      nome: { $regex: escapeRegex(itemNome), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -54,7 +63,10 @@ export async function buscarEmprestimos(
 
   if (numeroPatrimonio) {
     const patrimoniosCorrespondentes = await PatrimonioModel.find({
-      numero_patrimonio: { $regex: numeroPatrimonio, $options: 'i' },
+      numero_patrimonio: {
+        $regex: escapeRegex(numeroPatrimonio),
+        $options: 'i',
+      },
     })
       .select('_id')
       .lean();
@@ -65,7 +77,7 @@ export async function buscarEmprestimos(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -98,11 +110,25 @@ export async function buscarEmprestimos(
         select: 'nome',
         model: UsuarioModel,
       })
+      .populate({
+        path: 'alteracoes.usuario',
+        select: 'nome',
+        model: UsuarioModel,
+      })
       .sort({ createdAt: -1 })
       .limit(Math.min(Number(limite), 50))
       .lean(),
     EmprestimoModel.countDocuments(filtros),
   ]);
+
+  const umSolicitante =
+    new Set(
+      emprestimos.map((e) =>
+        String(e['solicitante_nome'] ?? '')
+          .trim()
+          .toLowerCase(),
+      ),
+    ).size === 1;
 
   const registrosFormatados = emprestimos.map((e) => {
     const eObj = e as Record<string, unknown>;
@@ -117,6 +143,27 @@ export async function buscarEmprestimos(
       string,
       unknown
     > | null;
+
+    const emailVisivel = (email: string) =>
+      email && !umSolicitante ? mascararEmail(email) : email || null;
+    const alteracoes = (
+      (eObj['alteracoes'] as Array<Record<string, unknown>>) ?? []
+    ).map((alteracao) => {
+      const ehEmail = alteracao['campo'] === 'solicitante_email';
+      const valor = (chave: string) =>
+        ehEmail
+          ? emailVisivel(alteracao[chave] as string)
+          : alteracao[chave] || null;
+      return {
+        campo: alteracao['campo'],
+        anterior: valor('anterior'),
+        novo: valor('novo'),
+        alterado_por:
+          (alteracao['usuario'] as Record<string, unknown> | null)?.['nome'] ??
+          null,
+        data_hora: alteracao['data_hora'],
+      };
+    });
 
     const quantidadeAberta = Number(eObj['quantidade_aberta'] ?? 0);
     const dataPrevista = eObj['data_prevista_devolucao'];
@@ -135,7 +182,7 @@ export async function buscarEmprestimos(
       numero_patrimonio: patrimonio?.['numero_patrimonio'] ?? null,
       localizacao: localizacaoPopulada?.['nome'] ?? null,
       solicitante: eObj['solicitante_nome'],
-      solicitante_email: eObj['solicitante_email'] || null,
+      solicitante_email: emailVisivel(eObj['solicitante_email'] as string),
       registrado_por: responsavel?.['nome'] ?? null,
       quantidade_emprestada: eObj['quantidade_emprestada'],
       quantidade_devolvida: eObj['quantidade_devolvida'],
@@ -145,6 +192,7 @@ export async function buscarEmprestimos(
       data_devolucao_total: eObj['data_devolucao_total'] ?? null,
       observacoes_emprestimo: eObj['observacoes_emprestimo'] || null,
       observacoes_devolucao: eObj['observacoes_devolucao'] || null,
+      alteracoes,
       status: statusCalculado,
     };
   });

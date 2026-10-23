@@ -2,9 +2,10 @@ import mongoose from 'mongoose';
 import Movimentacao from '../MovimentacaoModel.js';
 import Item from '../../item/ItemModel.js';
 import Fornecedor from '../../fornecedor/FornecedorModel.js';
-import '../../estoque/EstoqueModel.js'; // registra o schema (default import não usado é removido pelo Babel)
+import Estoque from '../../estoque/EstoqueModel.js';
 import '../../notificacao/NotificacaoModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import logger from '../../../utils/logger.js';
 
 let mongoServer;
 
@@ -24,6 +25,7 @@ afterEach(async () => {
   await Movimentacao.deleteMany({});
   await Item.deleteMany({});
   await Fornecedor.deleteMany({});
+  await Estoque.deleteMany({});
 });
 
 describe('Modelo de Movimentacao', () => {
@@ -167,5 +169,74 @@ describe('Modelo de Movimentacao', () => {
     };
     const mov = new Movimentacao(movData);
     await expect(mov.save()).rejects.toThrow();
+  });
+
+  describe('recálculo do saldo ao salvar', () => {
+    const usuario = new mongoose.Types.ObjectId();
+
+    async function movimentar(tipo, quantidade, localizacao) {
+      await Movimentacao.create({
+        tipo,
+        quantidade,
+        item: item._id,
+        localizacao,
+        usuario,
+      });
+    }
+
+    it('grava no estoque a soma das entradas menos as saídas do local', async () => {
+      const local = new mongoose.Types.ObjectId();
+      await movimentar('entrada', 10, local);
+      await movimentar('saida', 3, local);
+
+      const estoque = await Estoque.findOne({
+        item: item._id,
+        localizacao: local,
+      });
+      expect(estoque.quantidade).toBe(7);
+    });
+
+    it('soma os locais na quantidade total do item', async () => {
+      await movimentar('entrada', 4, new mongoose.Types.ObjectId());
+      await movimentar('entrada', 6, new mongoose.Types.ObjectId());
+
+      const atualizado = await Item.findById(item._id);
+      expect(atualizado.quantidade).toBe(10);
+    });
+
+    it('avisa no log e grava 0 quando as saídas passam das entradas', async () => {
+      const aviso = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+      const local = new mongoose.Types.ObjectId();
+      await movimentar('entrada', 2, local);
+      await movimentar('saida', 5, local);
+
+      const estoque = await Estoque.findOne({
+        item: item._id,
+        localizacao: local,
+      });
+      expect(estoque.quantidade).toBe(0);
+      expect(aviso).toHaveBeenCalledWith(
+        expect.objectContaining({ somaMovimentacoes: -3 }),
+        expect.stringContaining('negativa'),
+      );
+      aviso.mockRestore();
+    });
+
+    it('não recalcula quando o saldo já foi reservado pelo serviço', async () => {
+      const local = new mongoose.Types.ObjectId();
+      const mov = new Movimentacao({
+        tipo: 'entrada',
+        quantidade: 8,
+        item: item._id,
+        localizacao: local,
+        usuario,
+      });
+      mov.$locals['estoqueJaAtualizado'] = true;
+      await mov.save();
+
+      expect(
+        await Estoque.findOne({ item: item._id, localizacao: local }),
+      ).toBeNull();
+    });
   });
 });

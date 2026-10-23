@@ -14,6 +14,7 @@ import { resumoEstoque } from './tools/resumoEstoque.js';
 import { historicoPatrimonio } from './tools/historicoPatrimonio.js';
 import { buscarUsuarios } from './tools/buscarUsuarios.js';
 import { formatarResultado } from './formatarResultado.js';
+import { fusoDoUsuario } from './fusoDoUsuario.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 
 const permissionService = new PermissionService();
@@ -62,6 +63,27 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Filtrar por itens com estoque na localização informada (busca parcial pelo nome)',
         ),
+      ordenar: z
+        .enum(['nome', 'mais_recentes', 'mais_antigos'])
+        .optional()
+        .default('nome')
+        .describe(
+          'Ordem dos resultados: por nome, ou pela data de cadastro (use mais_recentes para "último cadastrado/criado")',
+        ),
+      apenasMeus: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
+        ),
+      buscaExata: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'true para o texto inteiro, ignorando maiúsculas (use em "chamado X", "com nome X", "igual a X"); false busca por trecho',
+        ),
       limite: z
         .number()
         .int()
@@ -71,13 +93,35 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .default(20)
         .describe('Máximo de resultados'),
     },
-    async ({ nome, status, categoria, localizacao, limite }) => {
+    async ({
+      nome,
+      status,
+      categoria,
+      localizacao,
+      ordenar,
+      apenasMeus,
+      buscaExata,
+      limite,
+    }) => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await buscarItens(
-        { nome, status, categoria, localizacao, limite },
+        {
+          nome,
+          status,
+          categoria,
+          localizacao,
+          ordenar,
+          apenasMeus,
+          buscaExata,
+          limite,
+        },
         usuarioId,
       );
-      return formatarResultado('buscarItens', resultado);
+      return formatarResultado(
+        'buscarItens',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -109,6 +153,27 @@ export function criarMCPServer(usuarioId: string): McpServer {
         .describe(
           'Filtrar pelo nome da categoria (busca parcial, ex: "Computadores")',
         ),
+      ordenar: z
+        .enum(['numero_patrimonio', 'mais_recentes', 'mais_antigos'])
+        .optional()
+        .default('numero_patrimonio')
+        .describe(
+          'Ordem dos resultados: por número de patrimônio, ou pela data de cadastro (use mais_recentes para "último cadastrado/criado")',
+        ),
+      apenasMeus: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'Somente os cadastrados pelo próprio usuário desta conversa (use em pedidos como "que eu criei", "meus itens")',
+        ),
+      buscaExata: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'true para o texto inteiro, ignorando maiúsculas (use em "chamado X", "com nome X", "igual a X"); false busca por trecho',
+        ),
       limite: z
         .number()
         .int()
@@ -124,14 +189,31 @@ export function criarMCPServer(usuarioId: string): McpServer {
       status,
       localizacao,
       categoria,
+      ordenar,
+      apenasMeus,
+      buscaExata,
       limite,
     }) => {
       await verificarPermissao(usuarioId, 'patrimonios');
       const resultado = await buscarPatrimonios(
-        { numeroPatrimonio, modelo, status, localizacao, categoria, limite },
+        {
+          numeroPatrimonio,
+          modelo,
+          status,
+          localizacao,
+          categoria,
+          ordenar,
+          apenasMeus,
+          buscaExata,
+          limite,
+        },
         usuarioId,
       );
-      return formatarResultado('buscarPatrimonios', resultado);
+      return formatarResultado(
+        'buscarPatrimonios',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -167,7 +249,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { itemId, itemNome, localizacaoId, localizacaoNome, limite },
         usuarioId,
       );
-      return formatarResultado('buscarEstoque', resultado);
+      return formatarResultado(
+        'buscarEstoque',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -184,11 +270,15 @@ export function criarMCPServer(usuarioId: string): McpServer {
       dataInicio: z
         .string()
         .optional()
-        .describe('Data de início no formato ISO 8601 (ex: 2026-01-01)'),
+        .describe(
+          'Data de início no formato YYYY-MM-DD (ex: 2026-01-01); sem hora, vale desde o começo do dia no fuso do usuário',
+        ),
       dataFim: z
         .string()
         .optional()
-        .describe('Data de fim no formato ISO 8601 (ex: 2026-12-31)'),
+        .describe(
+          'Data de fim no formato YYYY-MM-DD (ex: 2026-12-31); sem hora, inclui o dia inteiro no fuso do usuário',
+        ),
       itemNome: z
         .string()
         .optional()
@@ -212,13 +302,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { tipo, dataInicio, dataFim, itemNome, localizacao, limite },
         usuarioId,
       );
-      return formatarResultado('buscarMovimentacoes', resultado);
+      return formatarResultado(
+        'buscarMovimentacoes',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'buscarEmprestimos',
-    'Busca empréstimos com status calculado (Ativo, Devolvido, Atrasado). Um empréstimo é de item de consumo do almoxarifado (campo "item" preenchido) OU de uma unidade de patrimônio (campo "tipo_controle" = "unidade", identificada por número de patrimônio) — o campo "item" no retorno já vem resolvido para os dois casos, nunca use "Não informado" ou similar se ele vier nulo.',
+    'Busca empréstimos com status calculado (Ativo, Devolvido, Atrasado). Um empréstimo é de item de consumo do almoxarifado (campo "item" preenchido) OU de uma unidade de patrimônio (campo "tipo_controle" = "unidade", identificada por número de patrimônio) — o campo "item" no retorno já vem resolvido para os dois casos, nunca use "Não informado" ou similar se ele vier nulo. O "solicitante_email" vem completo só quando todos os registros são do mesmo solicitante; numa lista com várias pessoas ele vem mascarado (ex.: "jo***@dominio.com"), e o e-mail completo de alguém se obtém filtrando por "solicitanteNome". O campo "alteracoes" lista as edições feitas depois do registro (campo, valor anterior, valor novo, quem alterou e quando).',
     {
       status: z
         .enum(['Ativo', 'Devolvido', 'Atrasado'])
@@ -273,18 +367,26 @@ export function criarMCPServer(usuarioId: string): McpServer {
         },
         usuarioId,
       );
-      return formatarResultado('buscarEmprestimos', resultado);
+      return formatarResultado(
+        'buscarEmprestimos',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'verificarItensAbaixoMinimo',
-    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit.',
+    'Retorna todos os itens de consumo (almoxarifado) com quantidade abaixo ou igual ao estoque mínimo definido, ordenados pelo maior déficit. Itens sem estoque mínimo (0) ficam de fora; para itens zerados em geral, use buscarItens com status "Indisponível".',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens');
       const resultado = await verificarItensAbaixoMinimo({}, usuarioId);
-      return formatarResultado('verificarItensAbaixoMinimo', resultado);
+      return formatarResultado(
+        'verificarItensAbaixoMinimo',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -295,13 +397,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'movimentacoes');
       const resultado = await itensPrioritariosCompra({}, usuarioId);
-      return formatarResultado('itensPrioritariosCompra', resultado);
+      return formatarResultado(
+        'itensPrioritariosCompra',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'buscarCategorias',
-    'Lista todas as categorias de itens cadastradas no sistema',
+    'Lista as categorias cadastradas com a contagem completa, feita no banco: `itens_ativos` nas de consumo e `unidades_patrimonio_ativas` nas permanentes. Use para comparar ou contar por categoria, em vez de somar uma lista de itens ou patrimônios (que vem limitada).',
     {
       tipo: z
         .enum(['consumo', 'permanente'])
@@ -317,13 +423,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ tipo, nome }) => {
       await verificarPermissao(usuarioId, 'categorias');
       const resultado = await buscarCategorias({ tipo, nome }, usuarioId);
-      return formatarResultado('buscarCategorias', resultado);
+      return formatarResultado(
+        'buscarCategorias',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'buscarLocalizacoes',
-    'Lista locais de armazenamento (prateleiras, depósitos, laboratórios, etc.)',
+    'Lista locais de armazenamento (prateleiras, depósitos, laboratórios, etc.) com a contagem completa, feita no banco: `itens_consumo_com_saldo` e `unidades_consumo` (saldo de almoxarifado no local) e `unidades_patrimonio` (unidades ativas no local, sem as baixadas). Use para "por localização" ou "onde tem mais", em vez de somar listas de itens ou patrimônios (que vêm limitadas).',
     {
       nome: z
         .string()
@@ -333,7 +443,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ nome }) => {
       await verificarPermissao(usuarioId, 'localizacoes');
       const resultado = await buscarLocalizacoes({ nome }, usuarioId);
-      return formatarResultado('buscarLocalizacoes', resultado);
+      return formatarResultado(
+        'buscarLocalizacoes',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
@@ -349,24 +463,32 @@ export function criarMCPServer(usuarioId: string): McpServer {
     async ({ nome }) => {
       await verificarPermissao(usuarioId, 'fornecedores');
       const resultado = await buscarFornecedores({ nome }, usuarioId);
-      return formatarResultado('buscarFornecedores', resultado);
+      return formatarResultado(
+        'buscarFornecedores',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'resumoEstoque',
-    'Retorna um resumo estatístico geral: total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos ativos/atrasados, e a contagem de unidades de patrimônio. total_unidades_patrimonio é o total real (inclui as baixadas); unidades_patrimonio_em_uso = disponíveis + emprestadas + em manutenção (exclui as baixadas); unidades_baixadas vem separado.',
+    'Retorna um resumo estatístico geral (os cartões das abas Almoxarifado, Patrimônio e Empréstimos dos Relatórios): total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos em aberto (emprestimos_ativos, inclui os atrasados e os de consumo e de patrimônio juntos), emprestimos_no_prazo (o cartão "Ativos" da tela), emprestimos_atrasados, emprestimos_devolvidos e a contagem de unidades de patrimônio. total_unidades_patrimonio é o total real (inclui as baixadas); unidades_patrimonio_em_uso = disponíveis + emprestadas + em manutenção (exclui as baixadas); unidades_baixadas vem separado. total_itens conta cadastros de consumo e total_unidades_patrimonio conta unidades: nunca some os dois. unidades_emprestadas são as unidades de patrimônio dos empréstimos já contados em emprestimos_ativos: nunca some as duas.',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');
       const resultado = await resumoEstoque({}, usuarioId);
-      return formatarResultado('resumoEstoque', resultado);
+      return formatarResultado(
+        'resumoEstoque',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'historicoPatrimonio',
-    'Retorna o histórico de eventos (cadastro, empréstimo, devolução, manutenção, transferência, baixa, reativação) de uma unidade de patrimônio pelo número de patrimônio.',
+    'Retorna o histórico de eventos (cadastro, empréstimo, devolução, manutenção, transferência, baixa, reativação, inativação quando a unidade é removida) de uma unidade de patrimônio pelo número de patrimônio. Se o número foi reaproveitado, traz a unidade atual (`unidade_consultada`) e lista as removidas em `outras_unidades_com_mesmo_numero`: diga que o número já pertenceu a outra unidade e nunca misture as trilhas.',
     {
       numeroPatrimonio: z
         .string()
@@ -386,13 +508,17 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { numeroPatrimonio, limite },
         usuarioId,
       );
-      return formatarResultado('historicoPatrimonio', resultado);
+      return formatarResultado(
+        'historicoPatrimonio',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 
   server.tool(
     'buscarUsuarios',
-    'Lista usuários cadastrados no sistema (nome, e-mail, status, grupos). Só acessível a quem tem permissão de administração de usuários.',
+    'Lista usuários cadastrados no sistema (nome, e-mail, status, grupos). `ativo: false` = convite ainda não aceito; usuários excluídos não aparecem. Só acessível a quem tem permissão de administração de usuários.',
     {
       nome: z
         .string()
@@ -421,7 +547,11 @@ export function criarMCPServer(usuarioId: string): McpServer {
         { nome, email, ativo, limite },
         usuarioId,
       );
-      return formatarResultado('buscarUsuarios', resultado);
+      return formatarResultado(
+        'buscarUsuarios',
+        resultado,
+        await fusoDoUsuario(usuarioId),
+      );
     },
   );
 

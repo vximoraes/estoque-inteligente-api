@@ -1,5 +1,6 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
+import { limparCacheAoGravar } from '../../utils/services/cachePermissoes.js';
 import type { IGrupoPermissao } from '../grupo/GrupoModel.js';
 
 export interface IUsuario {
@@ -11,6 +12,8 @@ export interface IUsuario {
   grupos: mongoose.Types.ObjectId[];
   permissoes: IGrupoPermissao[];
   fotoPerfil?: string;
+  fuso_horario?: string | null;
+  desativadoEm?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -37,12 +40,15 @@ const usuarioSchema = new mongoose.Schema<UsuarioDocument>(
       },
     ],
     fotoPerfil: { type: String, required: false },
+    fuso_horario: { type: String, default: null },
+    desativadoEm: { type: Date, default: null },
   },
   // Better Auth já grava createdAt/updatedAt nesta collection; declarar aqui expõe o campo na resposta
   { timestamps: true },
 );
 
 usuarioSchema.plugin(mongoosePaginate);
+limparCacheAoGravar(usuarioSchema);
 
 export default mongoose.model<
   UsuarioDocument,

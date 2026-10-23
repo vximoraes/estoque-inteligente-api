@@ -1,5 +1,6 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
+import { limparCacheAoGravar } from '../../utils/services/cachePermissoes.js';
 
 export interface IRota {
   rota: string;
@@ -27,6 +28,7 @@ const rotaSchema = new mongoose.Schema<RotaDocument>(
 );
 
 rotaSchema.plugin(mongoosePaginate);
+limparCacheAoGravar(rotaSchema);
 
 rotaSchema.pre('save', function (this: RotaDocument, next) {
   if (this.rota) {

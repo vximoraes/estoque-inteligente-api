@@ -78,7 +78,7 @@ describe('MCPSessionStore', () => {
 
   it('deve evictar a sessão mais antiga ao exceder MAX_SESSOES', () => {
     for (let i = 0; i < 101; i++) {
-      MCPSessionStore.set(`sessao-lote-${i}`, criarSessaoFake());
+      MCPSessionStore.set(`sessao-lote-${i}`, criarSessaoFake(`usuario-${i}`));
     }
 
     expect(MCPSessionStore.has('sessao-lote-0')).toBe(false);
@@ -87,5 +87,19 @@ describe('MCPSessionStore', () => {
     for (let i = 1; i <= 100; i++) {
       MCPSessionStore.delete(`sessao-lote-${i}`);
     }
+  });
+
+  it('um usuário não derruba as sessões dos outros: o limite é por usuário', () => {
+    MCPSessionStore.set('sessao-de-outro', criarSessaoFake('outro'));
+    for (let i = 0; i < 6; i++) {
+      MCPSessionStore.set(`sessao-abusiva-${i}`, criarSessaoFake('abusivo'));
+    }
+
+    expect(MCPSessionStore.has('sessao-abusiva-0')).toBe(false);
+    expect(MCPSessionStore.has('sessao-abusiva-5')).toBe(true);
+    expect(MCPSessionStore.has('sessao-de-outro')).toBe(true);
+
+    MCPSessionStore.delete('sessao-de-outro');
+    for (let i = 1; i < 6; i++) MCPSessionStore.delete(`sessao-abusiva-${i}`);
   });
 });

@@ -30,7 +30,10 @@ describe('MovimentacaoRepository', () => {
   describe('criar', () => {
     it('deve criar movimentação e retornar populada', async () => {
       const mockSave = jest.fn().mockResolvedValue({ _id: '1' });
-      MovimentacaoModel.mockImplementation(() => ({ save: mockSave }));
+      MovimentacaoModel.mockImplementation(() => ({
+        save: mockSave,
+        $locals: {},
+      }));
       const populatedResult = {
         _id: '1',
         item: { _id: 'c1', nome: 'Item 1' },
@@ -47,7 +50,9 @@ describe('MovimentacaoRepository', () => {
         .mockReturnValue({ populate: mockPopulateItem });
       const result = await repository.criar({ item: 'c1', fornecedor: 'f1' });
       expect(mockSave).toHaveBeenCalled();
-      expect(MovimentacaoModel.findById).toHaveBeenCalledWith('1');
+      expect(MovimentacaoModel.findById).toHaveBeenCalledWith('1', null, {
+        session: undefined,
+      });
       expect(result).toEqual(populatedResult);
     });
   });

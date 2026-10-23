@@ -9,6 +9,7 @@ jest.mock('../ativarUsuarioPadrao.js', () => ({
 
 import mongoose from 'mongoose';
 import UsuarioService from '../UsuarioService.js';
+import EmailService from '../../../utils/services/EmailService.js';
 import UsuarioRepository from '../UsuarioRepository.js';
 import minioClient from '../../../config/minioClient.js';
 import compress from '../../../config/sharpConfig.js';
@@ -16,6 +17,10 @@ import { getAuth } from '../../../config/auth.js';
 import { ativarUsuarioPadrao } from '../ativarUsuarioPadrao.js';
 
 jest.mock('../UsuarioRepository.js');
+jest.mock('../../../utils/services/EmailService.js', () => ({
+  __esModule: true,
+  default: { disponivel: jest.fn(() => true) },
+}));
 
 const mockCollection = { deleteMany: jest.fn(), findOne: jest.fn() };
 mongoose.connection.db = { collection: jest.fn(() => mockCollection) };
@@ -38,7 +43,9 @@ describe('UsuarioService', () => {
       atualizar: jest.fn(),
       deletar: jest.fn(),
       buscarPorEmail: jest.fn(),
+      buscarExcluidoPorEmail: jest.fn().mockResolvedValue(null),
       buscarPorId: jest.fn(),
+      definirDesativacao: jest.fn(),
     };
 
     authApiMock = {
@@ -109,16 +116,23 @@ describe('UsuarioService', () => {
   });
 
   describe('deletar', () => {
-    it('deve deletar usuário existente', async () => {
+    it('recusa excluir a própria conta', async () => {
+      await expect(
+        service.deletar('user123', { user_id: 'user123' }),
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(repositoryMock.deletar).not.toHaveBeenCalled();
+    });
+
+    it('exclui de forma lógica, gravando a data', async () => {
       const req = { user_id: 'user123' };
       repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
-      repositoryMock.deletar.mockResolvedValue({
-        acknowledged: true,
-        deletedCount: 1,
-      });
-      const data = await service.deletar('1', req);
-      expect(repositoryMock.deletar).toHaveBeenCalledWith('1', 'user123');
-      expect(data).toEqual({ acknowledged: true, deletedCount: 1 });
+      repositoryMock.definirDesativacao.mockResolvedValue({ _id: '1' });
+      await service.deletar('1', req);
+      expect(repositoryMock.definirDesativacao).toHaveBeenCalledWith(
+        '1',
+        expect.any(Date),
+      );
+      expect(repositoryMock.deletar).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro se usuário não existir', async () => {
@@ -191,6 +205,19 @@ describe('UsuarioService', () => {
   });
 
   describe('uploadFoto', () => {
+    beforeEach(() => {
+      repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
+    });
+
+    it('responde 404 sem enviar ao MinIO quando o usuário não existe', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(null);
+      const req = { file: { size: 100, buffer: Buffer.from('x') } };
+      await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
+        statusCode: 404,
+      });
+      expect(minioClient.send).not.toHaveBeenCalled();
+    });
+
     it('deve lançar erro se nenhum arquivo for enviado', async () => {
       const req = { file: undefined };
       await expect(service.uploadFoto(req, '1')).rejects.toMatchObject({
@@ -233,7 +260,16 @@ describe('UsuarioService', () => {
   });
 
   describe('deletarFoto', () => {
+    it('responde 404 sem tocar no MinIO quando o usuário não existe', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue(null);
+      await expect(service.deletarFoto({}, '1')).rejects.toMatchObject({
+        statusCode: 404,
+      });
+      expect(minioClient.send).not.toHaveBeenCalled();
+    });
+
     it('deve remover do MinIO e retornar fotoPerfil vazia', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({ _id: '1' });
       repositoryMock.atualizar.mockResolvedValue({ fotoPerfil: '' });
       const data = await service.deletarFoto({}, '1');
       expect(minioClient.send).toHaveBeenCalled();
@@ -380,6 +416,32 @@ describe('UsuarioService', () => {
     });
   });
 
+  describe('convidarUsuario — e-mail de usuário excluído', () => {
+    it('restaura a conta em vez de criar outra', async () => {
+      repositoryMock.buscarExcluidoPorEmail.mockResolvedValueOnce({
+        _id: 'u9',
+      });
+      repositoryMock.definirDesativacao.mockResolvedValue({
+        _id: 'u9',
+        nome: 'Fulano',
+        email: 'fulano@teste.com',
+        ativo: true,
+      });
+
+      const resultado = await service.convidarUsuario(
+        'Fulano',
+        'Fulano@Teste.com',
+      );
+
+      expect(repositoryMock.definirDesativacao).toHaveBeenCalledWith(
+        'u9',
+        null,
+      );
+      expect(authApiMock.signUpEmail).not.toHaveBeenCalled();
+      expect(resultado.usuario._id).toBe('u9');
+    });
+  });
+
   describe('reenviarConvite', () => {
     it('deve lançar erro se conta já estiver ativada', async () => {
       repositoryMock.buscarPorId.mockResolvedValue({
@@ -388,6 +450,19 @@ describe('UsuarioService', () => {
       });
       await expect(service.reenviarConvite('1')).rejects.toMatchObject({
         statusCode: 400,
+      });
+      expect(authApiMock.requestPasswordReset).not.toHaveBeenCalled();
+    });
+
+    it('recusa com 503 quando o e-mail não está configurado', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        _id: '1',
+        email: 'fulano@teste.com',
+        ativo: false,
+      });
+      EmailService.disponivel.mockReturnValueOnce(false);
+      await expect(service.reenviarConvite('1')).rejects.toMatchObject({
+        statusCode: 503,
       });
       expect(authApiMock.requestPasswordReset).not.toHaveBeenCalled();
     });

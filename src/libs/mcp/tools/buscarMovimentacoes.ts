@@ -2,6 +2,9 @@ import MovimentacaoModel from '../../../modules/movimentacao/MovimentacaoModel.j
 import ItemModel from '../../../modules/item/ItemModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import { limiteDeData } from '../../../utils/fusoHorario.js';
+import { fusoDoUsuario } from '../fusoDoUsuario.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function buscarMovimentacoes(
   {
@@ -19,7 +22,7 @@ export async function buscarMovimentacoes(
     localizacao?: string;
     limite?: number;
   },
-  _usuarioId: string,
+  usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = {};
 
@@ -27,14 +30,17 @@ export async function buscarMovimentacoes(
 
   if (dataInicio || dataFim) {
     const data_hora: Record<string, Date> = {};
-    if (dataInicio) data_hora['$gte'] = new Date(dataInicio);
-    if (dataFim) data_hora['$lte'] = new Date(dataFim);
+    const fuso = await fusoDoUsuario(usuarioId);
+    const inicio = limiteDeData(dataInicio, 'inicio', fuso);
+    const fim = limiteDeData(dataFim, 'fim', fuso);
+    if (inicio) data_hora['$gte'] = inicio;
+    if (fim) data_hora['$lte'] = fim;
     filtros['data_hora'] = data_hora;
   }
 
   if (itemNome) {
     const itensCorrespondentes = await ItemModel.find({
-      nome: { $regex: itemNome, $options: 'i' },
+      nome: { $regex: escapeRegex(itemNome), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -43,7 +49,7 @@ export async function buscarMovimentacoes(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import EmprestimoRepository from './EmprestimoRepository.js';
 import MovimentacaoService from '../movimentacao/MovimentacaoService.js';
 import Item from '../item/ItemModel.js';
@@ -16,6 +17,18 @@ import type {
   DevolucaoEmprestimo,
   AtualizarEmprestimo,
 } from './EmprestimoSchema.js';
+
+const MOTIVO_UNIDADE_INDISPONIVEL: Record<string, string> = {
+  Emprestado: 'Esta unidade já está emprestada.',
+  Manutenção: 'Esta unidade está em manutenção e não pode ser emprestada.',
+  Baixado: 'Esta unidade foi baixada e não pode ser emprestada.',
+};
+
+function textoDoCampo(valor: unknown): string {
+  if (valor === null || valor === undefined) return '';
+  if (valor instanceof Date) return valor.toISOString();
+  return String(valor);
+}
 
 class EmprestimoService {
   private repository: EmprestimoRepository;
@@ -43,7 +56,7 @@ class EmprestimoService {
           data_saida: parsedData.data_saida ?? new Date(),
         });
 
-        return await this.finalizarCriacao(data);
+        return await this.finalizarCriacao(data, req.fuso_horario);
       } catch (erro) {
         // Sem transação no banco: se o registro de Emprestimo falhar depois
         // que a unidade já foi marcada como Emprestado, a devolução
@@ -119,26 +132,33 @@ class EmprestimoService {
       });
     }
 
-    await this.movimentacaoService.criar(
-      {
-        tipo: 'saida',
-        quantidade: parsedData.quantidade_emprestada,
-        item: parsedData.item,
-        localizacao: parsedData.localizacao,
-      },
-      req,
-    );
-
-    const data = await this.repository.criar({
-      ...parsedData,
-      tipo_controle: 'quantidade',
-      quantidade_devolvida: 0,
-      quantidade_aberta: parsedData.quantidade_emprestada,
-      usuario_responsavel: req.user_id,
-      data_saida: parsedData.data_saida ?? new Date(),
+    const quantidadeEmprestada = parsedData.quantidade_emprestada;
+    const data = await mongoose.connection.transaction(async (session) => {
+      await this.movimentacaoService.criar(
+        {
+          tipo: 'saida',
+          quantidade: quantidadeEmprestada,
+          item: item._id.toString(),
+          localizacao: localizacao._id.toString(),
+        },
+        req,
+        session,
+      );
+      return await this.repository.criar(
+        {
+          ...parsedData,
+          tipo_controle: 'quantidade',
+          quantidade_devolvida: 0,
+          quantidade_aberta: quantidadeEmprestada,
+          usuario_responsavel: req.user_id,
+          data_saida: parsedData.data_saida ?? new Date(),
+        },
+        session,
+      );
     });
+    await Estoque.atualizarQuantidadeItem(item._id);
 
-    return await this.finalizarCriacao(data);
+    return await this.finalizarCriacao(data, req.fuso_horario);
   }
 
   // Valida a unidade patrimonial e a transiciona atomicamente para
@@ -187,12 +207,15 @@ class EmprestimoService {
       req,
     );
     if (!transicionada) {
+      const atual = await PatrimonioModel.findById(patrimonioId, 'status');
       throw new CustomError({
         statusCode: 409,
         errorType: 'conflictError',
         field: 'patrimonio',
         details: [],
-        customMessage: 'Esta unidade já está emprestada.',
+        customMessage:
+          MOTIVO_UNIDADE_INDISPONIVEL[atual?.status ?? ''] ??
+          'Esta unidade não está disponível para empréstimo.',
       });
     }
 
@@ -209,12 +232,13 @@ class EmprestimoService {
   // Trecho final de `criar`, comum aos dois tipos de controle: e-mails de
   // aviso. Extraído para não duplicar entre o ramo de unidade e o de
   // quantidade.
-  private async finalizarCriacao(data: Record<string, unknown>) {
+  private async finalizarCriacao(data: Record<string, unknown>, fuso?: string) {
     if (data['solicitante_email']) {
       EmailService.enviarEmailNovoEmprestimo(
         data['solicitante_nome'] as string,
         data['solicitante_email'] as string,
         data as unknown as EmprestimoEmailData,
+        fuso,
       ).catch((err: unknown) =>
         console.error('Erro ao enviar e-mail de novo emprestimo:', err),
       );
@@ -229,6 +253,7 @@ class EmprestimoService {
         data['solicitante_nome'] as string,
         data['solicitante_email'] as string,
         data as unknown as EmprestimoEmailData,
+        fuso,
       )
         .then(() =>
           EmprestimoModel.updateOne(
@@ -270,63 +295,88 @@ class EmprestimoService {
       });
     }
 
-    if (emprestimo.tipo_controle === 'unidade') {
-      // Reaproveita `emprestarUnidade` — a transição Disponível→Emprestado é
-      // idêntica, seja a origem um empréstimo novo ou o estorno de uma
-      // devolução. O evento gravado fica com `tipo:'emprestimo'`; não há um
-      // tipo de evento próprio de "estorno" no ledger de patrimônio.
-      // `emprestimo.patrimonio` vem populado por `repository.buscarPorId`
-      // (`.populate('patrimonio', ...)`) — `String()` direto num doc
-      // populado retorna "[object Object]", não o id.
-      const empPatrimonio = emprestimo.patrimonio as unknown as Record<
-        string,
-        unknown
-      >;
-      const patrimonioId = String(
-        empPatrimonio?.['_id'] ?? emprestimo.patrimonio,
-      );
-      const transicionada = await this.patrimonioService.emprestarUnidade(
-        patrimonioId,
-        req,
-      );
-      if (!transicionada) {
-        throw new CustomError({
-          statusCode: 400,
-          errorType: 'validationError',
-          field: 'patrimonio',
-          details: [],
-          customMessage:
-            'A unidade não está mais disponível (foi para manutenção ou baixa); não é possível desfazer a devolução.',
-        });
-      }
-    } else {
-      const empItem = emprestimo.item as unknown as Record<string, unknown>;
-      const empLoc = emprestimo.localizacao as unknown as Record<
-        string,
-        unknown
-      >;
-      const itemId = String(empItem['_id'] ?? emprestimo.item);
-      const localizacaoId = String(empLoc['_id'] ?? emprestimo.localizacao);
-
-      await this.movimentacaoService.criar(
-        {
-          tipo: 'saida',
-          quantidade: emprestimo.quantidade_devolvida,
-          item: itemId,
-          localizacao: localizacaoId,
-        },
-        req,
-      );
+    const estadoAnterior = {
+      quantidade_devolvida: emprestimo.quantidade_devolvida,
+      quantidade_aberta: emprestimo.quantidade_aberta,
+      observacoes_devolucao: emprestimo.observacoes_devolucao ?? '',
+      data_devolucao_total: emprestimo.data_devolucao_total ?? null,
+    };
+    const reservou = await this.repository.atualizarSe(
+      id,
+      { quantidade_devolvida: emprestimo.quantidade_devolvida },
+      {
+        quantidade_devolvida: 0,
+        quantidade_aberta: emprestimo.quantidade_emprestada,
+        observacoes_devolucao: '',
+        data_devolucao_total: null,
+      },
+    );
+    if (!reservou) {
+      throw new CustomError({
+        statusCode: 409,
+        errorType: 'resourceConflict',
+        field: 'emprestimo',
+        details: [],
+        customMessage:
+          'O empréstimo foi alterado por outra operação. Atualize a página.',
+      });
     }
 
-    const payload: Record<string, unknown> = {
-      quantidade_devolvida: 0,
-      quantidade_aberta: emprestimo.quantidade_emprestada,
-      observacoes_devolucao: '',
-      data_devolucao_total: null,
-    };
+    try {
+      if (emprestimo.tipo_controle === 'unidade') {
+        // Reaproveita `emprestarUnidade` — a transição Disponível→Emprestado é
+        // idêntica, seja a origem um empréstimo novo ou o estorno de uma
+        // devolução. O evento gravado fica com `tipo:'emprestimo'`; não há um
+        // tipo de evento próprio de "estorno" no ledger de patrimônio.
+        // `emprestimo.patrimonio` vem populado por `repository.buscarPorId`
+        // (`.populate('patrimonio', ...)`) — `String()` direto num doc
+        // populado retorna "[object Object]", não o id.
+        const empPatrimonio = emprestimo.patrimonio as unknown as Record<
+          string,
+          unknown
+        >;
+        const patrimonioId = String(
+          empPatrimonio?.['_id'] ?? emprestimo.patrimonio,
+        );
+        const transicionada = await this.patrimonioService.emprestarUnidade(
+          patrimonioId,
+          req,
+        );
+        if (!transicionada) {
+          throw new CustomError({
+            statusCode: 400,
+            errorType: 'validationError',
+            field: 'patrimonio',
+            details: [],
+            customMessage:
+              'A unidade não está mais disponível (foi para manutenção ou baixa); não é possível desfazer a devolução.',
+          });
+        }
+      } else {
+        const empItem = emprestimo.item as unknown as Record<string, unknown>;
+        const empLoc = emprestimo.localizacao as unknown as Record<
+          string,
+          unknown
+        >;
+        const itemId = String(empItem['_id'] ?? emprestimo.item);
+        const localizacaoId = String(empLoc['_id'] ?? emprestimo.localizacao);
 
-    return this.repository.atualizarDevolucao(id, payload);
+        await this.movimentacaoService.criar(
+          {
+            tipo: 'saida',
+            quantidade: emprestimo.quantidade_devolvida,
+            item: itemId,
+            localizacao: localizacaoId,
+          },
+          req,
+        );
+      }
+    } catch (erro) {
+      await this.repository.atualizarSe(id, {}, estadoAnterior);
+      throw erro;
+    }
+
+    return this.repository.atualizarDevolucao(id, {});
   }
 
   async devolver(
@@ -366,61 +416,82 @@ class EmprestimoService {
       });
     }
 
-    let payload: Record<string, unknown>;
-
-    if (emprestimo.tipo_controle === 'unidade') {
-      // Devolução de unidade não é parcial: `quantidade_devolvida` do body é
-      // ignorada de propósito (a unidade volta inteira ou não volta).
-      // Mesmo cuidado do desfazerDevolucao: `patrimonio` vem populado.
-      const empPatrimonio = emprestimo.patrimonio as unknown as Record<
-        string,
-        unknown
-      >;
-      const patrimonioId = String(
-        empPatrimonio?.['_id'] ?? emprestimo.patrimonio,
-      );
-      await this.patrimonioService.devolverUnidade(patrimonioId, {}, req);
-
-      payload = {
-        quantidade_devolvida: 1,
-        quantidade_aberta: 0,
-        observacoes_devolucao: parsedData.observacoes_devolucao ?? '',
-        data_devolucao_total: new Date(),
-      };
-    } else {
-      const empItem = emprestimo.item as unknown as Record<string, unknown>;
-      const empLoc = emprestimo.localizacao as unknown as Record<
-        string,
-        unknown
-      >;
-      const itemId = String(empItem['_id'] ?? emprestimo.item);
-      const localizacaoId = String(empLoc['_id'] ?? emprestimo.localizacao);
-
-      await this.movimentacaoService.criar(
-        {
-          tipo: 'entrada',
-          quantidade: parsedData.quantidade_devolvida,
-          item: itemId,
-          localizacao: localizacaoId,
+    const quantidadeDevolvida =
+      emprestimo.tipo_controle === 'unidade'
+        ? 1
+        : parsedData.quantidade_devolvida;
+    const reservou = await this.repository.atualizarSe(
+      id,
+      { quantidade_aberta: { $gte: quantidadeDevolvida } },
+      {
+        $inc: {
+          quantidade_devolvida: quantidadeDevolvida,
+          quantidade_aberta: -quantidadeDevolvida,
         },
-        req,
-      );
-
-      const novaQuantidadeDevolvida =
-        emprestimo.quantidade_devolvida + parsedData.quantidade_devolvida;
-      const novaQuantidadeAberta =
-        emprestimo.quantidade_emprestada - novaQuantidadeDevolvida;
-
-      payload = {
-        quantidade_devolvida: novaQuantidadeDevolvida,
-        quantidade_aberta: Math.max(0, novaQuantidadeAberta),
-        observacoes_devolucao: parsedData.observacoes_devolucao ?? '',
-        data_devolucao_total:
-          novaQuantidadeAberta <= 0
-            ? new Date()
-            : emprestimo.data_devolucao_total,
-      };
+      },
+    );
+    if (!reservou) {
+      throw new CustomError({
+        statusCode: 409,
+        errorType: 'resourceConflict',
+        field: 'emprestimo',
+        details: [],
+        customMessage:
+          'A devolução já foi registrada por outra operação. Atualize a página.',
+      });
     }
+
+    try {
+      if (emprestimo.tipo_controle === 'unidade') {
+        // Devolução de unidade não é parcial: `quantidade_devolvida` do body é
+        // ignorada de propósito (a unidade volta inteira ou não volta).
+        // Mesmo cuidado do desfazerDevolucao: `patrimonio` vem populado.
+        const empPatrimonio = emprestimo.patrimonio as unknown as Record<
+          string,
+          unknown
+        >;
+        const patrimonioId = String(
+          empPatrimonio?.['_id'] ?? emprestimo.patrimonio,
+        );
+        await this.patrimonioService.devolverUnidade(patrimonioId, {}, req);
+      } else {
+        const empItem = emprestimo.item as unknown as Record<string, unknown>;
+        const empLoc = emprestimo.localizacao as unknown as Record<
+          string,
+          unknown
+        >;
+        await this.movimentacaoService.criar(
+          {
+            tipo: 'entrada',
+            quantidade: quantidadeDevolvida,
+            item: String(empItem['_id'] ?? emprestimo.item),
+            localizacao: String(empLoc['_id'] ?? emprestimo.localizacao),
+          },
+          req,
+        );
+      }
+    } catch (erro) {
+      await this.repository.atualizarSe(
+        id,
+        {},
+        {
+          $inc: {
+            quantidade_devolvida: -quantidadeDevolvida,
+            quantidade_aberta: quantidadeDevolvida,
+          },
+        },
+      );
+      throw erro;
+    }
+
+    await this.repository.atualizarSe(
+      id,
+      { quantidade_aberta: { $lte: 0 }, data_devolucao_total: null },
+      { data_devolucao_total: new Date() },
+    );
+    const payload: Record<string, unknown> = {
+      observacoes_devolucao: parsedData.observacoes_devolucao ?? '',
+    };
 
     const emprestimoAtualizado = await this.repository.atualizarDevolucao(
       id,
@@ -433,6 +504,7 @@ class EmprestimoService {
         emprestimoAtualizado['solicitante_email'] as string,
         emprestimoAtualizado as unknown as EmprestimoEmailData,
         parsedData.quantidade_devolvida,
+        req.fuso_horario,
       ).catch((err: unknown) =>
         console.error('Erro ao enviar e-mail de devolucao:', err),
       );
@@ -444,9 +516,27 @@ class EmprestimoService {
   async atualizar(
     id: string,
     parsedData: AtualizarEmprestimo,
-    _req: AuthenticatedRequest,
+    req: AuthenticatedRequest,
   ) {
-    return this.repository.atualizar(id, parsedData as Record<string, unknown>);
+    const atual = await this.repository.buscarPorId(id);
+    const dataHora = new Date();
+    const alteracoes = Object.entries(parsedData)
+      .filter(([, valor]) => valor !== undefined)
+      .map(([campo, valor]) => ({
+        campo,
+        anterior: textoDoCampo(atual.get(campo)),
+        novo: textoDoCampo(valor),
+        usuario: req.user_id,
+        data_hora: dataHora,
+      }))
+      .filter((alteracao) => alteracao.anterior !== alteracao.novo);
+
+    return this.repository.atualizar(id, {
+      ...parsedData,
+      ...(alteracoes.length > 0 && {
+        $push: { alteracoes: { $each: alteracoes } },
+      }),
+    });
   }
 
   async excluir(id: string) {

@@ -21,9 +21,12 @@ async function main() {
     ...process.env,
     DB_URL: dbUrl,
     PORT: port,
+    API_INTERNAL_URL: `http://localhost:${port}`,
     NODE_ENV: 'test',
     EMAIL_USER: '',
     EMAIL_APP_PASSWORD: '',
+    MCP_SEGREDO_INTERNO:
+      process.env['MCP_SEGREDO_INTERNO'] || 'segredo-de-teste-do-mcp',
   };
 
   await new Promise<void>((resolve, reject) => {
@@ -52,7 +55,7 @@ async function main() {
   process.on('SIGINT', shutdown);
 
   await waitReady(`http://localhost:${port}/`);
-  process.stdout.write('ROUTES_TEST_SERVER_READY\n');
+  process.stdout.write(`ROUTES_TEST_SERVER_READY ${dbUrl}\n`);
 }
 
 main().catch((error) => {

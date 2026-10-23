@@ -10,7 +10,7 @@ export interface IMensagem {
 }
 
 export interface IConversa {
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
   titulo: string;
   mensagens: IMensagem[];
   resumo?: string;
@@ -43,7 +43,7 @@ const mensagemSchema = new mongoose.Schema<IMensagem>(
 const conversaSchema = new mongoose.Schema<ConversaDocument>(
   {
     usuario: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'usuarios',
       required: true,
       index: true,

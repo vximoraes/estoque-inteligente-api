@@ -123,7 +123,9 @@ class CategoriaRepository {
       filtro['_id'] = { $ne: idIgnorado };
     }
 
-    return await this.model.findOne(filtro);
+    return await this.model
+      .findOne(filtro)
+      .collation({ locale: 'pt', strength: 2 });
   }
 
   async buscarPorId(

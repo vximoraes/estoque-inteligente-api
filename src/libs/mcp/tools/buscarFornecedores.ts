@@ -1,6 +1,8 @@
 import FornecedorModel from '../../../modules/fornecedor/FornecedorModel.js';
 import type { FilterQuery } from 'mongoose';
 import type { FornecedorDocument } from '../../../modules/fornecedor/FornecedorModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarFornecedores(
   { nome }: { nome?: string } = {},
@@ -8,13 +10,13 @@ export async function buscarFornecedores(
 ) {
   const filtros: FilterQuery<FornecedorDocument> = { ativo: true };
 
-  if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
+  if (nome) filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
 
   const fornecedores = await FornecedorModel.find(filtros)
     .sort({ nome: 1 })
     .lean();
 
-  return fornecedores.map((f) => {
+  const registros = fornecedores.map((f) => {
     const fObj = f as Record<string, unknown>;
     return {
       id: f._id,
@@ -24,4 +26,6 @@ export async function buscarFornecedores(
       descricao: fObj['descricao'] ?? null,
     };
   });
+
+  return resultadoLimitado(registros, registros.length);
 }

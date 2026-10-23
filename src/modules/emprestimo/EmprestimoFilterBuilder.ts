@@ -95,6 +95,30 @@ class EmprestimoFilterBuilder {
     return this;
   }
 
+  comStatus(status: string | null | undefined): this {
+    const agora = new Date();
+    if (status === 'devolvido') {
+      this.filtros['quantidade_aberta'] = { $lte: 0 };
+    } else if (status === 'aberto') {
+      this.filtros['quantidade_aberta'] = { $gt: 0 };
+    } else if (status === 'atrasado') {
+      this.filtros['quantidade_aberta'] = { $gt: 0 };
+      this.filtros['data_prevista_devolucao'] = { $lt: agora, $ne: null };
+    } else if (status === 'ativo') {
+      this.filtros['quantidade_aberta'] = { $gt: 0 };
+      this.filtros['$and'] = [
+        ...((this.filtros['$and'] as unknown[] | undefined) ?? []),
+        {
+          $or: [
+            { data_prevista_devolucao: null },
+            { data_prevista_devolucao: { $gte: agora } },
+          ],
+        },
+      ];
+    }
+    return this;
+  }
+
   comDataSaidaInicio(dataSaidaInicio: Date | null | undefined): this {
     if (!dataSaidaInicio) return this;
     this.filtros['data_saida'] = {

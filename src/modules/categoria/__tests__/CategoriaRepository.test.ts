@@ -108,14 +108,20 @@ describe('CategoriaRepository', () => {
   describe('buscarPorNome', () => {
     it('deve retornar categoria por nome', async () => {
       const req = { user_id: 'user1' };
-      mockFindOne.mockResolvedValueOnce({ nome: 'Cat1', _id: 'id1' });
+      const collation = jest
+        .fn()
+        .mockResolvedValue({ nome: 'Cat1', _id: 'id1' });
+      mockFindOne.mockReturnValueOnce({ collation });
       const result = await repository.buscarPorNome('Cat1', null, req);
+      expect(collation).toHaveBeenCalledWith({ locale: 'pt', strength: 2 });
       expect(result).toEqual({ nome: 'Cat1', _id: 'id1' });
     });
     it('deve retornar null se não encontrar categoria', async () => {
       const req = { user_id: 'user1' };
-      mockFindOne.mockResolvedValueOnce(null);
+      const collation = jest.fn().mockResolvedValue(null);
+      mockFindOne.mockReturnValueOnce({ collation });
       const result = await repository.buscarPorNome('Cat1', null, req);
+      expect(collation).toHaveBeenCalledWith({ locale: 'pt', strength: 2 });
       expect(result).toBeNull();
     });
   });

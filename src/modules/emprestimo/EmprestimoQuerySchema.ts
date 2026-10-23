@@ -45,6 +45,13 @@ export const EmprestimoQuerySchema = z.object({
     .refine((val) => !val || val === 'true' || val === 'false', {
       message: "atrasados deve ser 'true' ou 'false'",
     }),
+  status: z
+    .enum(['ativo', 'atrasado', 'devolvido', 'aberto'], {
+      errorMap: () => ({
+        message: "status deve ser 'ativo', 'atrasado', 'devolvido' ou 'aberto'",
+      }),
+    })
+    .optional(),
   data_saida_inicio: z
     .string()
     .optional()

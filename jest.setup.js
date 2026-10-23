@@ -1,4 +1,5 @@
 process.env.NODE_ENV = 'test';
+process.env.CACHE_PERMISSOES_MS = '0';
 
 // Mock do client S3 (MinIO) para evitar problemas nos testes
 jest.mock('./src/config/minioClient.js', () => ({

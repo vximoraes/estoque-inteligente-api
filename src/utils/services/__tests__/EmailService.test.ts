@@ -135,4 +135,98 @@ describe('EmailService', () => {
       expect.stringContaining('após 3 tentativa(s)'),
     );
   });
+
+  describe('modelos de e-mail', () => {
+    const emprestimo = {
+      tipo_controle: 'unidade',
+      patrimonio: { numero_patrimonio: 'PAT-9', modelo: 'Notebook <b>X</b>' },
+      localizacao: { nome: 'Lab 1' },
+      solicitante_nome: 'Ana <script>',
+      quantidade_emprestada: 1,
+      quantidade_aberta: 1,
+      data_saida: '2026-10-20T13:00:00Z',
+      data_prevista_devolucao: '2026-10-21T13:00:00Z',
+      observacoes_emprestimo: 'Levar carregador',
+    };
+
+    function ultimoEnvio() {
+      return mockSendMail.mock.calls.at(-1)![0] as {
+        to: string;
+        subject: string;
+        text: string;
+        html: string;
+      };
+    }
+
+    beforeEach(() => {
+      mockSendMail.mockResolvedValue({ messageId: 'm' });
+    });
+
+    it('convite e recuperação levam o link com o token', async () => {
+      process.env.FRONTEND_URL = 'https://app.teste';
+      const EmailService = await importEmailService();
+
+      await EmailService.enviarEmailConvite('Ana', 'ana@t.com', 'tk1');
+      expect(ultimoEnvio().to).toBe('ana@t.com');
+      expect(ultimoEnvio().text).toContain(
+        'https://app.teste/ativar-conta?token=tk1',
+      );
+
+      await EmailService.enviarEmailRecuperacaoSenha('Ana', 'ana@t.com', 'tk2');
+      expect(ultimoEnvio().text).toContain(
+        'https://app.teste/redefinir-senha?token=tk2',
+      );
+    });
+
+    it('novo empréstimo identifica o patrimônio, usa o fuso e escapa o HTML', async () => {
+      const EmailService = await importEmailService();
+      await EmailService.enviarEmailNovoEmprestimo(
+        'Resp',
+        'resp@t.com',
+        emprestimo,
+        'America/Porto_Velho',
+      );
+
+      const envio = ultimoEnvio();
+      expect(envio.subject).toContain('Notebook <b>X</b> (patrimônio PAT-9)');
+      expect(envio.text).toContain('20/10/2026, 09:00 (UTC-04:00)');
+      expect(envio.html).toContain('Ana &lt;script&gt;');
+      expect(envio.html).not.toContain('<script>');
+      expect(envio.text).toContain('Observações: Levar carregador');
+    });
+
+    it('devolução distingue parcial de total', async () => {
+      const EmailService = await importEmailService();
+
+      await EmailService.enviarEmailDevolucaoEmprestimo(
+        'Resp',
+        'resp@t.com',
+        { ...emprestimo, quantidade_aberta: 1 },
+        1,
+      );
+      expect(ultimoEnvio().subject).toMatch(/^Devolução parcial/);
+
+      await EmailService.enviarEmailDevolucaoEmprestimo(
+        'Resp',
+        'resp@t.com',
+        { ...emprestimo, quantidade_aberta: 0 },
+        1,
+      );
+      expect(ultimoEnvio().subject).toMatch(/^Empréstimo devolvido/);
+    });
+
+    it('atraso informa a data prevista e cai no nome genérico sem item', async () => {
+      const EmailService = await importEmailService();
+      await EmailService.enviarEmailEmprestimoAtrasado(
+        'Resp',
+        'resp@t.com',
+        { ...emprestimo, tipo_controle: 'quantidade', item: undefined },
+        'UTC',
+      );
+
+      const envio = ultimoEnvio();
+      expect(envio.subject).toBe('Empréstimo em atraso — Item desconhecido');
+      expect(envio.text).toContain('21/10/2026, 13:00 (UTC+00:00)');
+    });
+  });
 });

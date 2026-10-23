@@ -39,6 +39,7 @@ jest.mock('../../../utils/helpers/index.js', () => {
 jest.mock('../UsuarioSchema.js', () => {
   return {
     UsuarioUpdateSchema: { parse: jest.fn() },
+    ConviteSchema: { parse: jest.fn((dados) => dados) },
   };
 });
 
@@ -223,9 +224,11 @@ describe('UsuarioController - regras de negócio (simples)', () => {
         'Fulano',
         'fulano@teste.com',
       );
-      expect(CommonResponse.created).toHaveBeenCalledWith(res, {
-        message: 'Convite enviado com sucesso!',
-      });
+      expect(CommonResponse.created).toHaveBeenCalledWith(
+        res,
+        { message: 'Convite enviado com sucesso!' },
+        'Convite enviado com sucesso!',
+      );
     });
 
     it('deve lançar erro 400 se nome não informado', async () => {
@@ -273,6 +276,20 @@ describe('UsuarioController - regras de negócio (simples)', () => {
         { message: 'Conta ativada com sucesso!' },
         200,
         'Conta ativada com sucesso!',
+      );
+    });
+
+    it('aceita o token no corpo, sem expor na URL', async () => {
+      req.query = {};
+      req.body = { token: 'xyz789', senha: 'Senha@123' };
+      UsuarioUpdateSchema.parse.mockReturnValue({ senha: 'Senha@123' });
+      controller.service.ativarConta.mockResolvedValue({
+        message: 'Conta ativada com sucesso!',
+      });
+      await controller.ativarConta(req, res, next);
+      expect(controller.service.ativarConta).toHaveBeenCalledWith(
+        'xyz789',
+        'Senha@123',
       );
     });
 

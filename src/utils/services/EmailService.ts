@@ -1,6 +1,7 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import { CustomError, HttpStatusCodes } from '../../utils/helpers/index.js';
 import logger from '../logger.js';
+import { FUSO_PADRAO, formatarDataHora } from '../fusoHorario.js';
 
 const ENVIO_MAX_TENTATIVAS = 3;
 const ENVIO_BACKOFF_MS = 1000;
@@ -160,6 +161,10 @@ class EmailService {
     throw ultimoErro;
   }
 
+  disponivel(): boolean {
+    return this.transporter !== null;
+  }
+
   async enviarEmail(
     to: string,
     subject: string,
@@ -245,6 +250,8 @@ Equipe Estoque Inteligente
     nomeResponsavel: string,
     emailResponsavel: string,
     emprestimo: EmprestimoEmailData,
+
+    fuso: string = FUSO_PADRAO,
   ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
@@ -252,9 +259,9 @@ Equipe Estoque Inteligente
     const solicitante = emprestimo.solicitante_nome;
     const quantidade = emprestimo.quantidade_emprestada;
     const dataPrevista = emprestimo.data_prevista_devolucao
-      ? new Date(emprestimo.data_prevista_devolucao).toLocaleString('pt-BR')
+      ? formatarDataHora(new Date(emprestimo.data_prevista_devolucao), fuso)
       : 'Sem previsão';
-    const dataSaida = new Date(emprestimo.data_saida!).toLocaleString('pt-BR');
+    const dataSaida = formatarDataHora(new Date(emprestimo.data_saida!), fuso);
 
     const observacoes = emprestimo.observacoes_emprestimo || '';
     const subject = `Novo empréstimo registrado — ${itemNome}`;
@@ -303,6 +310,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     emailResponsavel: string,
     emprestimo: EmprestimoEmailData,
     quantidadeDevolvida: number,
+    fuso: string = FUSO_PADRAO,
   ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
@@ -311,7 +319,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     const quantidadeAberta = emprestimo.quantidade_aberta ?? 0;
     const totalmenteDevolvido = quantidadeAberta <= 0;
     const observacoesDevolucao = emprestimo.observacoes_devolucao || '';
-    const dataDevolucao = new Date().toLocaleString('pt-BR');
+    const dataDevolucao = formatarDataHora(new Date(), fuso);
 
     const subject = totalmenteDevolvido
       ? `Empréstimo devolvido — ${itemNome}`
@@ -367,6 +375,8 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     nomeResponsavel: string,
     emailResponsavel: string,
     emprestimo: EmprestimoEmailData,
+
+    fuso: string = FUSO_PADRAO,
   ): Promise<{ success: boolean; messageId: string }> {
     const itemNome = resolverItemNome(emprestimo);
     const localizacaoNome =
@@ -378,7 +388,7 @@ Equipe ${process.env['COMPANY_NAME'] || 'Estoque Inteligente'}
     const diasAtraso = Math.floor(
       (hoje.getTime() - dataPrevista.getTime()) / (1000 * 60 * 60 * 24),
     );
-    const dataPrevistaFormatada = dataPrevista.toLocaleString('pt-BR');
+    const dataPrevistaFormatada = formatarDataHora(dataPrevista, fuso);
 
     const subject = `Empréstimo em atraso — ${itemNome}`;
 

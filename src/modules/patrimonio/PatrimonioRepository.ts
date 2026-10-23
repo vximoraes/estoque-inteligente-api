@@ -84,33 +84,13 @@ class PatrimonioRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
-    const {
-      modelo,
-      status,
-      localizacao,
-      numero_patrimonio,
-      busca,
-      categoria,
-      ativo,
-    } = query;
     const page = query['page'] ?? '1';
     const limite = Math.min(
       parseInt(query['limite'] ?? '', 10) || PAGINATION_DEFAULT_LIMIT,
       PAGINATION_MAX_LIMIT,
     );
 
-    // `comCategoria` faz lookup assíncrono em `categorias`, então o
-    // encadeamento fluente não serve pra esse passo — precisa do `await`
-    // pra não devolver uma Promise em vez do builder.
-    const filterBuilder = new PatrimonioFilterBuilder()
-      .comModelo(modelo ?? '')
-      .comStatus(status ?? '')
-      .comLocalizacao(localizacao ?? '')
-      .comNumeroPatrimonio(numero_patrimonio ?? '')
-      .comBusca(busca ?? '')
-      .comAtivo(ativo ?? 'true');
-    await filterBuilder.comCategoria(categoria ?? '');
-    const filtros = filterBuilder.build();
+    const filtros = await this.montarFiltros(query);
 
     const options = {
       page: parseInt(page, 10),
@@ -130,6 +110,51 @@ class PatrimonioRepository {
       ...resultado,
       docs: resultado.docs.map((doc) => ({ ...doc.toObject() })),
     };
+  }
+
+  async stats(req: AuthenticatedRequest) {
+    const filtros = await this.montarFiltros(
+      req.query as Record<string, string | undefined>,
+    );
+    const contar = (status?: string) =>
+      this.model.countDocuments(
+        status ? { $and: [filtros, { status }] } : filtros,
+      );
+
+    const [total, disponiveis, emprestadas, manutencao, baixadas] =
+      await Promise.all([
+        contar(),
+        contar('Disponível'),
+        contar('Emprestado'),
+        contar('Manutenção'),
+        contar('Baixado'),
+      ]);
+
+    return { total, disponiveis, emprestadas, manutencao, baixadas };
+  }
+
+  // `comCategoria` faz lookup assíncrono em `categorias`, então o
+  // encadeamento fluente não serve pra esse passo — precisa do `await`
+  // pra não devolver uma Promise em vez do builder.
+  private async montarFiltros(query: Record<string, string | undefined>) {
+    const {
+      modelo,
+      status,
+      localizacao,
+      numero_patrimonio,
+      busca,
+      categoria,
+      ativo,
+    } = query;
+    const filterBuilder = new PatrimonioFilterBuilder()
+      .comModelo(modelo ?? '')
+      .comStatus(status ?? '')
+      .comLocalizacao(localizacao ?? '')
+      .comNumeroPatrimonio(numero_patrimonio ?? '')
+      .comBusca(busca ?? '')
+      .comAtivo(ativo ?? 'true');
+    await filterBuilder.comCategoria(categoria ?? '');
+    return filterBuilder.build() as mongoose.FilterQuery<PatrimonioDocument>;
   }
 
   async buscarPorId(id: string, _req?: AuthenticatedRequest) {
