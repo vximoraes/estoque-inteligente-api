@@ -19,6 +19,8 @@ jest.mock('../IAService.js', () => ({
   processarMensagem: jest.fn(),
   contemVazamentoDoPrompt: jest.fn().mockReturnValue(false),
   atualizarResumoSeNecessario: jest.fn().mockResolvedValue(undefined),
+  ehErroIndisponibilidade:
+    jest.requireActual('../IAService.js').ehErroIndisponibilidade,
 }));
 jest.mock('../IAObservabilidade.js', () => ({
   comTrace: jest.fn((_contexto, fn) => fn(jest.fn())),
@@ -232,6 +234,19 @@ describe('IAController', () => {
       expect(conversa.save).toHaveBeenCalled();
       expect(res.write).toHaveBeenCalledWith(
         expect.stringContaining('"type":"error"'),
+      );
+    });
+
+    it('pede para esperar quando todos os modelos respondem 429', async () => {
+      prepararStream(
+        [],
+        Object.assign(new Error('[429 Too Many Requests]'), { status: 429 }),
+      );
+
+      await IAController.enviarMensagem(req, res);
+
+      expect(res.write).toHaveBeenCalledWith(
+        expect.stringContaining('Aguarde cerca de 1 minuto'),
       );
     });
 

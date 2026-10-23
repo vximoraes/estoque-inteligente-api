@@ -4,6 +4,7 @@ import {
   processarMensagem,
   contemVazamentoDoPrompt,
   atualizarResumoSeNecessario,
+  ehErroIndisponibilidade,
 } from './IAService.js';
 import { etapaDaFerramenta } from './etapaDaFerramenta.js';
 import { TIMEOUT_MS, MODELO } from './IAConfig.js';
@@ -326,7 +327,9 @@ class IAController {
               ? 'A consulta demorou demais e foi interrompida.'
               : erroOcorrido instanceof GraphRecursionError
                 ? 'A consulta ficou complexa demais. Tente ser mais específico.'
-                : 'Não foi possível processar sua mensagem. Tente novamente.';
+                : ehErroIndisponibilidade(erroOcorrido)
+                  ? 'O assistente está recebendo muitas consultas agora. Aguarde cerca de 1 minuto e tente de novo.'
+                  : 'Não foi possível processar sua mensagem. Tente novamente.';
 
             res.write(
               `data: ${JSON.stringify({ type: 'error', message: mensagemErro })}\n\n`,
