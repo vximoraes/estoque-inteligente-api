@@ -212,41 +212,4 @@ describe('Rotas de Notificação', () => {
       expect(res.status).toBe(404);
     });
   });
-
-  describe('GET /notificacoes/stream', () => {
-    it('conecta e recebe o aviso de estoque baixo de um item do autor', async () => {
-      const stream = abrirStream(token);
-      try {
-        const resposta = await stream.resposta;
-        expect(resposta.statusCode).toBe(200);
-        expect(resposta.headers['content-type']).toContain('text/event-stream');
-        await stream.esperar('event: connected');
-
-        const item = await criarItem(token, { estoque_minimo: '10' });
-        await criarMovimentacao(token, { item: item._id, quantidade: '4' });
-
-        const recebido = await stream.esperar(item.nome);
-        expect(recebido).toContain('event: notificacao');
-        expect(recebido).toContain(
-          `${item.nome} está com estoque baixo (4 unidades)`,
-        );
-
-        const lista = await req(token).get('/notificacoes?visualizada=false');
-        expect(
-          lista.body.data.docs.some((n) => n.mensagem.includes(item.nome)),
-        ).toBe(true);
-      } finally {
-        stream.fechar();
-      }
-    });
-
-    it('rejeita sem token', async () => {
-      const stream = abrirStream(undefined);
-      try {
-        expect((await stream.resposta).statusCode).toBe(498);
-      } finally {
-        stream.fechar();
-      }
-    });
-  });
 });

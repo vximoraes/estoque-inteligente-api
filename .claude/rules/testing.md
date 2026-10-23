@@ -11,7 +11,14 @@ npx jest -t "nome do teste"                              # por nome
 
 npm run test:server                                      # sobe a API de teste (porta 3011, Mongo efêmero, seed automático)
 npm run test:routes                                      # em outro terminal — ou deixe o próprio globalSetup subir o servidor sozinho
+npm run test:regressao                                   # casos de rota escritos depois da entrega do artigo (mesmo servidor de teste)
 ```
+
+## Suíte de rota × suíte de regressão
+
+`test:routes` (`*Routes.test.ts`) é a suíte descrita no artigo do TCC: 13 arquivos, 219 casos. Não acrescentar caso nela. Caso de rota novo vai para `*Routes.regressao.test.ts` (`jest.regressao.config.cjs`, `npm run test:regressao`), no mesmo módulo, com o mesmo setup.
+
+Antes de rodar, conferir se a porta `3011` está livre: um servidor de teste órfão de uma rodada interrompida responde no lugar do novo, com outro banco, e os testes que leem `verification` falham.
 
 ## Testes de Model (confiáveis, é o padrão a seguir)
 
@@ -30,7 +37,7 @@ Os arquivos `src/modules/*/__tests__/*Routes.test.ts` fazem `supertest` contra `
 
 Helper compartilhado em `test/helpers/rotasTestHelper.ts` (fora de `src/`, não é coletado por nenhuma das duas configs de Jest) — concentra login (`logarAdmin`/`logarUsuarioPadrao`), factories (`criarCategoria`, `criarItem`, ...) e asserts de envelope/paginação. Usar esse helper em vez de duplicar `request(BASE_URL).post(...).set('Authorization', ...)` em cada arquivo novo.
 
-O `globalSetup` também exporta `ROUTES_TEST_DB_URL` (para ler o que a API não devolve, como o token de convite em `verification`) e sobe a API com `GEMINI_BASE_URL` apontando para o modelo falso de `test/helpers/geminiFalso.ts` (porta `3013`), que `iaRoutes.test.ts` liga em `beforeAll`: nenhum teste de rota chama o Gemini de verdade. Os testes de foto usam o MinIO local, então ele precisa estar de pé (`docker compose up minio`).
+O `globalSetup` também exporta `ROUTES_TEST_DB_URL` (para ler o que a API não devolve, como o token de convite em `verification`) e sobe a API com `GEMINI_BASE_URL` apontando para o modelo falso de `test/helpers/geminiFalso.ts` (porta `3013`), que `iaRoutes.regressao.test.ts` liga em `beforeAll`: nenhum teste de rota chama o Gemini de verdade. Os testes de foto usam o MinIO local, então ele precisa estar de pé (`docker compose up minio`).
 
 O seed cria três identidades fixas: admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`, acesso total) e usuário padrão (`USER_EMAIL`/`USER_PASSWORD`, grupo `Usuario` — sem acesso a `usuarios`/`grupos`/`rotas`, acesso total ao resto). Use o usuário padrão para os cenários de RBAC (`403` nas rotas restritas, `200`/`201` nas demais) — nunca dependa de um usuário criado manualmente fora do seed.
 

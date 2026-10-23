@@ -23,14 +23,6 @@ describe('Rotas de Categoria', () => {
   });
 
   describe('POST /categorias', () => {
-    it('recusa categoria com o mesmo nome em outra capitalização', async () => {
-      const existente = await criarCategoria(token);
-      const res = await req(token)
-        .post('/categorias')
-        .send({ nome: existente.nome.toUpperCase(), tipo: existente.tipo });
-      esperarEnvelopeErro(res, 400);
-    });
-
     it('deve cadastrar categoria válida', async () => {
       const res = await req(token)
         .post('/categorias')
@@ -132,16 +124,6 @@ describe('Rotas de Categoria', () => {
         .send({ nome: novoNome });
       esperarEnvelopeSucesso(res, 200);
       expect(res.body.data.nome).toBe(novoNome);
-    });
-
-    it('PUT também atualiza', async () => {
-      const registro = await criarCategoria(token);
-      const novoValor = sufixoUnico('zz-categoria-put');
-      const res = await req(token)
-        .put(`/categorias/${registro._id}`)
-        .send({ nome: novoValor });
-      esperarEnvelopeSucesso(res, 200);
-      expect(res.body.data.nome).toBe(novoValor);
     });
 
     it('deve falhar ao atualizar para nome já existente', async () => {

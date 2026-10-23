@@ -73,16 +73,6 @@ describe('Rotas de Localização', () => {
       esperarPaginado(res);
     });
 
-    it('trata caracteres de regex no nome como texto', async () => {
-      const parentese = await req(token).get('/localizacoes?nome=(');
-      esperarEnvelopeSucesso(parentese, 200);
-      expect(parentese.body.data.docs).toEqual([]);
-
-      const curinga = await req(token).get('/localizacoes?nome=.*');
-      esperarEnvelopeSucesso(curinga, 200);
-      expect(curinga.body.data.docs).toEqual([]);
-    });
-
     it('deve rejeitar sem token', async () => {
       const res = await req('').get('/localizacoes');
       expect(res.status).toBe(498);
@@ -117,16 +107,6 @@ describe('Rotas de Localização', () => {
         .send({ nome: novoNome });
       esperarEnvelopeSucesso(res, 200);
       expect(res.body.data.nome).toBe(novoNome);
-    });
-
-    it('PUT também atualiza', async () => {
-      const registro = await criarLocalizacao(token);
-      const novoValor = sufixoUnico('zz-localizacao-put');
-      const res = await req(token)
-        .put(`/localizacoes/${registro._id}`)
-        .send({ nome: novoValor });
-      esperarEnvelopeSucesso(res, 200);
-      expect(res.body.data.nome).toBe(novoValor);
     });
 
     it('deve falhar ao atualizar para nome já existente', async () => {

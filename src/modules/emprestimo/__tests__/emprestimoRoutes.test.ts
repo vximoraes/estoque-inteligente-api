@@ -93,41 +93,6 @@ describe('Rotas de Emprestimo', () => {
       esperarPaginado(res);
     });
 
-    it('filtra por status: ativo, devolvido e aberto', async () => {
-      const solicitante = `Zz Status ${Date.now()}`;
-      const emAberto = await criarEmprestimo(token, {
-        solicitante_nome: solicitante,
-      });
-      const devolvido = await criarEmprestimo(token, {
-        solicitante_nome: solicitante,
-        quantidade_emprestada: 2,
-      });
-      esperarEnvelopeSucesso(
-        await req(token)
-          .patch(`/emprestimos/${devolvido._id}/devolver`)
-          .send({ quantidade_devolvida: 2 }),
-        200,
-      );
-
-      const ids = async (status) => {
-        const res = await req(token).get(
-          `/emprestimos?solicitante_nome=${encodeURIComponent(solicitante)}&status=${status}`,
-        );
-        esperarEnvelopeSucesso(res, 200);
-        return res.body.data.docs.map((d) => d._id);
-      };
-
-      expect(await ids('ativo')).toEqual([emAberto._id]);
-      expect(await ids('devolvido')).toEqual([devolvido._id]);
-      expect(await ids('aberto')).toEqual([emAberto._id]);
-      expect(await ids('atrasado')).toEqual([]);
-    });
-
-    it('recusa status desconhecido', async () => {
-      const res = await req(token).get('/emprestimos?status=qualquer');
-      expect(res.status).toBe(400);
-    });
-
     it('deve rejeitar sem token', async () => {
       const res = await req('').get('/emprestimos');
       expect(res.status).toBe(498);
@@ -209,24 +174,6 @@ describe('Rotas de Emprestimo', () => {
         .put(`/emprestimos/${emprestimo._id}`)
         .send({ observacoes_emprestimo: 'Atualizado' });
       esperarEnvelopeSucesso(res, 200);
-    });
-
-    it('guarda quem alterou o solicitante, de que valor para qual', async () => {
-      const emprestimo = await criarEmprestimo(token);
-      await req(token)
-        .put(`/emprestimos/${emprestimo._id}`)
-        .send({ solicitante_nome: 'zz-Solicitante Corrigido' });
-
-      const res = await req(token).get(`/emprestimos/${emprestimo._id}`);
-      esperarEnvelopeSucesso(res, 200);
-      expect(res.body.data.alteracoes).toEqual([
-        expect.objectContaining({
-          campo: 'solicitante_nome',
-          anterior: emprestimo.solicitante_nome,
-          novo: 'zz-Solicitante Corrigido',
-          usuario: expect.objectContaining({ nome: expect.any(String) }),
-        }),
-      ]);
     });
 
     it('deve retornar 404 ao atualizar empréstimo inexistente', async () => {

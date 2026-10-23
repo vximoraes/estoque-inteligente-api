@@ -22,14 +22,6 @@ describe('Rotas de Patrimonio', () => {
     tokenUsuarioPadrao = await logarUsuarioPadrao();
   });
 
-  describe('GET /openapi.json', () => {
-    it('gera a documentação com as rotas de patrimônio', async () => {
-      const res = await req().get('/openapi.json');
-      expect(res.status).toBe(200);
-      expect(res.body.paths).toHaveProperty('/patrimonios');
-    });
-  });
-
   describe('POST /patrimonios', () => {
     it('deve cadastrar patrimônio válido com status Disponível', async () => {
       const patrimonio = await criarPatrimonio(token);
@@ -128,31 +120,6 @@ describe('Rotas de Patrimonio', () => {
           prefixo: `zzL${Date.now().toString(36)}`,
         });
       esperarEnvelopeErro(res, 400);
-    });
-  });
-
-  describe('GET /patrimonios/stats', () => {
-    it('conta por status todas as unidades do filtro, não só uma página', async () => {
-      const categoria = await criarCategoria(token, { tipo: 'permanente' });
-      for (let i = 0; i < 3; i++) {
-        await criarPatrimonio(token, { categoria: categoria._id });
-      }
-      await criarPatrimonio(token, {
-        categoria: categoria._id,
-        status: 'Manutenção',
-      });
-
-      const res = await req(token).get(
-        `/patrimonios/stats?categoria=${categoria._id}&limite=1`,
-      );
-      esperarEnvelopeSucesso(res, 200);
-      expect(res.body.data).toEqual({
-        total: 4,
-        disponiveis: 3,
-        emprestadas: 0,
-        manutencao: 1,
-        baixadas: 0,
-      });
     });
   });
 

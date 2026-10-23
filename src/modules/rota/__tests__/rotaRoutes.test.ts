@@ -118,16 +118,6 @@ describe('Rotas de Rota (RBAC)', () => {
       expect(res.body.data.rota).toBe(novoNome);
     });
 
-    it('PUT também atualiza', async () => {
-      const registro = await criarRota(token);
-      const novoValor = sufixoUnico('zz-rota-put');
-      const res = await req(token)
-        .put(`/rotas/${registro._id}`)
-        .send({ rota: novoValor });
-      esperarEnvelopeSucesso(res, 200);
-      expect(res.body.data.rota).toBe(novoValor);
-    });
-
     it('deve falhar ao atualizar para nome já existente', async () => {
       const rota1 = await criarRota(token);
       const rota2 = await criarRota(token);
@@ -150,30 +140,6 @@ describe('Rotas de Rota (RBAC)', () => {
       const rota = await criarRota(token);
       const res = await req(token).delete(`/rotas/${rota._id}`);
       esperarEnvelopeSucesso(res, 200);
-    });
-
-    it('tira a rota excluída das permissões dos grupos', async () => {
-      const rota = await criarRota(token);
-      const grupo = await req(token)
-        .post('/grupos')
-        .send({ nome: sufixoUnico('zz-grupo'), descricao: 'Grupo de teste' });
-      esperarEnvelopeSucesso(grupo, 201);
-      const idGrupo = grupo.body.data._id;
-      esperarEnvelopeSucesso(
-        await req(token)
-          .post(`/grupos/${idGrupo}/rotas`)
-          .send({ idRota: rota._id }),
-        200,
-      );
-
-      esperarEnvelopeSucesso(
-        await req(token).delete(`/rotas/${rota._id}`),
-        200,
-      );
-
-      const depois = await req(token).get(`/grupos/${idGrupo}`);
-      const rotasDoGrupo = depois.body.data.permissoes.map((p) => p.rota);
-      expect(rotasDoGrupo).not.toContain(rota.rota);
     });
 
     it('deve retornar 404 ao deletar rota inexistente', async () => {

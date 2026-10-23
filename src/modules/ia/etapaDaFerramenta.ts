@@ -10,8 +10,6 @@ const ETAPAS: Record<string, string> = {
   buscarLocalizacoes: 'Consultando localizações',
   buscarFornecedores: 'Consultando fornecedores',
   resumoEstoque: 'Montando o resumo do estoque',
-  resumoMovimentacoes: 'Somando as movimentações',
-  tendenciaMensal: 'Calculando a tendência mensal',
   historicoPatrimonio: 'Consultando o histórico do patrimônio',
   buscarUsuarios: 'Consultando usuários',
 };

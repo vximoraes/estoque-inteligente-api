@@ -34,8 +34,6 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 | `buscarCategorias`           | `categorias`                    | Array.                                                                                                                               |
 | `buscarLocalizacoes`         | `localizacoes`                  | Array.                                                                                                                               |
 | `buscarFornecedores`         | `fornecedores`                  | Array.                                                                                                                               |
-| `resumoMovimentacoes`        | `movimentacoes`                 | Objeto igual ao de `/movimentacoes/resumo` (total, entradas, saídas, quantidades e `saldo = quantidade_entrada - quantidade_saida`). |
-| `tendenciaMensal`            | `movimentacoes` + `emprestimos` | Array mensal (`YYYY-MM`) com movimentações e empréstimos, igual à aba Tendência.                                                     |
 
 ## Massa de Dados Recomendada
 
@@ -70,7 +68,7 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 | Funcionalidade       | Comportamento Esperado        | Verificações                  | Critérios de Aceite                               |
 | :------------------- | :---------------------------- | :---------------------------- | :------------------------------------------------ |
 | **Cenários felizes** |                               |                               |                                                   |
-| Listar ferramentas   | Deve expor as 15 ferramentas. | `tools/list` na sessão admin. | 15 nomes, iguais à tabela "Ferramentas Expostas". |
+| Listar ferramentas   | Deve expor as 13 ferramentas. | `tools/list` na sessão admin. | 13 nomes, iguais à tabela "Ferramentas Expostas". |
 
 ## Ferramentas de análise
 
@@ -122,7 +120,7 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 | `beforeAll`                                  | Autenticar admin e usuário padrão e abrir uma sessão MCP para cada um.    |
 | `afterAll`                                   | Encerrar as sessões com `DELETE /mcp`.                                    |
 | `describe('Autenticação e sessão')`          | 401, sessão alheia, sessão inexistente, Origin bloqueado.                 |
-| `describe('tools/list')`                     | As 15 ferramentas.                                                        |
+| `describe('tools/list')`                     | As 13 ferramentas.                                                        |
 | `describe('Ferramentas de análise')`         | `resumoEstoque`, `verificarItensAbaixoMinimo`, `itensPrioritariosCompra`. |
 | `describe('Resultados limitados')`           | Aviso de corte, ausência de aviso, limite acima do máximo.                |
 | `describe('RBAC nas ferramentas')`           | Negação em `buscarUsuarios`, acesso em `buscarItens`.                     |

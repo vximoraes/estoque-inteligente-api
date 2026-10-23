@@ -2,7 +2,7 @@
 
 Testes E2E (endpoint) do CRUD de conversas e do envio de mensagem com resposta em _stream_. O Gemini é trocado por um modelo falso local (`test/helpers/geminiFalso.ts`), então a suíte não gasta cota nem depende de rede, mas percorre o caminho real: agente LangChain, cliente MCP, `/mcp` da própria API de teste e gravação da conversa.
 
-Arquivo: `src/modules/ia/__tests__/iaRoutes.test.ts`
+Arquivo: `src/modules/ia/__tests__/iaRoutes.regressao.test.ts` (suíte de regressão, `npm run test:regressao`)
 
 ## Visão de Fluxo e Regras de Negócio
 

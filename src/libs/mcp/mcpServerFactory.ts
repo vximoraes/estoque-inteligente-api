@@ -15,8 +15,6 @@ import { historicoPatrimonio } from './tools/historicoPatrimonio.js';
 import { buscarUsuarios } from './tools/buscarUsuarios.js';
 import { formatarResultado } from './formatarResultado.js';
 import { fusoDoUsuario } from './fusoDoUsuario.js';
-import { resumoMovimentacoes } from './tools/resumoMovimentacoes.js';
-import { tendenciaMensal } from './tools/tendenciaMensal.js';
 import PermissionService from '../../utils/services/PermissionService.js';
 
 const permissionService = new PermissionService();
@@ -482,85 +480,6 @@ export function criarMCPServer(usuarioId: string): McpServer {
       const resultado = await resumoEstoque({}, usuarioId);
       return formatarResultado(
         'resumoEstoque',
-        resultado,
-        await fusoDoUsuario(usuarioId),
-      );
-    },
-  );
-
-  server.tool(
-    'resumoMovimentacoes',
-    'Totais de movimentações no período e filtros informados. total_movimentacoes, entradas e saidas (número de lançamentos) são os cartões da aba Movimentações dos Relatórios; quantidade_entrada e quantidade_saida somam as unidades; saldo = quantidade_entrada − quantidade_saida (variação de unidades, não aparece na tela). O saldo é a variação de unidades no período, não o estoque atual: negativo quer dizer que saiu mais do que entrou. Sem datas, considera todo o histórico; a tela de Relatórios abre por padrão com os últimos 30 dias (dataInicio = hoje − 29 dias, dataFim = hoje). Use esta ferramenta, e não buscarMovimentacoes, para totais e saldo.',
-    {
-      tipo: z
-        .enum(['entrada', 'saida'])
-        .optional()
-        .describe("Filtrar por tipo: 'entrada' ou 'saida'"),
-      dataInicio: z
-        .string()
-        .optional()
-        .describe(
-          'Data de início no formato YYYY-MM-DD; sem hora, vale desde o começo do dia no fuso do usuário',
-        ),
-      dataFim: z
-        .string()
-        .optional()
-        .describe(
-          'Data de fim no formato YYYY-MM-DD; sem hora, inclui o dia inteiro no fuso do usuário',
-        ),
-      itemNome: z
-        .string()
-        .optional()
-        .describe('Filtrar por nome do item (busca parcial)'),
-      localizacao: z
-        .string()
-        .optional()
-        .describe('Filtrar pelo nome da localização (busca parcial)'),
-    },
-    async ({ tipo, dataInicio, dataFim, itemNome, localizacao }) => {
-      await verificarPermissao(usuarioId, 'movimentacoes');
-      const resultado = await resumoMovimentacoes(
-        { tipo, dataInicio, dataFim, itemNome, localizacao },
-        usuarioId,
-      );
-      return formatarResultado(
-        'resumoMovimentacoes',
-        resultado,
-        await fusoDoUsuario(usuarioId),
-      );
-    },
-  );
-
-  server.tool(
-    'tendenciaMensal',
-    'Série mensal da aba Tendência dos Relatórios: para cada mês (YYYY-MM, no fuso do usuário), entradas e saidas (lançamentos), quantidade_entrada e quantidade_saida (unidades), emprestimos (saídas de empréstimo no mês) e devolucoes (empréstimos totalmente devolvidos no mês). Use meses (1 a 24, padrão 12) ou um período com dataInicio/dataFim.',
-    {
-      meses: z
-        .number()
-        .int()
-        .min(1)
-        .max(24)
-        .optional()
-        .describe(
-          'Últimos N meses, contando o atual (a tela oferece 6, 12 ou 24)',
-        ),
-      dataInicio: z
-        .string()
-        .optional()
-        .describe('Início do período no formato YYYY-MM-DD'),
-      dataFim: z
-        .string()
-        .optional()
-        .describe('Fim do período no formato YYYY-MM-DD'),
-    },
-    async ({ meses, dataInicio, dataFim }) => {
-      await verificarPermissao(usuarioId, 'movimentacoes', 'emprestimos');
-      const resultado = await tendenciaMensal(
-        { meses, dataInicio, dataFim },
-        usuarioId,
-      );
-      return formatarResultado(
-        'tendenciaMensal',
         resultado,
         await fusoDoUsuario(usuarioId),
       );

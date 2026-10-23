@@ -18,6 +18,7 @@
     "start:production": "docker compose -f docker-compose.yml up --build --force-recreate",
     "test": "clear && jest --coverage",
     "test:routes": "clear && jest --config=jest.routes.config.cjs",
+    "test:regressao": "clear && jest --config=jest.regressao.config.cjs",
     "test:server": "tsx test/routesServer.runner.ts",
     "medir:consultas": "NODE_ENV=test tsx test/medirConsultas.ts",
     "typecheck": "node_modules/.bin/tsc --noEmit",
@@ -126,7 +127,7 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "Routes\\.test\\.ts$"
+      "Routes\\.(regressao\\.)?test\\.ts$"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
