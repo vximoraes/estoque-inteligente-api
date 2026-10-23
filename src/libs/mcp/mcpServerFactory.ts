@@ -433,7 +433,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'buscarLocalizacoes',
-    'Lista locais de armazenamento (prateleiras, depósitos, laboratórios, etc.)',
+    'Lista locais de armazenamento (prateleiras, depósitos, laboratórios, etc.) com a contagem completa, feita no banco: `itens_consumo_com_saldo` e `unidades_consumo` (saldo de almoxarifado no local) e `unidades_patrimonio` (unidades ativas no local, sem as baixadas). Use para "por localização" ou "onde tem mais", em vez de somar listas de itens ou patrimônios (que vêm limitadas).',
     {
       nome: z
         .string()
@@ -488,7 +488,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'historicoPatrimonio',
-    'Retorna o histórico de eventos (cadastro, empréstimo, devolução, manutenção, transferência, baixa, reativação, inativação quando a unidade é removida) de uma unidade de patrimônio pelo número de patrimônio.',
+    'Retorna o histórico de eventos (cadastro, empréstimo, devolução, manutenção, transferência, baixa, reativação, inativação quando a unidade é removida) de uma unidade de patrimônio pelo número de patrimônio. Se o número foi reaproveitado, traz a unidade atual (`unidade_consultada`) e lista as removidas em `outras_unidades_com_mesmo_numero`: diga que o número já pertenceu a outra unidade e nunca misture as trilhas.',
     {
       numeroPatrimonio: z
         .string()

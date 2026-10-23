@@ -9,6 +9,8 @@ import {
   criarPatrimonio,
   criarLocalizacao,
   criarFornecedor,
+  criarMovimentacao,
+  req,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 const ACCEPT = 'application/json, text/event-stream';
@@ -279,6 +281,62 @@ describe('Rotas do MCP (/mcp)', () => {
       expect(dados.exibidos).toBe(3);
       expect(dados.registros).toHaveLength(3);
       expect(dados.aviso).toBeUndefined();
+    });
+
+    it('buscarLocalizacoes conta no banco o saldo e as unidades de cada local', async () => {
+      const local = await criarLocalizacao(token);
+      const item = await criarItem(token);
+      await criarMovimentacao(token, {
+        item: item._id,
+        localizacao: local._id,
+        quantidade: '7',
+      });
+      await criarPatrimonio(token, { localizacao: local._id });
+      await criarPatrimonio(token, { localizacao: local._id });
+
+      const {
+        registros: [dados],
+      } = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'buscarLocalizacoes', {
+          nome: local.nome,
+        }),
+      );
+
+      expect(dados.itens_consumo_com_saldo).toBe(1);
+      expect(dados.unidades_consumo).toBe(7);
+      expect(dados.unidades_patrimonio).toBe(2);
+    });
+
+    it('historicoPatrimonio traz a unidade atual quando o número foi reaproveitado', async () => {
+      const numero = sufixoUnico('zz-reuso');
+      const removida = await criarPatrimonio(token, {
+        numero_patrimonio: numero,
+        modelo: 'zz-modelo-antigo',
+      });
+      const exclusao = await req(token).patch(
+        `/patrimonios/${removida._id}/inativar`,
+      );
+      expect(exclusao.status).toBe(200);
+      await criarPatrimonio(token, {
+        numero_patrimonio: numero,
+        modelo: 'zz-modelo-novo',
+      });
+
+      const dados = extrairDados(
+        await chamarFerramenta(sessaoAdmin, 'historicoPatrimonio', {
+          numeroPatrimonio: numero,
+        }),
+      );
+
+      expect(dados.unidade_consultada).toBe('atual');
+      expect(dados.modelo).toBe('zz-modelo-novo');
+      expect(dados.registros.map((r) => r.tipo)).not.toContain('inativacao');
+      expect(dados.outras_unidades_com_mesmo_numero).toEqual([
+        expect.objectContaining({
+          situacao: 'removida',
+          modelo: 'zz-modelo-antigo',
+        }),
+      ]);
     });
   });
 

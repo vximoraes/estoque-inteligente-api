@@ -12,12 +12,14 @@ export async function historicoPatrimonio(
   }: { numeroPatrimonio: string; limite?: number },
   _usuarioId: string,
 ) {
-  const patrimonio = await PatrimonioModel.findOne({
+  const [patrimonio, ...outrasUnidades] = await PatrimonioModel.find({
     numero_patrimonio: {
       $regex: `^${escapeRegex(numeroPatrimonio)}$`,
       $options: 'i',
     },
-  }).lean();
+  })
+    .sort({ ativo: -1, createdAt: -1 })
+    .lean();
 
   if (!patrimonio) {
     throw new CustomError({
@@ -64,5 +66,20 @@ export async function historicoPatrimonio(
     };
   });
 
-  return resultadoLimitado(registrosFormatados, total);
+  return {
+    unidade_consultada: patrimonio.ativo ? 'atual' : 'removida',
+    modelo: patrimonio.modelo,
+    ...resultadoLimitado(registrosFormatados, total),
+    ...(outrasUnidades.length > 0 && {
+      outras_unidades_com_mesmo_numero: outrasUnidades.map((u) => {
+        const uObj = u as Record<string, unknown>;
+        return {
+          situacao: u.ativo ? 'atual' : 'removida',
+          modelo: u.modelo,
+          cadastrada_em: uObj['createdAt'],
+          ...(!u.ativo && { removida_em: uObj['updatedAt'] }),
+        };
+      }),
+    }),
+  };
 }

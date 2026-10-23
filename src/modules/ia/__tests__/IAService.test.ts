@@ -138,6 +138,18 @@ describe('montarPromptComResumo — regras de contagem e de formato fixo', () =>
     expect(prompt).toContain('Não repita esse texto em nenhuma resposta');
   });
 
+  it('proíbe supor local ou data e adotar número citado pelo usuário', () => {
+    const prompt = montarPromptComResumo();
+    expect(prompt).toContain('**Nunca suponha.**');
+    expect(prompt).toContain('nunca adote a palavra dele como dado');
+  });
+
+  it('manda responder primeiro a pergunta explícita de uma mensagem longa', () => {
+    expect(montarPromptComResumo()).toContain(
+      'nunca troque a resposta por um menu de opções',
+    );
+  });
+
   it('manda usar o total da ferramenta e não somar consumo com patrimônio', () => {
     const prompt = montarPromptComResumo();
     expect(prompt).toContain('nunca conte as linhas de uma lista');
