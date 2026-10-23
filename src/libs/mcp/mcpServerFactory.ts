@@ -473,7 +473,7 @@ export function criarMCPServer(usuarioId: string): McpServer {
 
   server.tool(
     'resumoEstoque',
-    'Retorna um resumo estatístico geral (os cartões das abas Almoxarifado, Patrimônio e Empréstimos dos Relatórios): total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos em aberto (emprestimos_ativos, inclui os atrasados), emprestimos_no_prazo (o cartão "Ativos" da tela), emprestimos_atrasados, emprestimos_devolvidos e a contagem de unidades de patrimônio. total_unidades_patrimonio é o total real (inclui as baixadas); unidades_patrimonio_em_uso = disponíveis + emprestadas + em manutenção (exclui as baixadas); unidades_baixadas vem separado.',
+    'Retorna um resumo estatístico geral (os cartões das abas Almoxarifado, Patrimônio e Empréstimos dos Relatórios): total de itens, quantos estão em estoque, baixo estoque, indisponíveis, empréstimos em aberto (emprestimos_ativos, inclui os atrasados e os de consumo e de patrimônio juntos), emprestimos_no_prazo (o cartão "Ativos" da tela), emprestimos_atrasados, emprestimos_devolvidos e a contagem de unidades de patrimônio. total_unidades_patrimonio é o total real (inclui as baixadas); unidades_patrimonio_em_uso = disponíveis + emprestadas + em manutenção (exclui as baixadas); unidades_baixadas vem separado. total_itens conta cadastros de consumo e total_unidades_patrimonio conta unidades: nunca some os dois. unidades_emprestadas são as unidades de patrimônio dos empréstimos já contados em emprestimos_ativos: nunca some as duas.',
     {},
     async () => {
       await verificarPermissao(usuarioId, 'itens', 'emprestimos');

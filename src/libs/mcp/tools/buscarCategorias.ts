@@ -2,6 +2,7 @@ import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import ItemModel from '../../../modules/item/ItemModel.js';
 import PatrimonioModel from '../../../modules/patrimonio/PatrimonioModel.js';
 import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 interface BuscarCategoriasArgs {
   tipo?: 'consumo' | 'permanente';
@@ -38,7 +39,7 @@ export async function buscarCategorias(
     contarPorCategoria(PatrimonioModel),
   ]);
 
-  return categorias.map((c) => ({
+  const registros = categorias.map((c) => ({
     id: c._id,
     nome: c.nome,
     tipo: c.tipo,
@@ -50,4 +51,6 @@ export async function buscarCategorias(
             unidadesPorCategoria.get(String(c._id)) ?? 0,
         }),
   }));
+
+  return resultadoLimitado(registros, registros.length);
 }

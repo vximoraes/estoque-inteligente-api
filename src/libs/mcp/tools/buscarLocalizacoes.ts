@@ -1,5 +1,6 @@
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { resultadoLimitado } from '../resultadoLimitado.js';
 
 export async function buscarLocalizacoes(
   { nome }: { nome?: string },
@@ -12,9 +13,11 @@ export async function buscarLocalizacoes(
     .sort({ nome: 1 })
     .lean();
 
-  return localizacoes.map((l) => ({
+  const registros = localizacoes.map((l) => ({
     id: l._id,
     nome: l.nome,
     descricao: l.descricao ?? null,
   }));
+
+  return resultadoLimitado(registros, registros.length);
 }

@@ -7,6 +7,8 @@ import {
   sufixoUnico,
   criarCategoria,
   criarPatrimonio,
+  criarLocalizacao,
+  criarFornecedor,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 const ACCEPT = 'application/json, text/event-stream';
@@ -203,12 +205,16 @@ describe('Rotas do MCP (/mcp)', () => {
         await criarPatrimonio(token, { categoria: permanente._id });
       }
 
-      const [dadosConsumo] = extrairDados(
+      const {
+        registros: [dadosConsumo],
+      } = extrairDados(
         await chamarFerramenta(sessaoAdmin, 'buscarCategorias', {
           nome: consumo.nome,
         }),
       );
-      const [dadosPermanente] = extrairDados(
+      const {
+        registros: [dadosPermanente],
+      } = extrairDados(
         await chamarFerramenta(sessaoAdmin, 'buscarCategorias', {
           nome: permanente.nome,
         }),
@@ -253,6 +259,26 @@ describe('Rotas do MCP (/mcp)', () => {
       );
       expect(itens.map((i) => i.nome)).not.toContain(item.nome);
       expect(itens.every((i) => i.estoque_minimo > 0)).toBe(true);
+    });
+
+    it.each([
+      ['buscarLocalizacoes', criarLocalizacao],
+      ['buscarFornecedores', criarFornecedor],
+      ['buscarCategorias', criarCategoria],
+    ])('%s devolve o total junto com a lista', async (ferramenta, criar) => {
+      const prefixo = sufixoUnico('zz-total');
+      for (let i = 0; i < 3; i++) {
+        await criar(token, { nome: `${prefixo}-${i}` });
+      }
+
+      const dados = extrairDados(
+        await chamarFerramenta(sessaoAdmin, ferramenta, { nome: prefixo }),
+      );
+
+      expect(dados.total_encontrado).toBe(3);
+      expect(dados.exibidos).toBe(3);
+      expect(dados.registros).toHaveLength(3);
+      expect(dados.aviso).toBeUndefined();
     });
   });
 
@@ -343,7 +369,11 @@ describe('Rotas do MCP (/mcp)', () => {
         'buscarLocalizacoes',
         { nome: '(' },
       );
-      expect(extrairDados(resultado)).toEqual([]);
+      expect(extrairDados(resultado)).toEqual({
+        total_encontrado: 0,
+        exibidos: 0,
+        registros: [],
+      });
     });
 
     it('não usa .* como curinga na busca por nome', async () => {
