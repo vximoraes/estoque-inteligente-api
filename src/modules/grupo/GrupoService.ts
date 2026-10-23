@@ -96,6 +96,17 @@ class GrupoService {
   async deletar(id: string, user: Record<string, unknown> | undefined) {
     await this.repository.buscarPorId(id);
     await this.verificarGrupo(user, id);
+    const usuarioNoGrupo =
+      await this.repository.verificarUsuariosAssociados(id);
+    if (usuarioNoGrupo) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'resourceInUse',
+        field: 'Grupo',
+        details: [],
+        customMessage: 'Grupo possui usuários associados.',
+      });
+    }
     return this.repository.deletar(id);
   }
 

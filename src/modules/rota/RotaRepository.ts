@@ -110,8 +110,8 @@ class RotaRepository {
     return data;
   }
 
-  async deletar(id: string) {
-    const data = await this.model.findByIdAndDelete(id);
+  async deletar(id: string, session?: mongoose.ClientSession) {
+    const data = await this.model.findByIdAndDelete(id, { session });
     if (!data) {
       throw new CustomError({
         statusCode: 404,

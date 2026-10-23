@@ -53,6 +53,7 @@ const nodeGlobals = {
 };
 
 export default [
+  { ignores: ['dist/'] },
   js.configs.recommended,
   eslintConfigPrettier,
   // JavaScript files

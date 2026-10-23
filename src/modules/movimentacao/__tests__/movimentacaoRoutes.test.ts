@@ -11,6 +11,9 @@ import {
   ID_INVALIDO,
   ID_INEXISTENTE,
 } from '../../../../test/helpers/rotasTestHelper.js';
+import request from 'supertest';
+import { BASE_URL } from '../../../../test/helpers/rotasTestHelper.js';
+import { diaNoFuso } from '../../../utils/fusoHorario.js';
 
 describe('Rotas de Movimentação', () => {
   let token;

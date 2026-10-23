@@ -5,6 +5,8 @@ import {
   logarUsuarioPadrao,
   criarItem,
   sufixoUnico,
+  criarCategoria,
+  criarPatrimonio,
 } from '../../../../test/helpers/rotasTestHelper.js';
 
 const ACCEPT = 'application/json, text/event-stream';
@@ -40,11 +42,15 @@ function lerJsonRpc(res) {
   return JSON.parse(ultima.slice('data:'.length).trim());
 }
 
-function postMcp(token, corpo, sessionId?) {
+const SEGREDO_MCP =
+  process.env['MCP_SEGREDO_INTERNO'] || 'segredo-de-teste-do-mcp';
+
+function postMcp(token, corpo, sessionId?, segredo = SEGREDO_MCP) {
   let requisicao = request(BASE_URL)
     .post('/mcp')
     .set('Accept', ACCEPT)
     .set('Content-Type', 'application/json');
+  if (segredo) requisicao = requisicao.set('x-mcp-segredo', segredo);
   if (token) requisicao = requisicao.set('Authorization', `Bearer ${token}`);
   if (sessionId) {
     requisicao = requisicao
@@ -113,7 +119,7 @@ function extrairDados(resultado) {
   expect(resultado.isError).toBeFalsy();
   const texto = resultado.content[0].text;
   const casamento = texto.match(
-    /^<dados_ferramenta ferramenta="[^"]+" origem="banco_de_dados">\n([\s\S]*)\n<\/dados_ferramenta>/,
+    /^<dados_ferramenta ferramenta="[^"]+" origem="banco_de_dados"[^>]*>\n([\s\S]*)\n<\/dados_ferramenta>/,
   );
   if (!casamento) throw new Error(`Envelope inesperado: ${texto}`);
   return JSON.parse(casamento[1]);
@@ -138,6 +144,7 @@ describe('Rotas do MCP (/mcp)', () => {
         request(BASE_URL)
           .delete('/mcp')
           .set('Authorization', `Bearer ${dono}`)
+          .set('x-mcp-segredo', SEGREDO_MCP)
           .set('mcp-session-id', sessionId)
           .set('mcp-protocol-version', PROTOCOL_VERSION),
       ),

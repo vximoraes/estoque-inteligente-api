@@ -14,6 +14,11 @@ const AuthUsuario = registry.register(
     emailVerified: z.boolean().openapi({ example: true }),
     ativo: z.boolean().openapi({ example: true }),
     fotoPerfil: z.string().nullable().optional().openapi({ example: null }),
+    fuso_horario: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: 'America/Porto_Velho' }),
     ...timestampFields,
   }),
 );

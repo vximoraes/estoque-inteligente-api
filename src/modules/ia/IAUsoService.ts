@@ -1,4 +1,4 @@
-import IAUsoModel, { type FinalizadoPor } from './IAUsoModel.js';
+import IAUsoModel, { type FinalizadoPor, type TipoUso } from './IAUsoModel.js';
 import { PRECOS } from './IAConfig.js';
 import logger from '../../utils/logger.js';
 
@@ -6,6 +6,7 @@ export interface RegistrarUsoInput {
   usuarioId: string;
   conversaId: string;
   modelo: string;
+  tipo?: TipoUso;
   tokensEntrada: number;
   tokensSaida: number;
   tokensTotais: number;
@@ -61,6 +62,7 @@ export async function registrarUso(input: RegistrarUsoInput): Promise<void> {
     await IAUsoModel.create({
       usuario: input.usuarioId,
       conversa: input.conversaId,
+      tipo: input.tipo ?? 'resposta',
       modelo: input.modelo,
       tokens_entrada: input.tokensEntrada,
       tokens_saida: input.tokensSaida,

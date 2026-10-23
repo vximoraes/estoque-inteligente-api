@@ -1,5 +1,6 @@
 import LocalizacaoRepository from './LocalizacaoRepository.js';
 import EstoqueModel from '../estoque/EstoqueModel.js';
+import PatrimonioModel from '../patrimonio/PatrimonioModel.js';
 import {
   CustomError,
   HttpStatusCodes,
@@ -66,6 +67,36 @@ class LocalizacaoService {
         field: 'Localizacao',
         details: [],
         customMessage: 'Localização possui estoque de itens ativos.',
+      });
+    }
+
+    const temSaldo = await EstoqueModel.exists({
+      localizacao: id,
+      quantidade: { $gt: 0 },
+    });
+
+    if (temSaldo) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'resourceInUse',
+        field: 'Localizacao',
+        details: [],
+        customMessage: 'Localização possui saldo em estoque.',
+      });
+    }
+
+    const temPatrimonioAtivo = await PatrimonioModel.exists({
+      localizacao: id,
+      ativo: true,
+    });
+
+    if (temPatrimonioAtivo) {
+      throw new CustomError({
+        statusCode: 400,
+        errorType: 'resourceInUse',
+        field: 'Localizacao',
+        details: [],
+        customMessage: 'Localização possui patrimônios ativos.',
       });
     }
 

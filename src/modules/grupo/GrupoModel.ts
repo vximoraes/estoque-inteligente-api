@@ -1,5 +1,6 @@
 import mongoose, { type Document } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
+import { limparCacheAoGravar } from '../../utils/services/cachePermissoes.js';
 
 export interface IGrupoPermissao {
   rota: string;
@@ -60,6 +61,7 @@ grupoSchema.pre('save', function (this: GrupoDocument, next) {
 });
 
 grupoSchema.plugin(mongoosePaginate);
+limparCacheAoGravar(grupoSchema);
 
 export default mongoose.model<
   GrupoDocument,

@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 
 jest.mock('../LocalizacaoRepository.js');
 jest.mock('../../estoque/EstoqueModel.js');
+jest.mock('../../patrimonio/PatrimonioModel.js');
 
 const makeLocalizacao = (props = {}) => ({
   _id: new mongoose.Types.ObjectId(),

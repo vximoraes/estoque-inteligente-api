@@ -69,13 +69,14 @@ Arquivo: `src/modules/fornecedor/__tests__/fornecedorRoutes.test.ts`
 
 ## PATCH /fornecedores/:id — Atualização
 
-| Funcionalidade                        | Comportamento Esperado              | Verificações                                    | Critérios de Aceite                    |
-| :------------------------------------ | :---------------------------------- | :---------------------------------------------- | :------------------------------------- |
-| **Cenários felizes**                  |                                     |                                                 |                                        |
-| Atualizar nome                        | Deve renomear o fornecedor.         | `PATCH /fornecedores/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
-| **Cenários tristes**                  |                                     |                                                 |                                        |
-| Nome já existente em outro fornecedor | Deve rejeitar duplicidade.          | `PATCH` usando `nome` de outro fornecedor.      | Retorna `400`.                         |
-| Fornecedor inexistente                | Deve falhar pois o alvo não existe. | `PATCH /fornecedores/000000000000000000000000`. | Retorna `404`.                         |
+| Funcionalidade                        | Comportamento Esperado                           | Verificações                                    | Critérios de Aceite                    |
+| :------------------------------------ | :----------------------------------------------- | :---------------------------------------------- | :------------------------------------- |
+| **Cenários felizes**                  |                                                  |                                                 |                                        |
+| Atualizar nome                        | Deve renomear o fornecedor.                      | `PATCH /fornecedores/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
+| `PUT` também atualiza                 | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /fornecedores/:id` com `nome` novo.        | Retorna `200`; `data.nome` novo.       |
+| **Cenários tristes**                  |                                                  |                                                 |                                        |
+| Nome já existente em outro fornecedor | Deve rejeitar duplicidade.                       | `PATCH` usando `nome` de outro fornecedor.      | Retorna `400`.                         |
+| Fornecedor inexistente                | Deve falhar pois o alvo não existe.              | `PATCH /fornecedores/000000000000000000000000`. | Retorna `404`.                         |
 
 ## PATCH /fornecedores/:id/inativar — Inativação
 

@@ -3,6 +3,7 @@ import CategoriaRepository from '../CategoriaRepository.js';
 import { CustomError } from '../../../utils/helpers/index.js';
 
 jest.mock('../CategoriaRepository.js');
+jest.mock('../../patrimonio/PatrimonioModel.js');
 
 const makeCategoria = (props = {}) => ({
   _id: 'cat1',

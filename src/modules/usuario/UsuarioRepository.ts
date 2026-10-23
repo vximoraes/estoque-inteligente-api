@@ -31,7 +31,7 @@ class UsuarioRepository {
     if (id) {
       const data = await this.model.findById(id);
 
-      if (!data) {
+      if (!data || data.desativadoEm) {
         throw new CustomError({
           statusCode: 404,
           errorType: 'resourceNotFound',
@@ -67,7 +67,7 @@ class UsuarioRepository {
       });
     }
 
-    const filtros = filterBuilder.build();
+    const filtros = { ...filterBuilder.build(), desativadoEm: null };
 
     const options = {
       page: parseInt(page, 10),
@@ -139,6 +139,24 @@ class UsuarioRepository {
     return usuarioDeletado;
   }
 
+  async definirDesativacao(id: string, desativadoEm: Date | null) {
+    const usuario = await this.model.findByIdAndUpdate(
+      id,
+      { desativadoEm },
+      { new: true },
+    );
+    if (desativadoEm && mongoose.Types.ObjectId.isValid(id)) {
+      await mongoose.connection.db!.collection('session').deleteMany({
+        userId: new mongoose.Types.ObjectId(id),
+      });
+    }
+    return usuario;
+  }
+
+  async buscarExcluidoPorEmail(email: string) {
+    return await this.model.findOne({ email, desativadoEm: { $ne: null } });
+  }
+
   async buscarPorEmail(email: string, idIgnorado: string | null = null) {
     const filtro: mongoose.FilterQuery<UsuarioDocument> = { email };
 
@@ -152,7 +170,7 @@ class UsuarioRepository {
   async buscarPorId(id: string) {
     const user = await this.model.findById(id);
 
-    if (!user) {
+    if (!user || user.desativadoEm) {
       throw new CustomError({
         statusCode: 404,
         errorType: 'resourceNotFound',

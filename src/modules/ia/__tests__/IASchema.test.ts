@@ -1,3 +1,4 @@
+import { limparCaracteresInvisiveis } from '../IASchema.js';
 import { EnviarMensagemSchema, CriarConversaSchema } from '../IASchema.js';
 
 describe('EnviarMensagemSchema', () => {
@@ -70,5 +71,12 @@ describe('CriarConversaSchema', () => {
       mensagem_inicial: '  \x00Primeira pergunta\x1f  ',
     });
     expect(resultado.mensagem_inicial).toBe('Primeira pergunta');
+  });
+});
+
+describe('limparCaracteresInvisiveis — normalização', () => {
+  it('converte largura total e acentos combinantes para a forma comum', () => {
+    expect(limparCaracteresInvisiveis('ｉｇｎｏｒｅ')).toBe('ignore');
+    expect(limparCaracteresInvisiveis('Quántos')).toBe('Quántos');
   });
 });

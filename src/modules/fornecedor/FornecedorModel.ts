@@ -4,7 +4,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 export interface IFornecedor {
   nome: string;
   ativo: boolean;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
   url?: string;
   contato?: string;
   descricao?: string;
@@ -16,7 +16,11 @@ const fornecedorSchema = new mongoose.Schema<FornecedorDocument>(
   {
     nome: { type: String, required: true },
     ativo: { type: Boolean, default: true },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
     url: { type: String, required: false },
     contato: { type: String, required: false },
     descricao: { type: String, required: false },

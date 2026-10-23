@@ -4,6 +4,7 @@ function makeRes() {
   const handlers = {};
   return {
     write: jest.fn(),
+    end: jest.fn(),
     on: jest.fn((event, cb) => {
       handlers[event] = cb;
     }),
@@ -35,6 +36,14 @@ describe('SSEService', () => {
       SSEService.addClient('user1', res1);
       SSEService.addClient('user1', res2);
       expect(SSEService.getConnectedClientsCount()).toBe(2);
+    });
+
+    it('fecha a conexão mais antiga ao passar de 5 por usuário', () => {
+      const conexoes = Array.from({ length: 6 }, () => makeRes());
+      conexoes.forEach((res) => SSEService.addClient('limite', res as any));
+
+      expect(conexoes[0].end).toHaveBeenCalled();
+      expect(SSEService['clients'].get('limite')).toHaveLength(5);
     });
 
     it('deve aceitar userId com toString (ex.: ObjectId)', () => {

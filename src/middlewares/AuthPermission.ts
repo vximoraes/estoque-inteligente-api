@@ -6,6 +6,7 @@ import { CustomError, errorHandler, messages } from '../utils/helpers/index.js';
 import { getAuth } from '../config/auth.js';
 import type { AuthenticatedRequest } from '../utils/types.js';
 import type mongoose from 'mongoose';
+import { comCache } from '../utils/services/cachePermissoes.js';
 
 const metodoMap: Record<string, string> = {
   GET: 'buscar',
@@ -32,11 +33,15 @@ class AuthPermission {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const session = await getAuth().api.getSession({
-        headers: fromNodeHeaders(req.headers),
-      });
+      const userId =
+        (req as AuthenticatedRequest).user_id ??
+        (
+          await getAuth().api.getSession({
+            headers: fromNodeHeaders(req.headers),
+          })
+        )?.user?.id;
 
-      if (!session?.user?.id) {
+      if (!userId) {
         throw new CustomError({
           statusCode: 401,
           errorType: 'authenticationError',
@@ -46,12 +51,12 @@ class AuthPermission {
         });
       }
 
-      const userId = session.user.id;
-
       const rotaReq =
         req.url.split('/').filter(Boolean)[0]?.split('?')[0] ?? '';
 
-      const rotaDB = await this.Rota.findOne({ rota: rotaReq });
+      const rotaDB = await comCache(`rota:${rotaReq}`, () =>
+        this.Rota.findOne({ rota: rotaReq }).lean(),
+      );
       if (!rotaDB) {
         throw new CustomError({
           statusCode: 404,

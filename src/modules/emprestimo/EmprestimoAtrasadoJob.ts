@@ -3,6 +3,7 @@ import EmailService, {
   type EmprestimoEmailData,
 } from '../../utils/services/EmailService.js';
 import logger from '../../utils/logger.js';
+import { resolverFuso } from '../../utils/fusoHorario.js';
 
 const INTERVALO_MS = 60 * 60 * 1000;
 
@@ -19,7 +20,8 @@ export async function verificarEmprestimosAtrasados() {
     })
       .populate('item', 'nome')
       .populate('localizacao', 'nome')
-      .populate('patrimonio', 'numero_patrimonio modelo');
+      .populate('patrimonio', 'numero_patrimonio modelo')
+      .populate('usuario_responsavel', 'fuso_horario');
   } catch (err) {
     logger.error(err, 'Erro ao buscar emprestimos atrasados:');
     return;
@@ -32,25 +34,34 @@ export async function verificarEmprestimosAtrasados() {
   );
 
   for (const emp of emprestimosAtrasados) {
-    if (emp.solicitante_email) {
-      try {
-        await EmailService.enviarEmailEmprestimoAtrasado(
-          emp.solicitante_nome,
-          emp.solicitante_email,
-          emp as unknown as EmprestimoEmailData,
-        );
-      } catch (err) {
-        logger.error(
-          err,
-          `Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}:`,
-        );
-      }
+    const marcarEnviado = () =>
+      EmprestimoModel.updateOne(
+        { _id: emp._id },
+        { email_atraso_enviado: true },
+      );
+
+    if (!emp.solicitante_email) {
+      await marcarEnviado();
+      continue;
     }
 
-    await EmprestimoModel.updateOne(
-      { _id: emp._id },
-      { email_atraso_enviado: true },
-    );
+    try {
+      await EmailService.enviarEmailEmprestimoAtrasado(
+        emp.solicitante_nome,
+        emp.solicitante_email,
+        emp as unknown as EmprestimoEmailData,
+        resolverFuso(
+          (emp.usuario_responsavel as unknown as { fuso_horario?: string })
+            ?.fuso_horario,
+        ),
+      );
+      await marcarEnviado();
+    } catch (err) {
+      logger.error(
+        err,
+        `Erro ao enviar e-mail de atraso para emprestimo ${String(emp._id)}; nova tentativa no próximo ciclo:`,
+      );
+    }
   }
 }
 

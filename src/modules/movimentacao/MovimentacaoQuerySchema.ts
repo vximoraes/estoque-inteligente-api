@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import mongoose from 'mongoose';
-import { createOrdenarSchema } from '../../utils/commonFields.js';
+import {
+  createOrdenarSchema,
+  limiteTextoSchema,
+  paginaTextoSchema,
+} from '../../utils/commonFields.js';
 
 export const MovimentacaoIdSchema = z
   .string()
@@ -72,8 +76,8 @@ export const MovimentacaoQuerySchema = z.object({
     .string()
     .optional()
     .transform((val) => val?.trim()),
-  page: z.string().optional(),
-  limite: z.string().optional(),
+  page: paginaTextoSchema,
+  limite: limiteTextoSchema,
   ordenar: createOrdenarSchema(Object.keys(MOVIMENTACAO_SORT_FIELDS)),
 });
 

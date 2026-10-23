@@ -19,21 +19,21 @@ Arquivo: `src/modules/ia/__tests__/mcpRoutes.test.ts`
 
 ## Ferramentas Expostas
 
-| Ferramenta                   | Permissão (rota)          | Retorno                                                                                                                           |
-| :--------------------------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `buscarItens`                | `itens`                   | Resultado limitado.                                                                                                               |
-| `buscarPatrimonios`          | `patrimonios`             | Resultado limitado.                                                                                                               |
-| `buscarEstoque`              | `estoques`                | Resultado limitado.                                                                                                               |
-| `buscarMovimentacoes`        | `movimentacoes`           | Resultado limitado.                                                                                                               |
-| `buscarEmprestimos`          | `emprestimos`             | Resultado limitado.                                                                                                               |
-| `historicoPatrimonio`        | `patrimonios`             | Resultado limitado.                                                                                                               |
-| `buscarUsuarios`             | `usuarios`                | Resultado limitado.                                                                                                               |
-| `verificarItensAbaixoMinimo` | `itens`                   | Array ordenado por `deficit` decrescente (`deficit = estoque_minimo - quantidade_atual`).                                         |
-| `itensPrioritariosCompra`    | `itens` + `movimentacoes` | Array ordenado por `score_prioridade = deficit * (1 + saidas_30_dias)`, onde `saidas_30_dias` soma a quantidade que saiu em 30 d. |
-| `resumoEstoque`              | `itens` + `emprestimos`   | Objeto com contagens; `total_unidades_patrimonio` inclui baixadas, `unidades_patrimonio_em_uso` não.                              |
-| `buscarCategorias`           | `categorias`              | Array.                                                                                                                            |
-| `buscarLocalizacoes`         | `localizacoes`            | Array.                                                                                                                            |
-| `buscarFornecedores`         | `fornecedores`            | Array.                                                                                                                            |
+| Ferramenta                   | Permissão (rota)          | Retorno                                                                                                                               |
+| :--------------------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
+| `buscarItens`                | `itens`                   | Resultado limitado.                                                                                                                   |
+| `buscarPatrimonios`          | `patrimonios`             | Resultado limitado.                                                                                                                   |
+| `buscarEstoque`              | `estoques`                | Resultado limitado.                                                                                                                   |
+| `buscarMovimentacoes`        | `movimentacoes`           | Resultado limitado.                                                                                                                   |
+| `buscarEmprestimos`          | `emprestimos`             | Resultado limitado.                                                                                                                   |
+| `historicoPatrimonio`        | `patrimonios`             | Resultado limitado da unidade ativa, com `unidade_consultada` e `outras_unidades_com_mesmo_numero` quando o número foi reaproveitado. |
+| `buscarUsuarios`             | `usuarios`                | Resultado limitado.                                                                                                                   |
+| `verificarItensAbaixoMinimo` | `itens`                   | Array ordenado por `deficit` decrescente (`deficit = estoque_minimo - quantidade_atual`).                                             |
+| `itensPrioritariosCompra`    | `itens` + `movimentacoes` | Array ordenado por `score_prioridade = deficit * (1 + saidas_30_dias)`, onde `saidas_30_dias` soma a quantidade que saiu em 30 d.     |
+| `resumoEstoque`              | `itens` + `emprestimos`   | Objeto com contagens; `total_unidades_patrimonio` inclui baixadas, `unidades_patrimonio_em_uso` não.                                  |
+| `buscarCategorias`           | `categorias`              | Resultado limitado.                                                                                                                   |
+| `buscarLocalizacoes`         | `localizacoes`            | Resultado limitado, com `itens_consumo_com_saldo`, `unidades_consumo` e `unidades_patrimonio` por local.                              |
+| `buscarFornecedores`         | `fornecedores`            | Resultado limitado.                                                                                                                   |
 
 ## Massa de Dados Recomendada
 

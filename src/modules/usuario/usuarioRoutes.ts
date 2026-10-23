@@ -22,6 +22,12 @@ router
     AuthPermission,
     asyncWrapper(usuarioController.listar.bind(usuarioController)),
   )
+  .get(
+    '/usuarios/:id/permissoes',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(usuarioController.permissoes.bind(usuarioController)),
+  )
   .post(
     '/usuarios/convidar',
     AuthMiddleware,

@@ -27,6 +27,22 @@ export const paginationSchema = z.object({
 export type ObjectIdInput = z.input<typeof objectIdSchema>;
 export type PaginationQuery = z.output<typeof paginationSchema>;
 
+export const paginaTextoSchema = z
+  .string()
+  .optional()
+  .refine((val) => !val || /^[1-9]\d*$/.test(val), {
+    message: 'Page deve ser um número inteiro maior que 0',
+  });
+
+export const limiteTextoSchema = z
+  .string()
+  .optional()
+  .refine(
+    (val) =>
+      !val || (/^\d+$/.test(val) && Number(val) >= 1 && Number(val) <= 100),
+    { message: 'Limite deve ser um número inteiro entre 1 e 100' },
+  );
+
 // Formato aceito: "<campo>:asc" ou "<campo>:desc", com `campo` restrito à
 // whitelist do módulo — nunca ordenar por um campo arbitrário vindo da query.
 export function createOrdenarSchema(camposPermitidos: readonly string[]) {

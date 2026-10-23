@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import UsuarioRepository from './UsuarioRepository.js';
+import EmailService from '../../utils/services/EmailService.js';
+import PermissionService from '../../utils/services/PermissionService.js';
 import {
   CustomError,
   HttpStatusCodes,
@@ -17,13 +19,19 @@ import type { UsuarioUpdate } from './UsuarioSchema.js';
 
 class UsuarioService {
   private repository: UsuarioRepository;
+  private permissionService: PermissionService;
 
   constructor() {
     this.repository = new UsuarioRepository();
+    this.permissionService = new PermissionService();
   }
 
   async listar(req: AuthenticatedRequest) {
     return this.repository.listar(req);
+  }
+
+  async permissoes(id: string) {
+    return this.permissionService.permissoesEfetivas(id);
   }
 
   async atualizar(
@@ -43,8 +51,17 @@ class UsuarioService {
   }
 
   async deletar(id: string, req: AuthenticatedRequest) {
+    if (id === req.user_id) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.BAD_REQUEST.code,
+        errorType: 'validationError',
+        field: 'Usuário',
+        details: [],
+        customMessage: 'Não é possível excluir a própria conta.',
+      });
+    }
     await this.ensureUserExists(id);
-    return this.repository.deletar(id, req.user_id);
+    return this.repository.definirDesativacao(id, new Date());
   }
 
   async validateEmail(email: string, id: string | null = null) {
@@ -75,6 +92,7 @@ class UsuarioService {
   }
 
   async uploadFoto(req: AuthenticatedRequest, id: string) {
+    await this.ensureUserExists(id);
     const file = req.file;
     if (!file) {
       throw new CustomError({
@@ -120,6 +138,7 @@ class UsuarioService {
   }
 
   async deletarFoto(_req: AuthenticatedRequest, id: string) {
+    await this.ensureUserExists(id);
     const objectName = `${id}.jpeg`;
     await minioClient.send(
       new DeleteObjectCommand({
@@ -133,6 +152,27 @@ class UsuarioService {
 
   async convidarUsuario(nome: string, email: string) {
     const emailNormalizado = email.toLowerCase();
+
+    const excluido =
+      await this.repository.buscarExcluidoPorEmail(emailNormalizado);
+    if (excluido) {
+      const restaurado = await this.repository.definirDesativacao(
+        String(excluido._id),
+        null,
+      );
+      return {
+        message:
+          'Este e-mail pertencia a um usuário excluído: a conta foi restaurada com o mesmo histórico, grupos e senha.',
+        usuario: {
+          _id: restaurado?._id,
+          nome: restaurado?.nome,
+          email: restaurado?.email,
+          ativo: restaurado?.ativo,
+          convidadoEm: restaurado?.convidadoEm,
+        },
+      };
+    }
+
     await this.validateEmail(emailNormalizado, null);
 
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:3000';
@@ -251,6 +291,17 @@ class UsuarioService {
         field: 'Usuário',
         details: [],
         customMessage: 'Este usuário já ativou sua conta.',
+      });
+    }
+
+    if (!EmailService.disponivel()) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.SERVICE_UNAVAILABLE.code,
+        errorType: 'emailServiceUnavailable',
+        field: 'Email',
+        details: [],
+        customMessage:
+          'O serviço de e-mail não está configurado; o convite não foi reenviado.',
       });
     }
 

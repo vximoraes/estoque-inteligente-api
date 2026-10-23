@@ -22,6 +22,11 @@ const UsuarioDetalhes = registry.register(
       .string()
       .optional()
       .openapi({ example: 'https://storage/foto.jpg' }),
+    fuso_horario: z
+      .string()
+      .nullable()
+      .openapi({ example: 'America/Porto_Velho' }),
+    desativadoEm: z.string().nullable().openapi({ example: null }),
     ...timestampFields,
   }),
 );
@@ -41,6 +46,22 @@ const UsuarioUploadFotoResposta = registry.register(
 registry.register(
   'UsuarioListagem',
   z.object({ data: z.array(UsuarioDetalhes), ...paginationMetaFields }),
+);
+registry.register(
+  'UsuarioPermissoes',
+  z.object({
+    data: z.array(
+      z.object({
+        rota: z.string().openapi({ example: 'itens' }),
+        ativo: z.boolean(),
+        buscar: z.boolean(),
+        enviar: z.boolean(),
+        substituir: z.boolean(),
+        modificar: z.boolean(),
+        excluir: z.boolean(),
+      }),
+    ),
+  }),
 );
 registry.register('UsuarioPost', UsuarioSchema);
 registry.register('UsuarioPatch', UsuarioUpdateSchema);
@@ -131,6 +152,34 @@ registerPaths({
     },
   },
 
+  '/usuarios/{id}/permissoes': {
+    get: {
+      tags: ['Usuários'],
+      summary: 'Lista as permissões efetivas de um usuário',
+      description: `
+            + Caso de uso: O front decide o que mostrar (menus, botões) com as mesmas regras que a API usa para autorizar.
+
+            + Regras de Negócio:
+                - Soma, por rota, as permissões do próprio usuário e de todos os grupos dele (basta um dar o método).
+                - O próprio usuário sempre pode consultar as suas.
+
+            + Resultado Esperado:
+                - HTTP 200 OK com corpo conforme **UsuarioPermissoes**.
+        `,
+      security: [{ bearerAuth: [] }],
+      parameters: [idPathParam('ID do usuário')],
+      responses: {
+        200: commonResponses[200]!('#/components/schemas/UsuarioPermissoes'),
+        400: commonResponses[400]!(),
+        401: commonResponses[401]!(),
+        403: commonResponses[403]!(),
+        404: commonResponses[404]!(),
+        498: commonResponses[498]!(),
+        500: commonResponses[500]!(),
+      },
+    },
+  },
+
   '/usuarios/{id}': {
     get: {
       tags: ['Usuários'],
@@ -192,11 +241,13 @@ registerPaths({
 
     delete: {
       tags: ['Usuários'],
-      summary: 'Deleta um usuário',
+      summary: 'Exclui um usuário (exclusão lógica)',
       description: `
             + Regras de Negócio:
-                - Verificar impedimentos por relacionamento antes de excluir.
-                - Registrar log de auditoria sobre a operação.
+                - Grava desativadoEm, encerra as sessões e recusa novo login; o cadastro fica guardado para manter a autoria do histórico.
+                - O usuário some das listagens e das consultas por id.
+                - Não é possível excluir a própria conta.
+                - Convidar de novo o mesmo e-mail restaura a conta, com o mesmo histórico, grupos e senha.
             `,
       security: [{ bearerAuth: [] }],
       parameters: [idPathParam('ID do usuário')],

@@ -11,7 +11,7 @@ export interface IItem {
   imagem?: string;
   categoria: mongoose.Types.ObjectId;
   ativo: boolean;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
   status: 'Indisponível' | 'Baixo Estoque' | 'Em Estoque';
 }
 
@@ -56,7 +56,11 @@ const itemSchema = new mongoose.Schema<ItemDocument>(
       required: true,
     },
     ativo: { type: Boolean, default: true },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
     status: {
       type: String,
       enum: ['Indisponível', 'Baixo Estoque', 'Em Estoque'],
@@ -71,6 +75,7 @@ itemSchema.index(
   { nome: 1 },
   { unique: true, partialFilterExpression: { ativo: true } },
 );
+itemSchema.index({ ativo: 1, tipo: 1, status: 1 });
 
 function statusDeConsumo(
   quantidade: number,

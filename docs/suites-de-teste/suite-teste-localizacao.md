@@ -67,13 +67,14 @@ Arquivo: `src/modules/localizacao/__tests__/localizacaoRoutes.test.ts`
 
 ## PATCH /localizacoes/:id — Atualização
 
-| Funcionalidade                         | Comportamento Esperado              | Verificações                                    | Critérios de Aceite                    |
-| :------------------------------------- | :---------------------------------- | :---------------------------------------------- | :------------------------------------- |
-| **Cenários felizes**                   |                                     |                                                 |                                        |
-| Atualizar nome                         | Deve renomear a localização.        | `PATCH /localizacoes/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
-| **Cenários tristes**                   |                                     |                                                 |                                        |
-| Nome já existente em outra localização | Deve rejeitar duplicidade.          | `PATCH` usando `nome` de outra localização.     | Retorna `400`.                         |
-| Localização inexistente                | Deve falhar pois o alvo não existe. | `PATCH /localizacoes/000000000000000000000000`. | Retorna `404`.                         |
+| Funcionalidade                         | Comportamento Esperado                           | Verificações                                    | Critérios de Aceite                    |
+| :------------------------------------- | :----------------------------------------------- | :---------------------------------------------- | :------------------------------------- |
+| **Cenários felizes**                   |                                                  |                                                 |                                        |
+| Atualizar nome                         | Deve renomear a localização.                     | `PATCH /localizacoes/:id` com novo `nome`.      | Retorna `200`; `data.nome` atualizado. |
+| `PUT` também atualiza                  | Mesmo comportamento do `PATCH` pelo verbo `PUT`. | `PUT /localizacoes/:id` com `nome` novo.        | Retorna `200`; `data.nome` novo.       |
+| **Cenários tristes**                   |                                                  |                                                 |                                        |
+| Nome já existente em outra localização | Deve rejeitar duplicidade.                       | `PATCH` usando `nome` de outra localização.     | Retorna `400`.                         |
+| Localização inexistente                | Deve falhar pois o alvo não existe.              | `PATCH /localizacoes/000000000000000000000000`. | Retorna `404`.                         |
 
 ## PATCH /localizacoes/:id/inativar — Inativação
 

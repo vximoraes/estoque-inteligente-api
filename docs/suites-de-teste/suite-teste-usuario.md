@@ -6,13 +6,13 @@ Arquivo: `src/modules/usuario/__tests__/usuarioRoutes.test.ts`
 
 ## Visão de Fluxo e Regras de Negócio
 
-| Regra                                 | Comportamento Atual do Sistema                                                                                               | Impacto na Suite E2E                                                                       |
-| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
-| Sem autocadastro                      | Só existe `POST /usuarios/convidar`, restrito a administradores.                                                             | Toda massa de usuário nasce via convite, nunca via `sign-up`.                              |
-| Convite não falha por causa de e-mail | O disparo do e-mail de convite é fire-and-forget (`sendResetPassword` não propaga falha) — o endpoint sempre responde `201`. | Não há mais necessidade de tolerar `500` nos asserts desta suíte.                          |
-| `email` imutável via `PUT`            | `UsuarioUpdateSchema` omite `email`; qualquer valor enviado é ignorado silenciosamente.                                      | Assert explícito de que o e-mail não muda após `PUT`.                                      |
-| Auto-acesso ao próprio registro       | Usuário sem permissão administrativa ainda pode `GET/PATCH/PUT/DELETE` no próprio `/usuarios/:id`.                           | Cenário dedicado provando esse caso, distinto do bloqueio geral.                           |
-| RBAC restritivo                       | O grupo `Usuario` (não-admin) tem **todas** as permissões desativadas nesta rota (exceto auto-acesso).                       | Usuário comum aqui é cenário negativo (`403`), ao contrário da maioria dos outros módulos. |
+| Regra                                 | Comportamento Atual do Sistema                                                                                                         | Impacto na Suite E2E                                                                       |
+| :------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| Sem autocadastro                      | Só existe `POST /usuarios/convidar`, restrito a administradores.                                                                       | Toda massa de usuário nasce via convite, nunca via `sign-up`.                              |
+| Convite não falha por causa de e-mail | O disparo do e-mail de convite é fire-and-forget (`sendResetPassword` não propaga falha) — o endpoint sempre responde `201`.           | Não há mais necessidade de tolerar `500` nos asserts desta suíte.                          |
+| `email` imutável via `PUT`            | `UsuarioUpdateSchema` omite `email`; qualquer valor enviado é ignorado silenciosamente.                                                | Assert explícito de que o e-mail não muda após `PUT`.                                      |
+| Auto-acesso ao próprio registro       | Usuário sem permissão administrativa ainda pode `GET/PATCH/PUT` no próprio `/usuarios/:id` (o `DELETE` saiu da exceção em 2026-10-21). | Cenário dedicado provando esse caso, distinto do bloqueio geral.                           |
+| RBAC restritivo                       | O grupo `Usuario` (não-admin) tem **todas** as permissões desativadas nesta rota (exceto auto-acesso).                                 | Usuário comum aqui é cenário negativo (`403`), ao contrário da maioria dos outros módulos. |
 
 ## Modelo de Usuario
 
@@ -85,12 +85,41 @@ Arquivo: `src/modules/usuario/__tests__/usuarioRoutes.test.ts`
 
 ## DELETE /usuarios/:id — Exclusão
 
-| Funcionalidade            | Comportamento Esperado              | Verificações                                 | Critérios de Aceite |
-| :------------------------ | :---------------------------------- | :------------------------------------------- | :------------------ |
-| **Cenários felizes**      |                                     |                                              |                     |
-| Deletar usuário existente | Deve excluir o usuário convidado.   | `DELETE /usuarios/:id`.                      | Retorna `200`.      |
-| **Cenários tristes**      |                                     |                                              |                     |
-| Usuário inexistente       | Deve falhar pois o alvo não existe. | `DELETE /usuarios/000000000000000000000000`. | Retorna `404`.      |
+| Funcionalidade            | Comportamento Esperado              | Verificações                                        | Critérios de Aceite |
+| :------------------------ | :---------------------------------- | :-------------------------------------------------- | :------------------ |
+| **Cenários felizes**      |                                     |                                                     |                     |
+| Deletar usuário existente | Deve excluir o usuário convidado.   | `DELETE /usuarios/:id`.                             | Retorna `200`.      |
+| **Cenários tristes**      |                                     |                                                     |                     |
+| Usuário inexistente       | Deve falhar pois o alvo não existe. | `DELETE /usuarios/000000000000000000000000`.        | Retorna `404`.      |
+| Excluir a própria conta   | Deve recusar.                       | Admin exclui a si mesmo (`exclusaoRoutes.test.ts`). | Retorna `400`.      |
+
+## Exclusão lógica (`exclusaoRoutes.test.ts`)
+
+| Funcionalidade              | Comportamento Esperado                                 | Verificações                                                    | Critérios de Aceite                                                                             |
+| :-------------------------- | :----------------------------------------------------- | :-------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| Excluir                     | Encerra as sessões, recusa login e some das consultas. | Admin exclui o usuário padrão; token antigo, novo login, `GET`. | Sessão antiga `498`; login `401`, igual a senha errada; `GET /usuarios/:id` `404`; lista vazia. |
+| Convidar o mesmo e-mail     | Restaura a conta em vez de criar outra.                | `POST /usuarios/convidar` com o e-mail excluído.                | `201`, mesmo `_id`; login com a senha de antes `200`.                                           |
+| Sem permissão em `usuarios` | Deve bloquear.                                         | Usuário padrão exclui um convidado.                             | Retorna `403`.                                                                                  |
+
+## Convite, ativação e PATCH (`conviteRoutes.test.ts`)
+
+Lê o token de convite direto da coleção `verification` do banco de teste (`ROUTES_TEST_DB_URL`, exportada pelo `globalSetup`), porque o e-mail fica desligado na API de teste.
+
+| Funcionalidade                                    | Comportamento Esperado                  | Verificações                                                      | Critérios de Aceite                           |
+| :------------------------------------------------ | :-------------------------------------- | :---------------------------------------------------------------- | :-------------------------------------------- |
+| **Cenários felizes**                              |                                         |                                                                   |                                               |
+| Ativar com token no corpo                         | Deve definir a senha e liberar o login. | Login antes (`401`), `POST /ativar-conta` com `{ token, senha }`. | `200`; login seguinte `200` com `token`.      |
+| Token na URL                                      | Continua aceito por compatibilidade.    | `POST /ativar-conta?token=...` com `{ senha }`.                   | Retorna `200`.                                |
+| PATCH pelo admin                                  | Deve alterar o nome de outro usuário.   | `PATCH /usuarios/:id` com `nome`.                                 | `200`; `data.nome` novo.                      |
+| PATCH no próprio registro                         | Usuário ativado altera o próprio fuso.  | `PATCH /usuarios/:proprio` com `fuso_horario`.                    | `200`; `data.fuso_horario` novo.              |
+| **Cenários tristes**                              |                                         |                                                                   |                                               |
+| Token reaproveitado                               | Não deve trocar a senha de novo.        | Segunda ativação com o mesmo token.                               | `400`/`401`; login com a segunda senha falha. |
+| Token inválido / ausente / senha fraca            | Deve recusar.                           | Token inexistente; sem token; `senha: 'fraca'`.                   | `401`; `400`; `400`.                          |
+| Reenviar para quem já ativou                      | Deve recusar.                           | `POST /usuarios/:id/reenviar-convite` após ativar.                | Retorna `400`.                                |
+| Reenviar sem e-mail configurado                   | Deve avisar que não reenviou.           | Mesmo endpoint com usuário pendente.                              | Retorna `503`.                                |
+| Reenviar para inexistente                         | Deve falhar.                            | `ID_INEXISTENTE`.                                                 | Retorna `404`.                                |
+| PATCH em outro usuário sem permissão              | Usuário comum não altera terceiros.     | `PATCH /usuarios/:outro`.                                         | Retorna `403`.                                |
+| PATCH com nome fora do padrão ou fuso inexistente | Deve recusar.                           | `nome: 'nome minúsculo'`; `fuso_horario: 'Lugar/Nenhum'`.         | Retorna `400`.                                |
 
 ## Cenários Transversais Obrigatórios (E2E)
 

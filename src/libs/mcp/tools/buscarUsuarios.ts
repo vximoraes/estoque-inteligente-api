@@ -1,5 +1,6 @@
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
 
 export async function buscarUsuarios(
   {
@@ -10,10 +11,10 @@ export async function buscarUsuarios(
   }: { nome?: string; email?: string; ativo?: boolean; limite?: number },
   _usuarioId: string,
 ) {
-  const filtros: Record<string, unknown> = {};
+  const filtros: Record<string, unknown> = { desativadoEm: null };
 
-  if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
-  if (email) filtros['email'] = { $regex: email, $options: 'i' };
+  if (nome) filtros['nome'] = { $regex: escapeRegex(nome), $options: 'i' };
+  if (email) filtros['email'] = { $regex: escapeRegex(email), $options: 'i' };
   if (ativo !== undefined) filtros['ativo'] = ativo;
 
   const [usuarios, total] = await Promise.all([
@@ -34,6 +35,7 @@ export async function buscarUsuarios(
       ativo: uObj['ativo'],
       grupos: (grupos ?? []).map((g) => g['nome']),
       ativadoEm: uObj['ativadoEm'] ?? null,
+      fuso_horario: uObj['fuso_horario'] ?? null,
     };
   });
 

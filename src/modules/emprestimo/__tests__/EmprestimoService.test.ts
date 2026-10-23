@@ -22,6 +22,7 @@ describe('EmprestimoService', () => {
     listar: jest.Mock;
     buscarPorId: jest.Mock;
     atualizarDevolucao: jest.Mock;
+    atualizarSe: jest.Mock;
     atualizar: jest.Mock;
     excluir: jest.Mock;
   };
@@ -42,6 +43,7 @@ describe('EmprestimoService', () => {
       listar: jest.fn(),
       buscarPorId: jest.fn(),
       atualizarDevolucao: jest.fn(),
+      atualizarSe: jest.fn().mockResolvedValue(true),
       atualizar: jest.fn(),
       excluir: jest.fn(),
     };
@@ -73,6 +75,11 @@ describe('EmprestimoService', () => {
         .mockResolvedValue({ _id: itemId, tipo: 'consumo' });
       Localizacao.findById = jest.fn().mockResolvedValue({ _id: makeId() });
       Estoque.findOne = jest.fn().mockResolvedValue({ quantidade: 10 });
+      Estoque.atualizarQuantidadeItem = jest.fn().mockResolvedValue(undefined);
+      const sessao = { id: 'sessao-teste' };
+      jest
+        .spyOn(mongoose.connection, 'transaction')
+        .mockImplementation((fn) => fn(sessao as any));
 
       const criado = { _id: makeId(), quantidade_aberta: 3 };
       repositoryMock.criar.mockResolvedValue(criado);
@@ -91,13 +98,16 @@ describe('EmprestimoService', () => {
       expect(movimentacaoServiceMock.criar).toHaveBeenCalledWith(
         expect.objectContaining({ tipo: 'saida', quantidade: 3 }),
         req,
+        sessao,
       );
       expect(repositoryMock.criar).toHaveBeenCalledWith(
         expect.objectContaining({
           tipo_controle: 'quantidade',
           quantidade_aberta: 3,
         }),
+        sessao,
       );
+      expect(Estoque.atualizarQuantidadeItem).toHaveBeenCalledWith(itemId);
       expect(patrimonioServiceMock.emprestarUnidade).not.toHaveBeenCalled();
     });
 
@@ -164,6 +174,29 @@ describe('EmprestimoService', () => {
         ),
       ).rejects.toMatchObject({ statusCode: 409 });
       expect(repositoryMock.criar).not.toHaveBeenCalled();
+    });
+
+    it('explica que a unidade está em manutenção', async () => {
+      const patrimonioId = makeId();
+      PatrimonioModel.findById = jest
+        .fn()
+        .mockResolvedValueOnce({ _id: patrimonioId, ativo: true })
+        .mockResolvedValueOnce({ status: 'Manutenção' });
+      patrimonioServiceMock.emprestarUnidade.mockResolvedValue(null);
+
+      await expect(
+        service.criar(
+          {
+            solicitante_nome: 'Fulano',
+            patrimonio: patrimonioId.toString(),
+          } as any,
+          req,
+        ),
+      ).rejects.toMatchObject({
+        statusCode: 409,
+        customMessage:
+          'Esta unidade está em manutenção e não pode ser emprestada.',
+      });
     });
 
     it('monta o registro com quantidade 1 e a localização real da unidade, ignorando o que foi enviado', async () => {
@@ -265,12 +298,48 @@ describe('EmprestimoService', () => {
         req,
       );
       expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
-      expect(repositoryMock.atualizarDevolucao).toHaveBeenCalledWith(
+      expect(repositoryMock.atualizarSe).toHaveBeenCalledWith(
         'emp1',
-        expect.objectContaining({
-          quantidade_devolvida: 1,
-          quantidade_aberta: 0,
-        }),
+        { quantidade_aberta: { $gte: 1 } },
+        { $inc: { quantidade_devolvida: 1, quantidade_aberta: -1 } },
+      );
+    });
+
+    it('409 e nenhuma entrada quando outra devolução já reservou a quantidade', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_aberta: 1,
+        quantidade_devolvida: 0,
+        quantidade_emprestada: 1,
+      });
+      repositoryMock.atualizarSe.mockResolvedValueOnce(false);
+
+      await expect(
+        service.devolver('emp1', { quantidade_devolvida: 1 } as any, req),
+      ).rejects.toMatchObject({ statusCode: 409 });
+      expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
+    });
+
+    it('desfaz a reserva se a entrada no estoque falhar', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_aberta: 2,
+        quantidade_devolvida: 0,
+        quantidade_emprestada: 2,
+      });
+      movimentacaoServiceMock.criar.mockRejectedValueOnce(new Error('falhou'));
+
+      await expect(
+        service.devolver('emp1', { quantidade_devolvida: 2 } as any, req),
+      ).rejects.toThrow('falhou');
+      expect(repositoryMock.atualizarSe).toHaveBeenLastCalledWith(
+        'emp1',
+        {},
+        { $inc: { quantidade_devolvida: -2, quantidade_aberta: 2 } },
       );
     });
 
@@ -333,6 +402,28 @@ describe('EmprestimoService', () => {
       await expect(service.desfazerDevolucao('emp1', req)).rejects.toThrow(
         'não é possível desfazer',
       );
+      expect(repositoryMock.atualizarSe).toHaveBeenLastCalledWith(
+        'emp1',
+        {},
+        expect.objectContaining({ quantidade_devolvida: 1 }),
+      );
+    });
+
+    it('409 quando outra operação já desfez a devolução', async () => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        tipo_controle: 'quantidade',
+        item: { _id: makeId() },
+        localizacao: { _id: makeId() },
+        quantidade_devolvida: 2,
+        quantidade_aberta: 0,
+        quantidade_emprestada: 2,
+      });
+      repositoryMock.atualizarSe.mockResolvedValueOnce(false);
+
+      await expect(
+        service.desfazerDevolucao('emp1', req),
+      ).rejects.toMatchObject({ statusCode: 409 });
+      expect(movimentacaoServiceMock.criar).not.toHaveBeenCalled();
     });
   });
 
@@ -350,6 +441,57 @@ describe('EmprestimoService', () => {
 
       const resultado = await service.excluir('emp1');
       expect(resultado).toEqual({ message: 'ok' });
+    });
+  });
+
+  describe('atualizar', () => {
+    const atual = {
+      solicitante_nome: 'Ana',
+      solicitante_email: 'ana@x.com',
+      data_prevista_devolucao: new Date('2026-11-01T12:00:00Z'),
+    };
+
+    beforeEach(() => {
+      repositoryMock.buscarPorId.mockResolvedValue({
+        get: (campo) => atual[campo],
+      });
+      repositoryMock.atualizar.mockResolvedValue({ _id: 'emp1' });
+    });
+
+    it('registra só os campos que mudaram, com valor anterior, novo e quem alterou', async () => {
+      await service.atualizar(
+        'emp1',
+        {
+          solicitante_nome: 'Ana',
+          solicitante_email: 'ana.souza@x.com',
+          data_prevista_devolucao: new Date('2026-11-05T12:00:00Z'),
+        },
+        req,
+      );
+
+      const payload = repositoryMock.atualizar.mock.calls[0][1];
+      expect(payload.solicitante_email).toBe('ana.souza@x.com');
+      expect(payload.$push.alteracoes.$each).toEqual([
+        expect.objectContaining({
+          campo: 'solicitante_email',
+          anterior: 'ana@x.com',
+          novo: 'ana.souza@x.com',
+          usuario: 'user1',
+        }),
+        expect.objectContaining({
+          campo: 'data_prevista_devolucao',
+          anterior: '2026-11-01T12:00:00.000Z',
+          novo: '2026-11-05T12:00:00.000Z',
+        }),
+      ]);
+    });
+
+    it('não registra alteração quando nada mudou', async () => {
+      await service.atualizar('emp1', { solicitante_nome: 'Ana' }, req);
+
+      expect(repositoryMock.atualizar).toHaveBeenCalledWith('emp1', {
+        solicitante_nome: 'Ana',
+      });
     });
   });
 });

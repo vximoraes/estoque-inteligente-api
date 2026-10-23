@@ -11,6 +11,12 @@ const patrimonioController = new PatrimonioController();
 
 router
   .get(
+    '/patrimonios/stats',
+    AuthMiddleware,
+    AuthPermission,
+    asyncWrapper(patrimonioController.stats.bind(patrimonioController)),
+  )
+  .get(
     '/patrimonios',
     AuthMiddleware,
     AuthPermission,

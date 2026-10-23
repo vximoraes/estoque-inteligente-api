@@ -1,4 +1,8 @@
+import http from 'node:http';
 import {
+  BASE_URL,
+  criarItem,
+  criarMovimentacao,
   req,
   logarAdmin,
   logarUsuarioPadrao,
@@ -7,6 +11,44 @@ import {
   esperarPaginado,
   ID_INEXISTENTE,
 } from '../../../../test/helpers/rotasTestHelper.js';
+
+function abrirStream(token) {
+  const eventos: string[] = [];
+  let aoReceber = () => {};
+  const conexao = http.get(`${BASE_URL}/notificacoes/stream`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const resposta = new Promise<http.IncomingMessage>((resolve) =>
+    conexao.on('response', (res) => {
+      res.setEncoding('utf8');
+      res.on('data', (pedaco: string) => {
+        eventos.push(pedaco);
+        aoReceber();
+      });
+      resolve(res);
+    }),
+  );
+  conexao.on('error', () => {});
+
+  function esperar(trecho: string) {
+    return new Promise<string>((resolve, reject) => {
+      const limite = setTimeout(
+        () => reject(new Error(`Evento com "${trecho}" não chegou`)),
+        5000,
+      );
+      aoReceber = () => {
+        const recebido = eventos.join('');
+        if (recebido.includes(trecho)) {
+          clearTimeout(limite);
+          resolve(recebido);
+        }
+      };
+      aoReceber();
+    });
+  }
+
+  return { resposta, esperar, fechar: () => conexao.destroy() };
+}
 
 async function criarNotificacao(token, override = {}) {
   const res = await req(token)

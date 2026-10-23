@@ -148,6 +148,10 @@ class PatrimonioService {
     return await this.repository.listar(req);
   }
 
+  async stats(req: AuthenticatedRequest) {
+    return await this.repository.stats(req);
+  }
+
   async buscarPorId(id: string, req: AuthenticatedRequest) {
     return await this.repository.buscarPorId(id, req);
   }
@@ -300,7 +304,21 @@ class PatrimonioService {
       });
     }
 
-    return await this.repository.atualizar(id, { ativo: false }, req);
+    const inativado = await this.repository.atualizar(
+      id,
+      { ativo: false },
+      req,
+    );
+
+    await PatrimonioEventoModel.create({
+      patrimonio: id,
+      tipo: 'inativacao',
+      status_anterior: patrimonio.status,
+      status_novo: patrimonio.status,
+      usuario: req.user_id,
+    });
+
+    return inativado;
   }
 
   // --- Consumidos pela Fase 3 (EmprestimoService); ainda não chamados por
@@ -472,7 +490,10 @@ class PatrimonioService {
   }
 
   private async validarCategoriaPermanente(categoriaId: string) {
-    const categoria = await CategoriaModel.findById(categoriaId);
+    const categoria = await CategoriaModel.findOne({
+      _id: categoriaId,
+      ativo: true,
+    });
     if (!categoria) {
       throw new CustomError({
         statusCode: 404,
@@ -496,7 +517,10 @@ class PatrimonioService {
   }
 
   private async validarLocalizacao(localizacaoId: string) {
-    const localizacao = await LocalizacaoModel.findById(localizacaoId);
+    const localizacao = await LocalizacaoModel.findOne({
+      _id: localizacaoId,
+      ativo: true,
+    });
     if (!localizacao) {
       throw new CustomError({
         statusCode: 404,

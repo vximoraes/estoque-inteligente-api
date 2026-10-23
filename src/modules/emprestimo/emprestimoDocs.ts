@@ -221,8 +221,12 @@ registerPaths({
           name: 'status',
           in: 'query',
           required: false,
-          schema: { type: 'string', enum: ['aberto', 'devolvido', 'atrasado'] },
-          description: 'Filtro por status',
+          schema: {
+            type: 'string',
+            enum: ['ativo', 'atrasado', 'devolvido', 'aberto'],
+          },
+          description:
+            'Filtro por status: ativo (em aberto e no prazo), atrasado, devolvido ou aberto (ativo + atrasado)',
         },
         ...paginationQueryParams,
       ],

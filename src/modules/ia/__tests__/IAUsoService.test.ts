@@ -8,7 +8,7 @@ import {
 } from '../IAUsoService.js';
 
 let mongoServer;
-const usuarioId = 'usuario-1';
+const usuarioId = new mongoose.Types.ObjectId().toString();
 const conversaId = new mongoose.Types.ObjectId().toString();
 
 describe('derivarTokens', () => {

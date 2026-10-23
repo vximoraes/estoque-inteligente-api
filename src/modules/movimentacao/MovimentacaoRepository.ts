@@ -13,6 +13,7 @@ import { resolveSort } from '../../utils/resolveSort.js';
 import { resolverJanelaMensal } from '../../utils/janelaMensal.js';
 import type mongoose from 'mongoose';
 import type { AuthenticatedRequest } from '../../utils/types.js';
+import { limiteDeData, resolverFuso } from '../../utils/fusoHorario.js';
 
 export interface MovimentacaoResumo {
   total_movimentacoes: number;
@@ -40,12 +41,16 @@ class MovimentacaoRepository {
     this.model = movimentacaoModel;
   }
 
-  async criar(parsedData: Record<string, unknown>) {
+  async criar(
+    parsedData: Record<string, unknown>,
+    session?: mongoose.ClientSession,
+  ) {
     const movimentacao = new this.model(parsedData);
-    const movimentacaoSalva = await movimentacao.save();
+    movimentacao.$locals['estoqueJaAtualizado'] = true;
+    const movimentacaoSalva = await movimentacao.save({ session });
 
     return await this.model
-      .findById(movimentacaoSalva._id)
+      .findById(movimentacaoSalva._id, null, { session })
       .populate('item')
       .populate('localizacao');
   }
@@ -73,6 +78,7 @@ class MovimentacaoRepository {
     }
 
     const query = req.query as Record<string, string | undefined>;
+    const fuso = resolverFuso(req.fuso_horario);
     const { tipo, data, data_inicio, data_fim, quantidade, item, localizacao } =
       query;
     const page = query['page'] ?? '1';
@@ -83,9 +89,9 @@ class MovimentacaoRepository {
 
     const filterBuilder = new MovimentacaoFilterBuilder()
       .comTipo(tipo ?? '')
-      .comData(data ?? '')
-      .comDataInicio(data_inicio ? new Date(data_inicio) : undefined)
-      .comDataFim(data_fim ? new Date(data_fim) : undefined)
+      .comData(data ?? '', fuso)
+      .comDataInicio(limiteDeData(data_inicio, 'inicio', fuso))
+      .comDataFim(limiteDeData(data_fim, 'fim', fuso))
       .comQuantidade(quantidade ?? '');
 
     await filterBuilder.comItem(item ?? '');
@@ -106,7 +112,11 @@ class MovimentacaoRepository {
     const options = {
       page: parseInt(page, 10),
       limit: limite,
-      populate: ['item', 'localizacao', 'usuario'],
+      populate: [
+        { path: 'item' },
+        { path: 'localizacao' },
+        { path: 'usuario', select: 'nome' },
+      ],
       sort: resolveSort(query['ordenar'], MOVIMENTACAO_SORT_FIELDS, {
         data_hora: -1,
       }),
@@ -125,12 +135,13 @@ class MovimentacaoRepository {
 
   async resumo(req: AuthenticatedRequest): Promise<MovimentacaoResumo> {
     const query = req.query as Record<string, string | undefined>;
+    const fuso = resolverFuso(req.fuso_horario);
     const { tipo, data_inicio, data_fim, item, localizacao } = query;
 
     const filterBuilder = new MovimentacaoFilterBuilder()
       .comTipo(tipo ?? '')
-      .comDataInicio(data_inicio ? new Date(data_inicio) : undefined)
-      .comDataFim(data_fim ? new Date(data_fim) : undefined);
+      .comDataInicio(limiteDeData(data_inicio, 'inicio', fuso))
+      .comDataFim(limiteDeData(data_fim, 'fim', fuso));
 
     await filterBuilder.comItem(item ?? '');
     await filterBuilder.comLocalizacao(localizacao ?? '');
@@ -181,12 +192,12 @@ class MovimentacaoRepository {
     req: AuthenticatedRequest,
   ): Promise<MovimentacaoTendenciaPonto[]> {
     const query = req.query as Record<string, string | undefined>;
+    const fuso = resolverFuso(req.fuso_horario);
     const { dataInicio, dataFim, chavesMes } = resolverJanelaMensal({
+      fuso,
       meses: query['meses'] ? parseInt(query['meses'], 10) : undefined,
-      data_inicio: query['data_inicio']
-        ? new Date(query['data_inicio'])
-        : undefined,
-      data_fim: query['data_fim'] ? new Date(query['data_fim']) : undefined,
+      data_inicio: limiteDeData(query['data_inicio'], 'inicio', fuso),
+      data_fim: limiteDeData(query['data_fim'], 'fim', fuso),
     });
 
     const porMesTipo = (await this.model.aggregate([
@@ -194,7 +205,13 @@ class MovimentacaoRepository {
       {
         $group: {
           _id: {
-            mes: { $dateToString: { format: '%Y-%m', date: '$data_hora' } },
+            mes: {
+              $dateToString: {
+                format: '%Y-%m',
+                date: '$data_hora',
+                timezone: fuso,
+              },
+            },
             tipo: '$tipo',
           },
           count: { $sum: 1 },

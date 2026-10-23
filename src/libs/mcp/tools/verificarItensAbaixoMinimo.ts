@@ -8,6 +8,7 @@ export async function verificarItensAbaixoMinimo(
     ativo: true,
     tipo: 'consumo',
     status: { $in: ['Baixo Estoque', 'Indisponível'] },
+    estoque_minimo: { $gt: 0 },
   })
     .populate('categoria', 'nome')
     .lean();

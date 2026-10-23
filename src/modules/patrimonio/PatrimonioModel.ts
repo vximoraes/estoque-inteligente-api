@@ -18,7 +18,7 @@ export interface IPatrimonio {
   imagem?: string;
   campos_personalizados: ICampoPersonalizado[];
   ativo: boolean;
-  usuario: string;
+  usuario: mongoose.Types.ObjectId;
 }
 
 export type PatrimonioDocument = IPatrimonio & Document;
@@ -69,7 +69,11 @@ const patrimonioSchema = new mongoose.Schema<PatrimonioDocument>(
     imagem: { type: String, required: false },
     campos_personalizados: { type: [campoPersonalizadoSchema], default: [] },
     ativo: { type: Boolean, default: true },
-    usuario: { type: String, ref: 'usuarios', required: true },
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'usuarios',
+      required: true,
+    },
   },
   { timestamps: true },
 );

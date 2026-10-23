@@ -1,5 +1,9 @@
 import type { Response } from 'express';
 
+const MAX_CONEXOES_POR_USUARIO = Number(
+  process.env['SSE_MAX_CONEXOES_POR_USUARIO'] ?? 5,
+);
+
 class SSEService {
   private clients: Map<string, Response[]>;
 
@@ -12,7 +16,12 @@ class SSEService {
     if (!this.clients.has(userIdStr)) {
       this.clients.set(userIdStr, []);
     }
-    this.clients.get(userIdStr)!.push(res);
+    const conexoes = this.clients.get(userIdStr)!;
+    while (conexoes.length >= MAX_CONEXOES_POR_USUARIO) {
+      const maisAntiga = conexoes.shift();
+      maisAntiga?.end();
+    }
+    conexoes.push(res);
 
     res.on('close', () => {
       this.removeClient(userIdStr, res);

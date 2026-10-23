@@ -42,7 +42,7 @@ describe('PatrimonioService', () => {
 
   describe('criar', () => {
     it('deve rejeitar categoria que não existe', async () => {
-      CategoriaModel.findById = jest.fn().mockResolvedValue(null);
+      CategoriaModel.findOne = jest.fn().mockResolvedValue(null);
       await expect(
         service.criar(
           {
@@ -56,9 +56,7 @@ describe('PatrimonioService', () => {
     });
 
     it('deve rejeitar categoria do tipo consumo', async () => {
-      CategoriaModel.findById = jest
-        .fn()
-        .mockResolvedValue({ tipo: 'consumo' });
+      CategoriaModel.findOne = jest.fn().mockResolvedValue({ tipo: 'consumo' });
       await expect(
         service.criar(
           {
@@ -72,10 +70,10 @@ describe('PatrimonioService', () => {
     });
 
     it('deve rejeitar localizacao inexistente', async () => {
-      CategoriaModel.findById = jest
+      CategoriaModel.findOne = jest
         .fn()
         .mockResolvedValue({ _id: makeId(), tipo: 'permanente' });
-      LocalizacaoModel.findById = jest.fn().mockResolvedValue(null);
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue(null);
       await expect(
         service.criar(
           {
@@ -90,12 +88,10 @@ describe('PatrimonioService', () => {
 
     it('deve criar a unidade e gravar evento de cadastro', async () => {
       const categoriaId = makeId();
-      CategoriaModel.findById = jest
+      CategoriaModel.findOne = jest
         .fn()
         .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
-      LocalizacaoModel.findById = jest
-        .fn()
-        .mockResolvedValue({ _id: makeId() });
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue({ _id: makeId() });
 
       const criado = { _id: makeId(), numero_patrimonio: 'NB-0001' };
       repositoryMock.criar.mockResolvedValue(criado);
@@ -130,12 +126,10 @@ describe('PatrimonioService', () => {
 
     it('deve honrar status explícito no cadastro', async () => {
       const categoriaId = makeId();
-      CategoriaModel.findById = jest
+      CategoriaModel.findOne = jest
         .fn()
         .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
-      LocalizacaoModel.findById = jest
-        .fn()
-        .mockResolvedValue({ _id: makeId() });
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue({ _id: makeId() });
 
       const criado = { _id: makeId(), numero_patrimonio: 'NB-0002' };
       repositoryMock.criar.mockResolvedValue(criado);
@@ -160,12 +154,10 @@ describe('PatrimonioService', () => {
 
     it('deve repassar modelo, fabricante e campos_personalizados ao repository', async () => {
       const categoriaId = makeId();
-      CategoriaModel.findById = jest
+      CategoriaModel.findOne = jest
         .fn()
         .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
-      LocalizacaoModel.findById = jest
-        .fn()
-        .mockResolvedValue({ _id: makeId() });
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue({ _id: makeId() });
       repositoryMock.criar.mockResolvedValue({ _id: makeId() });
 
       const campos = [{ chave: 'Número de série', valor: 'SN123456' }];
@@ -194,12 +186,10 @@ describe('PatrimonioService', () => {
   describe('criarLote', () => {
     it('deve gerar numeração sequencial e criar N unidades', async () => {
       const categoriaId = makeId();
-      CategoriaModel.findById = jest
+      CategoriaModel.findOne = jest
         .fn()
         .mockResolvedValue({ _id: categoriaId, tipo: 'permanente' });
-      LocalizacaoModel.findById = jest
-        .fn()
-        .mockResolvedValue({ _id: makeId() });
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue({ _id: makeId() });
 
       const criados = [
         { _id: makeId(), numero_patrimonio: 'NB-0005' },
@@ -232,9 +222,7 @@ describe('PatrimonioService', () => {
     });
 
     it('deve rejeitar categoria do tipo consumo antes de gerar qualquer unidade', async () => {
-      CategoriaModel.findById = jest
-        .fn()
-        .mockResolvedValue({ tipo: 'consumo' });
+      CategoriaModel.findOne = jest.fn().mockResolvedValue({ tipo: 'consumo' });
       await expect(
         service.criarLote(
           {
@@ -348,9 +336,7 @@ describe('PatrimonioService', () => {
         status: 'Disponível',
         localizacao: localizacaoAnterior,
       });
-      LocalizacaoModel.findById = jest
-        .fn()
-        .mockResolvedValue({ _id: makeId() });
+      LocalizacaoModel.findOne = jest.fn().mockResolvedValue({ _id: makeId() });
 
       const atualizado = { status: 'Disponível' };
       PatrimonioModel.findOneAndUpdate = jest
@@ -385,7 +371,7 @@ describe('PatrimonioService', () => {
       );
     });
 
-    it('deve inativar via repository.atualizar', async () => {
+    it('deve inativar via repository.atualizar e registrar o evento', async () => {
       PatrimonioModel.findById = jest
         .fn()
         .mockResolvedValue({ status: 'Disponível' });
@@ -397,6 +383,14 @@ describe('PatrimonioService', () => {
         'id1',
         { ativo: false },
         req,
+      );
+      expect(PatrimonioEventoModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          patrimonio: 'id1',
+          tipo: 'inativacao',
+          status_anterior: 'Disponível',
+          status_novo: 'Disponível',
+        }),
       );
     });
   });

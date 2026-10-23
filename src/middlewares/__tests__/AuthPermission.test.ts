@@ -12,7 +12,9 @@ jest.mock('../../config/auth.js', () => ({
 
 jest.mock('../../modules/rota/RotaModel.js', () => ({
   __esModule: true,
-  default: { findOne: (...args) => mockFindOne(...args) },
+  default: {
+    findOne: (...args) => ({ lean: () => mockFindOne(...args) }),
+  },
 }));
 
 jest.mock('../../utils/services/PermissionService.js', () => {
@@ -47,6 +49,31 @@ describe('AuthPermission', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it('reaproveita o usuário que o AuthMiddleware já validou', async () => {
+    mockFindOne.mockResolvedValue({ ativo: true, buscar: true });
+    mockHasPermission.mockResolvedValue(true);
+    const req = {
+      url: '/itens',
+      method: 'GET',
+      params: {},
+      headers: {},
+      user_id: 'user1',
+    };
+    const next = jest.fn();
+
+    await authPermission(req, buildRes(), next);
+
+    expect(mockGetSession).not.toHaveBeenCalled();
+    expect(mockHasPermission).toHaveBeenCalledWith(
+      'user1',
+      'itens',
+      'buscar',
+      {},
+      'GET',
+    );
+    expect(next).toHaveBeenCalled();
   });
 
   it('retorna 404 quando a rota não está registrada', async () => {

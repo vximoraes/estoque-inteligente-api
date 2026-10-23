@@ -3,6 +3,14 @@ import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import CategoriaModel from '../../../modules/categoria/CategoriaModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { padraoDeBusca } from '../padraoDeBusca.js';
+
+const ORDENACAO = {
+  numero_patrimonio: { numero_patrimonio: 1 },
+  mais_recentes: { createdAt: -1 },
+  mais_antigos: { createdAt: 1 },
+} as const;
 
 export async function buscarPatrimonios(
   {
@@ -11,6 +19,9 @@ export async function buscarPatrimonios(
     status,
     localizacao,
     categoria,
+    ordenar = 'numero_patrimonio',
+    apenasMeus = false,
+    buscaExata = false,
     limite = 20,
   }: {
     numeroPatrimonio?: string;
@@ -18,23 +29,33 @@ export async function buscarPatrimonios(
     status?: string;
     localizacao?: string;
     categoria?: string;
+    ordenar?: 'numero_patrimonio' | 'mais_recentes' | 'mais_antigos';
+    apenasMeus?: boolean;
+    buscaExata?: boolean;
     limite?: number;
   },
-  _usuarioId: string,
+  usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = { ativo: true };
+  if (apenasMeus) filtros['usuario'] = usuarioId;
 
   if (numeroPatrimonio) {
-    filtros['numero_patrimonio'] = { $regex: numeroPatrimonio, $options: 'i' };
+    filtros['numero_patrimonio'] = {
+      $regex: padraoDeBusca(numeroPatrimonio, buscaExata),
+      $options: 'i',
+    };
   }
   if (status) filtros['status'] = status;
   if (modelo) {
-    filtros['modelo'] = { $regex: modelo, $options: 'i' };
+    filtros['modelo'] = {
+      $regex: padraoDeBusca(modelo, buscaExata),
+      $options: 'i',
+    };
   }
 
   if (categoria) {
     const categoriasCorrespondentes = await CategoriaModel.find({
-      nome: { $regex: categoria, $options: 'i' },
+      nome: { $regex: escapeRegex(categoria), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -45,7 +66,7 @@ export async function buscarPatrimonios(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -59,7 +80,7 @@ export async function buscarPatrimonios(
       .populate('categoria', 'nome')
       .populate('localizacao', 'nome')
       .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
-      .sort({ numero_patrimonio: 1 })
+      .sort(ORDENACAO[ordenar])
       .limit(Math.min(Number(limite), 50))
       .lean(),
     PatrimonioModel.countDocuments(filtros),

@@ -1,5 +1,6 @@
 import request from 'supertest';
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 
 export const BASE_URL = `http://localhost:${process.env.PORT || 3011}`;
 
@@ -166,4 +167,55 @@ export async function convidarUsuario(token, override = {}) {
     });
   esperarEnvelopeSucesso(res, 201);
   return res.body.data.usuario;
+}
+
+export async function conectarBancoDeTeste() {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(process.env.ROUTES_TEST_DB_URL!);
+  }
+}
+
+export async function tokenDoConvite(usuarioId: string): Promise<string> {
+  const registro = await mongoose.connection
+    .db!.collection('verification')
+    .findOne(
+      { value: usuarioId, identifier: /^reset-password:/ },
+      { sort: { createdAt: -1 } },
+    );
+  return String(registro!['identifier']).replace('reset-password:', '');
+}
+
+export async function criarUsuarioComPermissoes(
+  tokenAdmin,
+  permitir: (rota: string) => Record<string, boolean>,
+) {
+  const senha = 'Senha@Teste1';
+  const usuario = await convidarUsuario(tokenAdmin);
+  const token = await tokenDoConvite(usuario._id);
+  esperarEnvelopeSucesso(
+    await req().post('/ativar-conta').send({ token, senha }),
+    200,
+  );
+
+  const db = mongoose.connection.db!;
+  const rotas = await db.collection('rotas').find().toArray();
+  const permissoes = rotas.map((rota) => ({
+    _id: rota._id,
+    rota: rota['rota'],
+    ativo: true,
+    buscar: false,
+    enviar: false,
+    substituir: false,
+    modificar: false,
+    excluir: false,
+    ...permitir(String(rota['rota'])),
+  }));
+  await db
+    .collection('usuarios')
+    .updateOne(
+      { _id: new mongoose.Types.ObjectId(String(usuario._id)) },
+      { $set: { permissoes, grupos: [] } },
+    );
+
+  return logar(usuario.email, senha);
 }

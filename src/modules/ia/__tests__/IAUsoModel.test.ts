@@ -3,7 +3,7 @@ import IAUso from '../IAUsoModel.js';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 let mongoServer;
-const usuarioId = 'usuario-1';
+const usuarioId = new mongoose.Types.ObjectId().toString();
 const conversaId = new mongoose.Types.ObjectId();
 
 describe('Modelo de IAUso', () => {
@@ -34,7 +34,7 @@ describe('Modelo de IAUso', () => {
     });
     await uso.save();
     expect(uso._id).toBeDefined();
-    expect(uso.usuario).toBe(usuarioId);
+    expect(String(uso.usuario)).toBe(usuarioId);
     expect(uso.conversa.toString()).toEqual(conversaId.toString());
   });
 

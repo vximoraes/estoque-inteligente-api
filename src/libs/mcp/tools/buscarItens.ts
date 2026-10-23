@@ -4,6 +4,14 @@ import EstoqueModel from '../../../modules/estoque/EstoqueModel.js';
 import LocalizacaoModel from '../../../modules/localizacao/LocalizacaoModel.js';
 import { resultadoLimitado } from '../resultadoLimitado.js';
 import UsuarioModel from '../../../modules/usuario/UsuarioModel.js';
+import { escapeRegex } from '../../../utils/helpers/escapeRegex.js';
+import { padraoDeBusca } from '../padraoDeBusca.js';
+
+const ORDENACAO = {
+  nome: { nome: 1 },
+  mais_recentes: { createdAt: -1 },
+  mais_antigos: { createdAt: 1 },
+} as const;
 
 export async function buscarItens(
   {
@@ -11,24 +19,36 @@ export async function buscarItens(
     status,
     categoria,
     localizacao,
+    ordenar = 'nome',
+    apenasMeus = false,
+    buscaExata = false,
     limite = 20,
   }: {
     nome?: string;
     status?: string;
     categoria?: string;
     localizacao?: string;
+    ordenar?: 'nome' | 'mais_recentes' | 'mais_antigos';
+    apenasMeus?: boolean;
+    buscaExata?: boolean;
     limite?: number;
   },
-  _usuarioId: string,
+  usuarioId: string,
 ) {
   const filtros: Record<string, unknown> = { ativo: true };
+  if (apenasMeus) filtros['usuario'] = usuarioId;
 
-  if (nome) filtros['nome'] = { $regex: nome, $options: 'i' };
+  if (nome) {
+    filtros['nome'] = {
+      $regex: padraoDeBusca(nome, buscaExata),
+      $options: 'i',
+    };
+  }
   if (status) filtros['status'] = status;
 
   if (categoria) {
     const categoriasCorrespondentes = await CategoriaModel.find({
-      nome: { $regex: categoria, $options: 'i' },
+      nome: { $regex: escapeRegex(categoria), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -39,7 +59,7 @@ export async function buscarItens(
 
   if (localizacao) {
     const localizacoesCorrespondentes = await LocalizacaoModel.find({
-      nome: { $regex: localizacao, $options: 'i' },
+      nome: { $regex: escapeRegex(localizacao), $options: 'i' },
     })
       .select('_id')
       .lean();
@@ -56,7 +76,7 @@ export async function buscarItens(
       .populate('categoria', 'nome')
       .populate({ path: 'usuario', select: 'nome', model: UsuarioModel })
       .limit(Math.min(Number(limite), 50))
-      .sort({ nome: 1 })
+      .sort(ORDENACAO[ordenar])
       .lean(),
     ItemModel.countDocuments(filtros),
   ]);

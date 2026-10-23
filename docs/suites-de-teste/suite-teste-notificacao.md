@@ -94,6 +94,15 @@ Arquivo: `src/modules/notificacao/__tests__/notificacaoRoutes.test.ts`
 | **Cenários tristes**           |                                               |                                                          |                     |
 | Notificação inexistente        | Deve falhar pois não existe.                  | `PATCH /notificacoes/000000000000000000000000/inativar`. | Retorna `404`.      |
 
+## GET /notificacoes/stream — Tempo real (SSE)
+
+| Funcionalidade                   | Comportamento Esperado                                                                | Verificações                                                              | Critérios de Aceite                                                                                                                                               |
+| :------------------------------- | :------------------------------------------------------------------------------------ | :------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cenários felizes**             |                                                                                       |                                                                           |                                                                                                                                                                   |
+| Conexão e aviso de estoque baixo | Deve abrir o stream e entregar o aviso quando um item do autor fica abaixo do mínimo. | Abre o stream, cria item com `estoque_minimo=10` e registra entrada de 4. | `200` `text/event-stream`; `event: connected`; `event: notificacao` com "está com estoque baixo (4 unidades)"; a notificação aparece em `GET ?visualizada=false`. |
+| **Cenários tristes**             |                                                                                       |                                                                           |                                                                                                                                                                   |
+| Sem token                        | Deve bloquear antes de abrir o stream.                                                | `GET /notificacoes/stream` sem sessão.                                    | Retorna `498`.                                                                                                                                                    |
+
 ## Cenários Transversais Obrigatórios (E2E)
 
 | Tema                       | Verificação E2E                                                               |

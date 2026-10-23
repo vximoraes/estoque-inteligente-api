@@ -43,6 +43,7 @@ describe('GrupoService', () => {
       buscarPorId: jest.fn(),
       obterRotasUnicas: jest.fn().mockResolvedValue([]),
       buscarPorPermissao: jest.fn().mockResolvedValue([]),
+      verificarUsuariosAssociados: jest.fn().mockResolvedValue(null),
     };
 
     usuarioRepositoryMock = {

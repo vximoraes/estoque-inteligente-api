@@ -29,7 +29,52 @@ describe('PermissionService', () => {
     service = new PermissionService();
   });
 
-  it('permite sempre GET/PATCH/PUT/DELETE do proprio usuario em /usuarios/:id', async () => {
+  it('soma os métodos de grupos diferentes para a mesma rota', async () => {
+    repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
+      permissoes: [],
+      grupos: [
+        {
+          permissoes: [
+            { rota: 'itens', ativo: true, buscar: true, enviar: false },
+          ],
+        },
+        {
+          permissoes: [
+            { rota: 'itens', ativo: true, buscar: false, enviar: true },
+          ],
+        },
+      ],
+    });
+
+    const result = await service.hasPermission(
+      'user1',
+      'itens',
+      'enviar',
+      {},
+      'POST',
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('não aplica a exceção do próprio usuário ao DELETE', async () => {
+    repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
+      permissoes: [],
+      grupos: [],
+    });
+
+    const result = await service.hasPermission(
+      'user1',
+      'usuarios',
+      'excluir',
+      { id: 'user1' },
+      'DELETE',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('permite sempre GET/PATCH/PUT do proprio usuario em /usuarios/:id', async () => {
     repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
       permissoes: [],
       grupos: [],
@@ -118,7 +163,7 @@ describe('PermissionService', () => {
     expect(result).toBe(false);
   });
 
-  it('deduplica permissoes repetidas entre usuario e grupos pela rota', async () => {
+  it('soma permissões do próprio usuário e dos grupos para a mesma rota', async () => {
     repositoryMock.buscarPorIdComGrupos.mockResolvedValue({
       permissoes: [permissao({ buscar: true, enviar: false })],
       grupos: [{ permissoes: [permissao({ buscar: false, enviar: true })] }],
@@ -136,7 +181,7 @@ describe('PermissionService', () => {
     );
 
     expect(resultBuscar).toBe(true);
-    expect(resultEnviar).toBe(false);
+    expect(resultEnviar).toBe(true);
   });
 
   it('retorna false e não lança quando usuario não existe', async () => {
